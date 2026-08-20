@@ -8,47 +8,48 @@
 
 @layer base {
   :root {
-    --background: 140 15% 98.5%;
-    --foreground: 155 35% 10%;
+    /* 🌿 Botanical Sage & Warm Linen Light Mode (Natural & Eye-Friendly) */
+    --background: 140 20% 96.5%;        /* Soothing botanical porcelain #f3f7f4 */
+    --foreground: 155 38% 11%;         /* Deep forest pine #122419 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 155 35% 10%;
+    --card: 140 25% 99%;              /* Clean organic ivory #fbfdfb */
+    --card-foreground: 155 38% 11%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 155 35% 10%;
+    --popover: 140 25% 99%;
+    --popover-foreground: 155 38% 11%;
 
-    --primary: 152 76% 22%;
+    --primary: 152 78% 22%;            /* Deep emerald leaf #0c6437 */
     --primary-foreground: 0 0% 100%;
-    --primary-container: 152 48% 21%;
+    --primary-container: 152 50% 20%;
     --on-primary-container: 157 27% 64%;
 
-    --secondary: 140 10% 45%;
+    --secondary: 140 15% 42%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-container: 145 25% 92%;
-    --on-secondary-container: 152 35% 20%;
+    --secondary-container: 145 28% 90%; /* Soft sage tint #e0ede3 */
+    --on-secondary-container: 152 38% 18%;
 
-    --tertiary: 180 3% 18%;
+    --tertiary: 180 4% 18%;
     --on-tertiary: 0 0% 100%;
-    --tertiary-container: 180 2% 27%;
+    --tertiary-container: 180 3% 27%;
 
-    --surface-cream: 140 20% 97.5%;
-    --surface-dim: 140 10% 88%;
-    --surface-container: 145 15% 94%;
-    --surface-container-low: 140 15% 96%;
-    --surface-container-high: 145 12% 91%;
+    --surface-cream: 142 28% 94%;      /* Warm botanical matcha cream #e8f3ea */
+    --surface-dim: 140 14% 86%;
+    --surface-container: 145 22% 91%;  /* Soft sage surface #ddeadf */
+    --surface-container-low: 140 22% 95%;
+    --surface-container-high: 145 18% 88%;
 
-    --muted: 140 10% 93%;
-    --muted-foreground: 155 12% 42%;
+    --muted: 142 16% 91%;
+    --muted-foreground: 152 14% 40%;   /* Refined botanical slate */
 
-    --accent: 145 25% 92%;
-    --accent-foreground: 152 76% 22%;
+    --accent: 145 28% 90%;
+    --accent-foreground: 152 78% 22%;
 
     --destructive: 0 75% 42%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 145 12% 88%;
-    --input: 145 12% 88%;
-    --ring: 152 76% 22%;
+    --border: 145 18% 85%;             /* Gentle sage contour #d1e2d4 */
+    --input: 145 18% 85%;
+    --ring: 152 78% 22%;
 
     --radius: 1.15rem;
   }
