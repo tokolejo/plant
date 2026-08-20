@@ -272,17 +272,12 @@ export function Header() {
           ) : (
             <>
               <Link href="/auth/login" className="hidden sm:inline-flex">
-                <Button variant="ghost" size="sm" className="rounded-[20px] text-xs font-semibold h-9 px-3.5 hover:bg-surface-container">
+                <Button size="sm" className="rounded-[16px] bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary-fixed text-xs font-bold h-9 px-4 transition-all">
                   შესვლა
                 </Button>
               </Link>
-              <Link href="/auth/register" className="hidden sm:inline-flex">
-                <Button size="sm" className="rounded-[20px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-9 px-4 shadow-ambient">
-                  რეგისტრაცია
-                </Button>
-              </Link>
               <Link href="/dashboard/listings/new" className="hidden sm:inline-flex">
-                <Button variant="outline" size="sm" className="gap-1.5 rounded-[20px] text-xs font-bold h-9 px-3.5 border-primary/30 text-primary hover:bg-secondary-container">
+                <Button size="sm" className="gap-1.5 rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-9 px-4 shadow-ambient">
                   <PlusCircle className="w-4 h-4" />
                   {t("postListing")}
                 </Button>
