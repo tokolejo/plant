@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { 
   Sprout, 
+  Plus,
   PlusCircle, 
   Shuffle, 
   Store, 
@@ -154,28 +155,27 @@ export function Header() {
 
           {user ? (
             <>
-              {/* Post listing - desktop only */}
-              <Link href="/dashboard/listings/new" className="hidden sm:inline-flex">
-                <Button
-                  className="gap-2 rounded-[20px] bg-primary hover:bg-primary-container text-white font-bold text-xs h-9 px-4 shadow-ambient active:scale-95 transition-all"
-                >
-                  <PlusCircle className="w-4 h-4" />
-                  <span className="hidden md:inline">{t("postListing")}</span>
-                  <span className="md:hidden">+</span>
-                </Button>
+              {/* + Quick Post Button for Authenticated Users (Clean Icon-Only) */}
+              <Link
+                href="/dashboard/listings/new"
+                title="განცხადების დამატება"
+                className="hidden sm:flex items-center justify-center h-9 w-9 rounded-[14px] bg-primary hover:bg-primary-container text-white shadow-ambient transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+              >
+                <Plus className="w-4 h-4 text-white" />
               </Link>
 
-              {/* User Avatar + Dropdown */}
+              {/* User Profile Avatar & Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
+                  type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 rounded-[20px] bg-surface-container/60 hover:bg-surface-container pl-1.5 pr-2.5 py-1 transition-colors border border-border/40"
+                  className="flex items-center gap-2 p-1 sm:pr-2.5 rounded-[16px] border border-border/80 bg-card hover:bg-surface-container transition-all cursor-pointer"
                 >
                   {/* Avatar */}
                   <div className="relative">
-                    <div className="h-8 w-8 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center shadow-sm">
+                    <div className="h-7 w-7 rounded-full bg-primary text-white font-bold text-xs flex items-center justify-center overflow-hidden">
                       {profile?.avatar_url ? (
-                        <img src={profile.avatar_url} alt="avatar" className="w-full h-full rounded-full object-cover" />
+                        <img src={profile.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                       ) : (
                         avatarLetter
                       )}
@@ -270,19 +270,11 @@ export function Header() {
               </div>
             </>
           ) : (
-            <>
-              <Link href="/auth/login" className="hidden sm:inline-flex">
-                <Button size="sm" className="rounded-[16px] bg-primary/10 hover:bg-primary/20 text-primary dark:text-primary-fixed text-xs font-bold h-9 px-4 transition-all">
-                  შესვლა
-                </Button>
-              </Link>
-              <Link href="/dashboard/listings/new" className="hidden sm:inline-flex">
-                <Button size="sm" className="gap-1.5 rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-9 px-4 shadow-ambient">
-                  <PlusCircle className="w-4 h-4" />
-                  {t("postListing")}
-                </Button>
-              </Link>
-            </>
+            <Link href="/auth/login" className="hidden sm:inline-flex">
+              <Button size="sm" className="rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-9 px-4 shadow-ambient transition-all">
+                შესვლა
+              </Button>
+            </Link>
           )}
         </div>
       </div>
