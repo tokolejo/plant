@@ -29,18 +29,7 @@ ORDER BY listing_count DESC;
 GRANT SELECT ON public.category_counts TO anon, authenticated, service_role;
 
 -- ──────────────────────────────────────────────────────────────────────────────
--- 2. FIX: rls_disabled_in_public on spatial_ref_sys
--- ──────────────────────────────────────────────────────────────────────────────
-DO $$ BEGIN
-    IF EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'spatial_ref_sys') THEN
-        ALTER TABLE public.spatial_ref_sys ENABLE ROW LEVEL SECURITY;
-        DROP POLICY IF EXISTS "spatial_ref_sys is viewable by everyone" ON public.spatial_ref_sys;
-        CREATE POLICY "spatial_ref_sys is viewable by everyone" ON public.spatial_ref_sys FOR SELECT USING (true);
-    END IF;
-END $$;
-
--- ──────────────────────────────────────────────────────────────────────────────
--- 3. FIX: Storage broad SELECT policy on public bucket listing-images
+-- 2. Storage broad SELECT policy cleanup on public bucket listing-images
 -- (Public buckets already serve files directly via public URL without broad SELECT)
 -- ──────────────────────────────────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Listing images are publicly accessible" ON storage.objects;
