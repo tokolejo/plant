@@ -13,10 +13,11 @@ import {
   Award, 
   Sprout, 
   Sparkles,
-  Eye
+  ChevronRight,
+  Sparkle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice, getTierColor } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 
 export interface ListingCardProps {
   id: string;
@@ -35,6 +36,7 @@ export interface ListingCardProps {
   isPremium?: boolean;
   tradePreferences?: string[];
   viewsCount?: number;
+  variant?: "compact" | "list" | "normal";
   seller: {
     id: string;
     fullName: string;
@@ -61,201 +63,258 @@ export function ListingCard({
   isPremium,
   tradePreferences = [],
   viewsCount = 0,
+  variant = "compact",
   seller,
 }: ListingCardProps) {
   const primaryImage = images?.[0] || "https://images.unsplash.com/photo-1545241047-6083a3684587?w=600&auto=format&fit=crop&q=80";
   const isVip = isFeatured || isPremium;
+  const distLabel = distanceKm !== undefined 
+    ? (distanceKm < 1 ? `${Math.round(distanceKm * 1000)} მ` : `${distanceKm} კმ`) 
+    : undefined;
 
+  // ─── LIST VIEW VARIANT ───────────────────────────────────────────────────────
+  if (variant === "list") {
+    return (
+      <div className={`group relative flex flex-col sm:flex-row items-stretch overflow-hidden rounded-[20px] bg-card transition-all duration-200 ${
+        isVip 
+          ? "border-2 border-amber-500/70 dark:border-amber-400/60 shadow-md ring-2 ring-amber-500/15" 
+          : "border border-border/70 hover:border-primary/40 shadow-xs hover:shadow-ambient"
+      }`}>
+        {/* Left Image */}
+        <Link href={`/listings/${id}`} className="relative w-full sm:w-48 md:w-56 shrink-0 aspect-[4/3] sm:aspect-auto overflow-hidden bg-surface-container block">
+          <Image
+            src={primaryImage}
+            alt={title}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            sizes="(max-width: 640px) 100vw, 240px"
+          />
+
+          {/* Badges on Image */}
+          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 z-10">
+            {isVip && (
+              <span className="backdrop-blur-md bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[8px] shadow-sm">
+                ⭐ VIP
+              </span>
+            )}
+            <span className="backdrop-blur-md bg-background/90 text-foreground text-[10px] font-bold px-2 py-0.5 rounded-[8px] border border-border/40">
+              {itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
+            </span>
+          </div>
+
+          {images?.length > 1 && (
+            <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white">
+              📷 {images.length}
+            </div>
+          )}
+        </Link>
+
+        {/* Right Content */}
+        <div className="flex flex-1 flex-col p-3.5 sm:p-4 justify-between">
+          <div>
+            {/* Top row: price and city */}
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="flex items-baseline gap-2">
+                {transactionType === "TRADE" ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
+                    🔄 გაცვლა
+                  </span>
+                ) : (
+                  <div className="flex items-baseline gap-1">
+                    <span className={`text-lg sm:text-xl font-black tracking-tight ${
+                      isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-primary-fixed"
+                    }`}>
+                      {formatPrice(price)}
+                    </span>
+                    {transactionType === "NEGOTIABLE" && (
+                      <span className="text-[11px] font-semibold text-muted-foreground">(შეთანხმებით)</span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Location & Distance */}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground bg-surface-container/60 px-2 py-0.5 rounded-[6px] font-medium shrink-0">
+                <MapPin className="w-3 h-3 text-primary" />
+                <span>{city}</span>
+                {distLabel && (
+                  <span className="text-primary font-bold ml-1">📍 {distLabel}</span>
+                )}
+              </div>
+            </div>
+
+            {/* Title */}
+            <Link href={`/listings/${id}`} className="block group-hover:text-primary transition-colors">
+              <h3 className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug mb-2">
+                {title}
+              </h3>
+            </Link>
+
+            {/* Delivery Methods */}
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {deliveryMethods?.includes("PICKUP") && (
+                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-muted-foreground font-medium">
+                  📍 ადგილზე
+                </span>
+              )}
+              {deliveryMethods?.includes("COURIER") && (
+                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-secondary-container text-primary font-bold inline-flex items-center gap-1">
+                  <Truck className="w-3 h-3" /> კურიერი
+                </span>
+              )}
+              {deliveryMethods?.includes("MARSHRUTKA") && (
+                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-muted-foreground font-medium">
+                  🚐 სამარშრუტო
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Bottom Seller info & Action link */}
+          <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
+            <Link
+              href={seller.customSlug ? `/shops/${seller.customSlug}` : `/users/${seller.id}`}
+              className="flex items-center gap-2 group/seller overflow-hidden"
+            >
+              <div className="relative h-6 w-6 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px]">
+                {seller.avatarUrl ? (
+                  <Image src={seller.avatarUrl} alt={seller.fullName} fill className="rounded-full object-cover" />
+                ) : (
+                  seller.fullName.charAt(0).toUpperCase()
+                )}
+              </div>
+              <span className="truncate text-xs font-semibold text-foreground group-hover/seller:text-primary transition-colors">
+                {seller.fullName}
+              </span>
+              {seller.rating && (
+                <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5">
+                  ★ {seller.rating.toFixed(1)}
+                </span>
+              )}
+            </Link>
+
+            <Link
+              href={`/listings/${id}`}
+              className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-container px-2.5 py-1 rounded-[8px] bg-primary/10 hover:bg-primary/20 transition-colors"
+            >
+              <span>ნახვა</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ─── COMPACT GRID VARIANT (2x sleeker & information-rich) ───────────────────
   return (
-    <div className={`group relative flex flex-col overflow-hidden rounded-[20px] bg-card transition-all duration-300 ${
+    <div className={`group relative flex flex-col overflow-hidden rounded-[18px] bg-card transition-all duration-200 ${
       isVip 
-        ? "border-2 border-amber-500/60 dark:border-amber-400/50 shadow-md ring-2 ring-amber-500/15" 
-        : "border border-border/60 hover:border-primary/40 shadow-ambient hover:shadow-ambient-lg"
+        ? "border-2 border-amber-500/70 dark:border-amber-400/60 shadow-md shadow-amber-500/10 ring-2 ring-amber-500/15" 
+        : "border border-border/70 hover:border-primary/40 shadow-2xs hover:shadow-ambient"
     }`}>
-      {/* Image & Badges */}
+      {/* Top Image — Compact 4:3 */}
       <Link href={`/listings/${id}`} className="relative aspect-[4/3] w-full overflow-hidden bg-surface-container block">
         <Image
           src={primaryImage}
           alt={title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
 
         {/* Floating Top Badges */}
-        <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+        <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
           {isVip && (
-            <Badge
-              className="backdrop-blur-md bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[11px] px-2.5 py-0.5 shadow-sm rounded-[10px] flex items-center gap-1 border-0"
-            >
+            <span className="backdrop-blur-md bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[7px] shadow-sm flex items-center gap-0.5">
               ⭐ VIP
-            </Badge>
+            </span>
           )}
 
-          <Badge
-            className="backdrop-blur-md bg-background/90 text-foreground border border-border/50 shadow-sm font-semibold text-[11px] px-2.5 py-0.5 rounded-[10px]"
-          >
-            {itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
-          </Badge>
+          <span className="backdrop-blur-md bg-background/90 text-foreground border border-border/40 text-[10px] font-bold px-1.5 py-0.5 rounded-[7px]">
+            {itemType === "PLANT" ? "🌱" : "🪴"}
+          </span>
 
           {transactionType === "TRADE" && (
-            <Badge
-              className="backdrop-blur-md bg-amber-500/90 text-white font-bold text-[11px] px-2.5 py-0.5 shadow-sm flex items-center gap-1 rounded-[10px]"
-            >
-              <RefreshCw className="w-3 h-3" />
+            <span className="backdrop-blur-md bg-amber-500/95 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-[7px] flex items-center gap-0.5">
+              <RefreshCw className="w-2.5 h-2.5" />
               გაცვლა
-            </Badge>
-          )}
-
-          {distanceKm !== undefined && (
-            <Badge
-              className="backdrop-blur-md bg-primary/90 text-white font-bold text-[11px] px-2.5 py-0.5 shadow-sm flex items-center gap-1 rounded-[10px]"
-            >
-              📍 {distanceKm < 1 ? `${Math.round(distanceKm * 1000)} მ` : `${distanceKm} კმ`}
-            </Badge>
+            </span>
           )}
         </div>
 
-        {/* Photo Count Indicator */}
-        <div className="absolute bottom-3 right-3 z-10 rounded-[10px] bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-medium text-white">
-          📷 {images?.length || 1}
-        </div>
+        {/* Distance Badge on bottom left of photo */}
+        {distLabel && (
+          <div className="absolute bottom-2 left-2 z-10 rounded-[6px] bg-black/70 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5">
+            📍 {distLabel}
+          </div>
+        )}
+
+        {/* Photo Count */}
+        {images?.length > 1 && (
+          <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white">
+            📷 {images.length}
+          </div>
+        )}
       </Link>
 
-      {/* Content Section */}
-      <div className="flex flex-1 flex-col p-4 sm:p-5">
-        {/* Price & Location */}
-        <div className="flex items-baseline justify-between gap-2 mb-2">
-          <div className="flex items-baseline gap-1.5">
-            {transactionType === "TRADE" ? (
-              <span className="inline-flex items-center px-3 py-1 rounded-[10px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
-                🔄 გაცვლა
+      {/* Content Section — Compact & Tight */}
+      <div className="flex flex-1 flex-col p-2.5 sm:p-3">
+        {/* Price Row */}
+        <div className="flex items-baseline justify-between gap-1 mb-1">
+          {transactionType === "TRADE" ? (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
+              🔄 გაცვლა
+            </span>
+          ) : (
+            <div className="flex items-baseline gap-1">
+              <span className={`text-base sm:text-lg font-black tracking-tight ${
+                isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-primary-fixed"
+              }`}>
+                {formatPrice(price)}
               </span>
-            ) : (
-              <div className="flex items-baseline gap-1.5">
-                <span className="text-xl sm:text-2xl font-black tracking-tight text-primary dark:text-primary-fixed">
-                  {formatPrice(price)}
+              {transactionType === "NEGOTIABLE" && (
+                <span className="text-[10px] font-semibold text-muted-foreground">
+                  (შეთ.)
                 </span>
-                {transactionType === "NEGOTIABLE" && (
-                  <span className="text-xs font-semibold text-muted-foreground">
-                    (შეთანხმებით)
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          )}
 
-          <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 bg-surface-container px-2.5 py-1 rounded-[8px] font-semibold">
-            <MapPin className="w-3.5 h-3.5 text-primary" />
-            <span>{city}</span>
-            {distanceKm !== undefined && (
-              <span className="text-primary font-bold ml-0.5">
-                ({distanceKm < 1 ? `${Math.round(distanceKm * 1000)}მ` : `${distanceKm}კმ`})
-              </span>
-            )}
-          </div>
+          {/* City */}
+          <span className="text-[11px] text-muted-foreground truncate max-w-[90px] font-medium text-right">
+            {city}
+          </span>
         </div>
 
-        {/* Listing Title */}
-        <Link href={`/listings/${id}`} className="group-hover:text-primary transition-colors">
-          <h3 className="line-clamp-2 text-sm sm:text-[15px] font-bold text-foreground leading-snug mb-3">
+        {/* Title */}
+        <Link href={`/listings/${id}`} className="group-hover:text-primary transition-colors mb-2">
+          <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold text-foreground leading-snug min-h-[32px]">
             {title}
           </h3>
         </Link>
 
-        {/* Trade Preferences Tags if Trade */}
-        {transactionType === "TRADE" && tradePreferences.length > 0 && (
-          <div className="mb-3 rounded-[12px] bg-secondary-container/70 p-2.5 border border-border/40">
-            <p className="text-xs font-bold text-on-secondary-container mb-1.5 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-primary" /> იცვლება შემდეგში:
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {tradePreferences.slice(0, 3).map((tag, idx) => (
-                <span
-                  key={idx}
-                  className="rounded-[8px] bg-card px-2.5 py-1 text-xs font-bold text-foreground border border-border/60 shadow-2xs"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Delivery Badges */}
-        <div className="flex flex-wrap gap-1.5 mb-3.5">
-          {deliveryMethods?.includes("PICKUP") && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-[8px] bg-surface-container text-muted-foreground font-semibold">
-              📍 ადგილზე
-            </span>
-          )}
-          {deliveryMethods?.includes("COURIER") && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-[8px] bg-secondary-container text-primary font-bold">
-              <Truck className="w-3.5 h-3.5" /> კურიერი
-            </span>
-          )}
-          {deliveryMethods?.includes("MARSHRUTKA") && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-0.5 rounded-[8px] bg-surface-container text-foreground font-semibold">
-              🚐 სამარშრუტო
-            </span>
-          )}
-        </div>
-
-        {/* Divider */}
-        <div className="mt-auto border-t border-border/50 pt-3 flex items-center justify-between gap-2">
-          {/* Seller Profile & Badges */}
+        {/* Bottom Mini-Seller Row */}
+        <div className="mt-auto border-t border-border/40 pt-2 flex items-center justify-between gap-1 text-[11px]">
           <Link
             href={seller.customSlug ? `/shops/${seller.customSlug}` : `/users/${seller.id}`}
-            className="flex items-center gap-2.5 group/seller overflow-hidden"
+            className="flex items-center gap-1.5 truncate text-muted-foreground hover:text-primary transition-colors font-medium"
           >
-            <div className="relative h-7 w-7 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+            <div className="relative h-4.5 w-4.5 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px]">
               {seller.avatarUrl ? (
-                <Image
-                  src={seller.avatarUrl}
-                  alt={seller.fullName}
-                  fill
-                  className="rounded-full object-cover"
-                />
+                <Image src={seller.avatarUrl} alt={seller.fullName} fill className="rounded-full object-cover" />
               ) : (
                 seller.fullName.charAt(0).toUpperCase()
               )}
             </div>
-            <div className="flex flex-col min-w-0">
-              <span className="truncate text-xs font-semibold group-hover/seller:text-primary transition-colors">
-                {seller.fullName}
-              </span>
-              {seller.totalReviews > 0 ? (
-                <div className="flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-medium">
-                  <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                  <span>{seller.rating.toFixed(1)}</span>
-                  <span className="text-muted-foreground">({seller.totalReviews})</span>
-                </div>
-              ) : (
-                <span className="text-[10px] text-muted-foreground">ახალი გამყიდველი</span>
-              )}
-            </div>
+            <span className="truncate max-w-[100px]">{seller.fullName}</span>
           </Link>
 
-          {/* Gamified Badges */}
-          {seller.badges && seller.badges.length > 0 && (
-            <div className="flex items-center gap-1 shrink-0" title={seller.badges.join(", ")}>
-              {seller.badges.includes("Trusted Seller") && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary-container text-primary text-[10px]">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                </span>
-              )}
-              {seller.badges.includes("Green Thumb") && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-secondary-container text-primary text-[10px]">
-                  <Sprout className="w-3.5 h-3.5" />
-                </span>
-              )}
-              {seller.badges.includes("Swap Master") && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-amber-500/15 text-amber-600 text-[10px]">
-                  <Award className="w-3.5 h-3.5" />
-                </span>
-              )}
-            </div>
-          )}
+          {seller.rating ? (
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold shrink-0">
+              ★ {seller.rating.toFixed(1)}
+            </span>
+          ) : null}
         </div>
       </div>
     </div>
