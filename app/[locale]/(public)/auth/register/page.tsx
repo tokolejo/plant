@@ -6,6 +6,20 @@ import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
 export default function RegisterPage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-[50vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }
+    >
+      <RegisterContent />
+    </React.Suspense>
+  );
+}
+
+function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

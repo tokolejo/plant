@@ -1,6 +1,6 @@
 import { createClient } from "./client";
 
-export const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB (Compressed client-side to WebP)
 export const ACCEPTED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -16,12 +16,12 @@ export async function uploadListingImage(
 ): Promise<{ url: string | null; error: string | null }> {
   const supabase = createClient();
 
-  if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
-    return { url: null, error: "დაშვებულია მხოლოდ სურათები (JPG, PNG, WebP)" };
+  if (file.type && !ACCEPTED_IMAGE_TYPES.includes(file.type.toLowerCase())) {
+    return { url: null, error: "დაშვებულია მხოლოდ სურათები (JPG, PNG, WebP, HEIC)" };
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return { url: null, error: "ფოტოს ზომა არ უნდა აღემატებოდეს 5MB-ს" };
+    return { url: null, error: "ფოტოს ზომა არ უნდა აღემატებოდეს 15MB-ს" };
   }
 
   const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");

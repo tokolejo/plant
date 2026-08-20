@@ -23,75 +23,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
-// ──────────────────────────────────────────────────────────────────────────────
-// AI Plant Recognition Database (Client-side pattern matching)
-// In production: connect to Google Vision API or Plant.id API
-// ──────────────────────────────────────────────────────────────────────────────
-const PLANT_DATABASE: Record<string, {
-  titleKa: string; titleEn: string;
-  descKa: string; price: string; category: "PLANT" | "INVENTORY";
-}> = {
-  monstera: {
-    titleKa: "Monstera Deliciosa (ფოთლოვანი, ჯანსაღი)",
-    titleEn: "Monstera Deliciosa (Healthy, leafy)",
-    descKa: "ლამაზი ჯანსაღი Monstera Deliciosa. ფოთლები მჭიდრო, მსხვილი ნახვრეტებით. 20+ სმ ქოთანში, სუბსტრატი: კოკოს + პერლიტი. ბოლო 3 თვეა ჩემთან.",
-    price: "65",
-    category: "PLANT"
-  },
-  philodendron: {
-    titleKa: "Philodendron (ჰიბრიდი, ვარდისფერი ტარი)",
-    titleEn: "Philodendron (Hybrid, Pink Stem)",
-    descKa: "იშვიათი Philodendron ჰიბრიდი. ახალი ფოთოლი ამოდის. კარგი ფესვთა სისტემა. ქოთანი 15 სმ, ბოლო გადარგვა: 2 თვის წინ.",
-    price: "120",
-    category: "PLANT"
-  },
-  ficus: {
-    titleKa: "ფიკუსი Benjamina (ვარდი, ყავისფერი ღეღო)",
-    titleEn: "Ficus Benjamina (Weeping Fig)",
-    descKa: "კლასიკური Ficus Benjamina, სიმაღლე 80 სმ. კარგად ადაპტირებულია სახლის პირობებთან. ტოვებს ბევრ ფოთოლს გადაადგილებისას, მაგრამ სწრაფად ეგუება.",
-    price: "80",
-    category: "PLANT"
-  },
-  orchid: {
-    titleKa: "ორქიდეა Phalaenopsis (ყვითელი ყვავილებით)",
-    titleEn: "Phalaenopsis Orchid (Yellow flowers)",
-    descKa: "Phalaenopsis ორქიდეა ყვითელი ყვავილებით. ყვავის 2 კვირაა. ქოთანი 12 სმ, გამჭვირვალე. სუბსტრატი სპეციალური ორქიდეისთვის.",
-    price: "45",
-    category: "PLANT"
-  },
-  pothos: {
-    titleKa: "Pothos (Epipremnum) — ოქროსფერი ნაკადი",
-    titleEn: "Golden Pothos (Epipremnum aureum)",
-    descKa: "მარტივად მოვლის Pothos (Scindapsus). სწრაფად ხარობს, ნახევრად-ჩრდილშიც კარგად გრძნობს თავს. 5-6 ტოტი, ჰანგინგ ქოთნიდან.",
-    price: "25",
-    category: "PLANT"
-  },
-  cactus: {
-    titleKa: "კაქტუსი — კოლექციის ნიმუში (ეჩინოკაქტუსი)",
-    titleEn: "Cactus Collection Specimen (Echinocactus)",
-    descKa: "Echinocactus Grusonii — \"ოქროს ბალიში\". 15 სმ დიამეტრი. ზედმეტი მოვლა არ სჭირდება. ქოთანი ტეხილი კაქტუსის სუბსტრატი.",
-    price: "35",
-    category: "PLANT"
-  },
-  pot: {
-    titleKa: "კერამიკული ქოთანი — ხელნაკეთი (მინიმალისტი)",
-    titleEn: "Handmade Ceramic Pot — Minimalist Style",
-    descKa: "ქართული ოსტატის ხელნაკეთი კერამიკული ქოთანი. ზომა: 18 სმ, სადრენაჟო ხვრელით. ფერი: ნაცრისფერი-ბეჟი.",
-    price: "40",
-    category: "INVENTORY"
-  },
-};
+export interface GeminiPlantRecognitionResult {
+  nameKa: string;
+  nameEn: string;
+  titleKa: string;
+  titleEn: string;
+  descKa: string;
+  descEn: string;
+  estimatedPrice: number;
+  category: "PLANT" | "INVENTORY";
+  careLevel?: string;
+  light?: string;
+  watering?: string;
+  tags?: string[];
+}
 
-function detectPlantFromFilename(filename: string): string | null {
-  const lower = filename.toLowerCase();
-  if (lower.includes("monstera")) return "monstera";
-  if (lower.includes("philodendron") || lower.includes("philo")) return "philodendron";
-  if (lower.includes("ficus") || lower.includes("fig")) return "ficus";
-  if (lower.includes("orchid") || lower.includes("orqid") || lower.includes("orkid")) return "orchid";
-  if (lower.includes("pothos") || lower.includes("scindapsus")) return "pothos";
-  if (lower.includes("cactus") || lower.includes("kaktu") || lower.includes("kaktusi")) return "cactus";
-  if (lower.includes("pot") || lower.includes("qotani") || lower.includes("ceramic")) return "pot";
-  return null;
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
 }
 
 export default function CreateListingPage() {
@@ -121,9 +74,9 @@ export default function CreateListingPage() {
   const [uploadProgress, setUploadProgress] = React.useState<string>("");
   const [errorMsg, setErrorMsg] = React.useState("");
 
-  // AI Plant Recognition State
+  // Gemini AI Plant Recognition State
   const [aiDetecting, setAiDetecting] = React.useState(false);
-  const [aiDetected, setAiDetected] = React.useState<string | null>(null);
+  const [aiResult, setAiResult] = React.useState<GeminiPlantRecognitionResult | null>(null);
   const [aiApplied, setAiApplied] = React.useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,6 +89,16 @@ export default function CreateListingPage() {
       return;
     }
 
+    // Support high-resolution mobile camera uploads up to 15MB per file
+    const MAX_ALLOWED_MB = 15;
+    for (const file of newFiles) {
+      if (file.size > MAX_ALLOWED_MB * 1024 * 1024) {
+        setErrorMsg(`ფაილი "${file.name}" აღემატება ${MAX_ALLOWED_MB}MB-ს.`);
+        setTimeout(() => setErrorMsg(""), 4000);
+        return;
+      }
+    }
+
     const updatedFiles = [...selectedFiles, ...newFiles].slice(0, 5);
     setSelectedFiles(updatedFiles);
     const newPreviews = updatedFiles.map((file) => URL.createObjectURL(file));
@@ -143,7 +106,7 @@ export default function CreateListingPage() {
     setErrorMsg("");
     
     // Reset AI state when new photos are uploaded
-    setAiDetected(null);
+    setAiResult(null);
     setAiApplied(false);
   };
 
@@ -152,13 +115,13 @@ export default function CreateListingPage() {
     setSelectedFiles(updatedFiles);
     setPreviews(updatedFiles.map((file) => URL.createObjectURL(file)));
     if (updatedFiles.length === 0) {
-      setAiDetected(null);
+      setAiResult(null);
       setAiApplied(false);
     }
   };
 
   // ──────────────────────────────────────────────
-  // AI Auto-Fill: Triggered MANUALLY by the user
+  // Real Google Gemini AI Vision Plant Recognition
   // ──────────────────────────────────────────────
   const handleAiAutoFill = async () => {
     if (selectedFiles.length === 0) {
@@ -168,33 +131,54 @@ export default function CreateListingPage() {
     }
 
     setAiDetecting(true);
-    setAiDetected(null);
+    setAiResult(null);
+    setErrorMsg("");
 
-    // Simulate AI processing delay (replace with real Plant.id API call)
-    await new Promise((resolve) => setTimeout(resolve, 1800));
+    try {
+      const firstFile = selectedFiles[0];
+      const base64 = await fileToBase64(firstFile);
 
-    // Try to detect from filename (mock AI; replace with Vision API)
-    const firstFile = selectedFiles[0];
-    let detectedKey = detectPlantFromFilename(firstFile.name);
-    
-    // If no filename match, pick based on itemType as fallback
-    if (!detectedKey) {
-      detectedKey = itemType === "PLANT" ? "pothos" : "pot";
+      const res = await fetch("/api/ai/recognize-plant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mimeType: firstFile.type || "image/jpeg",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "მცენარის ამოცნობა ვერ მოხერხდა");
+      }
+
+      setAiResult(data.data);
+    } catch (err: any) {
+      console.error("AI Plant Recognition Error:", err);
+      setErrorMsg(`AI ამოცნობა: ${err.message || "სცადეთ ხელახლა"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setAiDetecting(false);
     }
-
-    setAiDetected(detectedKey);
-    setAiDetecting(false);
   };
 
   const handleApplyAiData = () => {
-    if (!aiDetected || !PLANT_DATABASE[aiDetected]) return;
-    const data = PLANT_DATABASE[aiDetected];
+    if (!aiResult) return;
     
-    setTitleKa(data.titleKa);
-    setTitleEn(data.titleEn);
-    setDescKa(data.descKa);
-    setPrice(data.price);
-    setItemType(data.category);
+    if (aiResult.titleKa) setTitleKa(aiResult.titleKa);
+    if (aiResult.titleEn) setTitleEn(aiResult.titleEn);
+    if (aiResult.descKa) setDescKa(aiResult.descKa);
+    if (aiResult.descEn) setDescEn(aiResult.descEn);
+    if (aiResult.estimatedPrice && (!price || price === "0")) {
+      setPrice(String(aiResult.estimatedPrice));
+    }
+    if (aiResult.category) {
+      setItemType(aiResult.category);
+    }
+    if (aiResult.tags && Array.isArray(aiResult.tags)) {
+      setTradeTags((prev) => Array.from(new Set([...prev, ...aiResult.tags!])));
+    }
     setAiApplied(true);
   };
 
@@ -391,11 +375,11 @@ export default function CreateListingPage() {
             )}
           </div>
           <p className="text-[11px] text-muted-foreground mt-2">
-            JPG, PNG, WebP · მაქს. 5MB თითო ფოტოზე
+            📸 მხარდაჭერილია მობილურით გადაღებული მაღალი ხარისხის ფოტოები (15MB-მდე). სისტემა ავტომატურად მოახდენს მათ WebP კომპრესიას.
           </p>
         </div>
 
-        {/* ✨ AI PLANT RECOGNITION PANEL */}
+        {/* ✨ REAL GOOGLE GEMINI AI PLANT RECOGNITION PANEL */}
         {selectedFiles.length > 0 && (
           <div className={`rounded-3xl border p-5 transition-all ${
             aiApplied 
@@ -412,15 +396,15 @@ export default function CreateListingPage() {
                 <div>
                   <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                     <Sparkles className="w-3.5 h-3.5 text-violet-500" />
-                    AI მცენარის ამოცნობა
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-violet-500/40 text-violet-600 dark:text-violet-400">
-                      BETA
+                    Gemini AI მცენარის ამოცნობა & ავტო-შევსება
+                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-violet-500/40 text-violet-600 dark:text-violet-400 font-extrabold">
+                      LIVE
                     </Badge>
                   </h3>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
                     {aiApplied 
                       ? "✅ ველები ავტომატურად შევსებულია — შეგიძლიათ დაარედაქტიროთ"
-                      : "დაჭირეთ ღილაკს — AI ამოიცნობს მცენარეს და შეავსებს ველებს"}
+                      : "დააჭირეთ ღილაკს — Google Gemini AI ამოიცნობს მცენარეს, შეადგენს სათაურს, აღწერას და ფასს"}
                   </p>
                 </div>
               </div>
@@ -431,7 +415,7 @@ export default function CreateListingPage() {
                   onClick={handleAiAutoFill}
                   disabled={aiDetecting}
                   size="sm"
-                  className="shrink-0 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs gap-2 shadow-md shadow-violet-600/20"
+                  className="shrink-0 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs gap-2 shadow-md shadow-violet-600/20 cursor-pointer"
                 >
                   {aiDetecting ? (
                     <>
@@ -448,36 +432,72 @@ export default function CreateListingPage() {
               )}
             </div>
 
-            {/* AI Detection Result */}
-            {aiDetected && !aiApplied && PLANT_DATABASE[aiDetected] && (
-              <div className="mt-4 rounded-2xl bg-card border border-violet-500/20 p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Leaf className="w-4 h-4 text-emerald-600" />
-                  <span className="text-xs font-bold text-foreground">
-                    ამოიცნო: <span className="text-violet-600 dark:text-violet-400">{PLANT_DATABASE[aiDetected].titleKa}</span>
-                  </span>
+            {/* Gemini Detection Result Card */}
+            {aiResult && !aiApplied && (
+              <div className="mt-4 rounded-2xl bg-card border border-violet-500/25 p-4 shadow-sm space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex items-center justify-between border-b border-border/50 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Leaf className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="text-xs font-black text-foreground">
+                      {aiResult.nameKa} <span className="text-muted-foreground font-normal">({aiResult.nameEn})</span>
+                    </span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] font-bold border-emerald-500/40 text-emerald-600">
+                    {aiResult.category === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
+                  </Badge>
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-[11px] text-muted-foreground mb-3">
-                  <div><span className="font-semibold text-foreground">ფასი:</span> {PLANT_DATABASE[aiDetected].price} ₾</div>
-                  <div><span className="font-semibold text-foreground">კატეგორია:</span> {PLANT_DATABASE[aiDetected].category === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}</div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-surface-container/60 p-2.5 rounded-xl">
+                  <div>
+                    <span className="text-muted-foreground block text-[10px]">სარეკომენდაციო ფასი</span>
+                    <strong className="text-foreground text-xs">{aiResult.estimatedPrice} ₾</strong>
+                  </div>
+                  {aiResult.careLevel && (
+                    <div>
+                      <span className="text-muted-foreground block text-[10px]">მოვლის სირთულე</span>
+                      <strong className="text-foreground text-xs">{aiResult.careLevel}</strong>
+                    </div>
+                  )}
+                  {aiResult.light && (
+                    <div>
+                      <span className="text-muted-foreground block text-[10px]">განათება</span>
+                      <strong className="text-foreground text-[11px] truncate block">{aiResult.light}</strong>
+                    </div>
+                  )}
+                  {aiResult.watering && (
+                    <div>
+                      <span className="text-muted-foreground block text-[10px]">მორწყვა</span>
+                      <strong className="text-foreground text-[11px] truncate block">{aiResult.watering}</strong>
+                    </div>
+                  )}
                 </div>
-                <p className="text-[10px] text-muted-foreground mb-3 line-clamp-2">{PLANT_DATABASE[aiDetected].descKa}</p>
-                <div className="flex gap-2">
+
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">შეთავაზებული სათაური:</span>
+                  <p className="text-xs font-bold text-foreground">{aiResult.titleKa}</p>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">შეთავაზებული აღწერა:</span>
+                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">{aiResult.descKa}</p>
+                </div>
+
+                <div className="flex gap-2 pt-1">
                   <Button
                     type="button"
                     onClick={handleApplyAiData}
                     size="sm"
-                    className="flex-1 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs gap-1.5"
+                    className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-sm cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    გამოიყენე ეს მონაცემები
+                    მონაცემების ჩასმა (Auto-fill)
                   </Button>
                   <Button
                     type="button"
-                    onClick={() => setAiDetected(null)}
+                    onClick={() => setAiResult(null)}
                     size="sm"
                     variant="outline"
-                    className="rounded-xl text-xs"
+                    className="rounded-xl text-xs cursor-pointer"
                   >
                     გაუქმება
                   </Button>
@@ -489,14 +509,14 @@ export default function CreateListingPage() {
               <div className="mt-3 flex items-center justify-between">
                 <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
                   <Check className="w-3.5 h-3.5" />
-                  ველები შევსებულია — შეამოწმეთ და დაარედაქტირეთ საჭიროების შემთხვევაში
+                  ველები წარმატებით შეივსო Gemini AI-ს მიერ — გადაამოწმეთ და დაარედაქტირეთ სურვილისამებრ
                 </span>
                 <button
                   type="button"
-                  onClick={() => { setAiApplied(false); setAiDetected(null); }}
-                  className="text-[11px] text-muted-foreground hover:text-foreground underline"
+                  onClick={() => { setAiApplied(false); setAiResult(null); }}
+                  className="text-[11px] text-muted-foreground hover:text-foreground underline cursor-pointer"
                 >
-                  გასუფთავება
+                  ხელახლა ამოცნობა
                 </button>
               </div>
             )}
