@@ -508,6 +508,55 @@ function ListingsCatalogContent() {
         )}
       </FilterSection>
 
+      {/* 💰 Price Range — Moved to Top under Search & Location */}
+      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true}>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2.5">
+            <div className="relative flex-1">
+              <input
+                type="number"
+                value={priceRange[0]}
+                onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                className="w-full pl-7 pr-2 py-2 rounded-[10px] border border-input bg-background text-xs sm:text-sm font-bold text-center"
+                min={0}
+                max={priceRange[1]}
+              />
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">დან</span>
+            </div>
+            <span className="text-muted-foreground font-bold text-xs">—</span>
+            <div className="relative flex-1">
+              <input
+                type="number"
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                className="w-full pl-7 pr-2 py-2 rounded-[10px] border border-input bg-background text-xs sm:text-sm font-bold text-center"
+                min={priceRange[0]}
+                max={1000}
+              />
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">მდე</span>
+            </div>
+            <span className="text-sm font-black text-primary">₾</span>
+          </div>
+
+          {/* Quick Price Chips */}
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {[[0, 30], [0, 100], [0, 200], [0, 500]].map(([min, max]) => (
+              <button
+                key={`${min}-${max}`}
+                onClick={() => setPriceRange([min, max])}
+                className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-all ${
+                  priceRange[0] === min && priceRange[1] === max
+                    ? "bg-primary text-white shadow-2xs"
+                    : "bg-secondary-container text-foreground hover:bg-secondary-container/80"
+                }`}
+              >
+                {min === 0 ? `≤ ${max} ₾` : `${min}–${max} ₾`}
+              </button>
+            ))}
+          </div>
+        </div>
+      </FilterSection>
+
       {/* Plant Categories */}
       <FilterSection title={isKa ? "მცენარის კატეგორიები" : "Plant Categories"}>
         <div className="space-y-2">
@@ -642,55 +691,6 @@ function ListingsCatalogContent() {
               </button>
             );
           })}
-        </div>
-      </FilterSection>
-
-      {/* Price Range */}
-      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={false}>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="relative flex-1">
-              <input
-                type="number"
-                value={priceRange[0]}
-                onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                className="w-full px-3 py-2 rounded-[10px] border border-input bg-background text-sm font-bold text-center"
-                min={0}
-                max={priceRange[1]}
-              />
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">დან</span>
-            </div>
-            <span className="text-muted-foreground font-bold">—</span>
-            <div className="relative flex-1">
-              <input
-                type="number"
-                value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                className="w-full px-3 py-2 rounded-[10px] border border-input bg-background text-sm font-bold text-center"
-                min={priceRange[0]}
-                max={1000}
-              />
-              <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">მდე</span>
-            </div>
-            <span className="text-sm font-black text-primary">₾</span>
-          </div>
-
-          {/* Quick Price Chips */}
-          <div className="flex flex-wrap gap-1.5 pt-1">
-            {[[0, 30], [0, 100], [0, 200], [0, 500]].map(([min, max]) => (
-              <button
-                key={`${min}-${max}`}
-                onClick={() => setPriceRange([min, max])}
-                className={`px-3 py-1 rounded-[8px] text-xs font-bold transition-all ${
-                  priceRange[0] === min && priceRange[1] === max
-                    ? "bg-primary text-white shadow-xs"
-                    : "bg-secondary-container text-foreground hover:bg-secondary-container/80"
-                }`}
-              >
-                {min === 0 ? `≤ ${max} ₾` : `${min}–${max} ₾`}
-              </button>
-            ))}
-          </div>
         </div>
       </FilterSection>
     </div>
