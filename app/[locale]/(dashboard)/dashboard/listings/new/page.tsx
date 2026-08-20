@@ -101,7 +101,7 @@ export default function CreateListingPage() {
 
   // Form State
   const [itemType, setItemType] = React.useState<"PLANT" | "INVENTORY">("PLANT");
-  const [transactionType, setTransactionType] = React.useState<"FIXED" | "NEGOTIABLE" | "TRADE">("FIXED");
+  const [transactionType, setTransactionType] = React.useState<"FIXED" | "NEGOTIABLE" | "TRADE" | "GIFT">("FIXED");
   const [titleKa, setTitleKa] = React.useState("");
   const [titleEn, setTitleEn] = React.useState("");
   const [descKa, setDescKa] = React.useState("");
@@ -267,7 +267,7 @@ export default function CreateListingPage() {
         description_en: descEn.trim(),
         item_type: itemType,
         status: "ACTIVE",
-        price: transactionType === "TRADE" ? 0 : parseFloat(price || "0"),
+        price: (transactionType === "TRADE" || transactionType === "GIFT") ? 0 : parseFloat(price || "0"),
         transaction_type: transactionType,
         delivery_methods: deliveryMethods,
         images: uploadedUrls,
@@ -546,11 +546,12 @@ export default function CreateListingPage() {
             4. გარიგების ტიპი & ფასი
           </label>
 
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             {[
               { id: "FIXED", label: "ფიქსირებული", emoji: "💰" },
               { id: "NEGOTIABLE", label: "შეთანხმებით", emoji: "🤝" },
               { id: "TRADE", label: "გაცვლა", emoji: "🔄" },
+              { id: "GIFT", label: "გაჩუქება", emoji: "🎁" },
             ].map((t) => (
               <button
                 key={t.id}
@@ -558,17 +559,25 @@ export default function CreateListingPage() {
                 onClick={() => setTransactionType(t.id as any)}
                 className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
                   transactionType === t.id
-                    ? "bg-emerald-600 text-white shadow-md"
+                    ? "bg-primary text-white shadow-md"
                     : "border border-border/80 text-muted-foreground hover:bg-muted"
                 }`}
               >
-                <span>{t.emoji}</span>
+                <span className="text-base">{t.emoji}</span>
                 <span>{t.label}</span>
               </button>
             ))}
           </div>
 
-          {transactionType !== "TRADE" ? (
+          {transactionType === "GIFT" ? (
+            <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 flex items-center gap-2.5">
+              <span className="text-xl">🎁</span>
+              <div>
+                <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">უფასო საჩუქარი (Giveaway)</p>
+                <p className="text-[11px] text-muted-foreground">მცენარე ან კალამი გაჩუქდება უფასოდ, ფასი დაყენებულია 0 ₾-ზე.</p>
+              </div>
+            </div>
+          ) : transactionType !== "TRADE" ? (
             <div>
               <span className="text-xs font-bold text-foreground mb-1 block">ფასი (₾ ლარი)</span>
               <Input

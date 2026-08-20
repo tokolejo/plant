@@ -81,7 +81,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/listings?type=PLANT", label: navT("plants"), icon: Sprout, match: "/listings" },
-    { href: "/map", label: "რუკა", icon: MapPin, match: "/map" },
+    { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/listings?type=INVENTORY", label: navT("inventory"), icon: Layers },
     { href: "/iso", label: navT("iso"), icon: Shuffle, badge: "ISO" },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles },
@@ -105,13 +105,13 @@ export function Header() {
   const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/85 backdrop-blur-md transition-colors">
-      <div className="container mx-auto flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
+    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-colors">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-3 sm:px-6">
 
         {/* ═══ Left: Brand + Nav ═══ */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3 xl:gap-6 min-w-0">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group shrink-0">
+          <Link href="/" className="flex items-center gap-2 group shrink-0">
             <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-primary text-white shadow-ambient group-hover:scale-105 transition-all">
               <Sprout className="h-5 w-5 text-primary-fixed" />
             </div>
@@ -125,24 +125,24 @@ export function Header() {
             </div>
           </Link>
 
-          {/* Desktop Nav */}
-          <nav className="hidden lg:flex items-center gap-1">
+          {/* Desktop Nav — Clean, Non-Wrapping & Compact */}
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 whitespace-nowrap">
             {navLinks.map(({ href, label, icon: Icon, match, badge }) => {
               const active = pathname === (match || href.split("?")[0]);
               return (
                 <Link
                   key={href}
                   href={href}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-[12px] text-xs font-semibold transition-all duration-150 ${
+                  className={`flex items-center gap-1.5 px-2.5 xl:px-3 py-1.5 rounded-[12px] text-xs font-semibold whitespace-nowrap shrink-0 transition-all duration-150 ${
                     active
-                      ? "text-primary dark:text-primary-fixed bg-secondary-container/80 font-bold"
+                      ? "text-primary dark:text-emerald-400 bg-secondary-container/80 font-bold"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span>{label}</span>
                   {badge && (
-                    <span className="inline-flex px-1.5 py-0.5 rounded-full text-[9px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 leading-none">
+                    <span className="inline-flex px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 leading-none">
                       {badge}
                     </span>
                   )}
@@ -153,7 +153,7 @@ export function Header() {
         </div>
 
         {/* ═══ Right: Actions ═══ */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           <LanguageSwitcher />
           <ThemeToggle />
 

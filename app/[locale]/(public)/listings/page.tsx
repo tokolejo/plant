@@ -585,6 +585,7 @@ function ListingsCatalogContent() {
             { id: "FIXED", label: isKa ? "💰 ფიქსირებული ფასი" : "💰 Fixed Price", desc: isKa ? "პირდაპირი ყიდვა" : "Buy instantly" },
             { id: "NEGOTIABLE", label: isKa ? "🤝 ფასი შეთანხმებით" : "🤝 Negotiable", desc: isKa ? "მოლაპარაკება ფასზე" : "Open to offers" },
             { id: "TRADE", label: isKa ? "🔄 მცენარის გაცვლა" : "🔄 Trade Only", desc: isKa ? "გაცვლა სხვა მცენარეში" : "Swap for other plants" },
+            { id: "GIFT", label: isKa ? "🎁 გაჩუქება (უფასოდ)" : "🎁 Free Giveaway", desc: isKa ? "საჩუქარი მემცენარეებისთვის" : "Free plant to community" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
             const count = allListings.filter((l) => l.transactionType === t.id).length;

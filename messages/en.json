@@ -13,15 +13,16 @@
     "register": "Sign Up",
     "logout": "Sign Out",
     "dashboard": "Dashboard",
-    "postListing": "+ Post Listing"
+    "postListing": "+ Add Listing"
   },
   "Navigation": {
     "home": "Home",
     "plants": "Plants",
-    "inventory": "Inventory & Tools",
-    "iso": "Plant Matchmaking (ISO)",
-    "shops": "Verified Shops",
-    "pricing": "Pricing & Tiers"
+    "map": "Map",
+    "inventory": "Inventory",
+    "iso": "Find Plants",
+    "shops": "Shops",
+    "pricing": "Pricing"
   },
   "Listing": {
     "type": "Type",
@@ -31,6 +32,7 @@
     "fixed": "Fixed Price",
     "negotiable": "Negotiable",
     "trade": "Trade / Swap",
+    "gift": "Free Gift / Giveaway",
     "delivery": "Delivery Options",
     "pickup": "Pick-up",
     "courier": "Courier Delivery",

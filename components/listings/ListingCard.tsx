@@ -14,9 +14,8 @@ import {
   Sprout, 
   Sparkles,
   ChevronRight,
-  Sparkle
+  Gift
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 
 export interface ListingCardProps {
@@ -25,7 +24,7 @@ export interface ListingCardProps {
   price: number;
   itemType: "PLANT" | "INVENTORY";
   plantCategory?: string;
-  transactionType: "FIXED" | "NEGOTIABLE" | "TRADE";
+  transactionType: "FIXED" | "NEGOTIABLE" | "TRADE" | "GIFT";
   deliveryMethods: ("PICKUP" | "COURIER" | "MARSHRUTKA")[];
   images: string[];
   city: string;
@@ -97,6 +96,11 @@ export function ListingCard({
                 ⭐ VIP
               </span>
             )}
+            {transactionType === "GIFT" && (
+              <span className="backdrop-blur-md bg-emerald-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[8px] shadow-sm flex items-center gap-1">
+                <Gift className="w-3 h-3" /> გაჩუქება
+              </span>
+            )}
             <span className="backdrop-blur-md bg-background/90 text-foreground text-[10px] font-bold px-2 py-0.5 rounded-[8px] border border-border/40">
               {itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
             </span>
@@ -115,14 +119,18 @@ export function ListingCard({
             {/* Top row: price and city */}
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex items-baseline gap-2">
-                {transactionType === "TRADE" ? (
+                {transactionType === "GIFT" ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
+                    🎁 უფასოდ / საჩუქარი
+                  </span>
+                ) : transactionType === "TRADE" ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
                     🔄 გაცვლა
                   </span>
                 ) : (
                   <div className="flex items-baseline gap-1">
                     <span className={`text-lg sm:text-xl font-black tracking-tight ${
-                      isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-primary-fixed"
+                      isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-emerald-400"
                     }`}>
                       {formatPrice(price)}
                     </span>
@@ -231,6 +239,13 @@ export function ListingCard({
             </span>
           )}
 
+          {transactionType === "GIFT" && (
+            <span className="backdrop-blur-md bg-emerald-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded-[7px] shadow-sm flex items-center gap-0.5">
+              <Gift className="w-2.5 h-2.5" />
+              საჩუქარი
+            </span>
+          )}
+
           <span className="backdrop-blur-md bg-background/90 text-foreground border border-border/40 text-[10px] font-bold px-1.5 py-0.5 rounded-[7px]">
             {itemType === "PLANT" ? "🌱" : "🪴"}
           </span>
@@ -262,14 +277,18 @@ export function ListingCard({
       <div className="flex flex-1 flex-col p-2.5 sm:p-3">
         {/* Price Row */}
         <div className="flex items-baseline justify-between gap-1 mb-1">
-          {transactionType === "TRADE" ? (
+          {transactionType === "GIFT" ? (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
+              🎁 უფასოდ
+            </span>
+          ) : transactionType === "TRADE" ? (
             <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
               🔄 გაცვლა
             </span>
           ) : (
             <div className="flex items-baseline gap-1">
               <span className={`text-base sm:text-lg font-black tracking-tight ${
-                isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-primary-fixed"
+                isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-emerald-400"
               }`}>
                 {formatPrice(price)}
               </span>
