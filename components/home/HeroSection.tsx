@@ -69,26 +69,26 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative py-8 sm:py-12 lg:py-16 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
+    <section className="relative py-6 sm:py-8 lg:py-10 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-        {/* Hero Heading + Subtitle — Grand & Perfectly Proportioned */}
-        <div className="text-center mb-6 sm:mb-8 max-w-4xl mx-auto">
+        {/* Hero Heading + Subtitle — Compact, Elegant & Refined */}
+        <div className="text-center mb-5 sm:mb-6 max-w-3xl mx-auto">
           {/* Botanical Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary-container/80 px-4 py-1 text-xs font-bold text-primary dark:text-primary-fixed mb-4 shadow-2xs">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-secondary-container/80 px-3 py-0.5 text-[11px] font-bold text-primary dark:text-primary-fixed mb-2.5 shadow-2xs">
+            <Sparkles className="w-3 h-3 text-primary" />
             <span>ბოტანიკური მარკეტპლეისი & გაცვლის პლატფორმა</span>
           </div>
 
-          {/* Grand & Clean Title */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-black tracking-tight text-foreground leading-[1.18] mb-3">
+          {/* Compact Refined Title */}
+          <h1 className="text-xl sm:text-2xl lg:text-[26px] font-extrabold tracking-tight text-foreground leading-snug mb-1.5">
             იყიდე, გაყიდე &{" "}
             <span className="text-primary dark:text-emerald-400">
               გაცვალე მცენარეები
             </span>
           </h1>
 
-          <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xs sm:text-[13px] text-muted-foreground font-medium leading-relaxed max-w-xl mx-auto">
             იშვიათი მონსტერები, ოთახის ყვავილები, კერამიკული ქოთნები, სუბსტრატები და უფასო საჩუქრები მთელი საქართველოს მასშტაბით.
           </p>
         </div>
