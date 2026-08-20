@@ -368,43 +368,75 @@ export default function BotanicalMap() {
 
       filteredListings.forEach((item) => {
         const isVip = item.isPremium || item.isFeatured;
-        const priceLabel = item.transactionType === "TRADE" ? "🔄 გაცვლა" : formatPrice(item.price);
+        const isGift = item.transactionType === "GIFT" || (item.price === 0 && item.transactionType !== "TRADE");
+        const isTrade = item.transactionType === "TRADE";
+
+        let pinBg = 'border-gray-200 bg-white text-gray-900 group-hover:border-[#003629] group-hover:bg-[#003629] group-hover:text-white';
+        let pinArrow = 'bg-white border-r border-b border-gray-200 group-hover:bg-[#003629] group-hover:border-[#003629]';
+        let pinEmoji = '🌱';
+        let priceLabel = formatPrice(item.price);
+
+        if (isVip) {
+          pinBg = 'bg-amber-600 text-white border-amber-300 font-bold scale-105 ring-2 ring-amber-500/30';
+          pinArrow = 'bg-amber-600 border-r border-b border-amber-300';
+          pinEmoji = '⭐';
+          priceLabel = isGift ? 'საჩუქარი' : isTrade ? 'გაცვლა' : formatPrice(item.price);
+        } else if (isGift) {
+          pinBg = 'bg-emerald-600 text-white border-emerald-300 font-black ring-2 ring-emerald-500/30';
+          pinArrow = 'bg-emerald-600 border-r border-b border-emerald-300';
+          pinEmoji = '🎁';
+          priceLabel = 'საჩუქარი';
+        } else if (isTrade) {
+          pinBg = 'bg-amber-500 text-white border-amber-300 font-bold';
+          pinArrow = 'bg-amber-500 border-r border-b border-amber-300';
+          pinEmoji = '🔄';
+          priceLabel = 'გაცვლა';
+        }
+
         const distLabel = item.distanceKm < 1 ? `${Math.round(item.distanceKm * 1000)} მ` : `${item.distanceKm} კმ`;
 
         const iconHtml = `
           <div class="relative flex flex-col items-center group cursor-pointer">
-            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-[16px] shadow-lg border transition-all duration-200 ${
-              isVip
-                ? 'bg-amber-600 text-white border-amber-300 font-bold scale-105 ring-2 ring-amber-500/30'
-                : 'border-gray-200 bg-white text-gray-900 group-hover:border-[#003629] group-hover:bg-[#003629] group-hover:text-white'
-            }">
-              <span class="text-sm">${isVip ? '⭐' : '🌱'}</span>
+            <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-[16px] shadow-lg border transition-all duration-200 ${pinBg}">
+              <span class="text-sm">${pinEmoji}</span>
               <span class="text-xs font-black">${priceLabel}</span>
             </div>
-            <div class="w-2.5 h-2.5 rotate-45 -mt-1.5 ${
-              isVip
-                ? 'bg-amber-600 border-r border-b border-amber-300'
-                : 'bg-white border-r border-b border-gray-200 group-hover:bg-[#003629] group-hover:border-[#003629]'
-            } transition-colors"></div>
+            <div class="w-2.5 h-2.5 rotate-45 -mt-1.5 ${pinArrow} transition-colors"></div>
           </div>
         `;
 
         const customIcon = L.divIcon({
           html: iconHtml,
           className: "custom-plant-pin",
-          iconSize: [80, 40],
-          iconAnchor: [40, 36],
+          iconSize: [84, 40],
+          iconAnchor: [42, 36],
         });
 
         const marker = L.marker(item.coords, { icon: customIcon }).addTo(map);
 
         // Refined, Beautiful Popup
+        const popupPriceBadge = isVip
+          ? 'bg-amber-600'
+          : isGift
+          ? 'bg-emerald-600'
+          : isTrade
+          ? 'bg-amber-500'
+          : '';
+
+        const popupPriceText = isVip
+          ? `⭐ VIP ${isGift ? '🎁 საჩუქარი' : priceLabel}`
+          : isGift
+          ? '🎁 უფასო საჩუქარი'
+          : isTrade
+          ? '🔄 გაცვლა'
+          : priceLabel;
+
         const popupContent = `
           <a href="/ka/listings/${item.id}" class="custom-popup-card">
             <div class="custom-popup-image-wrap">
               <img src="${item.images[0]}" alt="${item.title}" class="custom-popup-img" />
-              <span class="custom-popup-price-badge ${isVip ? 'bg-amber-600' : ''}">
-                ${isVip ? '⭐ VIP ' : ''}${priceLabel}
+              <span class="custom-popup-price-badge ${popupPriceBadge}">
+                ${popupPriceText}
               </span>
               <span class="custom-popup-dist-badge">
                 📍 ${distLabel}
@@ -624,6 +656,7 @@ export default function BotanicalMap() {
                   { id: "FIXED", label: isKa ? "💰 ფიქსირებული ფასი" : "💰 Fixed Price" },
                   { id: "NEGOTIABLE", label: isKa ? "🤝 ფასი შეთანხმებით" : "🤝 Negotiable" },
                   { id: "TRADE", label: isKa ? "🔄 მცენარის გაცვლა" : "🔄 Trade Only" },
+                  { id: "GIFT", label: isKa ? "🎁 გაჩუქება (უფასოდ)" : "🎁 Free Giveaway" },
                 ].map((t) => {
                   const active = selectedTrans.includes(t.id);
                   const count = SAMPLE_LISTINGS.filter((l) => l.transactionType === t.id).length;
