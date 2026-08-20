@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+<title>Add Listing - PlantSale.Ge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "on-background": "#1c1b1b",
+                        "secondary": "#645d56",
+                        "on-secondary-fixed-variant": "#4c463f",
+                        "primary-container": "#1b4d3e",
+                        "primary-fixed": "#baeed9",
+                        "tertiary-fixed": "#e2e2e2",
+                        "primary-fixed-dim": "#9ed1bd",
+                        "surface-tint": "#376757",
+                        "on-primary-fixed": "#002117",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ebe1d8",
+                        "on-error-container": "#93000a",
+                        "background": "#fcf9f8",
+                        "outline": "#707974",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-bright": "#fcf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#6a635c",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-container-low": "#f6f3f2",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#ebe1d8",
+                        "surface-container": "#f0eded",
+                        "inverse-primary": "#9ed1bd",
+                        "on-primary-container": "#8abda9",
+                        "surface": "#fcf9f8",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-container": "#434545",
+                        "tertiary": "#2d2f2f",
+                        "surface-container-high": "#eae7e7",
+                        "outline-variant": "#c0c9c3",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "on-surface-variant": "#404945",
+                        "on-surface": "#1c1b1b",
+                        "primary": "#003629",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#1f1b16",
+                        "on-tertiary-container": "#b1b2b2",
+                        "on-primary-fixed-variant": "#1d4f40",
+                        "inverse-on-surface": "#f3f0ef",
+                        "secondary-fixed-dim": "#cec5bc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "80px",
+                        "gutter": "16px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "20px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter", "sans-serif"],
+                        "body-lg": ["Inter", "sans-serif"],
+                        "headline-lg-mobile": ["Inter", "sans-serif"],
+                        "headline-lg": ["Inter", "sans-serif"],
+                        "display-lg": ["Inter", "sans-serif"],
+                        "body-sm": ["Inter", "sans-serif"],
+                        "title-md": ["Inter", "sans-serif"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glow-effect {
+            box-shadow: 0 0 40px rgba(0, 54, 41, 0.15);
+        }
+        .upload-area:hover .glow-effect {
+            box-shadow: 0 0 60px rgba(0, 54, 41, 0.25);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex flex-col justify-center items-center overflow-hidden">
+<!-- Background Image / Atmosphere -->
+<div class="fixed inset-0 z-0 pointer-events-none w-full h-full opacity-30 mix-blend-multiply" data-alt="A minimalist, out-of-focus background depicting lush, premium Monstera and Ficus plants bathed in soft, diffused morning sunlight. The aesthetic is organic, calm, and high-end botanical. Light mode colors with soft greens and neutral warm whites. Depth of field is extremely shallow." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDNFyyhd87sVAph6_ZBhG_efH9nG587_jjgsbCBWGTTvl6YnLgnTP5ZO4bJoqJPfBglvMx6jjVKlQyxLRow4S2kogEjO3Rn9h5Oc2zvl4wBFRdcrkcJyZD3cbjUjtDamqOh54VcvNRjMLogMxACMrzj5GDWSD160lt8PohX2viyHGx6cHkM2lcB8xycMCWAgSpPxMdfttU_P7hfeqthWdPg5KncHLgMBLni6fdSIiwEOFHJfsv3uHoU')">
+</div>
+<!-- Modal Overlay Container -->
+<div class="relative z-10 w-full max-w-lg mx-auto p-margin-mobile md:p-margin-desktop flex flex-col items-center animate-[fadeIn_0.3s_ease-out]">
+<!-- Minimalist Exit Button -->
+<button aria-label="Close" class="absolute top-margin-mobile right-margin-mobile md:top-margin-desktop md:right-margin-desktop w-12 h-12 flex items-center justify-center rounded-full bg-surface-container-lowest/80 backdrop-blur-md text-on-surface hover:bg-surface-container-high transition-colors shadow-[0px_4px_12px_rgba(0,0,0,0.02)] z-20">
+<span class="material-symbols-outlined text-[24px]">close</span>
+</button>
+<div class="w-full bg-surface-container-lowest/90 backdrop-blur-2xl rounded-[32px] p-8 md:p-12 shadow-[0px_20px_60px_rgba(0,0,0,0.06)] flex flex-col items-center text-center">
+<div class="mb-8">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary tracking-tight mb-2">Add New Plant</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant">Snap a photo to let our AI identify your botanical.</p>
+</div>
+<!-- Large Glowing Upload Area -->
+<button class="upload-area group relative w-full aspect-square max-w-[280px] rounded-[32px] bg-secondary-container/30 border-2 border-dashed border-primary-container/20 flex flex-col items-center justify-center mb-10 transition-all duration-300 hover:border-primary/40 hover:bg-secondary-container/50 focus:outline-none focus:ring-4 focus:ring-primary/20">
+<div class="glow-effect absolute inset-0 rounded-[32px] transition-shadow duration-300 pointer-events-none"></div>
+<div class="relative z-10 flex flex-col items-center text-primary">
+<span class="material-symbols-outlined text-[64px] mb-4 font-light transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-2" style="font-variation-settings: 'wght' 200">add_a_photo</span>
+<span class="font-title-md text-title-md">Tap to Upload</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant mt-2">or drag and drop</span>
+</div>
+</button>
+<!-- Actions -->
+<div class="w-full flex flex-col items-center gap-4">
+<button class="w-full py-4 px-6 bg-primary text-on-primary rounded-[20px] font-title-md text-title-md flex items-center justify-center gap-2 hover:bg-primary-container hover:text-on-primary-container transition-colors shadow-lg active:scale-[0.98]">
+<span class="text-2xl">🪄</span>
+                    AI Auto-Detect
+                </button>
+<button class="mt-4 text-on-surface-variant hover:text-primary font-body-sm text-body-sm transition-colors underline-offset-4 hover:underline">
+                    Enter details manually
+                </button>
+</div>
+</div>
+</div>
+<!-- No Shared Navigation Components required as this is a linear/transactional flow (Modal Wizard) -->
+<style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</body></html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PlantSale.Ge - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container-forest": "#1b4d3e",
+                        "primary-fixed-dim": "#a0d1be",
+                        "surface-bright": "#fdf8f8",
+                        "tertiary-container": "#434545",
+                        "surface-variant": "#e6e1e1",
+                        "inverse-surface": "#313030",
+                        "error-soft": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#ece7e7",
+                        "error": "#ba1a1a",
+                        "outline": "#707974",
+                        "secondary-container-sand": "#ebe1d8",
+                        "on-secondary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#396758",
+                        "on-secondary-container": "#69615a",
+                        "inverse-on-surface": "#f4f0ef",
+                        "on-surface": "#1c1b1b",
+                        "on-surface-variant": "#404945",
+                        "primary": "#003629",
+                        "surface-container-highest": "#e6e1e1",
+                        "surface-container": "#f1edec",
+                        "surface-dim": "#ddd9d8",
+                        "secondary-container": "#e8ded5",
+                        "on-primary-fixed-variant": "#204f40",
+                        "secondary": "#645d56",
+                        "on-secondary-fixed-variant": "#4c463f",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ebe1d8",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-tertiary-container": "#b1b2b2",
+                        "inverse-primary": "#a0d1be",
+                        "tertiary": "#2d2f2f",
+                        "secondary-fixed-dim": "#cfc5bc",
+                        "on-background": "#1c1b1b",
+                        "primary-container": "#1d4d3f",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "background": "#fdf8f8",
+                        "primary-fixed": "#bbedda",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-cream": "#fcf9f8",
+                        "accent-star": "#376757",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#1f1b15",
+                        "on-primary-fixed": "#002118",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface-container-low": "#f7f2f2",
+                        "outline-variant": "#c0c9c3",
+                        "on-primary-container": "#8cbcaa",
+                        "surface": "#fdf8f8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "section-gap": "80px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "title-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .masonry-grid {
+            column-count: 1;
+            column-gap: 16px;
+        }
+        @media (min-width: 640px) { .masonry-grid { column-count: 2; } }
+        @media (min-width: 768px) { .masonry-grid { column-count: 3; } }
+        @media (min-width: 1024px) { .masonry-grid { column-count: 4; } }
+        @media (min-width: 1280px) { .masonry-grid { column-count: 5; } }
+        
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 16px;
+        }
+        
+        .ambient-shadow {
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body-lg text-body-lg min-h-screen">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 flex justify-between items-center px-margin-desktop w-full h-20 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-8">
+<span class="font-headline-lg text-headline-lg font-bold text-primary-container-forest dark:text-primary-fixed-dim">PlantSale.Ge</span>
+<div class="hidden md:flex relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary">search</span>
+<input class="pl-10 pr-4 py-2 rounded-full bg-surface-container-low border-none focus:ring-2 focus:ring-primary-container-forest text-body-sm font-body-sm w-64" placeholder="Search plants, sellers..." type="text"/>
+</div>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Map</a>
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Inbox</a>
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Profile</a>
+</div>
+<div class="flex items-center gap-4">
+<button aria-label="Theme" class="text-secondary hover:text-primary-container-forest transition-colors p-2">
+<span class="material-symbols-outlined">light_mode</span>
+</button>
+<button class="bg-primary-container-forest text-on-primary font-body-sm text-body-sm px-6 py-3 rounded-[20px] hover:opacity-90 transition-opacity flex items-center gap-2">
+<span>+ Add Listing</span>
+</button>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="max-w-[1440px] mx-auto px-margin-desktop py-12">
+<!-- Header & Filters -->
+<div class="flex flex-col gap-6 mb-12">
+<div class="flex items-center justify-between">
+<h1 class="font-display-lg text-display-lg text-primary">Discovery Feed</h1>
+<div class="bg-secondary-container-sand/50 px-4 py-2 rounded-full flex items-center gap-2">
+<span class="text-primary-container-forest font-semibold">🌿 3.4k successful swaps</span>
+</div>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+<button class="bg-primary-container-forest text-on-primary px-6 py-2 rounded-full font-label-caps text-label-caps whitespace-nowrap">Sale</button>
+<button class="bg-surface-container text-on-surface px-6 py-2 rounded-full font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-container-high transition-colors">Trade</button>
+<button class="bg-surface-container text-on-surface px-6 py-2 rounded-full font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-container-high transition-colors">Plants</button>
+<button class="bg-surface-container text-on-surface px-6 py-2 rounded-full font-label-caps text-label-caps whitespace-nowrap hover:bg-surface-container-high transition-colors">Inventory</button>
+</div>
+</div>
+<!-- Masonry Grid -->
+<div class="masonry-grid">
+<!-- Card 1 -->
+<div class="masonry-item bg-surface-container-lowest rounded-[20px] overflow-hidden ambient-shadow group cursor-pointer">
+<div class="relative h-64 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A lush, mature Monstera Deliciosa plant with large fenestrated leaves sitting in a minimalist ceramic white pot. Bright, natural indirect sunlight illuminates the glossy green foliage against a pure white studio background. High-end botanical photography, organic modern aesthetic, soft shadows, vibrant natural colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7gmFcuxPt7Gf4kj2h4F-GNf90qjl_qQcNCYyYoZXvtRvlCgdaXQIiWGQ7DdMdcqIGnzvKxnewyp4ImjRZjQh74eKQH1WxJwaZ6Si2r_QLD8K96GJ7y5S0mSyOV-Y7dTAiy965roOHbUxacCuEsvnLo0w4qnn7AniAmVHtf9vztmPHhQbIwz6CAU5e-sMtd_rv51C2dMxtVjCplVQLgPIyWVRiMhddS_OfDOKmNQDTV4RdgUGYdo78"/>
+<div class="absolute top-4 left-4 bg-secondary-container-sand text-primary-container-forest font-label-caps text-label-caps px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span> Rare
+                    </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-primary">Monstera Albo</h3>
+<span class="font-bold text-primary-container-forest">$120</span>
+</div>
+<p class="text-secondary font-body-sm text-body-sm mb-4">Variegated, rooted cutting</p>
+<div class="flex items-center gap-2 text-outline font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Tbilisi, GE
+                    </div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="masonry-item bg-surface-container-lowest rounded-[20px] overflow-hidden ambient-shadow group cursor-pointer">
+<div class="relative h-48 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A close-up shot of a healthy Calathea Orbifolia plant showcasing its striking striped silver-green and dark green rounded leaves. Potted in a textured terracotta planter on a clean white surface. Soft, diffused lighting highlights the intricate leaf patterns. Premium plant styling, organic modern feel, serene mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBFQmKjBLfR8Nj04hkI9xIAIJuT-6JlPKA3TFeI36De5CFptq7zLkTNCjkRLJwv0CyZFMYhU1T6GynUZ2yNxN4kbbXTvDFfs4bYnq1V--dKxs0gw9JIOzivpK_03TsDibf54yMwEsTRpd7tkL_NRwvlvNFzvYwIPGrvk-CgAQYznLM8U7M92euasHFExdqGF91a6UgKV1ArQlM_UIrVBtJMSARIjOVGB0maRCwp5a9-Sp95JK5I-CB"/>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-primary">Calathea Orbifolia</h3>
+<span class="font-bold text-primary-container-forest">$45</span>
+</div>
+<p class="text-secondary font-body-sm text-body-sm mb-4">Lush foliage, pet friendly</p>
+<div class="flex items-center gap-2 text-outline font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Batumi, GE
+                    </div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="masonry-item bg-surface-container-lowest rounded-[20px] overflow-hidden ambient-shadow group cursor-pointer">
+<div class="relative h-80 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A tall, elegant Fiddle Leaf Fig (Ficus Lyrata) tree standing in a large woven basket planter. The plant features broad, violin-shaped dark green leaves. Set against a pure white wall in a sunlit room casting soft, natural shadows. Minimalist botanical interior design, bright airy atmosphere, high contrast." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADSxEsBnXaH0zOSaxi9FTMRVBYrdic_zANI2LXEjAWLsU9uCZXp-Jw3HofN1KARVoYwZgq1O_o_Tq_Zly_CbbHVukeCuNpSE8yNeDuOB6oaYTpljZZyI3Ab97pNz_7et5UbyDoUW7m5Qwq7vcUI21k8eGqF-4vRDNogklzPKdkfNEH9tgFJkA7ljJvF5i9VJoIxoFii9oJ9DEyjea-DJdmm9msFC88lXQ9I64IvGzMA92ybL3kfMR0"/>
+<div class="absolute top-4 left-4 bg-secondary-container-sand text-primary-container-forest font-label-caps text-label-caps px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">sunny</span> High Light
+                    </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-primary">Fiddle Leaf Fig</h3>
+<span class="font-bold text-primary-container-forest">$85</span>
+</div>
+<p class="text-secondary font-body-sm text-body-sm mb-4">6ft tall, well-established</p>
+<div class="flex items-center gap-2 text-outline font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Kutaisi, GE
+                    </div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="masonry-item bg-surface-container-lowest rounded-[20px] overflow-hidden ambient-shadow group cursor-pointer">
+<div class="relative h-56 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A trailing String of Pearls plant (Senecio rowleyanus) cascading beautifully from a hanging macrame planter. The small, bead-like green leaves drape elegantly down. Set against a clean, bright white background. Macro botanical photography, soft natural lighting, delicate organic textures, serene aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAGwVU99xCvVjU8WVobfj9xRIJH72weWs3D5FAJlrQMJTTJL7cMO5dZBu4bCXj7Su_kGZWxSkWJFhLoZdARM46x3PCiXDWUd40OKb4Mv2n1lk_12m6WPQYMkfNNsjVh0Mfz9wZBKkubhPqku9pZ9B8946GaeQURQeMIoXVpzVtnX99n36yoQPEGTEj6eBTBhpjXBPSj-BFUMyJkezyUSNVrZwFPXeTiHwSbirlgRDvnvLaZfWqN_4hV"/>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-primary">String of Pearls</h3>
+<span class="font-bold text-primary-container-forest">$25</span>
+</div>
+<p class="text-secondary font-body-sm text-body-sm mb-4">Trailing succulent</p>
+<div class="flex items-center gap-2 text-outline font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Tbilisi, GE
+                    </div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="masonry-item bg-surface-container-lowest rounded-[20px] overflow-hidden ambient-shadow group cursor-pointer">
+<div class="relative h-72 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A vibrant Pink Princess Philodendron showcasing deep green and bright bubblegum pink variegated leaves. Potted in a sleek matte grey ceramic pot. Displayed on a simple white pedestal against a pure white background. High fashion botanical style, vivid color contrast, bright clean lighting, premium feel." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxGDnJ0ANT5pzcjPjQrvm9n0fK1amV6pVdSF4_VYyail-lxH9hRxzkWdRl4oT_wG0ImkWXr1cvtt5p2IPj7_PbTEoyL57Jpyxj8XDPgzjSsw1Ojss-KO4rsxPgaJh2lHRSqI1f5aoYbGiC4FSbd7CZOpRghZHwBW_s6DoXs2p8a-jcO4Rv7iRwGOL8CqXZz5K-OO7wa-qDfBdkM_XF9UEWCGAF0REnT3l_svt3pGdQRO8TD8N7SFnv"/>
+<div class="absolute top-4 left-4 bg-secondary-container-sand text-primary-container-forest font-label-caps text-label-caps px-3 py-1 rounded-full flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">star</span> Featured
+                    </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-primary">Philodendron Pink Princess</h3>
+<span class="font-bold text-primary-container-forest">$150</span>
+</div>
+<p class="text-secondary font-body-sm text-body-sm mb-4">High variegation</p>
+<div class="flex items-center gap-2 text-outline font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Tbilisi, GE
+                    </div>
+</div>
+</div>
+<!-- Card 6 -->
+<div class="masonry-item bg-surface-container-lowest rounded-[20px] overflow-hidden ambient-shadow group cursor-pointer">
+<div class="relative h-60 overflow-hidden">
+<img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="A collection of small succulent plants in minimalist concrete planters arranged symmetrically on a white marble surface. Bright, crisp top-down lighting highlights the geometric rosettes of the Echeveria and Haworthia. Clean, modern, highly organized aesthetic, soft subtle shadows." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAIH5s5W9YalT-NGvNsWDxs9zxBZALnUFObptWL-NxMD4ObAK_4mGTlMmNg475-2zWuZf8nA4SPccsp2Le6qgV3-p4sRnnQ8xeNPW1hhXNjU3_xM_-I9141gvxqSnEiBht05txngBgc6fOUNjbarFd_bIt88xBHFBM3ybmY0LuhlFte2-Qm_CrIWPTuICgE_wosD-yBf6GpNpbHHg1MsoLFi7MrNEBu6RBw3YPD4SMRRIDrtwFYsr9u"/>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-primary">Succulent Bundle</h3>
+<span class="font-bold text-primary-container-forest">$30</span>
+</div>
+<p class="text-secondary font-body-sm text-body-sm mb-4">Set of 3, low maintenance</p>
+<div class="flex items-center gap-2 text-outline font-label-caps text-label-caps">
+<span class="material-symbols-outlined text-[16px]">location_on</span> Rustavi, GE
+                    </div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer -->
+<footer class="w-full py-section-gap px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-gutter bg-surface-container-low dark:bg-surface-container-high mt-12">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary-container-forest dark:text-primary-fixed-dim">
+            PlantSale.Ge
+        </div>
+<div class="flex gap-6">
+<a class="text-secondary-fixed-dim font-body-sm text-body-sm hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">Terms of Service</a>
+<a class="text-secondary-fixed-dim font-body-sm text-body-sm hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">Privacy Policy</a>
+<a class="text-secondary-fixed-dim font-body-sm text-body-sm hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">Contact Support</a>
+<a class="text-secondary-fixed-dim font-body-sm text-body-sm hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">About Us</a>
+</div>
+<div class="font-body-sm text-body-sm text-secondary dark:text-secondary-fixed-dim">
+            © 2024 PlantSale.Ge. Premium Botanical Marketplace.
+        </div>
+</footer>
+</body></html>

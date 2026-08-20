@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>PlantSale.Ge - Map View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "on-background": "#1c1b1b",
+                        "secondary": "#645d56",
+                        "on-secondary-fixed-variant": "#4c463f",
+                        "primary-container": "#1b4d3e",
+                        "primary-fixed": "#baeed9",
+                        "tertiary-fixed": "#e2e2e2",
+                        "primary-fixed-dim": "#9ed1bd",
+                        "surface-tint": "#376757",
+                        "on-primary-fixed": "#002117",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ebe1d8",
+                        "on-error-container": "#93000a",
+                        "background": "#fcf9f8",
+                        "outline": "#707974",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-bright": "#fcf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#6a635c",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-container-low": "#f6f3f2",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#ebe1d8",
+                        "surface-container": "#f0eded",
+                        "inverse-primary": "#9ed1bd",
+                        "on-primary-container": "#8abda9",
+                        "surface": "#fcf9f8",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-container": "#434545",
+                        "tertiary": "#2d2f2f",
+                        "surface-container-high": "#eae7e7",
+                        "outline-variant": "#c0c9c3",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "on-surface-variant": "#404945",
+                        "on-surface": "#1c1b1b",
+                        "primary": "#003629",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#1f1b16",
+                        "on-tertiary-container": "#b1b2b2",
+                        "on-primary-fixed-variant": "#1d4f40",
+                        "inverse-on-surface": "#f3f0ef",
+                        "secondary-fixed-dim": "#cec5bc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "80px",
+                        "gutter": "16px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "20px",
+                        "unit": "4px",
+                        "safe": "env(safe-area-inset-bottom)"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "title-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .map-bg {
+            background-color: #f0eded;
+            background-image: 
+                linear-gradient(#e5e2e1 1px, transparent 1px),
+                linear-gradient(90deg, #e5e2e1 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-lg antialiased overflow-hidden h-screen w-screen relative">
+<!-- Desktop Navigation (Hidden on Mobile) -->
+<header class="hidden md:flex justify-between items-center px-margin-desktop h-20 w-full max-w-7xl mx-auto fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-md">
+<div class="flex items-center gap-4 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-primary" data-icon="location_on" data-weight="fill" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<span class="font-headline-lg text-headline-lg text-primary tracking-tight">PlantSale.Ge</span>
+</div>
+<nav class="flex gap-8 items-center">
+<a class="text-on-surface-variant font-title-md text-title-md hover:opacity-80 transition-opacity" href="#">Home</a>
+<a class="text-primary font-bold font-title-md text-title-md hover:opacity-80 transition-opacity" href="#">Map</a>
+<a class="text-on-surface-variant font-title-md text-title-md hover:opacity-80 transition-opacity" href="#">Add</a>
+<a class="text-on-surface-variant font-title-md text-title-md hover:opacity-80 transition-opacity" href="#">Inbox</a>
+<a class="text-on-surface-variant font-title-md text-title-md hover:opacity-80 transition-opacity" href="#">Profile</a>
+</nav>
+<div class="text-primary font-title-md text-title-md">Tbilisi, 5km</div>
+</header>
+<!-- Map Canvas Area -->
+<main class="absolute inset-0 w-full h-full pt-0 md:pt-20 pb-24 md:pb-0 z-0 map-bg flex items-center justify-center relative">
+<!-- Search Bar Overlay (Mobile Top) -->
+<div class="absolute top-0 left-0 right-0 z-40 p-margin-mobile md:hidden">
+<div class="bg-surface/90 backdrop-blur-xl rounded-full shadow-lg flex items-center px-4 py-3 border border-surface-variant">
+<span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-body-lg text-on-background w-full placeholder:text-on-surface-variant/70 p-0 m-0 outline-none" placeholder="Search plants, sellers..." type="text"/>
+</div>
+</div>
+<!-- Map Background Image (Simulated) -->
+<div class="absolute inset-0 w-full h-full opacity-30 pointer-events-none" data-alt="A clean, minimalist street map of a city viewed from directly above. The aesthetic is light mode, featuring very pale grey and off-white roads set against a subtle silver-white landmass background. There is no text on the map. The style is modern, architectural, and highly stylized, fitting a premium botanical marketplace app. Soft, diffused lighting overall." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCo8ANQocj8iAIaVzb_4EUclWMihgKqEnhOv3rzETuLZGs7bne6m1mo8wnDYEkw93RPBN_hk4ZN8mMwPAgzFPqUAfhpp66R6iCp7JUdV_R4EGr7pwJ2F38GWDBc4bYZvWA1R5LOpj0DIQagGCZniKfL8gNrmuju67ATD9iB6uLLteQGOqgDpDd1OQcGsPkDaupFNaOwj01Ni3HgUv1Dx-r17dJ1iESAwHEgKKw8lfWPgv28cJNnZEVc')"></div>
+<!-- Interactive Pins -->
+<!-- Pin 1 -->
+<button class="absolute top-1/4 left-1/3 transform -translate-x-1/2 -translate-y-1/2 z-20 group hover:scale-110 transition-transform focus:outline-none">
+<div class="relative flex items-center justify-center">
+<div class="absolute w-8 h-8 bg-primary/20 rounded-full animate-ping"></div>
+<div class="w-4 h-4 bg-primary rounded-full border-2 border-surface shadow-sm z-10"></div>
+<!-- Tooltip -->
+<div class="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-surface text-on-surface px-3 py-1 rounded-lg shadow-lg whitespace-nowrap text-label-caps font-label-caps pointer-events-none">Monstera Deliciosa - $45</div>
+</div>
+</button>
+<!-- Pin 2 -->
+<button class="absolute top-1/2 right-1/4 transform -translate-x-1/2 -translate-y-1/2 z-20 group hover:scale-110 transition-transform focus:outline-none">
+<div class="relative flex items-center justify-center">
+<div class="w-5 h-5 bg-primary rounded-full border-2 border-surface shadow-sm z-10 flex items-center justify-center">
+<div class="w-2 h-2 bg-primary-fixed rounded-full"></div>
+</div>
+<div class="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-surface text-on-surface px-3 py-1 rounded-lg shadow-lg whitespace-nowrap text-label-caps font-label-caps pointer-events-none">Ficus Lyrata - $80</div>
+</div>
+</button>
+<!-- Pin 3 (Active) -->
+<button class="absolute bottom-1/3 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20 group hover:scale-110 transition-transform focus:outline-none">
+<div class="relative flex items-center justify-center">
+<div class="w-6 h-6 bg-primary-container rounded-full border-2 border-primary shadow-md z-10 flex items-center justify-center">
+<span class="material-symbols-outlined text-[12px] text-on-primary-container">eco</span>
+</div>
+</div>
+</button>
+<!-- Floating Bottom Sheet Carousel (Desktop Bottom Right, Mobile Bottom above nav) -->
+<div class="absolute bottom-20 md:bottom-12 md:right-margin-desktop left-0 md:left-auto w-full md:w-[400px] z-30 px-margin-mobile md:px-0 pointer-events-none">
+<div class="pointer-events-auto flex gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory pb-4">
+<!-- Card 1 (Active) -->
+<div class="min-w-[280px] md:min-w-full bg-surface rounded-[20px] p-4 shadow-[0px_10px_30px_rgba(0,0,0,0.08)] snap-center flex-shrink-0 transition-transform hover:-translate-y-1">
+<div class="flex gap-4">
+<div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="A lush, healthy Monstera Albo plant with striking white and green variegated leaves, potted in a minimalist terracotta ribbed cylinder pot. The plant is photographed against a clean, soft off-white background with gentle, diffused natural lighting highlighting the glossy texture of the leaves. High-end botanical editorial style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATOkEsaSUaqLI67opymBXs5VWSHFlUgL1fh033SwJ8EU_3F6SG4Bp9Df_mHXqVVIXea-BUM0bXReyjeTZdddvJNx_sx2lSC1lc--YnS0oxo05jMDYHm7q4H_ij477GNdmYxPiM0wDWFpa3IT8dTZtKQxcRuqIAcEY89xu2kF9gF7EX8ErDLVOYysH01Nl46hmjkGont09fruWEx6UyhiwGwrv0fkoYggbj2ynn9XfD7ZzIDyaK0o_f"/>
+</div>
+<div class="flex flex-col justify-center w-full">
+<div class="flex justify-between items-start mb-1">
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant px-2 py-0.5 rounded-[12px] font-label-caps text-label-caps">Rare</span>
+<button class="text-on-surface-variant hover:text-primary transition-colors focus:outline-none">
+<span class="material-symbols-outlined text-sm">favorite_border</span>
+</button>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1 truncate">Monstera Albo</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">location_on</span> 1.2 km away
+                            </p>
+<div class="mt-2 flex justify-between items-center">
+<span class="font-title-md text-title-md font-bold text-primary">$120</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="min-w-[280px] md:min-w-full bg-surface/90 backdrop-blur-sm rounded-[20px] p-4 shadow-[0px_10px_30px_rgba(0,0,0,0.04)] snap-center flex-shrink-0 opacity-80 scale-95 transition-all">
+<div class="flex gap-4">
+<div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="A mature Ficus Elastica (Rubber Tree) featuring deep, glossy burgundy-green leaves. It is housed in a smooth, matte white ceramic planter. The setting is bright and airy, with soft, indirect sunlight casting gentle shadows on a light grey concrete floor. The overall aesthetic is calm, modern, and minimalist." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCgSyspCtnssIEQdItE7uInoOSl-3SoCc0cK16vyzNlHueOdf4BY6vsQn0y4iiRArB5W0BFwOpeIw-c_d_1zfIlZGb6Y9sQyMX-xfXS0c-5QaKoaqzUpt4Qj5D5Jtlp1OlmOeAa5gIIIbcuwBFtJcA-UxaoxGDUi_mDo0cWTviGNQIlqQn02O4KsIbQLkYkGC2iyNRl_yz4Fcj_0qzaDEbWwvRhxmcuzL2xu0qE7RxMrP4hKSAkqz3B"/>
+</div>
+<div class="flex flex-col justify-center w-full">
+<div class="flex justify-between items-start mb-1">
+<span class="bg-secondary-fixed text-on-secondary-fixed-variant px-2 py-0.5 rounded-[12px] font-label-caps text-label-caps">Low Light</span>
+</div>
+<h3 class="font-title-md text-title-md text-on-surface mb-1 truncate">Rubber Tree</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">location_on</span> 3.5 km away
+                            </p>
+<div class="mt-2 flex justify-between items-center">
+<span class="font-title-md text-title-md font-bold text-primary">$45</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 pb-safe bg-surface/90 dark:bg-surface-container-lowest/90 backdrop-blur-xl z-50 rounded-t-xl shadow-lg shadow-[0px_-4px_20px_rgba(0,0,0,0.04)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="home">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed bg-secondary-container dark:bg-primary-container rounded-full p-2 scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="map" data-weight="fill" style="font-variation-settings: 'FILL' 1;">map</span>
+<span class="font-label-caps text-label-caps mt-1">Map</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+<span class="font-label-caps text-label-caps mt-1">Add</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="chat_bubble">chat_bubble</span>
+<span class="font-label-caps text-label-caps mt-1">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

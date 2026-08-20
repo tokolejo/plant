@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PlantSale.Ge - User Profile &amp; Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container-forest": "#1b4d3e",
+                        "primary-fixed-dim": "#a0d1be",
+                        "surface-bright": "#fdf8f8",
+                        "tertiary-container": "#434545",
+                        "surface-variant": "#e6e1e1",
+                        "inverse-surface": "#313030",
+                        "error-soft": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#ece7e7",
+                        "error": "#ba1a1a",
+                        "outline": "#707974",
+                        "secondary-container-sand": "#ebe1d8",
+                        "on-secondary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#396758",
+                        "on-secondary-container": "#69615a",
+                        "inverse-on-surface": "#f4f0ef",
+                        "on-surface": "#1c1b1b",
+                        "on-surface-variant": "#404945",
+                        "primary": "#003629",
+                        "surface-container-highest": "#e6e1e1",
+                        "surface-container": "#f1edec",
+                        "surface-dim": "#ddd9d8",
+                        "secondary-container": "#e8ded5",
+                        "on-primary-fixed-variant": "#204f40",
+                        "secondary": "#645d56",
+                        "on-secondary-fixed-variant": "#4c463f",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ebe1d8",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-tertiary-container": "#b1b2b2",
+                        "inverse-primary": "#a0d1be",
+                        "tertiary": "#2d2f2f",
+                        "secondary-fixed-dim": "#cfc5bc",
+                        "on-background": "#1c1b1b",
+                        "primary-container": "#1d4d3f",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "background": "#fdf8f8",
+                        "primary-fixed": "#bbedda",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-cream": "#fcf9f8",
+                        "accent-star": "#376757",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#1f1b15",
+                        "on-primary-fixed": "#002118",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface-container-low": "#f7f2f2",
+                        "outline-variant": "#c0c9c3",
+                        "on-primary-container": "#8cbcaa",
+                        "surface": "#fdf8f8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "section-gap": "80px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "title-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .icon-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { background-color: theme('colors.background'); }
+        .bento-shadow { box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04); }
+    </style>
+</head>
+<body class="font-body-lg text-body-lg text-on-surface antialiased bg-background">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 flex justify-between items-center px-margin-desktop w-full h-20 bg-surface/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-gutter">
+<h1 class="font-headline-lg text-headline-lg font-bold text-primary-container-forest dark:text-primary-fixed-dim">PlantSale.Ge</h1>
+</div>
+<nav class="hidden md:flex items-center gap-6 h-full">
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Map</a>
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Inbox</a>
+<a class="text-primary-container-forest dark:text-primary-fixed-dim border-b-2 border-primary-container-forest pb-1 font-bold h-full flex items-center mt-[2px] opacity-100 hover:opacity-80 transition-all" href="#">Profile</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="font-label-caps text-label-caps text-on-primary bg-primary-container-forest hover:bg-primary-container h-12 px-6 rounded-[20px] transition-colors">+ Add Listing</button>
+<button aria-label="Theme toggle" class="text-secondary hover:text-primary-container-forest transition-colors p-2">
+<span class="material-symbols-outlined" data-icon="dark_mode">dark_mode</span>
+</button>
+</div>
+</header>
+<!-- Main Content -->
+<main class="max-w-[1440px] mx-auto px-margin-desktop py-section-gap grid grid-cols-1 lg:grid-cols-12 gap-gutter items-start">
+<!-- Left Sidebar (30% approx - 4 columns) -->
+<aside class="lg:col-span-4 flex flex-col gap-gutter sticky top-[100px]">
+<!-- Profile Card -->
+<div class="bg-surface-container-lowest rounded-xl p-6 bento-shadow flex flex-col items-center text-center">
+<div class="relative w-32 h-32 mb-4">
+<img class="w-full h-full object-cover rounded-full shadow-sm" data-alt="A portrait of a young woman smiling warmly, surrounded by lush, vibrant indoor plants. The lighting is soft and natural, emphasizing the premium botanical aesthetic with warm cream and soft green tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDB2tN4ygYoRcWwMivtyNm62R4wpfWYQF8Qe7-qJMoH2h7ROCD14L6gW2lDtvrAhb8yccRhMA3hopYMxHBBLvEHdazJNtS8kw2z9yZfUSAcgrY9_9i6QEvdNZ1goMUnd-ZCjNmBtctJM9KCic6OThqa3Ypj1-MxiNmkJUpdC1us9YDzphKQtIh8u2-QudV-5qdZK-rwRzlETDCVzDJVbTgO1nL3WT9QftpS1np6KhF_hlWP33jyfj_"/>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface mb-1">Anna Botanica</h2>
+<div class="flex items-center gap-2 mb-4">
+<div class="flex text-accent-star">
+<span class="material-symbols-outlined icon-fill text-[18px]" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined icon-fill text-[18px]" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined icon-fill text-[18px]" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined icon-fill text-[18px]" data-icon="star" data-weight="fill">star</span>
+<span class="material-symbols-outlined text-[18px]" data-icon="star_half">star_half</span>
+</div>
+<span class="font-body-sm text-body-sm text-secondary font-medium">4.8 (124 reviews)</span>
+</div>
+<div class="bg-secondary-container-sand text-primary-container-forest px-3 py-1 rounded-full flex items-center gap-1 font-label-caps text-label-caps mb-6">
+<span class="material-symbols-outlined text-[14px]" data-icon="local_florist">local_florist</span>
+                    Rare Plant Collector
+                </div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 px-4">Passionate collector specializing in rare aroids and tropicals. Shipping globally with care.</p>
+<div class="w-full flex gap-3">
+<button class="flex-1 h-12 bg-surface-container-low text-on-surface hover:bg-surface-variant rounded-[20px] font-title-md text-title-md transition-colors">Edit Profile</button>
+<button class="h-12 w-12 flex items-center justify-center bg-surface-container-low text-on-surface hover:bg-surface-variant rounded-[20px] transition-colors">
+<span class="material-symbols-outlined" data-icon="share">share</span>
+</button>
+</div>
+</div>
+<!-- SaaS Tier Card -->
+<div class="bg-primary-container text-on-primary-container rounded-xl p-6 relative overflow-hidden bento-shadow">
+<!-- Decorative background blur -->
+<div class="absolute -right-10 -top-10 w-32 h-32 bg-primary-fixed opacity-20 blur-3xl rounded-full"></div>
+<div class="flex items-center gap-2 mb-4 relative z-10">
+<span class="material-symbols-outlined icon-fill text-primary-fixed" data-icon="verified" data-weight="fill">verified</span>
+<h3 class="font-title-md text-title-md font-semibold text-surface-bright">Green Tier 1</h3>
+</div>
+<p class="font-body-sm text-body-sm text-primary-fixed-dim mb-4 relative z-10">Premium seller benefits active. You have 12 listings remaining this month.</p>
+<div class="w-full bg-primary/40 rounded-full h-2 mb-4 relative z-10">
+<div class="bg-primary-fixed h-2 rounded-full" style="width: 75%"></div>
+</div>
+<button class="w-full h-10 bg-primary-fixed text-on-primary-fixed hover:bg-surface-bright rounded-lg font-label-caps text-label-caps transition-colors relative z-10">Upgrade Plan</button>
+</div>
+</aside>
+<!-- Right Area (70% approx - 8 columns) -->
+<section class="lg:col-span-8 flex flex-col gap-6">
+<!-- Tabs -->
+<div class="flex border-b border-surface-dim mb-2">
+<button class="px-6 py-3 font-title-md text-title-md text-primary-container-forest border-b-2 border-primary-container-forest font-semibold transition-colors">Active Listings</button>
+<button class="px-6 py-3 font-title-md text-title-md text-secondary hover:text-primary-container-forest transition-colors">Reviews</button>
+<button class="px-6 py-3 font-title-md text-title-md text-secondary hover:text-primary-container-forest transition-colors">Wishlist</button>
+</div>
+<div class="flex justify-between items-center mb-2">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Your Active Plants</h2>
+<div class="flex items-center gap-2 text-secondary">
+<span class="font-body-sm text-body-sm">Sort by:</span>
+<select class="bg-transparent border-none font-title-md text-title-md text-on-surface focus:ring-0 cursor-pointer">
+<option>Newest</option>
+<option>Price: High to Low</option>
+</select>
+</div>
+</div>
+<!-- Grid of Listings -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- Card 1 -->
+<article class="bg-surface-container-lowest rounded-xl overflow-hidden bento-shadow group flex flex-col">
+<div class="h-[256px] relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A close-up shot of a stunning Monstera Albo with pristine white variegation on its large, fenestrated leaves. The plant sits in a minimalist terracotta pot on a clean white surface, bathed in soft, natural sunlight from a nearby window, creating a premium, calm botanical atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCVncHYzhcwdV90GNrRNJoGX7exyA_XkedUwoyOZxhOZ9nOutfdxmvCEBqQ2pkJ7OIwke5qeJevnKr5lbx5xbLS_8-vVfojGYILKjAYqDGfyHQ_oyfC4yZdMlmoZ6luc-bjhEWhRTzmFEQ-O7xaRz3_Vh_sERJjpchchN8BV7ZuD6B1_Yu4-eHc7F6m9RHJ-KbPkh6AyrIyXtZUiuBi06OrAr7GXvKRpLxNzxTBhWmsDMIerlvcMv1Z"/>
+<div class="absolute top-4 left-4 bg-secondary-container-sand text-primary-container-forest px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]" data-icon="diamond">diamond</span>
+                            Rare
+                        </div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md font-semibold text-on-surface">Monstera Albo Borsigiana</h3>
+<span class="font-title-md text-title-md font-bold text-primary-container-forest">$450</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-2">Beautifully rooted cutting with high variegation on two leaves. Active growth point visible.</p>
+<div class="mt-auto flex gap-2">
+<button class="flex-1 h-10 bg-surface-container-low text-on-surface hover:bg-surface-variant rounded-lg font-label-caps text-label-caps transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="pause">pause</span> Pause
+                            </button>
+<button class="h-10 px-4 bg-surface-container-low text-error hover:bg-error-container hover:text-on-error-container rounded-lg font-label-caps text-label-caps transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Card 2 -->
+<article class="bg-surface-container-lowest rounded-xl overflow-hidden bento-shadow group flex flex-col">
+<div class="h-[256px] relative overflow-hidden">
+<img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant Philodendron Pink Princess featuring dark, almost black leaves striking contrasted by bright, bubblegum pink variegation. The plant is elegantly displayed in a modern ceramic planter against a soft, creamy background, highlighting its premium and exotic nature." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoXCzGfTQRmHD2D5ypLmaiCOegIzTcH7JptD4SPccky9zWlGiIj9eMqUOyjbUZBk-RrklG51eACglApvJeILruH0Mt70qEa-qoJbdvWY2fpIyLbi_818QxpndvDg6whTq3QytRa0jTCl_pyFQrDBcfo54z-l_Ndu-k65vdqLjZoDd_rd9meChbt3-H5iIwhX8py51EOmFPuMVcG-ZkdyC_x1lKlykAVfjhpmpkMP9dK63BquefZ5FE"/>
+<div class="absolute top-4 left-4 bg-secondary-container-sand text-primary-container-forest px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]" data-icon="trending_up">trending_up</span>
+                            Popular
+                        </div>
+</div>
+<div class="p-6 flex flex-col flex-grow">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md font-semibold text-on-surface">Philodendron Pink Princess</h3>
+<span class="font-title-md text-title-md font-bold text-primary-container-forest">$120</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-6 line-clamp-2">Established plant in a 4" pot. Consistent pink variegation on every new leaf.</p>
+<div class="mt-auto flex gap-2">
+<button class="flex-1 h-10 bg-surface-container-low text-on-surface hover:bg-surface-variant rounded-lg font-label-caps text-label-caps transition-colors flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]" data-icon="pause">pause</span> Pause
+                            </button>
+<button class="h-10 px-4 bg-surface-container-low text-error hover:bg-error-container hover:text-on-error-container rounded-lg font-label-caps text-label-caps transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Add New Placeholder Card -->
+<article class="bg-surface-container-high rounded-xl border-2 border-dashed border-outline-variant hover:border-primary-container-forest hover:bg-surface-container-highest transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[400px] text-center p-6">
+<div class="w-16 h-16 bg-surface-container-lowest rounded-full flex items-center justify-center mb-4 text-primary-container-forest shadow-sm">
+<span class="material-symbols-outlined text-3xl" data-icon="add">add</span>
+</div>
+<h3 class="font-title-md text-title-md font-semibold text-on-surface mb-2">Add New Listing</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Create a new plant listing to share with the community.</p>
+</article>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-section-gap px-margin-desktop flex flex-col md:flex-row justify-between items-center gap-gutter bg-surface-container-low dark:bg-surface-container-high mt-section-gap">
+<div class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary-container-forest dark:text-primary-fixed-dim">PlantSale.Ge</div>
+<div class="text-secondary dark:text-secondary-fixed-dim font-body-sm text-body-sm text-center">© 2024 PlantSale.Ge. Premium Botanical Marketplace.</div>
+<nav class="flex gap-4 font-label-caps text-label-caps text-secondary-fixed-dim">
+<a class="hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">Terms of Service</a>
+<a class="hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">Privacy Policy</a>
+<a class="hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">Contact Support</a>
+<a class="hover:text-primary-container-forest underline transition-all opacity-100 hover:opacity-80" href="#">About Us</a>
+</nav>
+</footer>
+</body></html>

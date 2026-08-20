@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Inbox &amp; Trades - PlantSale.Ge</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "primary-container-forest": "#1b4d3e",
+                    "primary-fixed-dim": "#a0d1be",
+                    "surface-bright": "#fdf8f8",
+                    "tertiary-container": "#434545",
+                    "surface-variant": "#e6e1e1",
+                    "inverse-surface": "#313030",
+                    "error-soft": "#ba1a1a",
+                    "on-error-container": "#93000a",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#ece7e7",
+                    "error": "#ba1a1a",
+                    "outline": "#707974",
+                    "secondary-container-sand": "#ebe1d8",
+                    "on-secondary": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "surface-tint": "#396758",
+                    "on-secondary-container": "#69615a",
+                    "inverse-on-surface": "#f4f0ef",
+                    "on-surface": "#1c1b1b",
+                    "on-surface-variant": "#404945",
+                    "primary": "#003629",
+                    "surface-container-highest": "#e6e1e1",
+                    "surface-container": "#f1edec",
+                    "surface-dim": "#ddd9d8",
+                    "secondary-container": "#e8ded5",
+                    "on-primary-fixed-variant": "#204f40",
+                    "secondary": "#645d56",
+                    "on-secondary-fixed-variant": "#4c463f",
+                    "error-container": "#ffdad6",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#ebe1d8",
+                    "on-tertiary-fixed": "#1a1c1c",
+                    "on-tertiary-container": "#b1b2b2",
+                    "inverse-primary": "#a0d1be",
+                    "tertiary": "#2d2f2f",
+                    "secondary-fixed-dim": "#cfc5bc",
+                    "on-background": "#1c1b1b",
+                    "primary-container": "#1d4d3f",
+                    "tertiary-fixed-dim": "#c6c6c6",
+                    "background": "#fdf8f8",
+                    "primary-fixed": "#bbedda",
+                    "tertiary-fixed": "#e2e2e2",
+                    "surface-cream": "#fcf9f8",
+                    "accent-star": "#376757",
+                    "surface-container-lowest": "#ffffff",
+                    "on-secondary-fixed": "#1f1b15",
+                    "on-primary-fixed": "#002118",
+                    "on-tertiary-fixed-variant": "#454747",
+                    "surface-container-low": "#f7f2f2",
+                    "outline-variant": "#c0c9c3",
+                    "on-primary-container": "#8cbcaa",
+                    "surface": "#fdf8f8"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "16px",
+                    "section-gap": "80px",
+                    "margin-mobile": "20px",
+                    "margin-desktop": "64px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "body-lg": ["Inter"],
+                    "label-caps": ["Inter"],
+                    "display-lg": ["Inter"],
+                    "headline-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "headline-lg-mobile": ["Inter"],
+                    "title-md": ["Inter"]
+            },
+            "fontSize": {
+                    "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body { background-color: #121212; color: #fdf8f8; }
+        .dark-surface { background-color: #1a1c1a; }
+        .dark-surface-raised { background-color: #242624; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="font-body-lg text-body-lg h-screen flex flex-col overflow-hidden antialiased">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 flex justify-between items-center px-margin-desktop w-full h-20 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm border-b-0">
+<div class="flex items-center gap-8">
+<div class="font-headline-lg text-headline-lg font-bold text-primary-container-forest dark:text-primary-fixed-dim">
+                PlantSale.Ge
+            </div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Map</a>
+<a class="text-primary-container-forest dark:text-primary-fixed-dim border-b-2 border-primary-container-forest pb-1 font-bold opacity-80 scale-95 transition-all" href="#">Inbox</a>
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Profile</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-fixed-dim">search</span>
+<input class="pl-10 pr-4 py-2 bg-surface-container-low dark:bg-[#242624] border-none rounded-full text-body-sm font-body-sm text-on-surface dark:text-surface-bright focus:ring-2 focus:ring-primary-container-forest outline-none" placeholder="Search trades..." type="text"/>
+</div>
+<button class="font-label-caps text-label-caps text-secondary dark:text-secondary-fixed-dim hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors">Theme</button>
+<button class="bg-primary-container-forest text-on-primary px-6 py-2 rounded-[20px] font-label-caps text-label-caps hover:bg-primary transition-colors">+ Add Listing</button>
+</div>
+</nav>
+<!-- Main Content: Split Pane -->
+<main class="flex-1 flex overflow-hidden w-full max-w-[1440px] mx-auto">
+<!-- Left Pane: Thread List (30%) -->
+<aside class="w-[30%] dark-surface border-r border-[#2d2f2f] flex flex-col">
+<div class="p-6 border-b border-[#2d2f2f]">
+<h2 class="font-title-md text-title-md text-primary-fixed-dim">Messages &amp; Trades</h2>
+</div>
+<div class="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-2">
+<!-- Thread Item Active -->
+<button class="w-full text-left p-4 rounded-xl dark-surface-raised border border-primary-fixed-dim/30 flex items-start gap-4 transition-all">
+<div class="w-12 h-12 rounded-full overflow-hidden shrink-0">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a middle aged woman with a gentle smile, standing in a brightly lit greenhouse surrounded by lush tropical plants. The lighting is soft and natural, emphasizing a premium organic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCT3IHGoMQI_obLWIizo1079RBxzG4IkdoLz3A2BA6nxshljM139Qtvd1y517VjPEOwb5-qyYQIe-MRBrMOhu3WTQ84GUsACFUB3M2026tm7A-U2O_j45CzR4tK5TObhwbZnV9_d50MpFPGbxAwNxF4Jw0VY5AZU1Tk3HMu_BvpQbJg0jKCIHN1QHaskpPz8AmpabXA8LypkA1LKuaTdaOBz6akdDPnatFmecSokSgA_VCT9iDd530w"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-title-md text-title-md text-surface-bright truncate text-sm">Sarah Botanica</h3>
+<span class="text-xs text-tertiary-fixed-dim">2m</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary-fixed-dim truncate">I can offer the Monstera Albo cutting for your...</p>
+<div class="mt-2 inline-flex items-center gap-1 bg-[#242624] px-2 py-1 rounded text-xs text-primary-fixed-dim border border-[#2d2f2f]">
+<span class="material-symbols-outlined text-[14px]">swap_horiz</span> Trade Pending
+                        </div>
+</div>
+</button>
+<!-- Thread Item Inactive -->
+<button class="w-full text-left p-4 rounded-xl hover:bg-[#242624] flex items-start gap-4 transition-all group">
+<div class="w-12 h-12 rounded-full overflow-hidden shrink-0">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="A macro shot of a vibrant green rare philodendron leaf with distinctive white variegation, resting on a clean dark slate surface in a modern studio setting. The lighting is dramatic yet soft, creating a sophisticated botanical mood." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB31lk5E_l2PSQtnEgIEx3cCedrk6MAz2Ml3pQpRJtXeeeCPItLmVHpTp0GpWAcC1w91qjaOrDi1G5di3KkkZC5_d1ZDpnb_WZ0Gubkys_gLXDYeYRZa2dFaycAHZ74cKL3B9peLU1TfYgsSP1UZ-PtOQ8tmwwemw0dmfCXZkunH1uLwtpFp-JIJjNTC7bHqDiJ8QSjP75xAHomnHRNQt7dR6R71_j2ql6SZ5NSJBNqCMhBdQAFteWC"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-title-md text-title-md text-tertiary-fixed-dim group-hover:text-surface-bright truncate text-sm transition-colors">GreenThumb99</h3>
+<span class="text-xs text-[#707974]">Yesterday</span>
+</div>
+<p class="font-body-sm text-body-sm text-[#707974] truncate">Is the Philodendron Pink Princess still available?</p>
+</div>
+</button>
+</div>
+</aside>
+<!-- Right Pane: Active Chat (70%) -->
+<section class="w-[70%] flex flex-col bg-[#121212]">
+<!-- Chat Header -->
+<header class="h-20 px-6 dark-surface border-b border-[#2d2f2f] flex justify-between items-center shrink-0">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full overflow-hidden">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a middle aged woman with a gentle smile, standing in a brightly lit greenhouse surrounded by lush tropical plants. The lighting is soft and natural, emphasizing a premium organic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCf2ZhrHWCYItc0mS0kUoIPzjnCs-k3_a29r046cFVW1LGH6exeLguNOm8ksR_PojeRJNKrxjWWRCF4gURY_iyrv564wiL4bu-NmycxI9nusbASfPu4RcYbqb3SzVygdAGgJ0x8M5mbXvPH32QsQ4eMDOXJe4SpR1OGnFuXLj-cEs_Tpjzcq9kX-q4gBO3B2T4o6iDf7vszzoL4-7ef8COIXyE-Mp17NH5ZkHc_INlGSbfzfx2lOUTO"/>
+</div>
+<div>
+<h2 class="font-title-md text-title-md text-surface-bright">Sarah Botanica</h2>
+<div class="flex items-center gap-2 text-xs text-secondary-fixed-dim">
+<span class="w-2 h-2 rounded-full bg-primary-fixed-dim"></span> Online
+                        </div>
+</div>
+</div>
+<button class="p-2 text-tertiary-fixed-dim hover:text-surface-bright transition-colors rounded-full hover:bg-[#242624]">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</header>
+<!-- Chat Messages Area -->
+<div class="flex-1 overflow-y-auto p-6 space-y-6 flex flex-col">
+<!-- Date Divider -->
+<div class="flex justify-center">
+<span class="text-xs font-label-caps text-label-caps text-[#707974] bg-[#242624] px-3 py-1 rounded-full">Today</span>
+</div>
+<!-- Received Message -->
+<div class="flex items-end gap-3 self-start max-w-[70%]">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 mb-1">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a middle aged woman with a gentle smile, standing in a brightly lit greenhouse surrounded by lush tropical plants. The lighting is soft and natural, emphasizing a premium organic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCV2PdNx_UddvW7RXvdeJm636pdA1u6ourtFz8xHfZQgYOkpvjyA7kLEiBaiBMG9eZ1Rf4ThBA4Xr_pgvdYRmMgqjV-LZzJgsLz2i_Prk9eFqwME2dcfR21JsLy7dqAZ8H4-X3apmAKMKdx7j_9GvlXEemTfI2EAbHHxZIel6CTK6jAS_76EjACtMbsAmiO2CwLBSM2KhbhDPY9XGFScddzBW9af7v7tKiFpzPLolWu5px8NAssUnGK"/>
+</div>
+<div class="dark-surface-raised p-4 rounded-2xl rounded-bl-none text-surface-bright font-body-lg text-body-lg text-sm border border-[#2d2f2f]">
+<p>Hi there! I saw you're looking for a Monstera Albo cutting. I have a nicely rooted one I'd love to trade for your Thai Constellation.</p>
+<span class="text-[10px] text-tertiary-fixed-dim mt-2 block text-right">10:42 AM</span>
+</div>
+</div>
+<!-- Sent Message -->
+<div class="flex items-end gap-3 self-end max-w-[70%]">
+<div class="bg-primary-container-forest p-4 rounded-2xl rounded-br-none text-on-primary font-body-lg text-body-lg text-sm">
+<p>Hello Sarah! Yes, I'm very interested. Could you send a picture of the aerial roots?</p>
+<span class="text-[10px] text-primary-fixed-dim mt-2 block text-right">10:45 AM</span>
+</div>
+</div>
+<!-- Received Message with Image -->
+<div class="flex items-end gap-3 self-start max-w-[70%]">
+<div class="w-8 h-8 rounded-full overflow-hidden shrink-0 mb-1">
+<img alt="User Avatar" class="w-full h-full object-cover" data-alt="Close up portrait of a middle aged woman with a gentle smile, standing in a brightly lit greenhouse surrounded by lush tropical plants. The lighting is soft and natural, emphasizing a premium organic aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGZUcGcsLhsvb9-Vci-Un2l-TbPGxpBHm1VQeiBk7lAW3bfXY2oXfcRNUZUD_jypuGEsFmVfWxBR528paz45JUFBQBD9Dr2yaHoh911Y5OdjkwSvQgqFNoW0aGJDf4_BkVXmUEzU9bz1Oeun_rENAJsXw7SxlNtvAtrQXoLal7xmhXad0GF7qLDXO30fqqB-y7Hh9F39GW1MCxPmQfXmrZiO1B4CQtFb25PjG7UhcSlbptJ63HjBtj"/>
+</div>
+<div class="dark-surface-raised p-2 rounded-2xl rounded-bl-none text-surface-bright font-body-lg text-body-lg text-sm border border-[#2d2f2f]">
+<div class="w-64 h-64 rounded-xl overflow-hidden mb-2">
+<img alt="Plant cutting" class="w-full h-full object-cover" data-alt="A detailed close-up of a Monstera Albo cutting, highlighting thick, healthy white aerial roots against a dark, moody background. The soft lighting emphasizes the premium quality and organic textures of the botanical specimen." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSTw_vDp0HH0tmj-ZWRdmSR325sGpyKLzuK6tfUfNK5Eg18mhrZftd5WZ2Ds_MziwtEjfdRbZk3KBdc_EALdAUVhWafv5MUpeb3hAcbExZut65R0uzl0oxw1r7hQE3vCGRTIc8HVGUYZ7qKpcg7RrZe13dTDWeuoA5-m_y3PBSwwIG_H0ajWSJh7Ajv5zpojDIabe421tSfUlKGnqZ21LA3jv6V4x1fb7vYZAja7nabfmk0-2ifDod"/>
+</div>
+<p class="px-2 pb-1">Here it is! It's been propagating in sphagnum moss for 3 weeks.</p>
+<span class="text-[10px] text-tertiary-fixed-dim block text-right px-2 pb-1">10:48 AM</span>
+</div>
+</div>
+<!-- Trade Offer Card (Injected into chat stream) -->
+<div class="self-center w-full max-w-lg my-4">
+<div class="dark-surface-raised rounded-2xl border border-primary-fixed-dim/40 overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.4)]">
+<div class="bg-primary-container-forest/20 px-6 py-4 border-b border-primary-fixed-dim/20 flex justify-between items-center">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-primary-fixed-dim">Trade Offer</h3>
+<span class="bg-primary-container-forest text-primary-fixed-dim text-xs font-label-caps text-label-caps px-2 py-1 rounded uppercase">Pending</span>
+</div>
+<div class="p-6">
+<div class="flex items-center justify-between gap-4 mb-6">
+<!-- Their Item -->
+<div class="flex-1 text-center">
+<div class="w-20 h-20 mx-auto rounded-xl overflow-hidden mb-3 border border-[#2d2f2f]">
+<img alt="Their Plant" class="w-full h-full object-cover" data-alt="A detailed close-up of a Monstera Albo cutting, highlighting thick, healthy white aerial roots against a dark, moody background. The soft lighting emphasizes the premium quality and organic textures of the botanical specimen." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBA7efFcctbL08S1TxkK0wYuQq_vuRg7FntkOJBX0fLk7myway1HkCqm_-KQmYwR7TJMfCCUR38gJp7aLhi9XQrbQNHukOsPqsuFpWO1zd3mXbwbwIud_GYh27V-elYIqpAA_cyxWiYkZhYWcr55LgK8S07aS8WZgJ79-LtZGm1oYRkBF_Oxlnyie-OvA9dODHOs8R5ST4DMopf0tYfx5HmltoguP8mMzPi_Tun3fpk73fZvlGCrhsl"/>
+</div>
+<p class="font-body-sm text-body-sm text-secondary-fixed-dim">Sarah offers</p>
+<p class="font-title-md text-title-md text-surface-bright text-sm truncate">Monstera Albo Node</p>
+</div>
+<!-- Swap Icon -->
+<div class="shrink-0 text-[#707974]">
+<span class="material-symbols-outlined text-3xl">sync_alt</span>
+</div>
+<!-- Your Item -->
+<div class="flex-1 text-center">
+<div class="w-20 h-20 mx-auto rounded-xl overflow-hidden mb-3 border border-[#2d2f2f]">
+<img alt="Your Plant" class="w-full h-full object-cover" data-alt="A beautifully potted young Monstera Thai Constellation with speckled variegation on dark green leaves, sitting on a minimalist slate table in a softly lit, high-end botanical environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYIoqUwr492k2VMTozIQpw_vJLhUynJFB-CL9ZObCrPUioSds0QMep0tYLHuw3Oh3b2Ps-wIgM43UrPlZ-Fe_-C0f52mn1vvQ4q6ovkdQzBPolmhoQWDh_hd6pugATGih-pvDO6_18aKotQUFfVatW_JT4sj2kmWVwfpxXqgGZ3yNU_oSsZODud1n2g25kpjivUBxQeJ26vPp2MbjjBQuoUJhAdd3ms6pDY4W4vJy_O-5wlCy5ONy2"/>
+</div>
+<p class="font-body-sm text-body-sm text-secondary-fixed-dim">For your</p>
+<p class="font-title-md text-title-md text-surface-bright text-sm truncate">Thai Constellation</p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex gap-4">
+<button class="flex-1 h-12 rounded-[20px] font-label-caps text-label-caps bg-primary-container-forest text-on-primary hover:bg-[#205c4a] transition-colors">Accept Trade</button>
+<button class="flex-1 h-12 rounded-[20px] font-label-caps text-label-caps bg-transparent border border-outline text-surface-bright hover:bg-[#242624] transition-colors">Counter Offer</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Chat Input Area -->
+<div class="p-4 bg-[#1a1c1a] border-t border-[#2d2f2f]">
+<div class="flex items-center gap-2 bg-[#242624] rounded-[24px] p-2 pr-4 border border-[#2d2f2f] focus-within:border-primary-fixed-dim/50 transition-colors">
+<button class="p-2 text-[#707974] hover:text-primary-fixed-dim transition-colors rounded-full hover:bg-[#2d2f2f]">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<input class="flex-1 bg-transparent border-none text-surface-bright font-body-lg text-body-lg focus:ring-0 placeholder:text-[#707974]" placeholder="Type a message..." type="text"/>
+<button class="p-2 text-primary-fixed-dim hover:text-white transition-colors rounded-full hover:bg-primary-container-forest">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+</section>
+</main>
+</body></html>

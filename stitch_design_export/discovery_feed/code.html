@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PlantSale.Ge - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary": "#ffffff",
+                        "on-background": "#1c1b1b",
+                        "secondary": "#645d56",
+                        "on-secondary-fixed-variant": "#4c463f",
+                        "primary-container": "#1b4d3e",
+                        "primary-fixed": "#baeed9",
+                        "tertiary-fixed": "#e2e2e2",
+                        "primary-fixed-dim": "#9ed1bd",
+                        "surface-tint": "#376757",
+                        "on-primary-fixed": "#002117",
+                        "on-secondary": "#ffffff",
+                        "secondary-fixed": "#ebe1d8",
+                        "on-error-container": "#93000a",
+                        "background": "#fcf9f8",
+                        "outline": "#707974",
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "surface-dim": "#dcd9d9",
+                        "surface-container-highest": "#e5e2e1",
+                        "surface-bright": "#fcf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-container": "#6a635c",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "surface-container-low": "#f6f3f2",
+                        "on-primary": "#ffffff",
+                        "secondary-container": "#ebe1d8",
+                        "surface-container": "#f0eded",
+                        "inverse-primary": "#9ed1bd",
+                        "on-primary-container": "#8abda9",
+                        "surface": "#fcf9f8",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "tertiary-container": "#434545",
+                        "tertiary": "#2d2f2f",
+                        "surface-container-high": "#eae7e7",
+                        "outline-variant": "#c0c9c3",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#313030",
+                        "on-surface-variant": "#404945",
+                        "on-surface": "#1c1b1b",
+                        "primary": "#003629",
+                        "error": "#ba1a1a",
+                        "error-container": "#ffdad6",
+                        "surface-variant": "#e5e2e1",
+                        "on-secondary-fixed": "#1f1b16",
+                        "on-tertiary-container": "#b1b2b2",
+                        "on-primary-fixed-variant": "#1d4f40",
+                        "inverse-on-surface": "#f3f0ef",
+                        "secondary-fixed-dim": "#cec5bc"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "80px",
+                        "gutter": "16px",
+                        "margin-desktop": "64px",
+                        "margin-mobile": "20px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "label-caps": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "title-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "label-caps": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .masonry-grid {
+            columns: 2;
+            column-gap: 16px;
+        }
+        @media (min-width: 768px) {
+            .masonry-grid { columns: 3; }
+        }
+        @media (min-width: 1024px) {
+            .masonry-grid { columns: 4; column-gap: 24px; }
+        }
+        .masonry-item {
+            break-inside: avoid;
+            margin-bottom: 16px;
+        }
+        @media (min-width: 1024px) {
+            .masonry-item { margin-bottom: 24px; }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased pb-24 md:pb-0 pt-20">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 dark:bg-surface/80 backdrop-blur-md bg-transparent flat no shadows flex justify-between items-center px-margin-mobile h-16 max-w-7xl mx-auto md:px-margin-desktop">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed">location_on</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile md:font-headline-lg md:text-headline-lg text-primary dark:text-primary-fixed tracking-tight">PlantSale.Ge</span>
+</div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-primary dark:text-primary-fixed font-bold hover:opacity-80 transition-opacity" href="#">Home</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:opacity-80 transition-opacity" href="#">Map</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:opacity-80 transition-opacity" href="#">Add</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:opacity-80 transition-opacity" href="#">Inbox</a>
+<a class="text-on-surface-variant dark:text-on-surface-variant hover:opacity-80 transition-opacity" href="#">Profile</a>
+</div>
+<button class="font-title-md text-title-md text-primary dark:text-primary-fixed bg-surface-container-high px-4 py-2 rounded-full flex items-center gap-2 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span class="text-sm">Tbilisi, 5km</span>
+</button>
+</header>
+<main class="max-w-7xl mx-auto px-margin-mobile md:px-margin-desktop mt-8">
+<!-- Logo Header -->
+<div class="flex justify-center mb-12">
+<img alt="PlantSale.Ge Logo" class="h-24 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCH3H498eULroe10OW4bd6_j6IXSqMdak9pke-wP-1bAT7kxsiQ1qGnvZQcxtwtX_QvtmYTtayzPqGrC546uzmBO3mcmGpiGwrb2yjPWW-3Rg47G9-0dp0yuYr6Ng1GKWu-AXRqXZMlf0De_4Z3cAWkyh5E6f_hFex17BU00tS8HwgSx0g7ewSxbJGAi9GtxBhaS5olwBsx0caxnhGKqvGt__yO4X2Ud85EoNrWSB9nFVN4uOUtg0Fg"/>
+</div>
+<!-- Stats Bar -->
+<div class="flex justify-center mb-8">
+<div class="bg-secondary-container dark:bg-primary-container px-6 py-3 rounded-full flex items-center gap-3">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed">eco</span>
+<span class="font-body-lg text-body-lg text-primary dark:text-primary-fixed">3.4k successful swaps</span>
+</div>
+</div>
+<!-- Filters -->
+<div class="overflow-x-auto pb-4 mb-8 hide-scrollbar flex justify-start md:justify-center gap-3">
+<button class="flex-shrink-0 bg-primary text-on-primary px-5 py-2 rounded-full font-body-sm text-body-sm border border-transparent">All</button>
+<button class="flex-shrink-0 bg-surface text-on-surface-variant px-5 py-2 rounded-full font-body-sm text-body-sm border border-outline-variant hover:bg-surface-variant transition-colors">Sale</button>
+<button class="flex-shrink-0 bg-surface text-on-surface-variant px-5 py-2 rounded-full font-body-sm text-body-sm border border-outline-variant hover:bg-surface-variant transition-colors">Trade</button>
+<button class="flex-shrink-0 bg-surface text-on-surface-variant px-5 py-2 rounded-full font-body-sm text-body-sm border border-outline-variant hover:bg-surface-variant transition-colors">Plants</button>
+<button class="flex-shrink-0 bg-surface text-on-surface-variant px-5 py-2 rounded-full font-body-sm text-body-sm border border-outline-variant hover:bg-surface-variant transition-colors">Inventory</button>
+</div>
+<!-- Masonry Grid -->
+<div class="masonry-grid">
+<!-- Card 1 -->
+<div class="masonry-item relative group rounded-[20px] overflow-hidden bg-surface shadow-[0px_10px_30px_rgba(0,0,0,0.04)]">
+<div class="aspect-[4/5] relative">
+<img class="w-full h-full object-cover" data-alt="A lush, mature Monstera Deliciosa plant with large fenestrated leaves, sitting in a minimal terracotta pot on a clean white background. Soft, diffused lighting highlights the deep green textures, conveying a premium, organic botanical aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4lVb4LkYvZHv_uG0rSY50l7YnI6SyC01C63vsuGPk0T872Oo-pZV43r4NXjGwStTDELq2i7bsv07gsZoYO8Dt9HUmVZ2kO_6M3I33Fyo4g1672lSSgjLhSBXTdxN3q0nYnx07r_Zwm3maXOjVTwdJeklOq_v9YY4lforMrZiplcr4CM13K8aBb9jj5xsvR81-_2gZNWueVzXsMoYjp5XoAwE34mbwJ8vKhSH5zPXEt3kF3xpsnlpp"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+<div class="absolute top-3 left-3 bg-secondary-container text-on-secondary-container font-label-caps text-label-caps px-3 py-1 rounded-[12px]">Sale</div>
+<div class="absolute bottom-4 left-4 right-4">
+<h3 class="font-title-md text-title-md text-white mb-1 truncate">Monstera Deliciosa</h3>
+<p class="font-body-sm text-body-sm text-white/90">₾ 85.00</p>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="masonry-item relative group rounded-[20px] overflow-hidden bg-surface shadow-[0px_10px_30px_rgba(0,0,0,0.04)]">
+<div class="aspect-square relative">
+<img class="w-full h-full object-cover" data-alt="A delicate string of pearls succulent cascading from a modern matte black hanging planter. The background is a soft, warm off-white. The lighting is natural and directional, emphasizing the spherical leaves and minimalist styling." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIl1iCeo5dwWLvBGo7f0zUNNkL3e1yzytlFMm2LEa-vfv7jsj5_b593rwenfh6EvVl3zjXu8-qUsvPeE9viYTyuyjzIoYDKLwfrdGhysmr85EbSdaZhDXkysfMbK_bXGovhaGNsWMMfx1KB60n8xqw2QB4Q1EIOtwvs3ohXKKhjRXWyOTnibDJ-FHJcNA-JxG_X_MjZyhx1s-H3nUR--HVBWBpS0lhZuftCdk9zcaZAETz2m6ONjk5"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+<div class="absolute top-3 left-3 bg-primary-container text-on-primary-container font-label-caps text-label-caps px-3 py-1 rounded-[12px]">Trade</div>
+<div class="absolute bottom-4 left-4 right-4">
+<h3 class="font-title-md text-title-md text-white mb-1 truncate">String of Pearls</h3>
+<p class="font-body-sm text-body-sm text-white/90">Open to offers</p>
+</div>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="masonry-item relative group rounded-[20px] overflow-hidden bg-surface shadow-[0px_10px_30px_rgba(0,0,0,0.04)]">
+<div class="aspect-[3/4] relative">
+<img class="w-full h-full object-cover" data-alt="A vibrant Calathea Orbifolia with striking silver and green striped leaves, presented in a simple ceramic pot. Photographed against a pure white backdrop with high-key lighting to accentuate the organic patterns and deep forest green tones." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAFhAJz0soe87MmxOC3cohbxbHTsnx6jeI2vh-5iM3MnW43TsZG9qbdhB_BzIytdosp6AYwvy-VLsf8S2aMS9d5_8HgFD1HuP2IlJgWTJLyqSHObwg1c0Sm0X1nSauQnL8ZXPSHo8iMtu87kEoGW4c1oDugI5hRvR-cGM7er15d4QV7qhg-rx2CEKOPRc8ELID1eU3V_3DEgRLdvdMWEq5LqzbcCT6hYe7vUtc0gXR4j1ox02mWuWtt"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+<div class="absolute top-3 left-3 bg-secondary-container text-on-secondary-container font-label-caps text-label-caps px-3 py-1 rounded-[12px]">Sale</div>
+<div class="absolute bottom-4 left-4 right-4">
+<h3 class="font-title-md text-title-md text-white mb-1 truncate">Calathea Orbifolia</h3>
+<p class="font-body-sm text-body-sm text-white/90">₾ 65.00</p>
+</div>
+</div>
+</div>
+<!-- Card 4 -->
+<div class="masonry-item relative group rounded-[20px] overflow-hidden bg-surface shadow-[0px_10px_30px_rgba(0,0,0,0.04)]">
+<div class="aspect-video relative">
+<img class="w-full h-full object-cover" data-alt="A collection of small rare succulent cuttings arranged neatly on a smooth light gray surface. Overhead minimalist lighting casts soft shadows, creating a calm, high-end marketplace aesthetic focused on organic textures." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAbjnitd-pUC0gncKLZhsybzVSGcGlvG30ZCIBgpZg_hxIb6E2h1o0SLr6HCaT3G2HCjUocYRXmtON19d88ORSiHGuUgXPVMFntwB0UYFzGUk4FfuoA8m61hn8b4-ga2MqdttE0Ou5EBWneKB9HEqf4OUAmc0ZsUsUK_0DbXt9OLsoMmNbPfteHTeS06BYeZ9cljIn0FGcOGg0irbaaJDuKUG0fd0jA5D8uEW2-OyVyUJLXtDHTTjiB"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+<div class="absolute top-3 left-3 bg-primary-container text-on-primary-container font-label-caps text-label-caps px-3 py-1 rounded-[12px]">Trade</div>
+<div class="absolute bottom-4 left-4 right-4">
+<h3 class="font-title-md text-title-md text-white mb-1 truncate">Rare Succulent Pack</h3>
+<p class="font-body-sm text-body-sm text-white/90">Looking for Philodendron</p>
+</div>
+</div>
+</div>
+<!-- Card 5 -->
+<div class="masonry-item relative group rounded-[20px] overflow-hidden bg-surface shadow-[0px_10px_30px_rgba(0,0,0,0.04)]">
+<div class="aspect-[4/5] relative">
+<img class="w-full h-full object-cover" data-alt="A tall Ficus Lyrata (Fiddle Leaf Fig) standing in a minimalist woven basket. The setting is a bright, sunlit modern room with white walls, embodying a premium, calm, and botanical lifestyle aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDItmz4nEslI6RZ9pTTaV5VZo9X6ZsoJPI9YcHuf2Lt1zEbGgid-EqLjdZKGWhbaYsdeCRSsOsJOYvA1v7xzMv49yiUT14aSLoB5lnE0cgHYcZupxSdgSKw78nj5BPOUGkMsgR8JFwBDmd2Op6kvp6Tmbwde3lb43Yr2wyx3w_lGfaQ0aVl4_4nyE36mKbHHDLMWEfCTUjZNxVjiaYwqFrUx66sR7WDOfpnofdt__-kMiykZYpqYxaz"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+<div class="absolute top-3 left-3 bg-secondary-container text-on-secondary-container font-label-caps text-label-caps px-3 py-1 rounded-[12px]">Sale</div>
+<div class="absolute bottom-4 left-4 right-4">
+<h3 class="font-title-md text-title-md text-white mb-1 truncate">Fiddle Leaf Fig</h3>
+<p class="font-body-sm text-body-sm text-white/90">₾ 120.00</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-xl bg-surface/90 dark:bg-surface-container-lowest/90 backdrop-blur-xl bg-surface dark:bg-surface-container-lowest shadow-[0px_-4px_20px_rgba(0,0,0,0.04)] shadow-lg fixed bottom-0 left-0 w-full flex justify-around items-center px-4 py-3 pb-safe">
+<a class="flex flex-col items-center justify-center text-primary dark:text-primary-fixed bg-secondary-container dark:bg-primary-container rounded-full p-2 scale-90 duration-200 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="font-label-caps text-label-caps mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-label-caps text-label-caps mt-1">Map</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-label-caps text-label-caps mt-1">Add</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="font-label-caps text-label-caps mt-1">Inbox</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-tertiary-container p-2 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-caps text-label-caps mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PlantSale.Ge - Map View</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container-forest": "#1b4d3e",
+                        "primary-fixed-dim": "#a0d1be",
+                        "surface-bright": "#fdf8f8",
+                        "tertiary-container": "#434545",
+                        "surface-variant": "#e6e1e1",
+                        "inverse-surface": "#313030",
+                        "error-soft": "#ba1a1a",
+                        "on-error-container": "#93000a",
+                        "on-error": "#ffffff",
+                        "surface-container-high": "#ece7e7",
+                        "error": "#ba1a1a",
+                        "outline": "#707974",
+                        "secondary-container-sand": "#ebe1d8",
+                        "on-secondary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#396758",
+                        "on-secondary-container": "#69615a",
+                        "inverse-on-surface": "#f4f0ef",
+                        "on-surface": "#1c1b1b",
+                        "on-surface-variant": "#404945",
+                        "primary": "#003629",
+                        "surface-container-highest": "#e6e1e1",
+                        "surface-container": "#f1edec",
+                        "surface-dim": "#ddd9d8",
+                        "secondary-container": "#e8ded5",
+                        "on-primary-fixed-variant": "#204f40",
+                        "secondary": "#645d56",
+                        "on-secondary-fixed-variant": "#4c463f",
+                        "error-container": "#ffdad6",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#ebe1d8",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "on-tertiary-container": "#b1b2b2",
+                        "inverse-primary": "#a0d1be",
+                        "tertiary": "#2d2f2f",
+                        "secondary-fixed-dim": "#cfc5bc",
+                        "on-background": "#1c1b1b",
+                        "primary-container": "#1d4d3f",
+                        "tertiary-fixed-dim": "#c6c6c6",
+                        "background": "#fdf8f8",
+                        "primary-fixed": "#bbedda",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-cream": "#fcf9f8",
+                        "accent-star": "#376757",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary-fixed": "#1f1b15",
+                        "on-primary-fixed": "#002118",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "surface-container-low": "#f7f2f2",
+                        "outline-variant": "#c0c9c3",
+                        "on-primary-container": "#8cbcaa",
+                        "surface": "#fdf8f8",
+                        // Custom dark mode overrides requested
+                        "dark-bg": "#121212",
+                        "dark-surface": "#1E1E1E",
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "section-gap": "80px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "title-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.03em", "fontWeight": "600" }],
+                        "headline-lg": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "headline-lg-mobile": ["24px", { "lineHeight": "1.2", "fontWeight": "600" }],
+                        "title-md": ["20px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Custom scrollbar for dark mode */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121212; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+    </style>
+</head>
+<body class="bg-dark-bg text-on-surface dark:text-inverse-on-surface h-screen overflow-hidden flex flex-col font-body-lg text-body-lg">
+<!-- TopNavBar -->
+<nav class="sticky top-0 z-50 flex justify-between items-center px-margin-desktop w-full h-20 bg-surface/80 dark:bg-surface-dim/80 backdrop-blur-md shadow-sm">
+<div class="flex items-center gap-8">
+<span class="font-headline-lg text-headline-lg font-bold text-primary-container-forest dark:text-primary-fixed-dim">PlantSale.Ge</span>
+<!-- Search Bar on Left -->
+<div class="relative hidden md:block w-64">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline">search</span>
+<input class="w-full bg-surface-container-high dark:bg-inverse-surface border-none rounded-full py-2 pl-10 pr-4 text-body-sm font-body-sm text-on-surface dark:text-on-secondary focus:ring-2 focus:ring-primary-fixed-dim" placeholder="Search plants..." type="text"/>
+</div>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-primary-container-forest dark:text-primary-fixed-dim border-b-2 border-primary-container-forest pb-1 font-bold font-label-caps text-label-caps hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Map</a>
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium font-label-caps text-label-caps hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Inbox</a>
+<a class="text-secondary dark:text-secondary-fixed-dim font-medium font-label-caps text-label-caps hover:text-primary-container-forest dark:hover:text-primary-fixed-dim transition-colors duration-200" href="#">Profile</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-secondary dark:text-secondary-fixed-dim font-medium font-label-caps text-label-caps flex items-center gap-1 hover:text-primary-fixed-dim transition-colors">
+<span class="material-symbols-outlined text-primary-fixed-dim">dark_mode</span> Theme
+            </button>
+<button class="bg-primary-container-forest text-on-primary h-[48px] px-6 rounded-[20px] font-label-caps text-label-caps font-bold hover:bg-primary transition-colors">
+                + Add Listing
+            </button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex w-full overflow-hidden">
+<!-- Left 40% - Scrollable List -->
+<div class="w-[40%] bg-dark-bg border-r border-tertiary-container overflow-y-auto p-gutter flex flex-col gap-gutter">
+<div class="flex justify-between items-center px-2 py-4">
+<h2 class="font-title-md text-title-md text-on-primary">Plants Near You</h2>
+<button class="flex items-center gap-1 text-secondary-fixed-dim font-body-sm text-body-sm hover:text-primary-fixed-dim">
+<span class="material-symbols-outlined text-sm">filter_list</span> Filters
+                </button>
+</div>
+<!-- Plant Card 1 -->
+<div class="bg-dark-surface rounded-xl overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.1)] border border-tertiary-container/30 hover:border-primary-fixed-dim/50 transition-colors group cursor-pointer">
+<div class="h-48 w-full relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" data-alt="A lush Monstera Deliciosa plant sitting in a sleek modern charcoal pot, illuminated by soft natural window light in a dark, moody interior setting. Deep greens pop against dark background. Premium botanical photography style." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBNdX4lZ8RSEhrFn4wI1zN2klFRToxKUquDVEMvMXW_wnPdQ9iC44cYacpzoMn7BXwA22-IyFJgdDtgkBkTJLXZ-SqaR2W8sY9mylWLM6f1HamYTm97VdRcjVrNZLgE1OuCuE-JQUAFAbHLGREXO6fsxIltHPdIlJAIdyHBcH_WMEqJVPkKNygOfb-dUq6zqeoN8CnTkGofbs4mT4BhlFsegJOmiwWYp-TtwJSUQzmef_uUO5nz45dr')"></div>
+<div class="absolute top-3 left-3 bg-secondary-container-sand text-primary-container-forest px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">local_fire_department</span> Rare
+                    </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-on-primary font-bold">Monstera Deliciosa</h3>
+<span class="font-title-md text-title-md text-primary-fixed-dim font-bold">$45</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary-fixed-dim mb-4">Mature plant with deep fenestrations. Includes premium pot.</p>
+<div class="flex items-center gap-2 text-secondary-fixed-dim font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px]">location_on</span> 1.2 miles away
+                    </div>
+</div>
+</div>
+<!-- Plant Card 2 -->
+<div class="bg-dark-surface rounded-xl overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.1)] border border-tertiary-container/30 hover:border-primary-fixed-dim/50 transition-colors group cursor-pointer">
+<div class="h-48 w-full relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" data-alt="A vibrant Calathea Orbifolia showing off its large, striped silver and green leaves. Placed on a dark wooden table with cinematic lighting emphasizing the leaf texture against a dark aesthetic." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA_9I-52sF45WEKfARNU2UBSj8xF8vLH_pRpVqsL1k5rpBHsuZJqGbnTfZnz2tLLbDX9J8pW6PvtFf6MUFtXWEBRYeBel9hS2aRKWzAdVh6TUbwAJEwBftcmNx0ivU3c0JshnYpnfn-g_JQYZFWCSOlL5c9fTFNqaPZdJP8yjs6mDpBrahBz5k-mJzrTSjeXZoxC0yRwrkkT_5G2ZjHwtYCs35nzWQ8chsY09P8YOMIcKNUUQ8BJz-U')"></div>
+<div class="absolute top-3 left-3 bg-secondary-container-sand text-primary-container-forest px-3 py-1 rounded-full font-label-caps text-label-caps flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">water_drop</span> Low Light
+                    </div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-on-primary font-bold">Calathea Orbifolia</h3>
+<span class="font-title-md text-title-md text-primary-fixed-dim font-bold">$30</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary-fixed-dim mb-4">Healthy root system, pushing out new growth.</p>
+<div class="flex items-center gap-2 text-secondary-fixed-dim font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px]">location_on</span> 2.5 miles away
+                    </div>
+</div>
+</div>
+<!-- Plant Card 3 -->
+<div class="bg-dark-surface rounded-xl overflow-hidden shadow-[0_4px_30px_rgba(0,0,0,0.1)] border border-tertiary-container/30 hover:border-primary-fixed-dim/50 transition-colors group cursor-pointer">
+<div class="h-48 w-full relative overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center group-hover:scale-105 transition-transform duration-500" data-alt="A trailing String of Pearls succulent cascading from a dark minimalist hanging planter. Soft, moody directional lighting highlights the spherical leaves against a deep grey wall." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDTALjVl2by7bB6sB9YSUnInOLt2KR8kcFv0nVr1KIl3yLiwiyfheyLEAjEX-jfmtFrECLBMB8tLpqbZ4ILoyDXiaNdN74j0Z7RLcHpez6dZ33gwwO6geaow3GMCxxRPtmM9_LryeZCn8YMNU82ameUIDtODU5fKfOvRIUYJHzrMZ13RMk5K7bKStp5_GxY4UBttorRrw_djzNysouWY8fomGLlxnTmZ5OlVqbeoIh4S4VHEc4qY9eO')"></div>
+</div>
+<div class="p-6">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-title-md text-title-md text-on-primary font-bold">String of Pearls</h3>
+<span class="font-title-md text-title-md text-primary-fixed-dim font-bold">$15</span>
+</div>
+<p class="font-body-sm text-body-sm text-secondary-fixed-dim mb-4">Well established, over 2ft long trails.</p>
+<div class="flex items-center gap-2 text-secondary-fixed-dim font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px]">location_on</span> 3.0 miles away
+                    </div>
+</div>
+</div>
+</div>
+<!-- Right 60% - Dark Map View -->
+<div class="w-[60%] h-full relative bg-[#0a0a0a]">
+<!-- Simulated Map Background -->
+<img alt="Map View" class="w-full h-full object-cover opacity-60 grayscale-[80%] contrast-125 brightness-50" data-location="Seattle, WA" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYHWhhjb4u8K76hZyY8L57u81wTQQcgoN4cYU2MbmuziG_sC-hW5Bc5VV5YQcgTPvDmH1qo2q1l3gDeCQn8rw2WOrK43QOjFGYUxk8kcyh0dU6MBcMn8PkgrF2FePNPDCJkkh8oPoe3sLxwMlwUQKTG1a1wHBKFxxQ-_GzEubpUL0JsHUJmI4PnnGgHfSOdYfWQD38s5eR7yhr_uCemBHgjhqCjsn0KT_H_Cu0oC1fxt5aHX9PDh5E"/>
+<!-- Map Overlay Controls -->
+<div class="absolute top-4 right-4 flex flex-col gap-2">
+<button class="bg-dark-surface border border-tertiary-container text-on-primary w-10 h-10 rounded-lg flex items-center justify-center hover:bg-inverse-surface shadow-lg transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="bg-dark-surface border border-tertiary-container text-on-primary w-10 h-10 rounded-lg flex items-center justify-center hover:bg-inverse-surface shadow-lg transition-colors">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="bg-dark-surface border border-tertiary-container text-primary-fixed-dim w-10 h-10 rounded-lg flex items-center justify-center hover:bg-inverse-surface shadow-lg transition-colors mt-4">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<!-- Custom Map Pins (Simulated) -->
+<!-- Pin 1: Active -->
+<div class="absolute top-[30%] left-[40%] group cursor-pointer transform -translate-x-1/2 -translate-y-1/2 z-10">
+<div class="w-12 h-12 bg-primary-container-forest rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(160,209,190,0.5)] border-2 border-primary-fixed-dim relative">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">eco</span>
+<!-- Map Popup Tooltip -->
+<div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-dark-surface border border-tertiary-container rounded-lg shadow-xl p-3 opacity-100 transition-opacity">
+<div class="flex justify-between items-center mb-1">
+<span class="font-body-sm text-body-sm font-bold text-on-primary truncate">Monstera Deliciosa</span>
+</div>
+<span class="font-label-caps text-label-caps text-primary-fixed-dim">$45</span>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-t-[8px] border-t-tertiary-container border-r-[6px] border-r-transparent"></div>
+<div class="absolute -bottom-[7px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-t-[7px] border-t-dark-surface border-r-[5px] border-r-transparent z-10"></div>
+</div>
+</div>
+</div>
+<!-- Pin 2: Inactive -->
+<div class="absolute top-[50%] left-[60%] group cursor-pointer transform -translate-x-1/2 -translate-y-1/2 hover:z-10">
+<div class="w-10 h-10 bg-dark-surface rounded-full flex items-center justify-center shadow-md border-2 border-primary-container-forest hover:border-primary-fixed-dim hover:bg-primary-container-forest transition-colors relative">
+<span class="material-symbols-outlined text-primary-container-forest group-hover:text-primary-fixed-dim transition-colors" style="font-variation-settings: 'FILL' 1;">eco</span>
+<!-- Map Popup Tooltip (Hidden by default) -->
+<div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-dark-surface border border-tertiary-container rounded-lg shadow-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<div class="flex justify-between items-center mb-1">
+<span class="font-body-sm text-body-sm font-bold text-on-primary truncate">Calathea Orbifolia</span>
+</div>
+<span class="font-label-caps text-label-caps text-primary-fixed-dim">$30</span>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-t-[8px] border-t-tertiary-container border-r-[6px] border-r-transparent"></div>
+<div class="absolute -bottom-[7px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-t-[7px] border-t-dark-surface border-r-[5px] border-r-transparent z-10"></div>
+</div>
+</div>
+</div>
+<!-- Pin 3: Inactive -->
+<div class="absolute top-[65%] left-[25%] group cursor-pointer transform -translate-x-1/2 -translate-y-1/2 hover:z-10">
+<div class="w-10 h-10 bg-dark-surface rounded-full flex items-center justify-center shadow-md border-2 border-primary-container-forest hover:border-primary-fixed-dim hover:bg-primary-container-forest transition-colors relative">
+<span class="material-symbols-outlined text-primary-container-forest group-hover:text-primary-fixed-dim transition-colors" style="font-variation-settings: 'FILL' 1;">eco</span>
+<div class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-dark-surface border border-tertiary-container rounded-lg shadow-xl p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<div class="flex justify-between items-center mb-1">
+<span class="font-body-sm text-body-sm font-bold text-on-primary truncate">String of Pearls</span>
+</div>
+<span class="font-label-caps text-label-caps text-primary-fixed-dim">$15</span>
+<div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-t-[8px] border-t-tertiary-container border-r-[6px] border-r-transparent"></div>
+<div class="absolute -bottom-[7px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-t-[7px] border-t-dark-surface border-r-[5px] border-r-transparent z-10"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

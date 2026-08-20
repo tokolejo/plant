@@ -1,0 +1,41 @@
+{
+  "Common": {
+    "appName": "PlantSale.Ge",
+    "search": "Search plants, pots, tools...",
+    "location": "Location",
+    "allGeorgia": "All Georgia",
+    "tbilisi": "Tbilisi",
+    "batumi": "Batumi",
+    "kutaisi": "Kutaisi",
+    "currency": "₾",
+    "free": "Free",
+    "login": "Sign In",
+    "register": "Sign Up",
+    "logout": "Sign Out",
+    "dashboard": "Dashboard",
+    "postListing": "+ Post Listing"
+  },
+  "Navigation": {
+    "home": "Home",
+    "plants": "Plants",
+    "inventory": "Inventory & Tools",
+    "iso": "Plant Matchmaking (ISO)",
+    "shops": "Verified Shops",
+    "pricing": "Pricing & Tiers"
+  },
+  "Listing": {
+    "type": "Type",
+    "plant": "Plant",
+    "inventory": "Inventory",
+    "transaction": "Transaction Type",
+    "fixed": "Fixed Price",
+    "negotiable": "Negotiable",
+    "trade": "Trade / Swap",
+    "delivery": "Delivery Options",
+    "pickup": "Pick-up",
+    "courier": "Courier Delivery",
+    "marshrutka": "Marshrutka Delivery",
+    "imagesHint": "Upload between 2 and 5 photos",
+    "tradeLookingFor": "Looking to trade for"
+  }
+}
