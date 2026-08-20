@@ -36,6 +36,6 @@ export const config = {
   matcher: [
     "/",
     "/(ka|en)/:path*",
-    "/((?!_next|_vercel|api|auth|.*\\..*).*)",
+    "/((?!_next|_vercel|api|auth/callback|.*\\..*).*)",
   ],
 };

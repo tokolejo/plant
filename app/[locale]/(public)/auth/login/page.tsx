@@ -332,7 +332,6 @@ function AuthContainer() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                       autoComplete="email"
                     />
@@ -347,7 +346,7 @@ function AuthContainer() {
                     <button
                       type="button"
                       onClick={() => switchMode("FORGOT")}
-                      className="text-[11px] font-bold text-primary hover:underline"
+                      className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
                     >
                       დაგავიწყდათ პაროლი?
                     </button>
@@ -359,7 +358,6 @@ function AuthContainer() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                       autoComplete="current-password"
                     />
@@ -369,7 +367,7 @@ function AuthContainer() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 mt-2 shadow-ambient"
+                  className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 mt-2 shadow-ambient cursor-pointer"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "სისტემაში შესვლა"}
                 </Button>
@@ -391,7 +389,6 @@ function AuthContainer() {
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="მაგ: გიორგი მაისურაძე"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
@@ -409,7 +406,6 @@ function AuthContainer() {
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="599 12 34 56"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
@@ -427,7 +423,6 @@ function AuthContainer() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
@@ -448,7 +443,6 @@ function AuthContainer() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
@@ -466,7 +460,6 @@ function AuthContainer() {
                       required
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
@@ -475,7 +468,7 @@ function AuthContainer() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 mt-3 shadow-ambient"
+                  className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 mt-3 shadow-ambient cursor-pointer"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "რეგისტრაციის დასრულება"}
                 </Button>
@@ -496,7 +489,6 @@ function AuthContainer() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="your@email.com"
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
@@ -505,7 +497,7 @@ function AuthContainer() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 shadow-ambient"
+                  className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 shadow-ambient cursor-pointer"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "აღდგენის ბმულის გაგზავნა"}
                 </Button>
@@ -513,7 +505,7 @@ function AuthContainer() {
                 <button
                   type="button"
                   onClick={() => switchMode("LOGIN")}
-                  className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary pt-2 transition-colors"
+                  className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary pt-2 transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   შესვლის ფორმაზე დაბრუნება
