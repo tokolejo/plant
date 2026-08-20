@@ -39,67 +39,79 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 
-// ─── Curated Partner Inventory Products for Plant Care (Carousel Pool) ─────────
+// ─── Curated Partner Retailers & Agro Hypermarkets (Domino, Gorgia, Agrohub, Bricorama) ───
 const RECOMMENDED_INVENTORY = [
   {
     id: "rec-inv-1",
-    title: "აროიდების & ტროპიკული მცენარეების პრემიუმ სუბსტრატი (5L)",
+    title: "აროიდების & ტროპიკული მცენარეების სუბსტრატი (5L)",
     category: "სუბსტრატი & გრუნტი",
-    price: 22,
+    price: 19,
     image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80",
-    shopName: "Green Life Botanics",
-    shopBadge: "პარტნიორი",
-    link: "/listings?type=INVENTORY",
+    shopName: "დომინო",
+    shopBadge: "🏪 დომინო",
+    shopColor: "bg-blue-600/90 text-white",
+    link: "https://domino.com.ge",
+    isExternal: true,
   },
   {
     id: "rec-inv-2",
-    title: "ხელნაკეთი კერამიკული ქოთანი სადგამით (18 სმ, მქრქალი)",
-    category: "კერამიკა",
-    price: 45,
+    title: "კერამიკული მქრქალი ქოთანი სადგამით (18 სმ)",
+    category: "ქოთნები",
+    price: 38,
     image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&auto=format&fit=crop&q=80",
-    shopName: "Flora Studio",
-    shopBadge: "ვერიფიცირებული",
-    link: "/listings?type=INVENTORY",
+    shopName: "გორგია",
+    shopBadge: "🏪 გორგია",
+    shopColor: "bg-amber-600/90 text-white",
+    link: "https://gorgia.ge",
+    isExternal: true,
   },
   {
     id: "rec-inv-3",
-    title: "ორგანული თხევადი სასუქი & ფესვის ზრდის სტიმულატორი (500 მლ)",
+    title: "ორგანული სასუქი & ფესვის ზრდის ელექსირი (500 მლ)",
     category: "სასუქი & მოვლა",
-    price: 28,
+    price: 24,
     image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
-    shopName: "BioPlant Georgia",
-    shopBadge: "პარტნიორი",
-    link: "/listings?type=INVENTORY",
+    shopName: "აგროჰაბი",
+    shopBadge: "🌿 აგროჰაბი",
+    shopColor: "bg-emerald-600/90 text-white",
+    link: "https://agrohub.ge",
+    isExternal: true,
   },
   {
     id: "rec-inv-4",
-    title: "სპეციალური ფიტო-განათება მცენარეებისთვის (Full Spectrum LED)",
+    title: "ფიტო-განათება მცენარეებისთვის (Full Spectrum LED)",
     category: "Grow Light",
-    price: 65,
+    price: 59,
     image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&auto=format&fit=crop&q=80",
-    shopName: "SunGrow Georgia",
-    shopBadge: "პარტნიორი",
-    link: "/listings?type=INVENTORY",
+    shopName: "ბრიკორამა",
+    shopBadge: "🏪 ბრიკორამა",
+    shopColor: "bg-rose-600/90 text-white",
+    link: "https://bricorama.ge",
+    isExternal: true,
   },
   {
     id: "rec-inv-5",
-    title: "ბოტანიკური მოსავლელი მაკრატელი (უჟანგავი ფოლადი)",
+    title: "ბოტანიკური უჟანგავი მოსავლელი მაკრატელი",
     category: "ხელსაწყოები",
-    price: 19,
+    price: 18,
     image: "https://images.unsplash.com/photo-1592150621744-aca64f48394a?w=600&auto=format&fit=crop&q=80",
-    shopName: "Urban Garden",
-    shopBadge: "ვერიფიცირებული",
+    shopName: "აგრო სექტორი",
+    shopBadge: "🌱 აგრო სექტორი",
+    shopColor: "bg-teal-600/90 text-white",
     link: "/listings?type=INVENTORY",
+    isExternal: false,
   },
   {
     id: "rec-inv-6",
-    title: "ქოქოსის ბოჭკოს ხავსიანი საყრდენი ბოძი (Moss Pole 60 სმ)",
+    title: "ქოქოსის ბოჭკოს ხავსის საყრდენი ბოძი (Moss Pole 60 სმ)",
     category: "აქსესუარები",
-    price: 15,
+    price: 14,
     image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600&auto=format&fit=crop&q=80",
-    shopName: "Green Life Botanics",
-    shopBadge: "პარტნიორი",
-    link: "/listings?type=INVENTORY",
+    shopName: "დომინო",
+    shopBadge: "🏪 დომინო",
+    shopColor: "bg-blue-600/90 text-white",
+    link: "https://domino.com.ge",
+    isExternal: true,
   },
 ];
 
@@ -123,19 +135,27 @@ export default function ListingDetailPage({
 
   const scrollInventory = (direction: "left" | "right") => {
     if (inventoryScrollRef.current) {
-      const scrollOffset = direction === "left" ? -240 : 240;
-      inventoryScrollRef.current.scrollBy({ left: scrollOffset, behavior: "smooth" });
+      const container = inventoryScrollRef.current;
+      const scrollAmount = container.clientWidth; // Exactly 1 full view width (3 items)
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
     }
   };
 
   const scrollSimilar = (direction: "left" | "right") => {
     if (similarScrollRef.current) {
-      const scrollOffset = direction === "left" ? -260 : 260;
-      similarScrollRef.current.scrollBy({ left: scrollOffset, behavior: "smooth" });
+      const container = similarScrollRef.current;
+      const scrollAmount = container.clientWidth * 0.75;
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
     }
   };
 
-  // Similar listings (excluding current listing)
+  // Similar plant listings (excluding current listing)
   const similarListings = SAMPLE_LISTINGS.filter((l) => l.id !== listing.id);
 
   // Reviews state
@@ -220,7 +240,7 @@ export default function ListingDetailPage({
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-7 items-start">
         {/* ══════════════════════════════════════════════════════════════════════
-            LEFT COLUMN: Gallery, Care Indicators, Description & Recommended Inventory Slider
+            LEFT COLUMN: Gallery, Care Indicators, Description & Recommended Partner Retailer Products
         ══════════════════════════════════════════════════════════════════════ */}
         <div className="lg:col-span-7 space-y-5">
           {/* Main Photo Gallery */}
@@ -354,10 +374,11 @@ export default function ListingDetailPage({
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════════
-              🪴 COMPACT RECOMMENDED PARTNER INVENTORY SLIDER (Arrow Navigation)
+              🪴 RECOMMENDED PARTNER RETAILER INVENTORY (Domino, Gorgia, Agrohub, etc.)
+              Perfect 3-Card Edge-to-Edge Grid with Smooth Arrow Pagination
           ══════════════════════════════════════════════════════════════════════ */}
           <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-4.5 shadow-ambient space-y-3">
-            {/* Header with Left/Right Arrows */}
+            {/* Header with Store Badges & Navigation Arrows */}
             <div className="flex items-center justify-between gap-2">
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
@@ -365,7 +386,7 @@ export default function ListingDetailPage({
                   რეკომენდებული ინვენტარი ამ მცენარისთვის
                 </h3>
                 <p className="text-[11px] text-muted-foreground">
-                  პარტნიორი მაღაზიების შეთავაზებები
+                  პარტნიორი აგრო და სამშენებლო ჰიპერმარკეტების შეთავაზებები
                 </p>
               </div>
 
@@ -374,33 +395,33 @@ export default function ListingDetailPage({
                 <button
                   type="button"
                   onClick={() => scrollInventory("left")}
-                  className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs"
-                  title="წინა"
+                  className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
+                  title="წინა 3 შეთავაზება"
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => scrollInventory("right")}
-                  className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs"
-                  title="შემდეგი"
+                  className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
+                  title="შემდეგი 3 შეთავაზება"
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Scrollable Compact Inventory Track */}
+            {/* Scrollable Track — Paginated 3 Items per Desktop View (No Partial Cutoff) */}
             <div
               ref={inventoryScrollRef}
-              className="flex gap-2.5 overflow-x-auto scroll-smooth no-scrollbar pb-1 pt-0.5"
+              className="flex gap-2.5 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-1 pt-0.5"
             >
               {RECOMMENDED_INVENTORY.map((item) => (
                 <div
                   key={item.id}
-                  className="group relative flex flex-col justify-between w-[170px] sm:w-[185px] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-background/90 hover:border-primary/50 transition-all p-2 shadow-2xs hover:shadow-sm"
+                  className="snap-start group relative flex flex-col justify-between w-[calc(50%-5px)] sm:w-[calc(33.333%-6.7px)] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-background/90 hover:border-primary/50 transition-all p-2 shadow-2xs hover:shadow-sm"
                 >
-                  {/* Photo — Compact */}
+                  {/* Photo & Store Badge */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[10px] bg-surface-container mb-1.5">
                     <Image
                       src={item.image}
@@ -408,7 +429,7 @@ export default function ListingDetailPage({
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <span className="absolute top-1 left-1 backdrop-blur-md bg-black/60 text-white font-bold text-[8.5px] px-1.5 py-0.5 rounded-[5px]">
+                    <span className={`absolute top-1 left-1 backdrop-blur-md ${item.shopColor} font-black text-[8.5px] px-1.5 py-0.5 rounded-[5px] shadow-sm`}>
                       {item.shopBadge}
                     </span>
                   </div>
@@ -429,17 +450,29 @@ export default function ListingDetailPage({
                         <span className="text-xs font-black text-primary dark:text-emerald-400">
                           {item.price} ₾
                         </span>
-                        <span className="text-[8.5px] text-muted-foreground block truncate max-w-[70px]">
+                        <span className="text-[8.5px] text-muted-foreground block truncate max-w-[65px]">
                           {item.shopName}
                         </span>
                       </div>
 
-                      <Link
-                        href={item.link}
-                        className="inline-flex items-center text-[10px] font-bold text-primary hover:text-white hover:bg-primary px-2 py-0.5 rounded-[6px] bg-primary/10 transition-colors"
-                      >
-                        ნახვა
-                      </Link>
+                      {item.isExternal ? (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-0.5 text-[10px] font-bold text-primary hover:text-white hover:bg-primary px-2 py-0.5 rounded-[6px] bg-primary/10 transition-colors"
+                        >
+                          <span>მაღაზია</span>
+                          <ExternalLink className="w-2.5 h-2.5" />
+                        </a>
+                      ) : (
+                        <Link
+                          href={item.link}
+                          className="inline-flex items-center text-[10px] font-bold text-primary hover:text-white hover:bg-primary px-2 py-0.5 rounded-[6px] bg-primary/10 transition-colors"
+                        >
+                          ნახვა
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -626,7 +659,7 @@ export default function ListingDetailPage({
                     key={idx}
                     className="inline-flex items-center gap-1 rounded-[6px] bg-card px-2 py-0.5 text-[10.5px] font-bold text-primary shadow-2xs"
                   >
-                    <ShieldCheck className="w-3 h-3" />
+                    <ShieldCheck className="w-3.5 h-3.5" />
                     {badge}
                   </span>
                 ))}
@@ -726,7 +759,7 @@ export default function ListingDetailPage({
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          🌿 COMPACT SIMILAR LISTINGS SLIDER (Arrow Navigation)
+          🌿 COMPACT SIMILAR PLANT LISTINGS SLIDER (Bottom Section)
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="mt-10 pt-6 border-t border-border/60 space-y-3.5">
         <div className="flex items-center justify-between gap-2">
@@ -750,7 +783,7 @@ export default function ListingDetailPage({
               <button
                 type="button"
                 onClick={() => scrollSimilar("left")}
-                className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs"
+                className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
                 title="წინა"
               >
                 <ChevronLeft className="w-4 h-4" />
@@ -758,7 +791,7 @@ export default function ListingDetailPage({
               <button
                 type="button"
                 onClick={() => scrollSimilar("right")}
-                className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs"
+                className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
                 title="შემდეგი"
               >
                 <ChevronRight className="w-4 h-4" />
@@ -767,13 +800,13 @@ export default function ListingDetailPage({
           </div>
         </div>
 
-        {/* Scrollable Compact Similar Listings Track */}
+        {/* Scrollable Compact Similar Plant Listings Track */}
         <div
           ref={similarScrollRef}
-          className="flex gap-3 overflow-x-auto scroll-smooth no-scrollbar pb-1 pt-0.5"
+          className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-1 pt-0.5"
         >
           {similarListings.map((simItem) => (
-            <div key={simItem.id} className="w-[190px] sm:w-[210px] shrink-0">
+            <div key={simItem.id} className="snap-start w-[180px] sm:w-[200px] shrink-0">
               <ListingCard {...simItem} variant="compact" />
             </div>
           ))}
