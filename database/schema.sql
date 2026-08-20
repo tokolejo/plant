@@ -1,46 +1,47 @@
 -- ==============================================================================
--- PlantSale.Ge - Complete Production Database Schema
--- Tech Stack: PostgreSQL 15+ with PostGIS, Supabase Auth & RLS
+-- PlantSale.Ge - Complete Production Master Database Schema
+-- Tech Stack: PostgreSQL 15+ with PostGIS, Supabase Auth, Storage & Strict RLS
 -- ==============================================================================
 
--- 1. EXTENSIONS
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-CREATE EXTENSION IF NOT EXISTS "postgis";
+-- 1. EXTENSIONS (Installed in dedicated extensions schema for clean security)
+CREATE SCHEMA IF NOT EXISTS extensions;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "pgcrypto" WITH SCHEMA extensions;
+CREATE EXTENSION IF NOT EXISTS "postgis" WITH SCHEMA extensions;
 
 -- 2. CUSTOM ENUMS
 DO $$ BEGIN
-    CREATE TYPE subscription_tier AS ENUM ('FREE', 'TIER_1', 'TIER_2', 'TIER_3');
+    CREATE TYPE public.subscription_tier AS ENUM ('FREE', 'TIER_1', 'TIER_2', 'TIER_3');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE billing_cycle AS ENUM ('MONTHLY', 'YEARLY');
+    CREATE TYPE public.billing_cycle AS ENUM ('MONTHLY', 'YEARLY');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE listing_status AS ENUM ('ACTIVE', 'HIDDEN', 'SOLD', 'DELETED');
+    CREATE TYPE public.listing_status AS ENUM ('ACTIVE', 'HIDDEN', 'SOLD', 'DELETED');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE item_type AS ENUM ('PLANT', 'INVENTORY');
+    CREATE TYPE public.item_type AS ENUM ('PLANT', 'INVENTORY');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE delivery_method AS ENUM ('PICKUP', 'COURIER', 'MARSHRUTKA');
+    CREATE TYPE public.delivery_method AS ENUM ('PICKUP', 'COURIER', 'MARSHRUTKA');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
-    CREATE TYPE transaction_type AS ENUM ('FIXED', 'NEGOTIABLE', 'TRADE');
+    CREATE TYPE public.transaction_type AS ENUM ('FIXED', 'NEGOTIABLE', 'TRADE');
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
@@ -52,338 +53,149 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     phone TEXT,
     avatar_url TEXT,
     bio TEXT,
-    city TEXT DEFAULT 'Tbilisi',
+    city TEXT DEFAULT 'თბილისი',
     
     -- Subscription & Shop Customization
-    subscription_tier subscription_tier NOT NULL DEFAULT 'FREE',
-    billing_cycle billing_cycle NOT NULL DEFAULT 'MONTHLY',
+    subscription_tier public.subscription_tier NOT NULL DEFAULT 'FREE',
+    billing_cycle public.billing_cycle NOT NULL DEFAULT 'MONTHLY',
     subscription_expires_at TIMESTAMPTZ,
-    custom_slug TEXT UNIQUE, -- Custom shop URL slug for TIER_2 and TIER_3
+    custom_slug TEXT UNIQUE,
+    banner_url TEXT,
+    theme_preset TEXT DEFAULT 'emerald',
+    social_links JSONB DEFAULT '{}'::jsonb,
     
-    -- Affiliate / Referral Logic
-    affiliate_code TEXT UNIQUE NOT NULL,
+    -- Gamification & Trust
+    average_rating NUMERIC(3, 2) DEFAULT 0.00,
+    total_reviews INTEGER DEFAULT 0,
+    badges TEXT[] DEFAULT '{}',
+    is_admin BOOLEAN DEFAULT FALSE,
+    
+    -- Growth & Affiliates
+    affiliate_code TEXT UNIQUE,
     referred_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    wallet_balance NUMERIC(10, 2) DEFAULT 0.00,
     
-    -- Ratings, Reviews & Gamification
-    average_rating NUMERIC(3,2) NOT NULL DEFAULT 0.00 CHECK (average_rating >= 0.00 AND average_rating <= 5.00),
-    total_reviews INTEGER NOT NULL DEFAULT 0 CHECK (total_reviews >= 0),
-    badges TEXT[] NOT NULL DEFAULT '{}', -- e.g. 'Green Thumb', 'Trusted Seller', 'Swap Master'
-    
-    -- Roles & Metadata
-    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW())
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
-
--- Indexing for profiles
-CREATE INDEX IF NOT EXISTS idx_profiles_custom_slug ON public.profiles(custom_slug) WHERE custom_slug IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_profiles_affiliate_code ON public.profiles(affiliate_code);
-CREATE INDEX IF NOT EXISTS idx_profiles_referred_by ON public.profiles(referred_by);
 
 -- 4. LISTINGS TABLE
 CREATE TABLE IF NOT EXISTS public.listings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     
-    -- Bilingual Content
+    -- Categorization & Multilingual Details
+    item_type public.item_type NOT NULL DEFAULT 'PLANT',
+    plant_category TEXT DEFAULT 'other-plant',
     title_ka TEXT NOT NULL,
-    title_en TEXT NOT NULL,
-    description_ka TEXT,
+    title_en TEXT,
+    description_ka TEXT NOT NULL,
     description_en TEXT,
     
-    -- Classification & Financials
-    item_type item_type NOT NULL DEFAULT 'PLANT',
-    status listing_status NOT NULL DEFAULT 'ACTIVE',
-    price NUMERIC(10,2) NOT NULL DEFAULT 0.00 CHECK (price >= 0),
-    transaction_type transaction_type NOT NULL DEFAULT 'FIXED',
+    -- Pricing & Transaction Model
+    price NUMERIC(10, 2) NOT NULL DEFAULT 0.00,
+    transaction_type public.transaction_type NOT NULL DEFAULT 'FIXED',
+    trade_preferences TEXT[] DEFAULT '{}',
+    delivery_methods public.delivery_method[] NOT NULL DEFAULT '{PICKUP}',
     
-    -- Delivery & Location
-    delivery_methods delivery_method[] NOT NULL DEFAULT '{PICKUP}',
-    location geography(Point, 4326),
-    city TEXT NOT NULL DEFAULT 'Tbilisi',
+    -- Media & Location
+    images TEXT[] NOT NULL DEFAULT '{}',
+    city TEXT NOT NULL DEFAULT 'თბილისი',
     address TEXT,
+    location extensions.geography(Point, 4326),
     
-    -- Media & Trade
-    images TEXT[] NOT NULL,
-    tags TEXT[] NOT NULL DEFAULT '{}',
-    trade_preferences TEXT[] NOT NULL DEFAULT '{}', -- Desired tags if transaction_type = 'TRADE'
-    
-    -- Analytics & Timestamps
+    -- Status & Analytics
+    status public.listing_status NOT NULL DEFAULT 'ACTIVE',
     views_count INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
+    is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+    featured_until TIMESTAMPTZ,
+    boost_tier TEXT DEFAULT 'STANDARD',
     
-    -- Constraints
-    CONSTRAINT check_listing_images_count CHECK (cardinality(images) >= 2 AND cardinality(images) <= 5)
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
-
--- Indexing for listings
-CREATE INDEX IF NOT EXISTS idx_listings_user_id ON public.listings(user_id);
-CREATE INDEX IF NOT EXISTS idx_listings_status ON public.listings(status);
-CREATE INDEX IF NOT EXISTS idx_listings_item_type ON public.listings(item_type);
-CREATE INDEX IF NOT EXISTS idx_listings_transaction_type ON public.listings(transaction_type);
-CREATE INDEX IF NOT EXISTS idx_listings_created_at ON public.listings(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_listings_updated_at ON public.listings(updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_listings_location ON public.listings USING GIST(location);
-CREATE INDEX IF NOT EXISTS idx_listings_tags ON public.listings USING GIN(tags);
-CREATE INDEX IF NOT EXISTS idx_listings_trade_pref ON public.listings USING GIN(trade_preferences);
 
 -- 5. REVIEWS TABLE
 CREATE TABLE IF NOT EXISTS public.reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    reviewer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     seller_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    reviewer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     listing_id UUID REFERENCES public.listings(id) ON DELETE SET NULL,
+    
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
     
-    CONSTRAINT check_cannot_review_self CHECK (reviewer_id <> seller_id)
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    
+    CONSTRAINT unique_reviewer_per_listing UNIQUE (reviewer_id, listing_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_reviews_seller_id ON public.reviews(seller_id);
-CREATE INDEX IF NOT EXISTS idx_reviews_reviewer_id ON public.reviews(reviewer_id);
-
--- 6. ISO (IN SEARCH OF) / TRADE MATCHMAKING BOARD
+-- 6. ISO (IN SEARCH OF) REQUESTS
 CREATE TABLE IF NOT EXISTS public.iso_requests (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    description TEXT,
-    desired_tags TEXT[] NOT NULL DEFAULT '{}',
-    budget_max NUMERIC(10,2),
-    location geography(Point, 4326),
-    city TEXT DEFAULT 'Tbilisi',
-    status TEXT NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'FULFILLED', 'CLOSED')),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW())
+    description TEXT NOT NULL,
+    budget_max NUMERIC(10, 2),
+    images TEXT[] DEFAULT '{}',
+    city TEXT DEFAULT 'თბილისი',
+    status TEXT DEFAULT 'OPEN',
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_iso_user_id ON public.iso_requests(user_id);
-CREATE INDEX IF NOT EXISTS idx_iso_desired_tags ON public.iso_requests USING GIN(desired_tags);
-CREATE INDEX IF NOT EXISTS idx_iso_location ON public.iso_requests USING GIST(location);
-
--- 7. CONVERSATIONS & MESSAGING
+-- 7. DIRECT MESSAGING & CHATS
 CREATE TABLE IF NOT EXISTS public.conversations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    listing_id UUID REFERENCES public.listings(id) ON DELETE SET NULL,
     participant_1 UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     participant_2 UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    last_message_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
-    created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW()),
+    listing_id UUID REFERENCES public.listings(id) ON DELETE SET NULL,
+    last_message_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
     
-    CONSTRAINT check_different_participants CHECK (participant_1 <> participant_2),
-    CONSTRAINT unique_conversation_pair UNIQUE (listing_id, participant_1, participant_2)
+    CONSTRAINT unique_conversation_participants UNIQUE (participant_1, participant_2, listing_id)
 );
-
-CREATE INDEX IF NOT EXISTS idx_conv_participant_1 ON public.conversations(participant_1);
-CREATE INDEX IF NOT EXISTS idx_conv_participant_2 ON public.conversations(participant_2);
-CREATE INDEX IF NOT EXISTS idx_conv_last_message ON public.conversations(last_message_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     conversation_id UUID NOT NULL REFERENCES public.conversations(id) ON DELETE CASCADE,
     sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    is_read BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT TIMEZONE('utc'::text, NOW())
+    images TEXT[] DEFAULT '{}',
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
+-- 8. INDEXES FOR PERFORMANCE
+CREATE INDEX IF NOT EXISTS idx_listings_user_id ON public.listings(user_id);
+CREATE INDEX IF NOT EXISTS idx_listings_status ON public.listings(status);
+CREATE INDEX IF NOT EXISTS idx_listings_city ON public.listings(city);
+CREATE INDEX IF NOT EXISTS idx_listings_plant_category ON public.listings(plant_category) WHERE status = 'ACTIVE';
+CREATE INDEX IF NOT EXISTS idx_listings_featured ON public.listings(is_featured, featured_until) WHERE status = 'ACTIVE' AND is_featured = TRUE;
+CREATE INDEX IF NOT EXISTS idx_listings_location_gist ON public.listings USING GIST(location);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_seller_id ON public.reviews(seller_id);
 CREATE INDEX IF NOT EXISTS idx_messages_conversation_id ON public.messages(conversation_id);
-CREATE INDEX IF NOT EXISTS idx_messages_created_at ON public.messages(created_at ASC);
 
--- ==============================================================================
--- 8. AUTOMATION FUNCTIONS & TRIGGERS
--- ==============================================================================
+-- 9. VIEWS
+CREATE OR REPLACE VIEW public.category_counts 
+WITH (security_invoker = true) 
+AS
+SELECT
+  plant_category,
+  COUNT(*) AS listing_count
+FROM public.listings
+WHERE
+  status = 'ACTIVE'
+  AND plant_category IS NOT NULL
+  AND plant_category <> ''
+GROUP BY plant_category
+ORDER BY listing_count DESC;
 
--- A. Auto-update updated_at timestamp
-CREATE OR REPLACE FUNCTION public.handle_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = TIMEZONE('utc'::text, NOW());
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
+GRANT SELECT ON public.category_counts TO anon, authenticated, service_role;
 
-CREATE TRIGGER update_profiles_updated_at
-    BEFORE UPDATE ON public.profiles
-    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
-
-CREATE TRIGGER update_listings_updated_at
-    BEFORE UPDATE ON public.listings
-    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
-
-CREATE TRIGGER update_iso_updated_at
-    BEFORE UPDATE ON public.iso_requests
-    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
-
-CREATE TRIGGER update_conversations_updated_at
-    BEFORE UPDATE ON public.conversations
-    FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
-
--- B. Automatically create Profile on Auth Signup with Unique Affiliate Code
-CREATE OR REPLACE FUNCTION public.handle_new_user()
-RETURNS TRIGGER AS $$
-DECLARE
-    new_affiliate_code TEXT;
-    referred_by_uuid UUID;
-    is_admin_user BOOLEAN;
-BEGIN
-    -- Check if admin user
-    is_admin_user := (NEW.email = 'tokolejo@gmail.com');
-
-    -- Generate unique affiliate code (e.g. GEO-PLANT-XXXXXX)
-    new_affiliate_code := 'GEO-' || UPPER(SUBSTRING(MD5(NEW.id::text || NOW()::text) FROM 1 FOR 6));
-    
-    -- Check if referrer code was passed in user metadata
-    IF NEW.raw_user_meta_data->>'referred_by_code' IS NOT NULL THEN
-        SELECT id INTO referred_by_uuid 
-        FROM public.profiles 
-        WHERE affiliate_code = NEW.raw_user_meta_data->>'referred_by_code';
-    END IF;
-
-    INSERT INTO public.profiles (
-        id,
-        full_name,
-        avatar_url,
-        phone,
-        affiliate_code,
-        referred_by,
-        subscription_tier,
-        billing_cycle,
-        is_admin
-    ) VALUES (
-        NEW.id,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', 'Plant Lover'),
-        NEW.raw_user_meta_data->>'avatar_url',
-        NEW.raw_user_meta_data->>'phone',
-        new_affiliate_code,
-        referred_by_uuid,
-        CASE WHEN is_admin_user THEN 'TIER_3'::subscription_tier ELSE 'FREE'::subscription_tier END,
-        'MONTHLY',
-        is_admin_user
-    );
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE OR REPLACE TRIGGER on_auth_user_created
-    AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-
--- C. Enforce Subscription Tier Active Listing Limits
-CREATE OR REPLACE FUNCTION public.check_listing_tier_limit()
-RETURNS TRIGGER AS $$
-DECLARE
-    user_tier subscription_tier;
-    max_allowed INTEGER;
-    current_active_count INTEGER;
-BEGIN
-    -- Only check if the listing is or is becoming ACTIVE
-    IF NEW.status = 'ACTIVE' THEN
-        -- Get user's subscription tier
-        SELECT subscription_tier INTO user_tier
-        FROM public.profiles
-        WHERE id = NEW.user_id;
-
-        -- Determine allowed active listings count
-        CASE user_tier
-            WHEN 'FREE' THEN max_allowed := 5;
-            WHEN 'TIER_1' THEN max_allowed := 20;
-            WHEN 'TIER_2' THEN max_allowed := 50;
-            WHEN 'TIER_3' THEN max_allowed := 150;
-            ELSE max_allowed := 5;
-        END CASE;
-
-        -- Count existing ACTIVE listings for this user (excluding the current one if updating)
-        SELECT COUNT(*) INTO current_active_count
-        FROM public.listings
-        WHERE user_id = NEW.user_id
-          AND status = 'ACTIVE'
-          AND id <> COALESCE(NEW.id, '00000000-0000-0000-0000-000000000000'::uuid);
-
-        IF current_active_count >= max_allowed THEN
-            RAISE EXCEPTION 'Active listing limit reached for tier %. Max allowed: %', user_tier, max_allowed;
-        END IF;
-    END IF;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER enforce_listing_tier_limit
-    BEFORE INSERT OR UPDATE ON public.listings
-    FOR EACH ROW EXECUTE FUNCTION public.check_listing_tier_limit();
-
--- D. Auto-Hide Stale Listings (Older than 30 days without update)
-CREATE OR REPLACE FUNCTION public.auto_hide_stale_listings()
-RETURNS INTEGER AS $$
-DECLARE
-    affected_count INTEGER;
-BEGIN
-    UPDATE public.listings
-    SET status = 'HIDDEN',
-        updated_at = TIMEZONE('utc'::text, NOW())
-    WHERE status = 'ACTIVE'
-      AND updated_at < (TIMEZONE('utc'::text, NOW()) - INTERVAL '30 days');
-
-    GET DIAGNOSTICS affected_count = ROW_COUNT;
-    RETURN affected_count;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
--- E. Calculate Seller Rating and Badges on Review Insertion/Update
-CREATE OR REPLACE FUNCTION public.update_profile_reviews_and_badges()
-RETURNS TRIGGER AS $$
-DECLARE
-    target_seller_id UUID;
-    calc_avg NUMERIC(3,2);
-    calc_total INTEGER;
-    new_badges TEXT[];
-BEGIN
-    target_seller_id := COALESCE(NEW.seller_id, OLD.seller_id);
-
-    SELECT 
-        COALESCE(ROUND(AVG(rating)::numeric, 2), 0.00),
-        COUNT(*)
-    INTO calc_avg, calc_total
-    FROM public.reviews
-    WHERE seller_id = target_seller_id;
-
-    -- Compute gamified badges
-    new_badges := '{}'::text[];
-    IF calc_total >= 1 THEN
-        new_badges := array_append(new_badges, 'Green Thumb');
-    END IF;
-    IF calc_total >= 10 AND calc_avg >= 4.8 THEN
-        new_badges := array_append(new_badges, 'Trusted Seller');
-    END IF;
-    IF EXISTS (
-        SELECT 1 FROM public.listings 
-        WHERE user_id = target_seller_id AND transaction_type = 'TRADE' AND status = 'SOLD'
-    ) THEN
-        new_badges := array_append(new_badges, 'Swap Master');
-    END IF;
-
-    UPDATE public.profiles
-    SET average_rating = calc_avg,
-        total_reviews = calc_total,
-        badges = new_badges
-    WHERE id = target_seller_id;
-
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE TRIGGER on_review_change
-    AFTER INSERT OR UPDATE OR DELETE ON public.reviews
-    FOR EACH ROW EXECUTE FUNCTION public.update_profile_reviews_and_badges();
-
--- ==============================================================================
--- 9. ROW LEVEL SECURITY (RLS) POLICIES
--- ==============================================================================
-
+-- 10. ROW LEVEL SECURITY (RLS)
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.listings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
@@ -391,177 +203,222 @@ ALTER TABLE public.iso_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
--- PROFILES POLICIES
-CREATE POLICY "Public profiles are viewable by everyone" 
-    ON public.profiles FOR SELECT 
-    USING (true);
+-- Profiles Policies
+DROP POLICY IF EXISTS "Public profiles are viewable by everyone" ON public.profiles;
+CREATE POLICY "Public profiles are viewable by everyone" ON public.profiles FOR SELECT USING (true);
 
-CREATE POLICY "Users can insert their own profile" 
-    ON public.profiles FOR INSERT 
-    WITH CHECK (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can insert their own profile" ON public.profiles;
+CREATE POLICY "Users can insert their own profile" ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
-CREATE POLICY "Users can update their own profile" 
-    ON public.profiles FOR UPDATE 
-    USING (auth.uid() = id);
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.profiles;
+CREATE POLICY "Users can update their own profile" ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
--- LISTINGS POLICIES
-CREATE POLICY "Active listings are viewable by everyone" 
-    ON public.listings FOR SELECT 
-    USING (
-        status = 'ACTIVE' 
-        OR auth.uid() = user_id 
-        OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-    );
+-- Listings Policies
+DROP POLICY IF EXISTS "Active listings are viewable by everyone" ON public.listings;
+CREATE POLICY "Active listings are viewable by everyone" ON public.listings FOR SELECT 
+USING (status = 'ACTIVE' OR auth.uid() = user_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
-CREATE POLICY "Authenticated users can create listings" 
-    ON public.listings FOR INSERT 
-    WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Authenticated users can create listings" ON public.listings;
+CREATE POLICY "Authenticated users can create listings" ON public.listings FOR INSERT WITH CHECK (auth.uid() = user_id);
 
-CREATE POLICY "Users can update their own listings" 
-    ON public.listings FOR UPDATE 
-    USING (
-        auth.uid() = user_id 
-        OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-    );
+DROP POLICY IF EXISTS "Users can update their own listings" ON public.listings;
+CREATE POLICY "Users can update their own listings" ON public.listings FOR UPDATE USING (auth.uid() = user_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
-CREATE POLICY "Users can delete their own listings" 
-    ON public.listings FOR DELETE 
-    USING (
-        auth.uid() = user_id 
-        OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-    );
+DROP POLICY IF EXISTS "Users can delete their own listings" ON public.listings;
+CREATE POLICY "Users can delete their own listings" ON public.listings FOR DELETE USING (auth.uid() = user_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
--- REVIEWS POLICIES
-CREATE POLICY "Reviews are viewable by everyone" 
-    ON public.reviews FOR SELECT 
-    USING (true);
+-- Reviews Policies
+DROP POLICY IF EXISTS "Reviews are viewable by everyone" ON public.reviews;
+CREATE POLICY "Reviews are viewable by everyone" ON public.reviews FOR SELECT USING (true);
 
-CREATE POLICY "Authenticated users can create reviews for sellers" 
-    ON public.reviews FOR INSERT 
-    WITH CHECK (auth.uid() = reviewer_id AND auth.uid() <> seller_id);
+DROP POLICY IF EXISTS "Authenticated users can create reviews for sellers" ON public.reviews;
+CREATE POLICY "Authenticated users can create reviews for sellers" ON public.reviews FOR INSERT WITH CHECK (auth.uid() = reviewer_id AND auth.uid() <> seller_id);
 
-CREATE POLICY "Reviewers can update their own reviews" 
-    ON public.reviews FOR UPDATE 
-    USING (auth.uid() = reviewer_id);
+DROP POLICY IF EXISTS "Reviewers can update their own reviews" ON public.reviews;
+CREATE POLICY "Reviewers can update their own reviews" ON public.reviews FOR UPDATE USING (auth.uid() = reviewer_id);
 
-CREATE POLICY "Reviewers or admins can delete reviews" 
-    ON public.reviews FOR DELETE 
-    USING (
-        auth.uid() = reviewer_id 
-        OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true)
-    );
+DROP POLICY IF EXISTS "Reviewers or admins can delete reviews" ON public.reviews;
+CREATE POLICY "Reviewers or admins can delete reviews" ON public.reviews FOR DELETE USING (auth.uid() = reviewer_id OR EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND is_admin = true));
 
--- ISO REQUESTS POLICIES
-CREATE POLICY "ISO requests are viewable by everyone" 
-    ON public.iso_requests FOR SELECT 
-    USING (true);
+-- Messages & Conversations Policies
+DROP POLICY IF EXISTS "Users can view their own conversations" ON public.conversations;
+CREATE POLICY "Users can view their own conversations" ON public.conversations FOR SELECT USING (auth.uid() = participant_1 OR auth.uid() = participant_2);
 
-CREATE POLICY "Authenticated users can create ISO requests" 
-    ON public.iso_requests FOR INSERT 
-    WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can start conversations" ON public.conversations;
+CREATE POLICY "Users can start conversations" ON public.conversations FOR INSERT WITH CHECK (auth.uid() = participant_1 OR auth.uid() = participant_2);
 
-CREATE POLICY "Users can update their own ISO requests" 
-    ON public.iso_requests FOR UPDATE 
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can view messages in their conversations" ON public.messages;
+CREATE POLICY "Users can view messages in their conversations" ON public.messages FOR SELECT 
+USING (EXISTS (SELECT 1 FROM public.conversations c WHERE c.id = messages.conversation_id AND (c.participant_1 = auth.uid() OR c.participant_2 = auth.uid())));
 
-CREATE POLICY "Users can delete their own ISO requests" 
-    ON public.iso_requests FOR DELETE 
-    USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert messages into their conversations" ON public.messages;
+CREATE POLICY "Users can insert messages into their conversations" ON public.messages FOR INSERT 
+WITH CHECK (auth.uid() = sender_id AND EXISTS (SELECT 1 FROM public.conversations c WHERE c.id = messages.conversation_id AND (c.participant_1 = auth.uid() OR c.participant_2 = auth.uid())));
 
--- CONVERSATIONS POLICIES
-CREATE POLICY "Users can view their own conversations" 
-    ON public.conversations FOR SELECT 
-    USING (auth.uid() = participant_1 OR auth.uid() = participant_2);
+-- 11. SECURE DATABASE FUNCTIONS (With immutable search_path)
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+BEGIN
+    NEW.updated_at = TIMEZONE('utc'::text, NOW());
+    RETURN NEW;
+END;
+$$;
 
-CREATE POLICY "Users can start conversations" 
-    ON public.conversations FOR INSERT 
-    WITH CHECK (auth.uid() = participant_1 OR auth.uid() = participant_2);
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE
+    clean_affiliate TEXT;
+BEGIN
+    clean_affiliate := LOWER(SUBSTRING(MD5(RANDOM()::TEXT || NEW.id::TEXT) FROM 1 FOR 8));
+    INSERT INTO public.profiles (
+        id, full_name, avatar_url, affiliate_code, subscription_tier, billing_cycle, average_rating, total_reviews, is_admin
+    ) VALUES (
+        NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), NEW.raw_user_meta_data->>'avatar_url', clean_affiliate, 'FREE', 'MONTHLY', 0.00, 0, FALSE
+    ) ON CONFLICT (id) DO NOTHING;
+    RETURN NEW;
+END;
+$$;
 
-CREATE POLICY "Participants can update conversation timestamps" 
-    ON public.conversations FOR UPDATE 
-    USING (auth.uid() = participant_1 OR auth.uid() = participant_2);
+CREATE OR REPLACE FUNCTION public.check_listing_tier_limit()
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE
+    user_tier public.subscription_tier;
+    current_count INTEGER;
+    max_allowed INTEGER;
+BEGIN
+    IF (TG_OP = 'INSERT') OR (TG_OP = 'UPDATE' AND NEW.status = 'ACTIVE' AND OLD.status <> 'ACTIVE') THEN
+        SELECT subscription_tier INTO user_tier FROM public.profiles WHERE id = NEW.user_id;
+        SELECT COUNT(*) INTO current_count FROM public.listings WHERE user_id = NEW.user_id AND status = 'ACTIVE';
 
--- MESSAGES POLICIES
-CREATE POLICY "Users can view messages in their conversations" 
-    ON public.messages FOR SELECT 
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.conversations c 
-            WHERE c.id = messages.conversation_id 
-              AND (c.participant_1 = auth.uid() OR c.participant_2 = auth.uid())
-        )
-    );
+        CASE user_tier
+            WHEN 'FREE' THEN max_allowed := 5;
+            WHEN 'TIER_1' THEN max_allowed := 25;
+            WHEN 'TIER_2' THEN max_allowed := 50;
+            WHEN 'TIER_3' THEN max_allowed := 999999;
+            ELSE max_allowed := 5;
+        END CASE;
 
-CREATE POLICY "Users can insert messages into their conversations" 
-    ON public.messages FOR INSERT 
-    WITH CHECK (
-        auth.uid() = sender_id 
-        AND EXISTS (
-            SELECT 1 FROM public.conversations c 
-            WHERE c.id = messages.conversation_id 
-              AND (c.participant_1 = auth.uid() OR c.participant_2 = auth.uid())
-        )
-    );
+        IF current_count >= max_allowed THEN
+            RAISE EXCEPTION 'Active listing limit reached for your subscription tier (%). Maximum allowed: %', user_tier, max_allowed;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
 
-CREATE POLICY "Message receivers can mark messages as read" 
-    ON public.messages FOR UPDATE 
-    USING (
-        EXISTS (
-            SELECT 1 FROM public.conversations c 
-            WHERE c.id = messages.conversation_id 
-              AND (
-                (c.participant_1 = auth.uid() AND messages.sender_id <> auth.uid())
-                OR (c.participant_2 = auth.uid() AND messages.sender_id <> auth.uid())
-              )
-        )
-    );
+CREATE OR REPLACE FUNCTION public.auto_detect_plant_category()
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
+DECLARE
+  title_lower TEXT;
+BEGIN
+  IF NEW.plant_category IS NOT NULL AND NEW.plant_category <> '' THEN
+    RETURN NEW;
+  END IF;
 
--- ==============================================================================
--- 10. SUPABASE STORAGE BUCKET CONFIGURATION
--- ==============================================================================
+  title_lower := LOWER(COALESCE(NEW.title_ka, '') || ' ' || COALESCE(NEW.title_en, ''));
 
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('listing-images', 'listing-images', true)
-ON CONFLICT (id) DO NOTHING;
+  IF title_lower ~* 'monstera' THEN NEW.plant_category := 'monstera';
+  ELSIF title_lower ~* 'philodendron|philo' THEN NEW.plant_category := 'philodendron';
+  ELSIF title_lower ~* 'anthurium' THEN NEW.plant_category := 'anthurium';
+  ELSIF title_lower ~* 'alocasia|colocasia' THEN NEW.plant_category := 'alocasia';
+  ELSIF title_lower ~* 'calathea|maranta|ctenanthe|stromanthe' THEN NEW.plant_category := 'calathea';
+  ELSIF title_lower ~* 'pothos|epipremnum|scindapsus' THEN NEW.plant_category := 'pothos-scindapsus';
+  ELSIF title_lower ~* 'orchid|orkide' THEN NEW.plant_category := 'orchid';
+  ELSIF title_lower ~* 'bromelia|bromeliad|guzmania' THEN NEW.plant_category := 'bromeliad';
+  ELSIF title_lower ~* 'ficus|fikus|lyrata|elastica' THEN NEW.plant_category := 'ficus';
+  ELSIF title_lower ~* 'palm|palma|areca|chamaedorea' THEN NEW.plant_category := 'palm';
+  ELSIF title_lower ~* 'fern|gvimra|nephrolepis' THEN NEW.plant_category := 'fern';
+  ELSIF title_lower ~* 'cactus|kaktus|succulent|sukulent|echeveria|haworthia|sansevieria' THEN NEW.plant_category := 'cactus-succulent';
+  ELSIF title_lower ~* 'rare|variegat|variegata|thai constellation|albo' THEN NEW.plant_category := 'rare-variegated';
+  ELSIF title_lower ~* 'cutting|kalami|fesviani' THEN NEW.plant_category := 'cutting';
+  ELSIF title_lower ~* 'outdoor|ezo|bagis|baRi' THEN NEW.plant_category := 'outdoor-garden';
+  ELSIF title_lower ~* 'ceramic|keramik|keramikuli|pot|qotani' THEN NEW.plant_category := 'pots-ceramic';
+  ELSIF title_lower ~* 'plastic|plastmas|plastikuri' THEN NEW.plant_category := 'pots-plastic';
+  ELSIF title_lower ~* 'soil|substrat|grunt|perlit|perlite|kokos' THEN NEW.plant_category := 'substrate-soil';
+  ELSIF title_lower ~* 'fertiliz|sasuqi|vitamini|care' THEN NEW.plant_category := 'fertilizer';
+  ELSIF title_lower ~* 'tool|makrateli|shears|xelsawyo' THEN NEW.plant_category := 'tools-care';
+  ELSIF title_lower ~* 'light|fito|grow light|ganateba' THEN NEW.plant_category := 'lighting-grow';
+  ELSE NEW.plant_category := 'other-plant';
+  END IF;
+  RETURN NEW;
+END;
+$$;
 
--- Storage Policies for listing-images bucket
-CREATE POLICY "Listing images are publicly accessible"
-    ON storage.objects FOR SELECT
-    USING (bucket_id = 'listing-images');
+CREATE OR REPLACE FUNCTION public.expire_outdated_boosts()
+RETURNS INTEGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE
+    affected_rows INTEGER;
+BEGIN
+    UPDATE public.listings
+    SET is_featured = FALSE, boost_tier = 'STANDARD', updated_at = TIMEZONE('utc'::text, NOW())
+    WHERE is_featured = TRUE AND featured_until IS NOT NULL AND featured_until <= TIMEZONE('utc'::text, NOW());
+    GET DIAGNOSTICS affected_rows = ROW_COUNT;
+    RETURN affected_rows;
+END;
+$$;
 
-CREATE POLICY "Authenticated users can upload listing images"
-    ON storage.objects FOR INSERT
-    WITH CHECK (
-        bucket_id = 'listing-images' 
-        AND auth.role() = 'authenticated'
-    );
+CREATE OR REPLACE FUNCTION public.check_listing_featured_expiry()
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
+BEGIN
+    IF NEW.is_featured = TRUE AND NEW.featured_until IS NOT NULL AND NEW.featured_until <= TIMEZONE('utc'::text, NOW()) THEN
+        NEW.is_featured := FALSE;
+        NEW.boost_tier := 'STANDARD';
+    END IF;
+    RETURN NEW;
+END;
+$$;
 
-CREATE POLICY "Users can update or delete their own listing images"
-    ON storage.objects FOR DELETE
-    USING (
-        bucket_id = 'listing-images' 
-        AND auth.uid()::text = (storage.foldername(name))[2]
-    );
+CREATE OR REPLACE FUNCTION public.sync_listing_postgis_location()
+RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public, pg_temp AS $$
+BEGIN
+    IF NEW.location IS NULL THEN
+        NEW.location := extensions.ST_SetSRID(extensions.ST_MakePoint(44.7871, 41.7151), 4326)::extensions.geography;
+    END IF;
+    RETURN NEW;
+END;
+$$;
 
--- ==============================================================================
--- 11. SUPABASE REALTIME PUBLICATION
--- ==============================================================================
+CREATE OR REPLACE FUNCTION public.get_nearby_listings(
+    user_lat DOUBLE PRECISION,
+    user_lng DOUBLE PRECISION,
+    radius_km DOUBLE PRECISION DEFAULT NULL,
+    item_type_filter TEXT DEFAULT NULL,
+    plant_category_filter TEXT DEFAULT NULL,
+    max_results INT DEFAULT 50
+)
+RETURNS TABLE (
+    id UUID, user_id UUID, title_ka TEXT, title_en TEXT, price NUMERIC,
+    item_type public.item_type, plant_category TEXT, transaction_type public.transaction_type,
+    delivery_methods public.delivery_method[], images TEXT[], city TEXT, views_count INT,
+    is_featured BOOLEAN, featured_until TIMESTAMPTZ, distance_meters DOUBLE PRECISION
+)
+LANGUAGE plpgsql STABLE SECURITY INVOKER SET search_path = public, extensions, pg_temp AS $$
+DECLARE
+    user_geog extensions.geography;
+BEGIN
+    user_geog := extensions.ST_SetSRID(extensions.ST_MakePoint(user_lng, user_lat), 4326)::extensions.geography;
+    RETURN QUERY
+    SELECT 
+        l.id, l.user_id, l.title_ka, l.title_en, l.price, l.item_type, l.plant_category,
+        l.transaction_type, l.delivery_methods, l.images, l.city, l.views_count,
+        l.is_featured, l.featured_until, extensions.ST_Distance(l.location, user_geog) AS distance_meters
+    FROM public.listings l
+    WHERE l.status = 'ACTIVE'
+      AND (item_type_filter IS NULL OR l.item_type::text = item_type_filter)
+      AND (plant_category_filter IS NULL OR l.plant_category = plant_category_filter)
+      AND (radius_km IS NULL OR extensions.ST_DWithin(l.location, user_geog, radius_km * 1000))
+    ORDER BY l.is_featured DESC, extensions.ST_Distance(l.location, user_geog) ASC
+    LIMIT max_results;
+END;
+$$;
 
-DO $$ BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-EXCEPTION
-    WHEN others THEN null;
-END $$;
+-- 12. PERMISSION RESTRICTIONS (REVOKES)
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.handle_updated_at() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.check_listing_tier_limit() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.expire_outdated_boosts() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.check_listing_featured_expiry() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.sync_listing_postgis_location() FROM PUBLIC, anon, authenticated;
+REVOKE EXECUTE ON FUNCTION public.auto_detect_plant_category() FROM PUBLIC, anon, authenticated;
 
-DO $$ BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
-EXCEPTION
-    WHEN others THEN null;
-END $$;
-
--- Grant Admin and TIER_3 Pro Subscription to tokolejo@gmail.com
-UPDATE public.profiles
-SET is_admin = true, subscription_tier = 'TIER_3'
-WHERE id IN (SELECT id FROM auth.users WHERE email = 'tokolejo@gmail.com');
-
-
+GRANT EXECUTE ON FUNCTION public.get_nearby_listings(DOUBLE PRECISION, DOUBLE PRECISION, DOUBLE PRECISION, TEXT, TEXT, INT) TO anon, authenticated, service_role;
