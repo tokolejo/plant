@@ -7,7 +7,6 @@ import { createClient } from "@/utils/supabase/client";
 import { 
   Search, 
   Sprout, 
-  Shuffle, 
   Sparkles, 
   TrendingUp, 
   Users, 
@@ -70,39 +69,39 @@ export function HeroSection() {
   };
 
   return (
-    <section className="relative pt-4 pb-6 sm:pt-6 sm:pb-8 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
-      <div className="container mx-auto px-4 sm:px-6">
+    <section className="relative py-8 sm:py-12 lg:py-16 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
+      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-        {/* Hero Heading + Sub */}
-        <div className="text-center mb-5 max-w-2xl mx-auto">
+        {/* Hero Heading + Subtitle — Grand & Perfectly Proportioned */}
+        <div className="text-center mb-6 sm:mb-8 max-w-4xl mx-auto">
           {/* Botanical Badge */}
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-secondary-container/80 px-3 py-0.5 text-[11px] font-bold text-primary dark:text-primary-fixed mb-2.5 shadow-2xs">
-            <Sparkles className="w-3 h-3 text-primary" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-secondary-container/80 px-4 py-1 text-xs font-bold text-primary dark:text-primary-fixed mb-4 shadow-2xs">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
             <span>ბოტანიკური მარკეტპლეისი & გაცვლის პლატფორმა</span>
           </div>
 
-          {/* Balanced Sleek Title */}
-          <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-extrabold tracking-tight text-foreground leading-snug mb-2">
+          {/* Grand & Clean Title */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-[46px] font-black tracking-tight text-foreground leading-[1.18] mb-3">
             იყიდე, გაყიდე &{" "}
             <span className="text-primary dark:text-emerald-400">
               გაცვალე მცენარეები
             </span>
           </h1>
 
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed max-w-xl mx-auto">
+          <p className="text-sm sm:text-base text-muted-foreground font-medium leading-relaxed max-w-2xl mx-auto">
             იშვიათი მონსტერები, ოთახის ყვავილები, კერამიკული ქოთნები, სუბსტრატები და უფასო საჩუქრები მთელი საქართველოს მასშტაბით.
           </p>
         </div>
 
-        {/* Search Box — Mobile-First & Touch Friendly */}
-        <div className="relative max-w-2xl mx-auto" style={{ zIndex: 9998 }}>
+        {/* Search Box — Spacious, Full-Container & Touch Friendly */}
+        <div className="relative max-w-4xl mx-auto" style={{ zIndex: 9998 }}>
           <form
             onSubmit={handleSearch}
-            className="w-full rounded-[18px] border border-border/80 bg-card p-2 shadow-ambient flex flex-col sm:flex-row gap-2 transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20"
+            className="w-full rounded-[22px] border border-border/80 bg-card p-2 sm:p-2.5 shadow-ambient flex flex-col sm:flex-row gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"
             style={{ overflow: 'visible' }}
           >
             {/* Location Combobox */}
-            <div className="border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[200px] sm:max-w-[220px] overflow-visible">
+            <div className="border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[240px] sm:max-w-[280px] overflow-visible">
               <LocationSearchCombobox
                 selectedCity={selectedCity}
                 onCityChange={(city) => {
@@ -112,21 +111,21 @@ export function HeroSection() {
             </div>
 
             {/* Keyword Input */}
-            <div className="flex flex-1 items-center gap-2 px-2.5 py-1">
+            <div className="flex flex-1 items-center gap-2.5 px-3 py-1.5">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="მოძებნე: Monstera, ფიკუსი, ქოთანი..."
-                className="w-full bg-transparent text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+                placeholder="მოძებნე: Monstera, ფიკუსი, ქოთანი, სუბსტრატი..."
+                className="w-full bg-transparent text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
             </div>
 
             {/* Submit Button */}
             <Button
               type="submit"
-              className="rounded-[14px] bg-primary hover:bg-primary-container text-white font-bold text-xs sm:text-sm h-10 sm:h-11 px-6 shadow-xs"
+              className="rounded-[16px] bg-primary hover:bg-primary-container text-white font-black text-sm h-11 sm:h-12 px-8 shadow-xs shrink-0"
             >
               ძიება
             </Button>
@@ -134,11 +133,11 @@ export function HeroSection() {
         </div>
 
         {/* Popular Tags */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 mt-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1 font-bold text-primary dark:text-primary-fixed text-[11px]">
-            <TrendingUp className="w-3 h-3" /> პოპულარული:
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 font-bold text-primary dark:text-primary-fixed text-xs">
+            <TrendingUp className="w-3.5 h-3.5" /> პოპულარული:
           </span>
-          {["Monstera Albo", "Philodendron", "Ficus Lyrata", "🎁 გაჩუქება", "კერამიკული ქოთანი"].map((tag) => (
+          {["Monstera Albo", "Philodendron", "Ficus Lyrata", "🎁 გაჩუქება", "კერამიკული ქოთანი", "სუბსტრატი"].map((tag) => (
             <button
               key={tag}
               type="button"
@@ -147,64 +146,64 @@ export function HeroSection() {
                 setSearchTerm(cleanTag);
                 router.push(`/listings?q=${encodeURIComponent(cleanTag)}`);
               }}
-              className="rounded-full bg-secondary-container/60 hover:bg-secondary-container px-2.5 py-0.5 text-[11px] font-semibold text-foreground transition-colors border border-border/40"
+              className="rounded-full bg-secondary-container/70 hover:bg-secondary-container px-3 py-1 text-xs font-bold text-foreground transition-colors border border-border/50"
             >
               #{tag}
             </button>
           ))}
         </div>
 
-        {/* 📊 Live Real-Time Platform Statistics Cards */}
-        <div className="mt-5 grid grid-cols-2 md:grid-cols-4 gap-2.5 max-w-3xl mx-auto">
+        {/* 📊 Live Real-Time Platform Statistics (Full-Width 4 Columns) */}
+        <div className="mt-8 sm:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
           {/* 1. Users */}
-          <div className="flex items-center gap-2.5 p-2.5 rounded-[16px] bg-card border border-border/60 shadow-2xs text-left">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-primary/10 text-primary shrink-0">
-              <Users className="w-4 h-4" />
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10 text-primary shrink-0">
+              <Users className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-black text-foreground leading-tight">
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalUsers}+
               </p>
-              <p className="text-[11px] font-semibold text-muted-foreground">მომხმარებელი</p>
+              <p className="text-xs font-bold text-muted-foreground">მომხმარებელი</p>
             </div>
           </div>
 
           {/* 2. Active Plant Listings */}
-          <div className="flex items-center gap-2.5 p-2.5 rounded-[16px] bg-card border border-border/60 shadow-2xs text-left">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-              <Sprout className="w-4 h-4" />
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <Sprout className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-black text-foreground leading-tight">
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalListings}+
               </p>
-              <p className="text-[11px] font-semibold text-muted-foreground">აქტიური მცენარე</p>
+              <p className="text-xs font-bold text-muted-foreground">აქტიური მცენარე</p>
             </div>
           </div>
 
           {/* 3. Verified Shops */}
-          <div className="flex items-center gap-2.5 p-2.5 rounded-[16px] bg-card border border-border/60 shadow-2xs text-left">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-secondary-container text-primary shrink-0">
-              <Store className="w-4 h-4" />
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
+              <Store className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-black text-foreground leading-tight">
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalShops}+
               </p>
-              <p className="text-[11px] font-semibold text-muted-foreground">მაღაზია & სანერგე</p>
+              <p className="text-xs font-bold text-muted-foreground">მაღაზია & სანერგე</p>
             </div>
           </div>
 
           {/* 4. Trades & Giveaways */}
-          <div className="flex items-center gap-2.5 p-2.5 rounded-[16px] bg-card border border-border/60 shadow-2xs text-left">
-            <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-              <Gift className="w-4 h-4" />
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+              <Gift className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-black text-foreground leading-tight">
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalTradesAndGifts}+
               </p>
-              <p className="text-[11px] font-semibold text-muted-foreground">გაცვლა & გაჩუქება</p>
+              <p className="text-xs font-bold text-muted-foreground">გაცვლა & გაჩუქება</p>
             </div>
           </div>
         </div>
