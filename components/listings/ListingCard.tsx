@@ -21,6 +21,10 @@ import { formatPrice } from "@/lib/utils";
 export interface ListingCardProps {
   id: string;
   title: string;
+  titleKa?: string;
+  titleEn?: string;
+  descriptionKa?: string;
+  descriptionEn?: string;
   price: number;
   itemType: "PLANT" | "INVENTORY";
   plantCategory?: string;
@@ -28,6 +32,7 @@ export interface ListingCardProps {
   deliveryMethods: ("PICKUP" | "COURIER" | "MARSHRUTKA")[];
   images: string[];
   city: string;
+  address?: string;
   lat?: number;
   lng?: number;
   distanceKm?: number;
@@ -35,6 +40,9 @@ export interface ListingCardProps {
   isPremium?: boolean;
   tradePreferences?: string[];
   viewsCount?: number;
+  status?: string;
+  createdAt?: string;
+  rawCreatedAt?: string;
   variant?: "compact" | "list" | "normal";
   seller: {
     id: string;

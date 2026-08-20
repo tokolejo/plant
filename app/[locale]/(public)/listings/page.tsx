@@ -7,6 +7,7 @@ import { useLocale } from "next-intl";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { LocationSearchCombobox, GEORGIA_CITIES } from "@/components/common/LocationSearchCombobox";
 import { SAMPLE_LISTINGS, type PlantCategory } from "@/lib/mock-data";
+import { getMergedListings } from "@/lib/listings-service";
 import { createClient } from "@/utils/supabase/client";
 import { calculateDistanceKm } from "@/lib/utils";
 import {
@@ -241,81 +242,22 @@ function ListingsCatalogContent() {
     }
   }, []);
 
-  // Fetch real listings from Supabase with VIP automatic expiration check
+  // Fetch real listings from Supabase
   React.useEffect(() => {
     async function loadLiveListings() {
       try {
-        const { data: dbData } = await supabase
-          .from("listings")
-          .select(`
-            id,
-            title_ka,
-            title_en,
-            price,
-            item_type,
-            plant_category,
-            transaction_type,
-            delivery_methods,
-            images,
-            city,
-            views_count,
-            is_featured,
-            featured_until,
-            created_at,
-            profiles:user_id (id, full_name, avatar_url, rating, total_reviews, custom_slug)
-          `)
-          .eq("status", "ACTIVE")
-          .order("is_featured", { ascending: false })
-          .order("created_at", { ascending: false });
-
-        if (dbData && dbData.length > 0) {
-          const now = new Date();
-          const formatted = dbData.map((item: any, idx: number) => {
-            const fallbackCoords: [number, number] = [
-              41.7151 + (idx % 3 === 0 ? 0.01 : idx % 3 === 1 ? -0.02 : 0.03),
-              44.7871 + (idx % 2 === 0 ? 0.02 : -0.01),
-            ];
-            // Automatic VIP expiration validation: Active only if is_featured is true AND expiration is not in the past
-            const isVipValid = Boolean(
-              item.is_featured && (!item.featured_until || new Date(item.featured_until) > now)
-            );
-
-            return {
-              id: item.id,
-              title: isKa ? (item.title_ka || item.title_en || "მცენარე") : (item.title_en || item.title_ka || "Plant"),
-              price: Number(item.price) || 0,
-              itemType: item.item_type || "PLANT",
-              plantCategory: item.plant_category || "other-plant",
-              transactionType: item.transaction_type || "FIXED",
-              deliveryMethods: item.delivery_methods || ["PICKUP"],
-              lat: item.lat || fallbackCoords[0],
-              lng: item.lng || fallbackCoords[1],
-              isPremium: isVipValid,
-              isFeatured: isVipValid,
-              images: item.images && item.images.length > 0 ? item.images : [
-                "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80"
-              ],
-              city: item.city || "თბილისი",
-              viewsCount: item.views_count || 0,
-              seller: {
-                id: item.profiles?.id || "usr-1",
-                fullName: item.profiles?.full_name || "გამყიდველი",
-                avatarUrl: item.profiles?.avatar_url || "",
-                rating: item.profiles?.rating || 5.0,
-                totalReviews: item.profiles?.total_reviews || 0,
-                badges: ["Verified Seller"],
-                customSlug: item.profiles?.custom_slug,
-              },
-            };
-          });
-          setAllListings(formatted);
-        }
+        const merged = await getMergedListings();
+        const localized = merged.map((item: any) => ({
+          ...item,
+          title: isKa ? (item.titleKa || item.title_ka || item.title) : (item.titleEn || item.title_en || item.title),
+        }));
+        setAllListings(localized);
       } catch (e) {
         console.error("Supabase live listings fetch failed, using fallback:", e);
       }
     }
     loadLiveListings();
-  }, [supabase, isKa]);
+  }, [isKa]);
 
   // Derived active filter count
   const activeFilterCount =

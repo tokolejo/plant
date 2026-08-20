@@ -106,7 +106,7 @@ export function Header() {
   const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-colors">
+    <header className="sticky top-0 z-[100] w-full border-b border-border/60 bg-background/90 backdrop-blur-md transition-colors">
       <div className="container mx-auto flex h-16 items-center justify-between gap-2 px-3 sm:px-6">
 
         {/* ═══ Left: Brand + Nav ═══ */}

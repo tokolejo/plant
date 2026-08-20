@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useLocale } from "next-intl";
 import { SAMPLE_LISTINGS, type PlantCategory } from "@/lib/mock-data";
+import { getMergedListings } from "@/lib/listings-service";
 import { formatPrice, calculateDistanceKm } from "@/lib/utils";
 import { 
   Search, 
@@ -221,8 +222,16 @@ export default function BotanicalMap() {
     setPriceRange([0, 500]);
   };
 
+  const [allMapListings, setAllMapListings] = React.useState<any[]>(SAMPLE_LISTINGS);
+
+  React.useEffect(() => {
+    getMergedListings().then((data) => {
+      setAllMapListings(data);
+    });
+  }, []);
+
   const countByCategory = (catId: PlantCategory) =>
-    SAMPLE_LISTINGS.filter((l) => l.plantCategory === catId).length;
+    allMapListings.filter((l) => l.plantCategory === catId).length;
 
   // Initialize Leaflet Map
   React.useEffect(() => {
@@ -313,8 +322,8 @@ export default function BotanicalMap() {
     const refLat = userCoords ? userCoords[0] : 41.7151;
     const refLng = userCoords ? userCoords[1] : 44.7871;
 
-    return SAMPLE_LISTINGS.map((item) => {
-      const coords = LISTING_COORDINATES[item.id] || [41.7151, 44.7871];
+    return allMapListings.map((item) => {
+      const coords = LISTING_COORDINATES[item.id] || [item.lat || 41.7151, item.lng || 44.7871];
       const dist = calculateDistanceKm(refLat, refLng, coords[0], coords[1]);
       return {
         ...item,

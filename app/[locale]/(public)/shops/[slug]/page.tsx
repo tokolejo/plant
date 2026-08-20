@@ -27,6 +27,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 
+import { formatDbListing } from "@/lib/listings-service";
+
 export default function ShopStorefrontPage({
   params: { slug },
 }: {
@@ -39,27 +41,83 @@ export default function ShopStorefrontPage({
   const [activeTab, setActiveTab] = React.useState<"all" | "PLANT" | "INVENTORY">("all");
   const [copied, setCopied] = React.useState(false);
 
-  // Mock Shop Profile matching the slug or default
-  const shop = {
+  // Shop Profile State
+  const [shop, setShop] = React.useState<any>({
     id: "usr-1",
     customSlug: slug,
     shopName: slug === "tamarbustan" ? "თამარ ბოტანიკა (Tamar Botanica)" : `მცენარეთა მაღაზია @${slug}`,
-    bio: "იშვიათი ოთახის მცენარეების, აროიდების, მონსტერების და პრემიუმ სუბსტრატების ორანჟერეა. ყველა მცენარე ჯანსაღი და დაფესვიანებულია.",
+    bio: "იშვიათი ოთახის მცენარეების, აროიდების, მონსტერების და პრემიუმ სუბსტრატების ორანჟერეა.",
     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
     bannerUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
-    city: "თბილისი (ვაკე)",
-    address: "ჭავჭავაძის გამზ. 42",
+    city: "თბილისი",
+    address: "",
     phone: "+995 599 12 34 56",
     whatsapp: "+995599123456",
-    rating: 4.9,
-    totalReviews: 28,
+    rating: 5.0,
+    totalReviews: 1,
     badges: ["Trusted Seller", "Green Thumb", "Verified Shop"],
-    tier: "TIER_2",
-  };
+    tier: "TIER_1",
+  });
 
-  const shopListings = SAMPLE_LISTINGS.filter(
-    (l) => l.seller.customSlug === slug || l.seller.id === "usr-1"
+  const [shopListings, setShopListings] = React.useState<any[]>(() =>
+    SAMPLE_LISTINGS.filter((l) => l.seller.customSlug === slug || l.seller.id === "usr-1")
   );
+
+  React.useEffect(() => {
+    async function loadShopData() {
+      try {
+        // Query profiles by custom_slug or ID
+        let { data: profile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("custom_slug", slug)
+          .maybeSingle();
+
+        if (!profile && slug.length === 36) {
+          const { data: pById } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", slug)
+            .maybeSingle();
+          profile = pById;
+        }
+
+        if (profile) {
+          setShop({
+            id: profile.id,
+            customSlug: profile.custom_slug || slug,
+            shopName: profile.full_name || `მაღაზია @${slug}`,
+            bio: profile.bio || "ჯანსაღი და ხარისხიანი მცენარეები.",
+            avatarUrl: profile.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+            bannerUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
+            city: profile.city || "თბილისი",
+            address: profile.address || "",
+            phone: profile.phone || "+995 599 12 34 56",
+            whatsapp: profile.whatsapp || "+995599123456",
+            rating: Number(profile.average_rating) || 5.0,
+            totalReviews: Number(profile.total_reviews) || 0,
+            badges: ["Verified Shop", "Community Member"],
+            tier: profile.subscription_tier || "FREE",
+          });
+
+          // Fetch listings belonging to this seller
+          const { data: dbListings } = await supabase
+            .from("listings")
+            .select("*")
+            .eq("user_id", profile.id)
+            .eq("status", "ACTIVE")
+            .order("created_at", { ascending: false });
+
+          if (dbListings && dbListings.length > 0) {
+            setShopListings(dbListings.map((row) => formatDbListing(row, profile)));
+          }
+        }
+      } catch (e) {
+        console.warn("Shop profile loading error:", e);
+      }
+    }
+    loadShopData();
+  }, [slug, supabase]);
 
   const filteredListings = shopListings.filter((l) =>
     activeTab === "all" ? true : l.itemType === activeTab
@@ -141,7 +199,7 @@ export default function ShopStorefrontPage({
 
                 {/* Badges Earned */}
                 <div className="flex flex-wrap gap-1.5 pt-2">
-                  {shop.badges.map((b) => (
+                  {shop.badges.map((b: string) => (
                     <span
                       key={b}
                       className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300"

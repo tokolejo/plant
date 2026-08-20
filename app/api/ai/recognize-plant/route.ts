@@ -26,26 +26,26 @@ export async function POST(req: NextRequest) {
 
     const prompt = `You are an expert botanist, horticulturist, and plant marketplace copywriter in Georgia.
 Analyze the plant or gardening product shown in the provided photo.
-Identify its exact botanical and common Georgian & English names, health status, care requirements, and estimated fair market price in GEL (Georgian Lari).
+Identify its exact botanical (Latin) name and common Georgian & English names, health status, and care requirements.
+IMPORTANT: Do NOT estimate or suggest any price.
 
 Return ONLY a raw JSON object (strictly no markdown formatting, no codeblocks, no explanations) adhering exactly to this JSON schema:
 {
-  "nameKa": "მცენარის ან ნივთის ქართული სახელი (მაგ: მონსტერა დელიციოზა / კერამიკული ქოთანი)",
-  "nameEn": "English/Botanical name (e.g. Monstera Deliciosa / Ceramic Pot)",
-  "titleKa": "მიმზიდველი და პროფესიონალური სათაური განცხადებისთვის ქართულად",
-  "titleEn": "Attractive listing title in English",
-  "descKa": "ბუნებრივი, დეტალური და მიმზიდველი გაყიდვის აღწერა ქართულად (აღწერე მცენარის ჯანმრთელობა, ფოთლები, ქოთანი, ზრდის პოტენციალი და მოვლის მოკლე რჩევა)",
-  "descEn": "Attractive sales description in English",
-  "estimatedPrice": 45,
+  "latinName": "Exact botanical Latin name (e.g. Monstera deliciosa, Epipremnum aureum, Ficus lyrata)",
+  "nameKa": "მცენარის ან ნივთის ქართული სახელი (მაგ: მონსტერა დელიციოზა)",
+  "nameEn": "English common name (e.g. Swiss Cheese Plant / Monstera)",
+  "titleKa": "მცენარის ქართული სახელი (ლათინური სახელი) — მოკლე მიმზიდველი სათაური (მაგ: მონსტერა დელიციოზა (Monstera deliciosa) — ჯანსაღი ოთახის მცენარე)",
+  "titleEn": "English Name (Latin Name) — Attractive Listing Title (e.g. Golden Pothos (Epipremnum aureum) — Healthy Houseplant)",
+  "descKa": "ბუნებრივი, დეტალური და მიმზიდველი გაყიდვის აღწერა ქართულად (აღწერე მცენარის მდგომარეობა, ფოთლები, ქოთანი, ზრდის პოტენციალი და მოვლის მოკლე რჩევა)",
+  "descEn": "Natural, detailed and appealing sales description in English (health condition, foliage, pot, growth habits, and quick care advice)",
   "category": "PLANT",
   "careLevel": "მარტივი",
-  "light": "ირიბი მზის სინათლე",
+  "light": "ირიბი გაფანტული სინათლე",
   "watering": "ზომიერი მორწყვა, ნიადაგის გამოშრობისას",
   "tags": ["მცენარე", "ოთახის ყვავილი", "იშვიათი"]
 }
 
-Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flower, cactus, tree, bonsai, etc. Use "INVENTORY" if it's a pot, soil/substrate, tool, fertilizer, trellis, lamp, or accessory.
-Note for 'estimatedPrice': A realistic integer number representing fair market value in GEL (₾).`;
+Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flower, cactus, tree, bonsai, etc. Use "INVENTORY" if it's a pot, soil/substrate, tool, fertilizer, trellis, lamp, or accessory.`;
 
     // Multi-model array for automatic failover in case of traffic spikes
     const modelsToTry = [

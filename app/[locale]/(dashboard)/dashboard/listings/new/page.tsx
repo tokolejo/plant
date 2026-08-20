@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import { useRouter } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { uploadListingImage } from "@/utils/supabase/storage";
-import { compressImagesBatch, validateListingImages } from "@/utils/image-compression";
+import { compressImagesBatch } from "@/utils/image-compression";
 import { 
   Sprout, 
   Layers, 
@@ -14,23 +15,26 @@ import {
   RefreshCw, 
   AlertCircle, 
   Check, 
-  Sparkles,
-  Loader2,
-  Wand2,
-  Leaf
+  Sparkles, 
+  Loader2, 
+  Wand2, 
+  Leaf,
+  MapPin,
+  Navigation,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 export interface GeminiPlantRecognitionResult {
+  latinName?: string;
   nameKa: string;
   nameEn: string;
   titleKa: string;
   titleEn: string;
   descKa: string;
   descEn: string;
-  estimatedPrice: number;
   category: "PLANT" | "INVENTORY";
   careLevel?: string;
   light?: string;
@@ -49,6 +53,8 @@ function fileToBase64(file: File): Promise<string> {
 
 export default function CreateListingPage() {
   const router = useRouter();
+  const locale = useLocale();
+  const isEn = locale === "en";
   const supabase = createClient();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -79,6 +85,9 @@ export default function CreateListingPage() {
   const [aiResult, setAiResult] = React.useState<GeminiPlantRecognitionResult | null>(null);
   const [aiApplied, setAiApplied] = React.useState(false);
 
+  // GPS Location auto-fill State
+  const [gpsLoading, setGpsLoading] = React.useState(false);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const newFiles = Array.from(e.target.files);
@@ -105,7 +114,7 @@ export default function CreateListingPage() {
     setPreviews(newPreviews);
     setErrorMsg("");
     
-    // Reset AI state when new photos are uploaded
+    // Reset AI state on new files
     setAiResult(null);
     setAiApplied(false);
   };
@@ -121,7 +130,7 @@ export default function CreateListingPage() {
   };
 
   // ──────────────────────────────────────────────
-  // Real Google Gemini AI Vision Plant Recognition
+  // Real Google Gemini AI Vision: INSTANT AUTO-FILL
   // ──────────────────────────────────────────────
   const handleAiAutoFill = async () => {
     if (selectedFiles.length === 0) {
@@ -131,7 +140,6 @@ export default function CreateListingPage() {
     }
 
     setAiDetecting(true);
-    setAiResult(null);
     setErrorMsg("");
 
     try {
@@ -153,7 +161,20 @@ export default function CreateListingPage() {
         throw new Error(data.error || "მცენარის ამოცნობა ვერ მოხერხდა");
       }
 
-      setAiResult(data.data);
+      const result: GeminiPlantRecognitionResult = data.data;
+      setAiResult(result);
+
+      // DIRECT INSTANT AUTO-FILL: Titles, Descriptions, ItemType, Tags (WITHOUT modifying price)
+      if (result.titleKa) setTitleKa(result.titleKa);
+      if (result.titleEn) setTitleEn(result.titleEn);
+      if (result.descKa) setDescKa(result.descKa);
+      if (result.descEn) setDescEn(result.descEn);
+      if (result.category) setItemType(result.category);
+      if (result.tags && Array.isArray(result.tags)) {
+        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags!])));
+      }
+
+      setAiApplied(true);
     } catch (err: any) {
       console.error("AI Plant Recognition Error:", err);
       setErrorMsg(`AI ამოცნობა: ${err.message || "სცადეთ ხელახლა"}`);
@@ -163,23 +184,57 @@ export default function CreateListingPage() {
     }
   };
 
-  const handleApplyAiData = () => {
-    if (!aiResult) return;
-    
-    if (aiResult.titleKa) setTitleKa(aiResult.titleKa);
-    if (aiResult.titleEn) setTitleEn(aiResult.titleEn);
-    if (aiResult.descKa) setDescKa(aiResult.descKa);
-    if (aiResult.descEn) setDescEn(aiResult.descEn);
-    if (aiResult.estimatedPrice && (!price || price === "0")) {
-      setPrice(String(aiResult.estimatedPrice));
+  // ──────────────────────────────────────────────
+  // GPS Location & Address Reverse Geocoding
+  // ──────────────────────────────────────────────
+  const handleAutoFillAddressWithGPS = () => {
+    if (!navigator.geolocation) {
+      setErrorMsg("თქვენს ბრაუზერში GPS მხარდაჭერილი არ არის.");
+      setTimeout(() => setErrorMsg(""), 3000);
+      return;
     }
-    if (aiResult.category) {
-      setItemType(aiResult.category);
-    }
-    if (aiResult.tags && Array.isArray(aiResult.tags)) {
-      setTradeTags((prev) => Array.from(new Set([...prev, ...aiResult.tags!])));
-    }
-    setAiApplied(true);
+    setGpsLoading(true);
+    setErrorMsg("");
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=ka`,
+            { headers: { "User-Agent": "PlantApp/1.0" } }
+          );
+          const data = await res.json();
+          if (data && data.address) {
+            const addr = data.address;
+            const detectedCity = addr.city || addr.town || addr.village || addr.county || "თბილისი";
+            const districtParts = [
+              addr.neighbourhood || addr.suburb || addr.quarter || addr.city_district,
+              addr.road ? `${addr.road} ${addr.house_number || ""}`.trim() : null,
+            ].filter(Boolean);
+
+            const detectedAddress = districtParts.join(", ");
+
+            if (detectedCity) setCity(detectedCity);
+            if (detectedAddress) setAddress(detectedAddress);
+          }
+        } catch (e) {
+          console.warn("GPS reverse geocode error:", e);
+        } finally {
+          setGpsLoading(false);
+        }
+      },
+      (err) => {
+        setGpsLoading(false);
+        if (err.code === 1) {
+          setErrorMsg("GPS წვდომა უარყოფილია. გთხოვთ ბრაუზერში დაუშვათ ლოკაცია.");
+        } else {
+          setErrorMsg("GPS სიგნალი ვერ მოიძებნა.");
+        }
+        setTimeout(() => setErrorMsg(""), 4000);
+      },
+      { timeout: 8000, maximumAge: 60000, enableHighAccuracy: true }
+    );
   };
 
   const toggleDelivery = (method: string) => {
@@ -217,8 +272,8 @@ export default function CreateListingPage() {
       setErrorMsg("სავალდებულოა მინიმუმ 2 ფოტოს ატვირთვა!");
       return;
     }
-    if (!titleKa.trim()) {
-      setErrorMsg("გთხოვთ შეიყვანოთ სათაური ქართულად.");
+    if (!titleKa.trim() && !titleEn.trim()) {
+      setErrorMsg("გთხოვთ შეიყვანოთ სათაური.");
       return;
     }
 
@@ -245,7 +300,7 @@ export default function CreateListingPage() {
 
       const { data, error: insertError } = await supabase.from("listings").insert({
         user_id: user.id,
-        title_ka: titleKa.trim(),
+        title_ka: titleKa.trim() || titleEn.trim(),
         title_en: titleEn.trim() || titleKa.trim(),
         description_ka: descKa.trim(),
         description_en: descEn.trim(),
@@ -263,76 +318,96 @@ export default function CreateListingPage() {
       if (insertError) throw insertError;
 
       router.push(`/listings/${data.id}`);
-      router.refresh();
     } catch (err: any) {
-      setErrorMsg(err.message || "განცხადების შენახვისას დაფიქსირდა შეცდომა.");
+      console.error(err);
+      setErrorMsg(err.message || "განცხადების შენახვისას დაფიქსირდა შეცდომა");
       setIsSubmitting(false);
       setUploadProgress("");
     }
   };
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 max-w-3xl">
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-          ახალი განცხადების დამატება
+    <div className="container mx-auto px-4 py-8 max-w-2xl">
+      <div className="mb-6">
+        <h1 className="text-xl sm:text-2xl font-black text-foreground">
+          განცხადების განთავსება
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          შეავსეთ ინფორმაცია მცენარის ან ინვენტარის შესახებ.
+        <p className="text-xs text-muted-foreground mt-1 font-medium">
+          გაყიდეთ, გაცვალეთ ან გააჩუქეთ მცენარეები და ინვენტარი
         </p>
       </div>
 
       {errorMsg && (
-        <div className="mb-6 rounded-2xl bg-destructive/10 border border-destructive/30 p-4 text-xs font-semibold text-destructive flex items-center gap-2">
+        <div className="mb-6 rounded-[18px] bg-destructive/10 border border-destructive/20 p-3.5 text-xs text-destructive flex items-center gap-2.5">
           <AlertCircle className="w-4 h-4 shrink-0" />
-          <span>{errorMsg}</span>
+          <span className="font-semibold">{errorMsg}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 1. Item Type Selection */}
-        <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
+        {/* 1. Item Type */}
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-3">
-            1. აირჩიეთ კატეგორია
+            1. კატეგორია
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setItemType("PLANT")}
-              className={`flex items-center justify-center gap-2 p-4 rounded-2xl border text-sm font-bold transition-all ${
+              className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 itemType === "PLANT"
-                  ? "border-emerald-600 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shadow-sm"
-                  : "border-border/70 text-muted-foreground hover:bg-muted"
+                  ? "border-primary bg-primary/10 text-primary shadow-xs"
+                  : "border-border/70 text-muted-foreground hover:bg-surface-container"
               }`}
             >
-              <Sprout className="w-5 h-5" />
-              <span>🌱 მცენარე</span>
+              <Sprout className="w-4 h-4" />
+              <span>🌿 მცენარე / ნერგი</span>
             </button>
-
             <button
               type="button"
               onClick={() => setItemType("INVENTORY")}
-              className={`flex items-center justify-center gap-2 p-4 rounded-2xl border text-sm font-bold transition-all ${
+              className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 itemType === "INVENTORY"
-                  ? "border-teal-600 bg-teal-500/10 text-teal-700 dark:text-teal-300 shadow-sm"
-                  : "border-border/70 text-muted-foreground hover:bg-muted"
+                  ? "border-primary bg-primary/10 text-primary shadow-xs"
+                  : "border-border/70 text-muted-foreground hover:bg-surface-container"
               }`}
             >
-              <Layers className="w-5 h-5" />
-              <span>🪴 ინვენტარი & მოვლა</span>
+              <Layers className="w-4 h-4" />
+              <span>🪴 ინვენტარი / ქოთანი</span>
             </button>
           </div>
         </div>
 
-        {/* 2. Photo Upload */}
-        <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-3">
+        {/* 2. Photo Upload & Compact Mobile-Friendly AI Recognition */}
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               2. ფოტოები (მინ. 2, მაქს. 5) *
             </label>
-            <span className="text-xs font-bold text-emerald-600">
-              {selectedFiles.length} / 5
-            </span>
+            
+            <div className="flex items-center gap-2">
+              {/* Compact Sleek AI Trigger Button */}
+              {selectedFiles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handleAiAutoFill}
+                  disabled={aiDetecting}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+                  title="Google Gemini AI-ით მცენარის ამოცნობა და ფორმის ავტო-შევსება"
+                >
+                  {aiDetecting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                  )}
+                  <span>{aiDetecting ? "ამოიცნობს..." : "✨ AI ამოცნობა"}</span>
+                </button>
+              )}
+              
+              <span className="text-xs font-bold text-primary px-2 py-0.5 rounded-full bg-secondary-container">
+                {selectedFiles.length} / 5
+              </span>
+            </div>
           </div>
 
           <input
@@ -346,17 +421,17 @@ export default function CreateListingPage() {
 
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-3">
             {previews.map((preview, idx) => (
-              <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-border group">
+              <div key={idx} className="relative aspect-square rounded-[16px] overflow-hidden border border-border/80 group">
                 <img src={preview} alt="preview" className="w-full h-full object-cover" />
                 <button
                   type="button"
                   onClick={() => removeImage(idx)}
-                  className="absolute top-1.5 right-1.5 rounded-full bg-black/60 text-white p-1 hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                  className="absolute top-1.5 right-1.5 rounded-full bg-black/70 text-white p-1 hover:bg-destructive transition-colors cursor-pointer"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
                 {idx === 0 && (
-                  <div className="absolute bottom-1.5 left-1.5 rounded px-1.5 py-0.5 bg-black/60 text-[9px] text-white font-bold">
+                  <div className="absolute bottom-1.5 left-1.5 rounded-md px-1.5 py-0.5 bg-black/70 text-[9px] text-white font-bold backdrop-blur-xs">
                     მთავარი
                   </div>
                 )}
@@ -367,201 +442,85 @@ export default function CreateListingPage() {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="aspect-square rounded-2xl border-2 border-dashed border-border/80 hover:border-emerald-500 flex flex-col items-center justify-center text-muted-foreground hover:text-emerald-600 transition-colors p-2 text-center bg-muted/20"
+                className="aspect-square rounded-[16px] border-2 border-dashed border-border/80 hover:border-primary flex flex-col items-center justify-center text-muted-foreground hover:text-primary transition-colors p-2 text-center bg-surface-container/30 cursor-pointer"
               >
-                <Upload className="w-5 h-5 mb-1" />
-                <span className="text-[10px] font-semibold">+ ფოტო</span>
+                <Upload className="w-5 h-5 mb-1 text-primary/70" />
+                <span className="text-[10px] font-bold">+ ფოტო</span>
               </button>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground mt-2">
-            📸 მხარდაჭერილია მობილურით გადაღებული მაღალი ხარისხის ფოტოები (15MB-მდე). სისტემა ავტომატურად მოახდენს მათ WebP კომპრესიას.
+
+          <p className="text-[11px] text-muted-foreground">
+            📸 მხარდაჭერილია ტელეფონით გადაღებული მაღალი ხარისხის ფოტოები (15MB-მდე). სისტემა ავტომატურად მოახდენს მათ WebP კომპრესიას.
           </p>
+
+          {/* AI Recognition Notification Banner */}
+          {aiApplied && aiResult && (
+            <div className="rounded-[16px] bg-emerald-500/10 border border-emerald-500/30 p-3 flex items-center justify-between gap-2 animate-in fade-in">
+              <div className="flex items-center gap-2 min-w-0">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold truncate">
+                  ✨ Gemini-მ ამოიცნო: <strong>{aiResult.nameKa || aiResult.latinName}</strong> — ველები ავტომატურად შეივსო!
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiApplied(false)}
+                className="text-[11px] text-muted-foreground hover:text-foreground shrink-0 underline cursor-pointer"
+              >
+                გასუფთავება
+              </button>
+            </div>
+          )}
         </div>
 
-        {/* ✨ REAL GOOGLE GEMINI AI PLANT RECOGNITION PANEL */}
-        {selectedFiles.length > 0 && (
-          <div className={`rounded-3xl border p-5 transition-all ${
-            aiApplied 
-              ? "border-emerald-500/50 bg-emerald-500/5" 
-              : "border-violet-500/30 bg-violet-500/5"
-          }`}>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className={`h-10 w-10 rounded-2xl flex items-center justify-center shrink-0 ${
-                  aiApplied ? "bg-emerald-500 text-white" : "bg-violet-600 text-white"
-                }`}>
-                  {aiApplied ? <Check className="w-5 h-5" /> : <Wand2 className="w-5 h-5" />}
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Sparkles className="w-3.5 h-3.5 text-violet-500" />
-                    Gemini AI მცენარის ამოცნობა & ავტო-შევსება
-                    <Badge variant="outline" className="text-[9px] px-1.5 py-0 border-violet-500/40 text-violet-600 dark:text-violet-400 font-extrabold">
-                      LIVE
-                    </Badge>
-                  </h3>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">
-                    {aiApplied 
-                      ? "✅ ველები ავტომატურად შევსებულია — შეგიძლიათ დაარედაქტიროთ"
-                      : "დააჭირეთ ღილაკს — Google Gemini AI ამოიცნობს მცენარეს, შეადგენს სათაურს, აღწერას და ფასს"}
-                  </p>
-                </div>
-              </div>
-
-              {!aiApplied && (
-                <Button
-                  type="button"
-                  onClick={handleAiAutoFill}
-                  disabled={aiDetecting}
-                  size="sm"
-                  className="shrink-0 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs gap-2 shadow-md shadow-violet-600/20 cursor-pointer"
-                >
-                  {aiDetecting ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                      ამოიცნობს...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="w-3.5 h-3.5" />
-                      AI ამოცნობა
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
-
-            {/* Gemini Detection Result Card */}
-            {aiResult && !aiApplied && (
-              <div className="mt-4 rounded-2xl bg-card border border-violet-500/25 p-4 shadow-sm space-y-3 animate-in fade-in zoom-in-95 duration-150">
-                <div className="flex items-center justify-between border-b border-border/50 pb-2">
-                  <div className="flex items-center gap-2">
-                    <Leaf className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="text-xs font-black text-foreground">
-                      {aiResult.nameKa} <span className="text-muted-foreground font-normal">({aiResult.nameEn})</span>
-                    </span>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] font-bold border-emerald-500/40 text-emerald-600">
-                    {aiResult.category === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-surface-container/60 p-2.5 rounded-xl">
-                  <div>
-                    <span className="text-muted-foreground block text-[10px]">სარეკომენდაციო ფასი</span>
-                    <strong className="text-foreground text-xs">{aiResult.estimatedPrice} ₾</strong>
-                  </div>
-                  {aiResult.careLevel && (
-                    <div>
-                      <span className="text-muted-foreground block text-[10px]">მოვლის სირთულე</span>
-                      <strong className="text-foreground text-xs">{aiResult.careLevel}</strong>
-                    </div>
-                  )}
-                  {aiResult.light && (
-                    <div>
-                      <span className="text-muted-foreground block text-[10px]">განათება</span>
-                      <strong className="text-foreground text-[11px] truncate block">{aiResult.light}</strong>
-                    </div>
-                  )}
-                  {aiResult.watering && (
-                    <div>
-                      <span className="text-muted-foreground block text-[10px]">მორწყვა</span>
-                      <strong className="text-foreground text-[11px] truncate block">{aiResult.watering}</strong>
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">შეთავაზებული სათაური:</span>
-                  <p className="text-xs font-bold text-foreground">{aiResult.titleKa}</p>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-0.5">შეთავაზებული აღწერა:</span>
-                  <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">{aiResult.descKa}</p>
-                </div>
-
-                <div className="flex gap-2 pt-1">
-                  <Button
-                    type="button"
-                    onClick={handleApplyAiData}
-                    size="sm"
-                    className="flex-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-sm cursor-pointer"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    მონაცემების ჩასმა (Auto-fill)
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => setAiResult(null)}
-                    size="sm"
-                    variant="outline"
-                    className="rounded-xl text-xs cursor-pointer"
-                  >
-                    გაუქმება
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {aiApplied && (
-              <div className="mt-3 flex items-center justify-between">
-                <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
-                  <Check className="w-3.5 h-3.5" />
-                  ველები წარმატებით შეივსო Gemini AI-ს მიერ — გადაამოწმეთ და დაარედაქტირეთ სურვილისამებრ
-                </span>
-                <button
-                  type="button"
-                  onClick={() => { setAiApplied(false); setAiResult(null); }}
-                  className="text-[11px] text-muted-foreground hover:text-foreground underline cursor-pointer"
-                >
-                  ხელახლა ამოცნობა
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 3. Bilingual Titles & Descriptions */}
-        <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
+        {/* 3. Bilingual Titles & Descriptions (Free to Edit) */}
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
             3. სათაური & აღწერა (ორენოვანი)
           </label>
 
           <div>
-            <span className="text-xs font-bold text-foreground mb-1 block">სათაური ქართულად *</span>
+            <span className="text-xs font-bold text-foreground mb-1 block">
+              სათაური ქართულად & ლათინური სახელი *
+            </span>
             <Input
               required
               value={titleKa}
               onChange={(e) => setTitleKa(e.target.value)}
-              placeholder="მაგ: Monstera Deliciosa (დიდი ზომა, ფესვიანი)"
+              placeholder="მაგ: მონსტერა დელიციოზა (Monstera deliciosa)"
+              className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
             />
           </div>
 
           <div>
-            <span className="text-xs font-bold text-muted-foreground mb-1 block">Title in English (სურვილისამებრ)</span>
+            <span className="text-xs font-bold text-muted-foreground mb-1 block">
+              Title in English (სურვილისამებრ)
+            </span>
             <Input
               value={titleEn}
               onChange={(e) => setTitleEn(e.target.value)}
-              placeholder="e.g. Monstera Deliciosa (Large size, rooted)"
+              placeholder="e.g. Monstera Deliciosa (Monstera deliciosa)"
+              className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
             />
           </div>
 
           <div>
-            <span className="text-xs font-bold text-foreground mb-1 block">აღწერა და მოვლის დეტალები</span>
+            <span className="text-xs font-bold text-foreground mb-1 block">
+              აღწერა და მოვლის დეტალები
+            </span>
             <textarea
               rows={3}
               value={descKa}
               onChange={(e) => setDescKa(e.target.value)}
               placeholder="მიუთითეთ მცენარის მდგომარეობა, ასაკი, ქოთნის ზომა, სუბსტრატი..."
-              className="w-full rounded-xl border border-input bg-background/80 px-3.5 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+              className="w-full rounded-[14px] border border-border/80 bg-background/90 px-3.5 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none font-medium leading-relaxed"
             />
           </div>
         </div>
 
-        {/* 4. Transaction Type & Price */}
-        <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
+        {/* 4. Transaction Type & Price (Set by user) */}
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
             4. გარიგების ტიპი & ფასი
           </label>
@@ -577,10 +536,10 @@ export default function CreateListingPage() {
                 key={t.id}
                 type="button"
                 onClick={() => setTransactionType(t.id as any)}
-                className={`py-2.5 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
+                className={`py-2.5 px-2 rounded-[16px] text-xs font-bold transition-all flex flex-col items-center gap-1 cursor-pointer ${
                   transactionType === t.id
-                    ? "bg-primary text-white shadow-md"
-                    : "border border-border/80 text-muted-foreground hover:bg-muted"
+                    ? "bg-primary text-white shadow-ambient"
+                    : "border border-border/70 text-muted-foreground hover:bg-surface-container"
                 }`}
               >
                 <span className="text-base">{t.emoji}</span>
@@ -590,11 +549,11 @@ export default function CreateListingPage() {
           </div>
 
           {transactionType === "GIFT" ? (
-            <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3.5 flex items-center gap-2.5">
+            <div className="rounded-[18px] bg-emerald-500/10 border border-emerald-500/30 p-3.5 flex items-center gap-2.5">
               <span className="text-xl">🎁</span>
               <div>
                 <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">უფასო საჩუქარი (Giveaway)</p>
-                <p className="text-[11px] text-muted-foreground">მცენარე ან კალამი გაჩუქდება უფასოდ, ფასი დაყენებულია 0 ₾-ზე.</p>
+                <p className="text-[11px] text-muted-foreground">მცენარე გაჩუქდება უფასოდ, რუკაზე გამოჩნდება საჩუქრის ნიშნით.</p>
               </div>
             </div>
           ) : transactionType !== "TRADE" ? (
@@ -604,11 +563,12 @@ export default function CreateListingPage() {
                 type="number"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                placeholder="მაგ: 75"
+                placeholder="ჩაწერეთ თქვენთვის სასურველი ფასი"
+                className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
               />
             </div>
           ) : (
-            <div className="rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4">
+            <div className="rounded-[18px] bg-amber-500/10 border border-amber-500/20 p-4">
               <span className="text-xs font-bold text-amber-800 dark:text-amber-300 block mb-2">
                 🔄 რაში გსურთ გაცვლა? (Trade Tags)
               </span>
@@ -618,18 +578,18 @@ export default function CreateListingPage() {
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTradeTag())}
                   placeholder="მაგ: Monstera Albo, Philodendron..."
-                  className="text-xs"
+                  className="text-xs rounded-[14px] h-9"
                 />
-                <Button type="button" onClick={addTradeTag} size="sm" variant="botanical">
+                <Button type="button" onClick={addTradeTag} size="sm" className="rounded-[14px] bg-primary text-white text-xs font-bold">
                   + დამატება
                 </Button>
               </div>
 
               <div className="flex flex-wrap gap-1.5">
                 {tradeTags.map((tag) => (
-                  <Badge key={tag} variant="amber" className="gap-1 text-xs">
+                  <Badge key={tag} variant="amber" className="gap-1 text-xs rounded-full">
                     #{tag}
-                    <button type="button" onClick={() => removeTradeTag(tag)}>
+                    <button type="button" onClick={() => removeTradeTag(tag)} className="cursor-pointer">
                       <X className="w-3 h-3" />
                     </button>
                   </Badge>
@@ -639,11 +599,28 @@ export default function CreateListingPage() {
           )}
         </div>
 
-        {/* 5. Delivery & Location */}
-        <div className="rounded-3xl border border-border/80 bg-card p-6 shadow-sm space-y-4">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-            5. მიწოდება & მდებარეობა
-          </label>
+        {/* 5. Delivery & Location (with GPS auto-fill) */}
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+              5. მიწოდება & მდებარეობა
+            </label>
+
+            {/* GPS Location Auto-fill Button */}
+            <button
+              type="button"
+              onClick={handleAutoFillAddressWithGPS}
+              disabled={gpsLoading}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] bg-secondary-container hover:bg-secondary-container/80 text-primary text-xs font-bold border border-border/50 transition-all cursor-pointer disabled:opacity-60"
+            >
+              {gpsLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+              ) : (
+                <Navigation className="w-3.5 h-3.5 text-primary" />
+              )}
+              <span>{gpsLoading ? "ლოკაციის ძებნა..." : "📍 ჩემი ლოკაცია (GPS)"}</span>
+            </button>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
@@ -657,14 +634,14 @@ export default function CreateListingPage() {
                   key={d.id}
                   type="button"
                   onClick={() => toggleDelivery(d.id)}
-                  className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-between transition-all ${
+                  className={`p-3 rounded-[16px] border text-xs font-semibold flex items-center justify-between transition-all cursor-pointer ${
                     isChecked
-                      ? "border-emerald-600 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                      : "border-border/70 text-muted-foreground hover:bg-muted"
+                      ? "border-primary bg-primary/10 text-primary font-bold shadow-2xs"
+                      : "border-border/70 text-muted-foreground hover:bg-surface-container"
                   }`}
                 >
                   <span>{d.label}</span>
-                  {isChecked && <Check className="w-3.5 h-3.5 text-emerald-600" />}
+                  {isChecked && <Check className="w-3.5 h-3.5 text-primary" />}
                 </button>
               );
             })}
@@ -677,7 +654,7 @@ export default function CreateListingPage() {
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 aria-label="ქალაქი"
-                className="w-full h-10 rounded-xl border border-input bg-background/80 px-3 py-2 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full h-10 rounded-[14px] border border-border/80 bg-background px-3 py-2 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
               >
                 <option value="თბილისი">თბილისი</option>
                 <option value="ბათუმი">ბათუმი</option>
@@ -687,24 +664,29 @@ export default function CreateListingPage() {
                 <option value="ზუგდიდი">ზუგდიდი</option>
                 <option value="თელავი">თელავი</option>
                 <option value="ბორჯომი">ბორჯომი</option>
+                <option value="მცხეთა">მცხეთა</option>
+                <option value="ფოთი">ფოთი</option>
+                <option value="ქობულეთი">ქობულეთი</option>
+                <option value="ახალციხე">ახალციხე</option>
               </select>
             </div>
 
             <div>
-              <span className="text-xs font-bold text-foreground mb-1 block">რაიონი / უბანი</span>
+              <span className="text-xs font-bold text-foreground mb-1 block">რაიონი / უბანი / მისამართი</span>
               <Input
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder="მაგ: საბურთალო, ვაჟა-ფშაველა"
+                placeholder="მაგ: ვაკე, ჭავჭავაძის გამზ. 25"
+                className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
               />
             </div>
           </div>
         </div>
 
-        {/* Submit */}
-        <div className="pt-1">
+        {/* Submit Button */}
+        <div className="pt-2">
           {uploadProgress && (
-            <p className="text-xs text-center text-emerald-600 dark:text-emerald-400 font-semibold mb-3 flex items-center justify-center gap-2">
+            <p className="text-xs text-center text-primary font-semibold mb-3 flex items-center justify-center gap-2">
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
               <span>{uploadProgress}</span>
             </p>
@@ -712,18 +694,16 @@ export default function CreateListingPage() {
 
           <Button
             type="submit"
-            variant="botanical"
-            size="lg"
             disabled={isSubmitting}
-            className="w-full rounded-2xl font-bold h-12 text-sm shadow-lg shadow-emerald-600/20"
+            className="w-full h-12 rounded-[18px] bg-primary hover:bg-primary-container text-white font-bold text-sm shadow-ambient cursor-pointer active:scale-[0.99] transition-all"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
                 <Loader2 className="w-4 h-4 animate-spin" />
-                მუშავდება...
+                განცხადება იტვირთება...
               </span>
             ) : (
-              "🌿 განცხადების გამოქვეყნება (0 ₾)"
+              "🌱 განცხადების განთავსება"
             )}
           </Button>
         </div>

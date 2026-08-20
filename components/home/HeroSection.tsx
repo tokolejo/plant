@@ -81,8 +81,8 @@ export function HeroSection() {
           </div>
 
           {/* Compact Refined Title */}
-          <h1 className="text-xl sm:text-2xl lg:text-[26px] font-extrabold tracking-tight text-foreground leading-snug mb-1.5">
-            იყიდე, გაყიდე &{" "}
+          <h1 className="text-xl sm:text-2xl lg:text-[28px] font-black tracking-tight text-foreground leading-snug mb-1.5">
+            იყიდე, გაყიდე,{" "}
             <span className="text-primary dark:text-emerald-400">
               გაცვალე მცენარეები
             </span>
@@ -94,7 +94,7 @@ export function HeroSection() {
         </div>
 
         {/* Search Box — Spacious, Full-Container & Touch Friendly */}
-        <div className="relative max-w-4xl mx-auto" style={{ zIndex: 9998 }}>
+        <div className="relative max-w-4xl mx-auto z-20" style={{ overflow: 'visible' }}>
           <form
             onSubmit={handleSearch}
             className="w-full rounded-[22px] border border-border/80 bg-card p-2 sm:p-2.5 shadow-ambient flex flex-col sm:flex-row gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"

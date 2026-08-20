@@ -121,6 +121,8 @@ const RECOMMENDED_INVENTORY = [
   },
 ];
 
+import { formatDbListing } from "@/lib/listings-service";
+
 export default function ListingDetailPage({
   params: { id },
 }: {
@@ -128,12 +130,45 @@ export default function ListingDetailPage({
 }) {
   const router = useRouter();
   const supabase = createClient();
-  const listing = SAMPLE_LISTINGS.find((l) => l.id === id) || SAMPLE_LISTINGS[0];
+  const [listing, setListing] = React.useState<any>(() => {
+    return SAMPLE_LISTINGS.find((l) => l.id === id) || SAMPLE_LISTINGS[0];
+  });
 
   const [activeImageIdx, setActiveImageIdx] = React.useState(0);
   const [showPhone, setShowPhone] = React.useState(false);
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
+
+  // Fetch real listing from Supabase if not a mock ID or to get fresh updates
+  React.useEffect(() => {
+    async function loadRealListing() {
+      try {
+        const { data: dbRow, error } = await supabase
+          .from("listings")
+          .select(`
+            *,
+            profiles:user_id (
+              id,
+              full_name,
+              avatar_url,
+              average_rating,
+              total_reviews,
+              subscription_tier,
+              custom_slug
+            )
+          `)
+          .eq("id", id)
+          .single();
+
+        if (dbRow && !error) {
+          setListing(formatDbListing(dbRow, dbRow.profiles));
+        }
+      } catch (err) {
+        console.warn("Could not load listing from Supabase, using mock fallback:", err);
+      }
+    }
+    loadRealListing();
+  }, [id, supabase]);
 
   // Carousel Refs for smooth arrow scrolling
   const inventoryScrollRef = React.useRef<HTMLDivElement>(null);
@@ -229,7 +264,7 @@ export default function ListingDetailPage({
     setTimeout(() => setReviewSubmitted(false), 4000);
   };
 
-  const images = listing.images && listing.images.length > 0 ? listing.images : [
+  const images: string[] = Array.isArray(listing.images) && listing.images.length > 0 ? listing.images : [
     "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80"
   ];
 
@@ -369,7 +404,7 @@ export default function ListingDetailPage({
                   <Sparkles className="w-3.5 h-3.5 text-amber-600" /> იცვლება შემდეგ მცენარეებში:
                 </p>
                 <div className="flex flex-wrap gap-1">
-                  {listing.tradePreferences.map((tag, idx) => (
+                  {listing.tradePreferences.map((tag: string, idx: number) => (
                     <span key={idx} className="rounded-[6px] bg-card px-2 py-0.5 text-xs font-bold text-foreground border border-border/60 shadow-2xs">
                       #{tag}
                     </span>
@@ -664,7 +699,7 @@ export default function ListingDetailPage({
             {/* Badges Earned */}
             {listing.seller.badges && listing.seller.badges.length > 0 && (
               <div className="rounded-[12px] bg-secondary-container/60 p-2 flex flex-wrap gap-1">
-                {listing.seller.badges.map((badge, idx) => (
+                {listing.seller.badges.map((badge: string, idx: number) => (
                   <span
                     key={idx}
                     className="inline-flex items-center gap-1 rounded-[6px] bg-card px-2 py-0.5 text-[10.5px] font-bold text-primary shadow-2xs"

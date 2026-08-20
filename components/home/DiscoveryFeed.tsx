@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import { getMergedListings } from "@/lib/listings-service";
+
 interface DiscoveryFeedProps {
   listings?: ExtendedListingCardProps[];
 }
@@ -36,66 +38,19 @@ export function DiscoveryFeed({ listings = SAMPLE_LISTINGS }: DiscoveryFeedProps
   React.useEffect(() => {
     async function loadLiveFeed() {
       try {
-        const { data: dbData, count } = await supabase
-          .from("listings")
-          .select(`
-            id,
-            title_ka,
-            title_en,
-            price,
-            item_type,
-            plant_category,
-            transaction_type,
-            delivery_methods,
-            images,
-            city,
-            views_count,
-            is_featured,
-            created_at,
-            profiles:user_id (id, full_name, avatar_url, rating, total_reviews, custom_slug)
-          `, { count: "exact" })
-          .eq("status", "ACTIVE")
-          .order("is_featured", { ascending: false })
-          .order("created_at", { ascending: false });
-
-        if (count !== null && count !== undefined) {
-          setTotalDbCount(count);
-        }
-
-        if (dbData && dbData.length > 0) {
-          const formatted: ExtendedListingCardProps[] = dbData.map((item: any) => ({
-            id: item.id,
-            title: isKa ? (item.title_ka || item.title_en || "მცენარე") : (item.title_en || item.title_ka || "Plant"),
-            price: Number(item.price) || 0,
-            itemType: item.item_type || "PLANT",
-            plantCategory: item.plant_category || "other-plant",
-            transactionType: item.transaction_type || "FIXED",
-            deliveryMethods: item.delivery_methods || ["PICKUP"],
-            isPremium: Boolean(item.is_featured),
-            isFeatured: Boolean(item.is_featured),
-            images: item.images && item.images.length > 0 ? item.images : [
-              "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80"
-            ],
-            city: item.city || "თბილისი",
-            viewsCount: item.views_count || 0,
-            seller: {
-              id: item.profiles?.id || "usr-1",
-              fullName: item.profiles?.full_name || "გამყიდველი",
-              avatarUrl: item.profiles?.avatar_url || "",
-              rating: item.profiles?.rating || 5.0,
-              totalReviews: item.profiles?.total_reviews || 0,
-              badges: ["Verified Seller"],
-              customSlug: item.profiles?.custom_slug,
-            },
-          }));
-          setAllListings(formatted);
-        }
+        const merged = await getMergedListings();
+        const localized = merged.map((item: any) => ({
+          ...item,
+          title: isKa ? (item.titleKa || item.title_ka || item.title) : (item.titleEn || item.title_en || item.title),
+        }));
+        setAllListings(localized);
+        setTotalDbCount(localized.length);
       } catch (e) {
         console.error("Supabase live listings fetch failed, using fallback:", e);
       }
     }
     loadLiveFeed();
-  }, [supabase, isKa]);
+  }, [isKa]);
 
   // Fair Premium Boost Sorting & Tab Filtering
   const filtered = React.useMemo(() => {
