@@ -83,7 +83,7 @@ export function Header() {
     { href: "/listings?type=PLANT", label: navT("plants"), icon: Sprout, match: "/listings" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/listings?type=INVENTORY", label: navT("inventory"), icon: Layers },
-    { href: "/iso", label: navT("iso"), icon: Shuffle, badge: "ISO" },
+    { href: "/iso", label: navT("iso"), icon: Shuffle },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles },
   ];
 
@@ -127,7 +127,7 @@ export function Header() {
 
           {/* Desktop Nav — Clean, Non-Wrapping & Compact */}
           <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1.5 whitespace-nowrap">
-            {navLinks.map(({ href, label, icon: Icon, match, badge }) => {
+            {navLinks.map(({ href, label, icon: Icon, match }) => {
               const active = pathname === (match || href.split("?")[0]);
               return (
                 <Link
@@ -141,11 +141,6 @@ export function Header() {
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
                   <span>{label}</span>
-                  {badge && (
-                    <span className="inline-flex px-1.5 py-0.2 rounded-full text-[9px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 leading-none">
-                      {badge}
-                    </span>
-                  )}
                 </Link>
               );
             })}

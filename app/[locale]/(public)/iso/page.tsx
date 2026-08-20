@@ -33,7 +33,7 @@ export default function IsoBoardPage() {
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2">
             <Shuffle className="w-3.5 h-3.5" />
-            <span>Plant Matchmaking (ISO - In Search Of)</span>
+            <span>ვეძებ მცენარეს — გაცვლის დაფა</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
             მცენარეების გაცვლისა და ძიების დაფა
@@ -65,7 +65,7 @@ export default function IsoBoardPage() {
         </div>
       </div>
 
-      {/* ISO Requests Grid */}
+      {/* Requests Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredRequests.map((req) => (
           <div
@@ -84,7 +84,7 @@ export default function IsoBoardPage() {
                   </div>
                 </div>
                 <Badge variant="amber" className="text-[10px] px-2 py-0.5">
-                  ISO Match
+                  გაცვლა
                 </Badge>
               </div>
 

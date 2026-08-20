@@ -28,14 +28,14 @@ export const DEFAULT_PLANS: SubscriptionPlanItem[] = [
     autoStaleHideDays: 30,
     featuresKa: [
       "5 აქტიური განცხადება",
-      "ISO Match მცენარეების გაცვლა",
+      "მცენარეების გაცვლის დაფა",
       "Live ჩატი მყიდველებთან",
       "2-5 ფოტოს ატვირთვა",
       "30-დღიანი ავტო-დამალვა",
     ],
     featuresEn: [
       "5 active listings",
-      "ISO Match Plant Exchange",
+      "Plant Exchange Board",
       "Live Chat with buyers",
       "2-5 photos per listing",
       "30-day auto-hide",

@@ -35,7 +35,7 @@ export function Footer() {
               </div>
               <div>
                 <h4 className="text-sm font-bold text-foreground">მცენარეების გაცვლა</h4>
-                <p className="text-xs text-muted-foreground">Trade & ISO Matchmaking სისტემა</p>
+                <p className="text-xs text-muted-foreground">გაცვლის & შეთავაზებების სისტემა</p>
               </div>
             </div>
 
@@ -72,7 +72,7 @@ export function Footer() {
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li><Link href="/listings?type=PLANT" className="hover:text-primary transition-colors">მცენარეები</Link></li>
               <li><Link href="/listings?type=INVENTORY" className="hover:text-primary transition-colors">ინვენტარი & ქოთნები</Link></li>
-              <li><Link href="/iso" className="hover:text-primary transition-colors">გაცვლის დაფა (ISO)</Link></li>
+              <li><Link href="/iso" className="hover:text-primary transition-colors">ვეძებ მცენარეს (გაცვლა)</Link></li>
               <li><Link href="/shops" className="hover:text-primary transition-colors">ვერიფიცირებული მაღაზიები</Link></li>
             </ul>
           </div>

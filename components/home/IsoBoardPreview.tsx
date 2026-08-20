@@ -60,7 +60,7 @@ export function IsoBoardPreview() {
           <div>
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider mb-2">
               <Shuffle className="w-3.5 h-3.5" />
-              <span>Plant Matchmaking Board (ISO)</span>
+              <span>მცენარეების გაცვლის დაფა</span>
             </div>
             <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               ეძებ იშვიათ მცენარეს ან გსურს გაცვლა?
@@ -84,7 +84,7 @@ export function IsoBoardPreview() {
           </div>
         </div>
 
-        {/* ISO Cards Grid */}
+        {/* Requests Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {SAMPLE_ISO_REQUESTS.map((iso) => (
             <div
@@ -104,7 +104,7 @@ export function IsoBoardPreview() {
                     </div>
                   </div>
                   <Badge className="text-[10px] px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 font-semibold">
-                    ISO მოთხოვნა
+                    გაცვლის მოთხოვნა
                   </Badge>
                 </div>
 
