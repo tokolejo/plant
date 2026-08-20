@@ -48,8 +48,9 @@ const RECOMMENDED_INVENTORY = [
     price: 19,
     image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80",
     shopName: "დომინო",
-    shopBadge: "🏪 დომინო",
-    shopColor: "bg-blue-600/90 text-white",
+    shopBadge: "დომინო",
+    shopLogo: "🏢",
+    shopColor: "bg-[#0055a5] text-white border border-white/20",
     link: "https://domino.com.ge",
     isExternal: true,
   },
@@ -60,8 +61,9 @@ const RECOMMENDED_INVENTORY = [
     price: 38,
     image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&auto=format&fit=crop&q=80",
     shopName: "გორგია",
-    shopBadge: "🏪 გორგია",
-    shopColor: "bg-amber-600/90 text-white",
+    shopBadge: "გორგია",
+    shopLogo: "🟠",
+    shopColor: "bg-[#e35205] text-white border border-white/20",
     link: "https://gorgia.ge",
     isExternal: true,
   },
@@ -72,8 +74,9 @@ const RECOMMENDED_INVENTORY = [
     price: 24,
     image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
     shopName: "აგროჰაბი",
-    shopBadge: "🌿 აგროჰაბი",
-    shopColor: "bg-emerald-600/90 text-white",
+    shopBadge: "აგროჰაბი",
+    shopLogo: "🌿",
+    shopColor: "bg-[#0b8043] text-white border border-white/20",
     link: "https://agrohub.ge",
     isExternal: true,
   },
@@ -84,8 +87,9 @@ const RECOMMENDED_INVENTORY = [
     price: 59,
     image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&auto=format&fit=crop&q=80",
     shopName: "ბრიკორამა",
-    shopBadge: "🏪 ბრიკორამა",
-    shopColor: "bg-rose-600/90 text-white",
+    shopBadge: "ბრიკორამა",
+    shopLogo: "🔴",
+    shopColor: "bg-[#c8102e] text-white border border-white/20",
     link: "https://bricorama.ge",
     isExternal: true,
   },
@@ -96,8 +100,9 @@ const RECOMMENDED_INVENTORY = [
     price: 18,
     image: "https://images.unsplash.com/photo-1592150621744-aca64f48394a?w=600&auto=format&fit=crop&q=80",
     shopName: "აგრო სექტორი",
-    shopBadge: "🌱 აგრო სექტორი",
-    shopColor: "bg-teal-600/90 text-white",
+    shopBadge: "აგრო სექტორი",
+    shopLogo: "🌱",
+    shopColor: "bg-[#0284c7] text-white border border-white/20",
     link: "/listings?type=INVENTORY",
     isExternal: false,
   },
@@ -108,8 +113,9 @@ const RECOMMENDED_INVENTORY = [
     price: 14,
     image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600&auto=format&fit=crop&q=80",
     shopName: "დომინო",
-    shopBadge: "🏪 დომინო",
-    shopColor: "bg-blue-600/90 text-white",
+    shopBadge: "დომინო",
+    shopLogo: "🏢",
+    shopColor: "bg-[#0055a5] text-white border border-white/20",
     link: "https://domino.com.ge",
     isExternal: true,
   },
@@ -375,7 +381,7 @@ export default function ListingDetailPage({
 
           {/* ══════════════════════════════════════════════════════════════════════
               🪴 RECOMMENDED PARTNER RETAILER INVENTORY (Domino, Gorgia, Agrohub, etc.)
-              Perfect 3-Card Edge-to-Edge Grid with Smooth Arrow Pagination
+              Crystal Clear Store Badges & Clean Readable Typography
           ══════════════════════════════════════════════════════════════════════ */}
           <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-4.5 shadow-ambient space-y-3">
             {/* Header with Store Badges & Navigation Arrows */}
@@ -419,38 +425,42 @@ export default function ListingDetailPage({
               {RECOMMENDED_INVENTORY.map((item) => (
                 <div
                   key={item.id}
-                  className="snap-start group relative flex flex-col justify-between w-[calc(50%-5px)] sm:w-[calc(33.333%-6.7px)] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-background/90 hover:border-primary/50 transition-all p-2 shadow-2xs hover:shadow-sm"
+                  className="snap-start group relative flex flex-col justify-between w-[calc(50%-5px)] sm:w-[calc(33.333%-6.7px)] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-background/95 hover:border-primary/50 transition-all p-2.5 shadow-2xs hover:shadow-sm"
                 >
-                  {/* Photo & Store Badge */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[10px] bg-surface-container mb-1.5">
+                  {/* Photo & High-Contrast Store Badge */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[10px] bg-surface-container mb-2">
                     <Image
                       src={item.image}
                       alt={item.title}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <span className={`absolute top-1 left-1 backdrop-blur-md ${item.shopColor} font-black text-[8.5px] px-1.5 py-0.5 rounded-[5px] shadow-sm`}>
-                      {item.shopBadge}
-                    </span>
+                    {/* Clear, High-Contrast Store Pill */}
+                    <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-[6px] shadow-md backdrop-blur-sm bg-black/80 border border-white/20">
+                      <span className="text-[11px] leading-none">{item.shopLogo}</span>
+                      <span className="text-[11px] font-black text-white tracking-tight">
+                        {item.shopBadge}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Info */}
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
-                      <span className="text-[9px] text-muted-foreground font-medium block leading-tight">
+                      <span className="text-[10px] text-muted-foreground font-semibold block leading-tight">
                         {item.category}
                       </span>
-                      <h4 className="text-[11px] font-bold text-foreground line-clamp-2 leading-snug my-1 min-h-[28px]">
+                      <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug my-1 min-h-[32px]">
                         {item.title}
                       </h4>
                     </div>
 
-                    <div className="mt-1.5 pt-1.5 border-t border-border/40 flex items-center justify-between gap-1">
-                      <div>
+                    <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between gap-1.5">
+                      <div className="flex flex-col">
                         <span className="text-xs font-black text-primary dark:text-emerald-400">
                           {item.price} ₾
                         </span>
-                        <span className="text-[8.5px] text-muted-foreground block truncate max-w-[65px]">
+                        <span className="text-[10px] font-extrabold text-foreground tracking-tight truncate max-w-[75px]">
                           {item.shopName}
                         </span>
                       </div>
@@ -460,15 +470,15 @@ export default function ListingDetailPage({
                           href={item.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-0.5 text-[10px] font-bold text-primary hover:text-white hover:bg-primary px-2 py-0.5 rounded-[6px] bg-primary/10 transition-colors"
+                          className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[7px] bg-primary/10 transition-colors border border-primary/20"
                         >
                           <span>მაღაზია</span>
-                          <ExternalLink className="w-2.5 h-2.5" />
+                          <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
                         <Link
                           href={item.link}
-                          className="inline-flex items-center text-[10px] font-bold text-primary hover:text-white hover:bg-primary px-2 py-0.5 rounded-[6px] bg-primary/10 transition-colors"
+                          className="inline-flex items-center text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[7px] bg-primary/10 transition-colors border border-primary/20"
                         >
                           ნახვა
                         </Link>
