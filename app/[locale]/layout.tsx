@@ -21,25 +21,25 @@ export async function generateMetadata({
     metadataBase: new URL("https://plantsale.ge"),
     title: {
       default: isKa
-        ? "PlantSale.Ge — მცენარეებისა და მებაღეობის ონლაინ მარკეტპლეისი"
-        : "PlantSale.Ge — Buy, Sell & Swap Plants in Georgia",
-      template: isKa ? "%s | PlantSale.Ge" : "%s | PlantSale.Ge",
+        ? "Plant — მცენარეებისა და მებაღეობის ონლაინ პლატფორმა"
+        : "Plant — Buy, Sell & Swap Plants in Georgia",
+      template: isKa ? "%s | Plant" : "%s | Plant",
     },
     description: isKa
-      ? "იშვიათი მონსტერები, ფილოდენდრონები, ორქიდეები, კერამიკული ქოთნები, სუბსტრატები და ბაღის ხელსაწყოები. C2C & B2C მარკეტპლეისი მთელი საქართველოს მასშტაბით."
-      : "Rare Monsteras, Philodendrons, Orchids, ceramic pots, substrates and garden tools. C2C & B2C marketplace across all of Georgia.",
+      ? "იშვიათი მონსტერები, ფილოდენდრონები, ორქიდეები, კერამიკული ქოთნები, სუბსტრატები და უფასო საჩუქრები მთელი საქართველოს მასშტაბით."
+      : "Rare Monsteras, Philodendrons, Orchids, ceramic pots, substrates and free giveaways across Georgia.",
     keywords: isKa
-      ? ["მცენარე", "monstera", "philodendron", "ქოთანი", "გაყიდვა", "გაცვლა", "საქართველო", "plantsale"]
+      ? ["მცენარე", "monstera", "philodendron", "ქოთანი", "გაყიდვა", "გაცვლა", "საქართველო", "plant"]
       : ["plants", "monstera", "philodendron", "buy plants Georgia", "sell plants", "plant swap", "Georgian marketplace"],
     openGraph: {
       type: "website",
       locale: isKa ? "ka_GE" : "en_US",
       alternateLocale: isKa ? ["en_US"] : ["ka_GE"],
       url: "https://plantsale.ge",
-      siteName: "PlantSale.Ge",
+      siteName: "Plant",
       title: isKa
-        ? "PlantSale.Ge — მცენარეების მარკეტპლეისი"
-        : "PlantSale.Ge — Georgia's Plant Marketplace",
+        ? "Plant — მცენარეების პლატფორმა"
+        : "Plant — Botanical Marketplace in Georgia",
       description: isKa
         ? "იყიდე, გაყიდე და გაცვალე მცენარეები მთელი საქართველოს მასშტაბით."
         : "Buy, sell and swap plants across all of Georgia.",
@@ -48,15 +48,15 @@ export async function generateMetadata({
           url: "/og-image.png",
           width: 1200,
           height: 630,
-          alt: "PlantSale.Ge",
+          alt: "Plant",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "PlantSale.Ge",
+      title: "Plant",
       description: isKa
-        ? "საქართველოს #1 მცენარეების მარკეტპლეისი"
+        ? "საქართველოს #1 მცენარეების პლატფორმა"
         : "Georgia's #1 plant marketplace",
       images: ["/og-image.png"],
     },

@@ -1,6 +1,6 @@
 {
-  "name": "PlantSale.Ge — მცენარეების მარკეტპლეისი",
-  "short_name": "PlantSale",
+  "name": "Plant — მცენარეების პლატფორმა",
+  "short_name": "Plant",
   "description": "იშვიათი მცენარეების, ყვავილების, ქოთნებისა და მოვლის საშუალებების მარკეტპლეისი საქართველოში.",
   "start_url": "/",
   "display": "standalone",

@@ -60,7 +60,7 @@ export function Footer() {
               <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-primary text-white">
                 <Sprout className="h-4 w-4 text-primary-fixed" />
               </div>
-              <span className="font-bold text-base text-foreground">PlantSale<span className="text-primary font-black">.Ge</span></span>
+              <span className="font-bold text-base text-foreground">Plant</span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               საქართველოს უდიდესი მცენარეებისა და მებაღეობის ნივთების პლატფორმა. იყიდე, გაყიდე და გაცვალე მარტივად.
@@ -104,7 +104,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border/40 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} PlantSale.Ge. ყველა უფლება დაცულია.</p>
+          <p>© {new Date().getFullYear()} Plant. ყველა უფლება დაცულია.</p>
           <div className="flex items-center gap-1">
             <span>Made with</span>
             <Heart className="h-3.5 w-3.5 text-red-500 fill-red-500 inline" />

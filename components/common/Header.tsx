@@ -117,7 +117,7 @@ export function Header() {
             </div>
             <div className="flex flex-col">
               <span className="text-base font-bold tracking-tight text-foreground flex items-center gap-0.5">
-                PlantSale<span className="text-primary font-black">.Ge</span>
+                Plant
               </span>
               <span className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase leading-none hidden sm:block">
                 Botanical Marketplace
