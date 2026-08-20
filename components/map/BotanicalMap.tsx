@@ -165,7 +165,7 @@ export default function BotanicalMap() {
   const [filterPanelOpen, setFilterPanelOpen] = React.useState(true);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCity, setSelectedCity] = React.useState("მთელი საქართველო");
-  const [userCoords, setUserCoords] = React.useState<[number, number]>([41.7116, 44.7554]);
+  const [userCoords, setUserCoords] = React.useState<[number, number] | null>(null);
   const [selectedCategories, setSelectedCategories] = React.useState<PlantCategory[]>([]);
   const [selectedTrans, setSelectedTrans] = React.useState<string[]>([]);
   const [selectedDelivery, setSelectedDelivery] = React.useState<string[]>([]);
@@ -204,11 +204,17 @@ export default function BotanicalMap() {
     selectedTrans.length +
     selectedDelivery.length +
     (priceRange[0] > 0 || priceRange[1] < 500 ? 1 : 0) +
+    (userCoords ? 1 : 0) +
     (selectedCity !== "მთელი საქართველო" && !selectedCity.includes("ჩემი ლოკაცია") ? 1 : 0);
 
   const resetAllFilters = () => {
     setSearchTerm("");
     setSelectedCity("მთელი საქართველო");
+    setUserCoords(null);
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+      userMarkerRef.current = null;
+    }
     setSelectedCategories([]);
     setSelectedTrans([]);
     setSelectedDelivery([]);
@@ -235,7 +241,7 @@ export default function BotanicalMap() {
       }
 
       const map = L.map(mapContainerRef.current, {
-        center: userCoords,
+        center: [41.7151, 44.7871],
         zoom: 13,
         zoomControl: false,
       });
@@ -263,7 +269,7 @@ export default function BotanicalMap() {
     };
   }, []);
 
-  // Update User Marker
+  // Update User Marker — Only renders when userCoords is chosen
   React.useEffect(() => {
     if (!isMapReady || !mapInstanceRef.current) return;
 
@@ -271,7 +277,12 @@ export default function BotanicalMap() {
       const L = (await import("leaflet")).default;
       const map = mapInstanceRef.current;
 
-      if (userMarkerRef.current) userMarkerRef.current.remove();
+      if (userMarkerRef.current) {
+        userMarkerRef.current.remove();
+        userMarkerRef.current = null;
+      }
+
+      if (!userCoords) return;
 
       const userIconHtml = `
         <div class="relative flex items-center justify-center">
@@ -299,9 +310,12 @@ export default function BotanicalMap() {
 
   // Compute Filtered Listings for the Map — Never filters out plants when selecting "ჩემი ლოკაცია"
   const filteredListings = React.useMemo(() => {
+    const refLat = userCoords ? userCoords[0] : 41.7151;
+    const refLng = userCoords ? userCoords[1] : 44.7871;
+
     return SAMPLE_LISTINGS.map((item) => {
       const coords = LISTING_COORDINATES[item.id] || [41.7151, 44.7871];
-      const dist = calculateDistanceKm(userCoords[0], userCoords[1], coords[0], coords[1]);
+      const dist = calculateDistanceKm(refLat, refLng, coords[0], coords[1]);
       return {
         ...item,
         coords,
@@ -579,6 +593,46 @@ export default function BotanicalMap() {
               )}
             </MapFilterSection>
 
+            {/* 💰 Price Range — Moved directly below Location */}
+            <MapFilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true}>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <input
+                    type="number"
+                    value={priceRange[0]}
+                    onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                    className="w-full px-2.5 py-1.5 rounded-[8px] border border-input bg-background text-xs font-bold text-center"
+                    min={0} max={priceRange[1]}
+                  />
+                  <span className="text-xs font-bold text-muted-foreground">—</span>
+                  <input
+                    type="number"
+                    value={priceRange[1]}
+                    onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                    className="w-full px-2.5 py-1.5 rounded-[8px] border border-input bg-background text-xs font-bold text-center"
+                    min={priceRange[0]} max={1000}
+                  />
+                  <span className="text-xs font-black text-primary">₾</span>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  {[[0, 30], [0, 100], [0, 200], [0, 500]].map(([min, max]) => (
+                    <button
+                      key={`${min}-${max}`}
+                      onClick={() => setPriceRange([min, max])}
+                      className={`px-2.5 py-0.5 rounded-[6px] text-[11px] font-bold transition-all ${
+                        priceRange[0] === min && priceRange[1] === max
+                          ? "bg-primary text-white"
+                          : "bg-secondary-container text-foreground hover:bg-secondary-container/80"
+                      }`}
+                    >
+                      {min === 0 ? `≤ ${max} ₾` : `${min}–${max} ₾`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </MapFilterSection>
+
             {/* Categories with Accordion & Counts */}
             <MapFilterSection title={isKa ? "მცენარის კატეგორიები" : "Plant Categories"}>
               <div className="space-y-2">
@@ -710,46 +764,6 @@ export default function BotanicalMap() {
                     </button>
                   );
                 })}
-              </div>
-            </MapFilterSection>
-
-            {/* Price Range */}
-            <MapFilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={false}>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2">
-                  <input
-                    type="number"
-                    value={priceRange[0]}
-                    onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                    className="w-full px-2.5 py-1.5 rounded-[8px] border border-input bg-background text-xs font-bold text-center"
-                    min={0} max={priceRange[1]}
-                  />
-                  <span className="text-xs font-bold text-muted-foreground">—</span>
-                  <input
-                    type="number"
-                    value={priceRange[1]}
-                    onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                    className="w-full px-2.5 py-1.5 rounded-[8px] border border-input bg-background text-xs font-bold text-center"
-                    min={priceRange[0]} max={1000}
-                  />
-                  <span className="text-xs font-black text-primary">₾</span>
-                </div>
-
-                <div className="flex flex-wrap gap-1">
-                  {[[0, 30], [0, 100], [0, 200], [0, 500]].map(([min, max]) => (
-                    <button
-                      key={`${min}-${max}`}
-                      onClick={() => setPriceRange([min, max])}
-                      className={`px-2.5 py-0.5 rounded-[6px] text-[11px] font-bold transition-all ${
-                        priceRange[0] === min && priceRange[1] === max
-                          ? "bg-primary text-white"
-                          : "bg-secondary-container text-foreground hover:bg-secondary-container/80"
-                      }`}
-                    >
-                      {min === 0 ? `≤ ${max} ₾` : `${min}–${max} ₾`}
-                    </button>
-                  ))}
-                </div>
               </div>
             </MapFilterSection>
           </div>
