@@ -153,7 +153,7 @@ export function HeroSection() {
           ))}
         </div>
 
-        {/* 📊 Live Real-Time Platform Statistics (Full-Width 4 Columns) */}
+        {/* 📊 Live Real-Time Platform Statistics (1. Users, 2. Plants, 3. Trades & Gifts, 4. Shops) */}
         <div className="mt-8 sm:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
           {/* 1. Users */}
           <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
@@ -177,24 +177,11 @@ export function HeroSection() {
               <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalListings}+
               </p>
-              <p className="text-xs font-bold text-muted-foreground">აქტიური მცენარე</p>
+              <p className="text-xs font-bold text-muted-foreground">მცენარე</p>
             </div>
           </div>
 
-          {/* 3. Verified Shops */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
-              <Store className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalShops}+
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">მაღაზია & სანერგე</p>
-            </div>
-          </div>
-
-          {/* 4. Trades & Giveaways */}
+          {/* 3. Trades & Giveaways */}
           <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
             <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
               <Gift className="w-5 h-5" />
@@ -204,6 +191,19 @@ export function HeroSection() {
                 {stats.totalTradesAndGifts}+
               </p>
               <p className="text-xs font-bold text-muted-foreground">გაცვლა & გაჩუქება</p>
+            </div>
+          </div>
+
+          {/* 4. Verified Shops */}
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
+              <Store className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                {stats.totalShops}+
+              </p>
+              <p className="text-xs font-bold text-muted-foreground">მაღაზია & სანერგე</p>
             </div>
           </div>
         </div>
