@@ -8,93 +8,94 @@
 
 @layer base {
   :root {
-    --background: 0 0% 99%;
-    --foreground: 160 25% 10%;
+    --background: 140 15% 98.5%;
+    --foreground: 155 35% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 160 25% 10%;
+    --card-foreground: 155 35% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 160 25% 10%;
+    --popover-foreground: 155 35% 10%;
 
-    --primary: 166 100% 11%;
+    --primary: 152 76% 22%;
     --primary-foreground: 0 0% 100%;
-    --primary-container: 162 48% 21%;
+    --primary-container: 152 48% 21%;
     --on-primary-container: 157 27% 64%;
 
-    --secondary: 30 8% 37%;
+    --secondary: 140 10% 45%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-container: 28 29% 89%;
-    --on-secondary-container: 29 7% 39%;
+    --secondary-container: 145 25% 92%;
+    --on-secondary-container: 152 35% 20%;
 
     --tertiary: 180 3% 18%;
     --on-tertiary: 0 0% 100%;
     --tertiary-container: 180 2% 27%;
 
-    --surface-cream: 15 33% 98.4%;
-    --surface-dim: 0 4% 86%;
-    --surface-container: 0 7% 93.7%;
-    --surface-container-low: 15 15% 95.7%;
-    --surface-container-high: 0 6% 91.4%;
+    --surface-cream: 140 20% 97.5%;
+    --surface-dim: 140 10% 88%;
+    --surface-container: 145 15% 94%;
+    --surface-container-low: 140 15% 96%;
+    --surface-container-high: 145 12% 91%;
 
-    --muted: 0 5% 94%;
-    --muted-foreground: 160 8% 40%;
+    --muted: 140 10% 93%;
+    --muted-foreground: 155 12% 42%;
 
-    --accent: 28 29% 89%;
-    --accent-foreground: 166 100% 11%;
+    --accent: 145 25% 92%;
+    --accent-foreground: 152 76% 22%;
 
     --destructive: 0 75% 42%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 166 100% 11%;
+    --border: 145 12% 88%;
+    --input: 145 12% 88%;
+    --ring: 152 76% 22%;
 
-    --radius: 1.25rem;
+    --radius: 1.15rem;
   }
 
   .dark {
-    --background: 156 22% 8%;
-    --foreground: 20 10% 96%;
+    /* 🌿 True Obsidian Forest Dark Mode (Eye-Comfort & OLED Friendly) */
+    --background: 152 24% 6.5%;
+    --foreground: 140 15% 94%;
 
-    --card: 156 20% 11%;
-    --card-foreground: 20 10% 96%;
+    --card: 152 20% 9.5%;
+    --card-foreground: 140 15% 94%;
 
-    --popover: 156 20% 11%;
-    --popover-foreground: 20 10% 96%;
+    --popover: 152 20% 9.5%;
+    --popover-foreground: 140 15% 94%;
 
-    --primary: 157 45% 75%;
-    --primary-foreground: 163 100% 6.5%;
-    --primary-container: 162 48% 21%;
-    --on-primary-container: 157 27% 64%;
+    --primary: 150 68% 48%;
+    --primary-foreground: 152 30% 6%;
+    --primary-container: 152 45% 18%;
+    --on-primary-container: 148 70% 75%;
 
-    --secondary: 30 12% 65%;
+    --secondary: 140 10% 65%;
     --secondary-foreground: 0 0% 100%;
-    --secondary-container: 156 16% 16%;
-    --on-secondary-container: 28 29% 89%;
+    --secondary-container: 152 18% 14%;
+    --on-secondary-container: 148 60% 88%;
 
     --tertiary: 180 4% 75%;
     --on-tertiary: 0 0% 10%;
     --tertiary-container: 180 3% 20%;
 
-    --surface-cream: 156 22% 8%;
-    --surface-dim: 156 18% 12%;
-    --surface-container: 156 16% 14%;
-    --surface-container-low: 156 18% 10%;
-    --surface-container-high: 156 14% 18%;
+    --surface-cream: 152 24% 6.5%;
+    --surface-dim: 152 22% 8%;
+    --surface-container: 152 18% 12%;
+    --surface-container-low: 152 20% 8.5%;
+    --surface-container-high: 152 16% 16%;
 
-    --muted: 156 16% 16%;
-    --muted-foreground: 140 10% 68%;
+    --muted: 152 16% 14%;
+    --muted-foreground: 145 10% 64%;
 
-    --accent: 156 18% 18%;
-    --accent-foreground: 157 37% 80%;
+    --accent: 152 20% 15%;
+    --accent-foreground: 148 65% 75%;
 
     --destructive: 0 62.8% 45%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 156 15% 18%;
-    --input: 156 15% 18%;
-    --ring: 157 37% 72%;
+    --border: 152 15% 16%;
+    --input: 152 15% 16%;
+    --ring: 150 68% 48%;
   }
 }
 

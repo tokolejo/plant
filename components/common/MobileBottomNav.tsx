@@ -4,9 +4,9 @@ import * as React from "react";
 import { Link, usePathname } from "@/i18n/routing";
 import { 
   Home, 
-  Search, 
+  Store, 
   PlusCircle, 
-  Shuffle, 
+  MapPin, 
   User 
 } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -45,70 +45,72 @@ export function MobileBottomNav() {
 
   const avatarLetter = profile?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "?";
   const isDashboardActive = pathname.startsWith("/dashboard") || pathname === "/dashboard";
+  const isListingsActive = pathname.startsWith("/listings");
+  const isMapActive = pathname === "/map";
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/70 bg-background/90 backdrop-blur-xl pb-safe">
-      <div className="flex h-16 items-center justify-around px-2">
+    <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/70 bg-card/95 backdrop-blur-xl pb-safe">
+      <div className="flex h-15 items-center justify-around px-1">
 
-        {/* Home */}
+        {/* 1. Home */}
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center gap-1 w-14 py-1.5 rounded-[12px] transition-all ${
-            pathname === "/" ? "text-primary dark:text-primary-fixed font-bold bg-secondary-container/50" : "text-muted-foreground hover:text-foreground"
+          className={`flex flex-col items-center justify-center gap-0.5 w-14 py-1 rounded-[10px] transition-all ${
+            pathname === "/" ? "text-primary dark:text-emerald-400 font-bold" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <Home className="h-5 w-5" />
           <span className="text-[10px]">{navT("home")}</span>
         </Link>
 
-        {/* Map */}
+        {/* 2. Shop / Catalog */}
         <Link
-          href="/map"
-          className={`flex flex-col items-center justify-center gap-1 w-14 py-1.5 rounded-[12px] transition-all ${
-            pathname === "/map" ? "text-primary dark:text-primary-fixed font-bold bg-secondary-container/50" : "text-muted-foreground hover:text-foreground"
+          href="/listings"
+          className={`flex flex-col items-center justify-center gap-0.5 w-14 py-1 rounded-[10px] transition-all ${
+            isListingsActive ? "text-primary dark:text-emerald-400 font-bold" : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Search className="h-5 w-5" />
+          <Store className="h-5 w-5" />
+          <span className="text-[10px]">შოპი</span>
+        </Link>
+
+        {/* 3. Center Add Listing Button */}
+        <Link
+          href="/dashboard/listings/new"
+          className="flex flex-col items-center justify-center -mt-5 group"
+        >
+          <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-primary text-white shadow-ambient group-active:scale-95 transition-transform">
+            <PlusCircle className="h-5 w-5 text-white" />
+          </div>
+          <span className="text-[9px] font-bold text-primary dark:text-emerald-400 mt-0.5">დამატება</span>
+        </Link>
+
+        {/* 4. Map */}
+        <Link
+          href="/map"
+          className={`flex flex-col items-center justify-center gap-0.5 w-14 py-1 rounded-[10px] transition-all ${
+            isMapActive ? "text-primary dark:text-emerald-400 font-bold" : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <MapPin className="h-5 w-5" />
           <span className="text-[10px]">რუკა</span>
         </Link>
 
-        {/* Center Post Listing Button */}
-        <Link
-          href="/dashboard/listings/new"
-          className="flex flex-col items-center justify-center -mt-6 group"
-        >
-          <div className="flex h-12 w-12 items-center justify-center rounded-[18px] bg-primary text-white shadow-ambient-lg group-active:scale-95 transition-transform">
-            <PlusCircle className="h-6 w-6 text-primary-fixed" />
-          </div>
-          <span className="text-[10px] font-bold text-primary dark:text-primary-fixed mt-1">დამატება</span>
-        </Link>
-
-        {/* Inbox / Messages */}
-        <Link
-          href="/dashboard/messages"
-          className={`flex flex-col items-center justify-center gap-1 w-14 py-1.5 rounded-[12px] transition-all ${
-            pathname.startsWith("/dashboard/messages") ? "text-primary dark:text-primary-fixed font-bold bg-secondary-container/50" : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Shuffle className="h-5 w-5" />
-          <span className="text-[10px]">ჩატი</span>
-        </Link>
-
-        {/* Profile / Dashboard */}
+        {/* 5. Profile / Dashboard */}
         <Link
           href={user ? "/dashboard" : "/auth/login"}
-          className={`flex flex-col items-center justify-center gap-1 w-14 py-1.5 rounded-[12px] transition-all ${
-            isDashboardActive ? "text-primary dark:text-primary-fixed font-bold bg-secondary-container/50" : "text-muted-foreground hover:text-foreground"
+          className={`flex flex-col items-center justify-center gap-0.5 w-14 py-1 rounded-[10px] transition-all ${
+            isDashboardActive ? "text-primary dark:text-emerald-400 font-bold" : "text-muted-foreground hover:text-foreground"
           }`}
         >
           {user ? (
-            <div className={`relative h-6 w-6 rounded-full flex items-center justify-center font-bold text-[10px] text-white transition-all ${
+            <div className={`relative h-5 w-5 rounded-full flex items-center justify-center font-bold text-[9px] text-white transition-all ${
               isDashboardActive ? "ring-2 ring-primary ring-offset-1 ring-offset-background" : ""
             }`}>
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="avatar" className="w-full h-full rounded-full object-cover" />
               ) : (
-                <div className="w-full h-full rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-bold">
+                <div className="w-full h-full rounded-full bg-primary flex items-center justify-center text-white text-[9px] font-bold">
                   {avatarLetter}
                 </div>
               )}
@@ -116,7 +118,7 @@ export function MobileBottomNav() {
           ) : (
             <User className="h-5 w-5" />
           )}
-          <span className="text-[10px]">{user ? "კაბინეტი" : "შესვლა"}</span>
+          <span className="text-[10px]">{user ? "პროფილი" : "შესვლა"}</span>
         </Link>
 
       </div>
