@@ -213,6 +213,13 @@ function ListingsCatalogContent() {
           { timeout: 8000, enableHighAccuracy: true }
         );
       }
+    } else if (optId === "price") {
+      // Toggle between price-desc and price-asc on each click
+      if (sortBy === "price-desc") {
+        setSortBy("price-asc");
+      } else {
+        setSortBy("price-desc");
+      }
     } else {
       setSortBy(optId as any);
     }
@@ -234,7 +241,7 @@ function ListingsCatalogContent() {
     }
   }, []);
 
-  // Fetch real listings from Supabase
+  // Fetch real listings from Supabase with VIP automatic expiration check
   React.useEffect(() => {
     async function loadLiveListings() {
       try {
@@ -253,6 +260,7 @@ function ListingsCatalogContent() {
             city,
             views_count,
             is_featured,
+            featured_until,
             created_at,
             profiles:user_id (id, full_name, avatar_url, rating, total_reviews, custom_slug)
           `)
@@ -261,11 +269,17 @@ function ListingsCatalogContent() {
           .order("created_at", { ascending: false });
 
         if (dbData && dbData.length > 0) {
+          const now = new Date();
           const formatted = dbData.map((item: any, idx: number) => {
             const fallbackCoords: [number, number] = [
               41.7151 + (idx % 3 === 0 ? 0.01 : idx % 3 === 1 ? -0.02 : 0.03),
               44.7871 + (idx % 2 === 0 ? 0.02 : -0.01),
             ];
+            // Automatic VIP expiration validation: Active only if is_featured is true AND expiration is not in the past
+            const isVipValid = Boolean(
+              item.is_featured && (!item.featured_until || new Date(item.featured_until) > now)
+            );
+
             return {
               id: item.id,
               title: isKa ? (item.title_ka || item.title_en || "მცენარე") : (item.title_en || item.title_ka || "Plant"),
@@ -276,8 +290,8 @@ function ListingsCatalogContent() {
               deliveryMethods: item.delivery_methods || ["PICKUP"],
               lat: item.lat || fallbackCoords[0],
               lng: item.lng || fallbackCoords[1],
-              isPremium: Boolean(item.is_featured),
-              isFeatured: Boolean(item.is_featured),
+              isPremium: isVipValid,
+              isFeatured: isVipValid,
               images: item.images && item.images.length > 0 ? item.images : [
                 "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80"
               ],
@@ -762,22 +776,41 @@ function ListingsCatalogContent() {
 
         {/* Results Column */}
         <div className="flex-1 min-w-0">
-          {/* ✨ Top Sorting Pill Bar & View Mode Switcher */}
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          {/* ✨ Top Sorting Pill Bar & View Mode Switcher (Clean Single Row) */}
+          <div className="mb-5 flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar">
             {/* Sort Buttons */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider hidden sm:inline-block">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider hidden md:inline-block">
                 {isKa ? "სორტირება:" : "Sort By:"}
               </span>
 
               {[
-                { id: "nearest", labelKa: "📍 ჩემთან ახლოს", labelEn: "📍 Nearest First" },
-                { id: "newest", labelKa: "✨ უახლესი", labelEn: "✨ Newest" },
-                { id: "price-asc", labelKa: "💰 ფასი ↑", labelEn: "💰 Price: Low" },
-                { id: "price-desc", labelKa: "💎 ფასი ↓", labelEn: "💎 Price: High" },
-                { id: "views", labelKa: "🔥 პოპულარული", labelEn: "🔥 Popular" },
+                { 
+                  id: "nearest", 
+                  labelKa: "📍 ჩემთან ახლოს", 
+                  labelEn: "📍 Nearest",
+                  isActive: sortBy === "nearest"
+                },
+                { 
+                  id: "newest", 
+                  labelKa: "✨ უახლესი", 
+                  labelEn: "✨ Newest",
+                  isActive: sortBy === "newest"
+                },
+                { 
+                  id: "price", 
+                  labelKa: sortBy === "price-desc" ? "💰 ფასი ↓" : sortBy === "price-asc" ? "💰 ფასი ↑" : "💰 ფასი ⇅", 
+                  labelEn: sortBy === "price-desc" ? "💰 Price ↓" : sortBy === "price-asc" ? "💰 Price ↑" : "💰 Price ⇅",
+                  isActive: sortBy === "price-asc" || sortBy === "price-desc"
+                },
+                { 
+                  id: "views", 
+                  labelKa: "🔥 პოპულარული", 
+                  labelEn: "🔥 Popular",
+                  isActive: sortBy === "views"
+                },
               ].map((opt) => {
-                const isActive = sortBy === opt.id;
+                const isActive = opt.isActive;
                 return (
                   <button
                     key={opt.id}
@@ -801,16 +834,8 @@ function ListingsCatalogContent() {
               })}
             </div>
 
-            {/* Right: Distance Badge & View Mode Toggle (Grid vs List) */}
-            <div className="flex items-center gap-2">
-              {sortBy === "nearest" && userCoords && (
-                <span className="text-xs font-bold text-primary dark:text-primary-fixed bg-secondary-container px-3 py-1.5 rounded-full hidden sm:inline-flex items-center gap-1.5 border border-primary/20 shrink-0">
-                  <Navigation className="w-3.5 h-3.5" />
-                  {isKa ? "უახლოესი თავში" : "Nearest first"}
-                </span>
-              )}
-
-              {/* View Mode Toggle Switcher */}
+            {/* Right: View Mode Toggle (Grid vs List) */}
+            <div className="flex items-center gap-1 shrink-0">
               <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-[12px] p-1 shadow-2xs">
                 <button
                   type="button"

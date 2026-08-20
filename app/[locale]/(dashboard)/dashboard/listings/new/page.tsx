@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "@/i18n/routing";
 import { createClient } from "@/utils/supabase/client";
 import { uploadListingImage } from "@/utils/supabase/storage";
+import { compressImagesBatch, validateListingImages } from "@/utils/image-compression";
 import { 
   Sprout, 
   Layers, 
@@ -238,13 +239,20 @@ export default function CreateListingPage() {
     }
 
     setIsSubmitting(true);
-    setUploadProgress("სურათები იტვირთება Supabase Storage-ში...");
+    setUploadProgress("სურათების ოპტიმიზაცია და კომპრესია (WebP)...");
 
     try {
+      // 1. Client-side Image Compression (max 1600px, WebP, < 600KB)
+      const compressedFiles = await compressImagesBatch(selectedFiles, {
+        maxDimension: 1600,
+        quality: 0.82,
+        mimeType: "image/webp",
+      });
+
       const uploadedUrls: string[] = [];
-      for (let i = 0; i < selectedFiles.length; i++) {
-        setUploadProgress(`იტვირთება ფოტო ${i + 1} / ${selectedFiles.length}...`);
-        const { url, error } = await uploadListingImage(selectedFiles[i], user.id);
+      for (let i = 0; i < compressedFiles.length; i++) {
+        setUploadProgress(`იტვირთება ფოტო ${i + 1} / ${compressedFiles.length}...`);
+        const { url, error } = await uploadListingImage(compressedFiles[i], user.id);
         if (error || !url) throw new Error(error || "ფოტოს ატვირთვისას დაფიქსირდა შეცდომა");
         uploadedUrls.push(url);
       }
