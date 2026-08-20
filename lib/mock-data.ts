@@ -406,7 +406,8 @@ export const SAMPLE_LISTINGS: ExtendedListingCardProps[] = [
     transactionType: "GIFT",
     deliveryMethods: ["PICKUP"],
     images: [
-      "https://images.unsplash.com/photo-1596724805735-a1309fef5163?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80",
     ],
     city: "თბილისი (საბურთალო)",
     lat: 41.7289,
