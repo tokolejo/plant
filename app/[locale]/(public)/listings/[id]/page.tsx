@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
 import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
+import { ListingCard } from "@/components/listings/ListingCard";
 import { 
   MapPin, 
   Truck, 
@@ -24,11 +25,53 @@ import {
   Lock,
   Send,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  Gift,
+  ExternalLink,
+  ShoppingBag,
+  Layers,
+  Sun,
+  Droplets,
+  Thermometer,
+  Boxes
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+
+// ─── Curated Partner Inventory Products for Plant Care ─────────────────────────
+const RECOMMENDED_INVENTORY = [
+  {
+    id: "rec-inv-1",
+    title: "აროიდების & ტროპიკული მცენარეების პრემიუმ სუბსტრატი (5L)",
+    category: "სუბსტრატი & გრუნტი",
+    price: 22,
+    image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80",
+    shopName: "Green Life Botanics",
+    shopBadge: "პარტნიორი მაღაზია",
+    link: "/listings?type=INVENTORY",
+  },
+  {
+    id: "rec-inv-2",
+    title: "ხელნაკეთი კერამიკული ქოთანი სადგამით (18 სმ, მქრქალი)",
+    category: "კერამიკული ქოთნები",
+    price: 45,
+    image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&auto=format&fit=crop&q=80",
+    shopName: "Flora & Ceramic Studio",
+    shopBadge: "ვერიფიცირებული",
+    link: "/listings?type=INVENTORY",
+  },
+  {
+    id: "rec-inv-3",
+    title: "ორგანული თხევადი სასუქი & ფესვის ზრდის სტიმულატორი (500 მლ)",
+    category: "სასუქები & მოვლა",
+    price: 28,
+    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
+    shopName: "BioPlant Georgia",
+    shopBadge: "პარტნიორი მაღაზია",
+    link: "/listings?type=INVENTORY",
+  },
+];
 
 export default function ListingDetailPage({
   params: { id },
@@ -43,6 +86,9 @@ export default function ListingDetailPage({
   const [showPhone, setShowPhone] = React.useState(false);
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
+
+  // Similar listings (same category or active, excluding current listing)
+  const similarListings = SAMPLE_LISTINGS.filter((l) => l.id !== listing.id).slice(0, 4);
 
   // Reviews state
   const [reviews, setReviews] = React.useState<any[]>([
@@ -109,6 +155,10 @@ export default function ListingDetailPage({
     setTimeout(() => setReviewSubmitted(false), 4000);
   };
 
+  const images = listing.images && listing.images.length > 0 ? listing.images : [
+    "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80"
+  ];
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 max-w-6xl">
       {/* Back to Catalog */}
@@ -120,253 +170,248 @@ export default function ListingDetailPage({
         უკან კატალოგში
       </Link>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
-        {/* Left Column: Image Gallery & Description & Care Guide */}
-        <div className="lg:col-span-7 space-y-5">
-          {/* Main Image */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] border border-border/80 bg-surface-container shadow-ambient">
-            <Image
-              src={listing.images[activeImageIdx]}
-              alt={listing.title}
-              fill
-              priority
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 60vw"
-            />
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-7 items-start">
+        {/* ══════════════════════════════════════════════════════════════════════
+            LEFT COLUMN: Gallery, Care Indicators, Description & Recommended Inventory
+        ══════════════════════════════════════════════════════════════════════ */}
+        <div className="lg:col-span-7 space-y-6">
+          {/* Main Photo Gallery */}
+          <div className="space-y-3">
+            {/* Active Large Image */}
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[24px] bg-surface-container border border-border/80 shadow-ambient">
+              <Image
+                src={images[activeImageIdx]}
+                alt={listing.title}
+                fill
+                className="object-cover"
+                priority
+              />
 
-            {/* Navigation Arrows */}
-            {listing.images.length > 1 && (
-              <>
-                <button
-                  onClick={() =>
-                    setActiveImageIdx((prev) =>
-                      prev === 0 ? listing.images.length - 1 : prev - 1
-                    )
-                  }
-                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 backdrop-blur-md p-2 text-white hover:bg-black/75 transition-all"
-                  aria-label="Previous image"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() =>
-                    setActiveImageIdx((prev) =>
-                      prev === listing.images.length - 1 ? 0 : prev + 1
-                    )
-                  }
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/50 backdrop-blur-md p-2 text-white hover:bg-black/75 transition-all"
-                  aria-label="Next image"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </>
-            )}
+              {/* Badges on Large Image */}
+              <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-1.5 z-10">
+                {(listing.isFeatured || listing.isPremium) && (
+                  <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-xs px-3 py-1 shadow-md border-0 rounded-[10px]">
+                    ⭐ VIP TOP
+                  </Badge>
+                )}
+                {listing.transactionType === "GIFT" && (
+                  <Badge className="bg-emerald-600 text-white font-black text-xs px-3 py-1 shadow-md border-0 rounded-[10px] flex items-center gap-1">
+                    <Gift className="w-3.5 h-3.5" /> გაჩუქება (უფასოდ)
+                  </Badge>
+                )}
+                {listing.transactionType === "TRADE" && (
+                  <Badge className="bg-amber-500 text-white font-bold text-xs px-3 py-1 shadow-md border-0 rounded-[10px] flex items-center gap-1">
+                    <RefreshCw className="w-3.5 h-3.5" /> გაცვლა
+                  </Badge>
+                )}
+              </div>
 
-            {/* Image Counter */}
-            <div className="absolute bottom-3 right-3 rounded-[12px] bg-black/60 backdrop-blur-md px-3 py-1 text-xs font-semibold text-white">
-              {activeImageIdx + 1} / {listing.images.length}
+              {/* Navigation Arrows if Multiple Images */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setActiveImageIdx((prev) => (prev > 0 ? prev - 1 : images.length - 1))}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-md"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() => setActiveImageIdx((prev) => (prev < images.length - 1 ? prev + 1 : 0))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-9 w-9 rounded-full bg-black/50 hover:bg-black/70 text-white flex items-center justify-center backdrop-blur-md transition-all shadow-md"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </>
+              )}
             </div>
+
+            {/* Thumbnail Strip */}
+            {images.length > 1 && (
+              <div className="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`relative aspect-[4/3] w-20 sm:w-24 shrink-0 overflow-hidden rounded-[14px] border-2 transition-all ${
+                      activeImageIdx === idx
+                        ? "border-primary shadow-sm scale-105"
+                        : "border-transparent opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <Image src={img} alt={`thumbnail-${idx}`} fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Thumbnails Row */}
-          <div className="flex gap-2.5 overflow-x-auto pb-1">
-            {listing.images.map((img, idx) => (
-              <button
-                key={idx}
-                onClick={() => setActiveImageIdx(idx)}
-                className={`relative h-16 w-20 shrink-0 overflow-hidden rounded-[14px] border-2 transition-all ${
-                  activeImageIdx === idx
-                    ? "border-primary scale-105 shadow-ambient"
-                    : "border-transparent opacity-70 hover:opacity-100"
-                }`}
-              >
-                <Image
-                  src={img}
-                  alt={`Thumbnail ${idx + 1}`}
-                  fill
-                  className="object-cover"
-                />
-              </button>
-            ))}
-          </div>
-
-          {/* Care Guidelines Bento Box (From Stitch) */}
-          <div className="rounded-[20px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient">
-            <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+          {/* Plant Care Metrics Card */}
+          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
+            <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
               <Sprout className="w-4 h-4 text-primary" />
-              <span>მცენარის მოვლის მაჩვენებლები</span>
+              მცენარის მოვლის მაჩვენებლები
             </h3>
+
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              <div className="rounded-[14px] bg-secondary-container/70 p-3 text-center">
-                <span className="text-base block mb-1">☀️</span>
-                <span className="text-[10px] text-muted-foreground block">განათება</span>
+              <div className="rounded-[14px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                <Sun className="w-4 h-4 text-amber-500 mx-auto mb-1" />
+                <span className="text-[10px] text-muted-foreground block font-medium">განათება</span>
                 <span className="text-xs font-bold text-foreground">გაფანტული შუქი</span>
               </div>
-              <div className="rounded-[14px] bg-secondary-container/70 p-3 text-center">
-                <span className="text-base block mb-1">💧</span>
-                <span className="text-[10px] text-muted-foreground block">მორწყვა</span>
+
+              <div className="rounded-[14px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                <Droplets className="w-4 h-4 text-teal-500 mx-auto mb-1" />
+                <span className="text-[10px] text-muted-foreground block font-medium">მორწყვა</span>
                 <span className="text-xs font-bold text-foreground">კვირაში 1-2 ჯერ</span>
               </div>
-              <div className="rounded-[14px] bg-secondary-container/70 p-3 text-center">
-                <span className="text-base block mb-1">🪴</span>
-                <span className="text-[10px] text-muted-foreground block">ქოთანი</span>
-                <span className="text-xs font-bold text-foreground">15 სმ დიამეტრი</span>
+
+              <div className="rounded-[14px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                <Boxes className="w-4 h-4 text-primary mx-auto mb-1" />
+                <span className="text-[10px] text-muted-foreground block font-medium">ქოთანი</span>
+                <span className="text-xs font-bold text-foreground">15-18 სმ ზომა</span>
               </div>
-              <div className="rounded-[14px] bg-secondary-container/70 p-3 text-center">
-                <span className="text-base block mb-1">🌡️</span>
-                <span className="text-[10px] text-muted-foreground block">ტემპერატურა</span>
+
+              <div className="rounded-[14px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                <Thermometer className="w-4 h-4 text-rose-500 mx-auto mb-1" />
+                <span className="text-[10px] text-muted-foreground block font-medium">ტემპერატურა</span>
                 <span className="text-xs font-bold text-foreground">18°C - 26°C</span>
               </div>
             </div>
           </div>
 
-          {/* Description Section */}
-          <div className="rounded-[20px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient">
-            <h3 className="text-base font-bold text-foreground mb-2">
+          {/* Description Card */}
+          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-2.5">
+            <h3 className="text-sm font-bold text-foreground">
               აღწერა და დეტალები
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
-              ჯანსაღი მცენარე, განვითარებული ფესვთა სისტემით. გაზრდილია იდეალურ პირობებში, სპეციალურ აროიდების სუბსტრატში. არ საჭიროებს გადარგვას უახლოესი 6 თვე.
+              {listing.title} — ჯანსაღი მცენარე განვითარებული ფესვთა სისტემით. გაზრდილია იდეალურ პირობებში, სპეციალურ სუბსტრატში. არ საჭიროებს გადარგვას უახლოესი 6 თვე.
             </p>
 
-            {/* Trade Exchange Box if Transaction is Trade */}
-            {listing.transactionType === "TRADE" && listing.tradePreferences && (
-              <div className="mt-4 rounded-[14px] bg-amber-500/10 border border-amber-500/20 p-3.5">
-                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-bold text-xs mb-2">
-                  <RefreshCw className="w-4 h-4" />
-                  <span>გამყიდველი მცენარეს ცვლის შემდეგში:</span>
-                </div>
+            {/* Trade Preferences if Swap */}
+            {listing.transactionType === "TRADE" && listing.tradePreferences && listing.tradePreferences.length > 0 && (
+              <div className="mt-3 rounded-[14px] bg-amber-500/10 border border-amber-500/20 p-3">
+                <p className="text-xs font-bold text-amber-800 dark:text-amber-300 mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" /> იცვლება შემდეგ მცენარეებში:
+                </p>
                 <div className="flex flex-wrap gap-1.5">
                   {listing.tradePreferences.map((tag, idx) => (
-                    <Badge key={idx} variant="amber" className="text-xs px-2.5 py-0.5 rounded-[8px]">
+                    <span key={idx} className="rounded-[8px] bg-card px-2.5 py-1 text-xs font-bold text-foreground border border-border/60 shadow-2xs">
                       #{tag}
-                    </Badge>
+                    </span>
                   ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Reviews & Feedback Section */}
-          <div className="rounded-[20px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient">
-            <div className="flex items-center justify-between mb-4">
+          {/* ══════════════════════════════════════════════════════════════════════
+              🪴 RECOMMENDED PARTNER INVENTORY & CARE (Sponsorship Revenue Section)
+          ══════════════════════════════════════════════════════════════════════ */}
+          <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient space-y-4">
+            <div className="flex items-center justify-between gap-2">
               <div>
-                <h3 className="text-base font-bold text-foreground">
-                  გამყიდველის შეფასებები & რევიუები
+                <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-primary" />
+                  რეკომენდებული ინვენტარი ამ მცენარისთვის
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  შეაფასეთ გამყიდველი შეძენის ან გაცვლის შემდეგ
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  პარტნიორი მაღაზიების შეთავაზებები: სუბსტრატი, ქოთანი და ვიტამინები
                 </p>
               </div>
-              <div className="flex items-center gap-1 text-sm font-bold text-amber-500">
-                <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-                <span>{listing.seller.rating.toFixed(1)}</span>
-                <span className="text-xs font-normal text-muted-foreground">({reviews.length})</span>
-              </div>
+
+              <Link href="/listings?type=INVENTORY" className="text-xs font-bold text-primary hover:underline shrink-0 hidden sm:inline-block">
+                ყველას ნახვა →
+              </Link>
             </div>
 
-            {/* Write Review Form */}
-            <form onSubmit={handleReviewSubmit} className="rounded-[16px] bg-surface-container/60 border border-border/60 p-4 mb-5">
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-xs font-bold text-foreground">დაწერეთ შეფასება:</span>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setNewRating(star)}
-                      className="p-0.5"
-                    >
-                      <Star
-                        className={`w-4 h-4 ${
-                          star <= newRating
-                            ? "fill-amber-400 text-amber-400"
-                            : "text-muted-foreground/40"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder={
-                    currentUser
-                      ? "გაუზიარეთ თქვენი გამოცდილება სხვა მყიდველებს..."
-                      : "შეფასების დასატოვებლად გაიარეთ ავტორიზაცია..."
-                  }
-                  className="w-full rounded-[12px] border border-input bg-background px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-                <Button
-                  type="submit"
-                  className="rounded-[12px] bg-primary hover:bg-primary-container text-white text-xs font-bold shrink-0 gap-1"
+            {/* 3 Recommended Partner Product Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {RECOMMENDED_INVENTORY.map((item) => (
+                <div
+                  key={item.id}
+                  className="group relative flex flex-col overflow-hidden rounded-[16px] border border-border/70 bg-background/80 hover:border-primary/50 transition-all p-2.5 shadow-2xs hover:shadow-sm"
                 >
-                  <Send className="w-3.5 h-3.5" /> გაგზავნა
-                </Button>
-              </div>
+                  {/* Photo */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] bg-surface-container mb-2">
+                    <Image
+                      src={item.image}
+                      alt={item.title}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <span className="absolute top-1.5 left-1.5 backdrop-blur-md bg-black/60 text-white font-bold text-[9px] px-1.5 py-0.5 rounded-[6px]">
+                      {item.shopBadge}
+                    </span>
+                  </div>
 
-              {reviewSubmitted && (
-                <p className="text-xs text-primary font-semibold mt-2 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> თქვენი შეფასება წარმატებით გამოქვეყნდა!
-                </p>
-              )}
-            </form>
-
-            {/* Reviews List */}
-            <div className="space-y-3">
-              {reviews.map((rev) => (
-                <div key={rev.id} className="border-b border-border/40 pb-3 last:border-b-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-secondary-container text-primary font-bold text-xs flex items-center justify-center">
-                        {rev.reviewerName.charAt(0)}
-                      </div>
-                      <span className="text-xs font-bold text-foreground">{rev.reviewerName}</span>
+                  {/* Info */}
+                  <div className="flex flex-1 flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground font-medium block">
+                        {item.category}
+                      </span>
+                      <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug my-1">
+                        {item.title}
+                      </h4>
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] text-amber-500">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                      <span className="font-bold">{rev.rating}</span>
-                      <span className="text-muted-foreground ml-1">({rev.createdAt})</span>
+
+                    <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between gap-1">
+                      <div>
+                        <span className="text-xs sm:text-sm font-black text-primary dark:text-emerald-400">
+                          {item.price} ₾
+                        </span>
+                        <span className="text-[9px] text-muted-foreground block truncate max-w-[80px]">
+                          {item.shopName}
+                        </span>
+                      </div>
+
+                      <Link
+                        href={item.link}
+                        className="inline-flex items-center gap-0.5 text-[11px] font-bold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[8px] bg-primary/10 transition-colors"
+                      >
+                        <span>ნახვა</span>
+                      </Link>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground pl-8 leading-relaxed">
-                    {rev.comment}
-                  </p>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Right Column: Pricing, Delivery & Contacts */}
+        {/* ══════════════════════════════════════════════════════════════════════
+            RIGHT COLUMN: Pricing, Contacts, Seller Profile & Feedback/Reviews
+        ══════════════════════════════════════════════════════════════════════ */}
         <div className="lg:col-span-5 space-y-5">
           {/* Main Info Card */}
           <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient space-y-4">
             {/* Title & Badges */}
             <div>
               <div className="flex flex-wrap gap-1.5 mb-3">
-                <Badge className="rounded-[8px] bg-secondary-container text-primary border-none">
+                <Badge className="rounded-[8px] bg-secondary-container text-primary border-none text-[11px]">
                   {listing.itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
                 </Badge>
+                {listing.transactionType === "GIFT" && (
+                  <Badge className="rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-none font-bold text-[11px]">
+                    🎁 გაჩუქება / უფასოდ
+                  </Badge>
+                )}
                 {listing.transactionType === "TRADE" && (
-                  <Badge className="rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 border-none">
-                    🔄 გაცვლა / Trade
+                  <Badge className="rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 border-none font-bold text-[11px]">
+                    🔄 გაცვლა / Swap
                   </Badge>
                 )}
                 {listing.transactionType === "NEGOTIABLE" && (
-                  <Badge variant="secondary" className="rounded-[8px]">შეთანხმებით</Badge>
+                  <Badge variant="secondary" className="rounded-[8px] text-[11px]">შეთანხმებით</Badge>
                 )}
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-snug">
+              <h1 className="text-lg sm:text-xl font-extrabold text-foreground leading-snug">
                 {listing.title}
               </h1>
 
-              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+              <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground font-medium">
                 <MapPin className="w-3.5 h-3.5 text-primary" />
                 <span>{listing.city}</span>
                 <span>•</span>
@@ -377,19 +422,23 @@ export default function ListingDetailPage({
             {/* Price Display */}
             <div className="rounded-[18px] bg-secondary-container/70 border border-border/40 p-4 flex items-baseline justify-between">
               <div>
-                <span className="text-[11px] text-muted-foreground block font-medium">ფასი</span>
-                {listing.transactionType === "TRADE" ? (
+                <span className="text-[11px] text-muted-foreground block font-medium">გარიგება & ფასი</span>
+                {listing.transactionType === "GIFT" ? (
+                  <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">
+                    🎁 უფასო საჩუქარი
+                  </span>
+                ) : listing.transactionType === "TRADE" ? (
                   <span className="text-xl font-bold text-amber-700 dark:text-amber-300">
                     მხოლოდ გაცვლა
                   </span>
                 ) : (
-                  <span className="text-2xl sm:text-3xl font-bold text-primary dark:text-primary-fixed">
+                  <span className="text-2xl sm:text-3xl font-black text-primary dark:text-emerald-400">
                     {formatPrice(listing.price)}
                   </span>
                 )}
               </div>
 
-              <span className="text-xs font-bold text-primary dark:text-primary-fixed bg-card px-2.5 py-1 rounded-[8px] shadow-xs">
+              <span className="text-xs font-bold text-primary dark:text-emerald-400 bg-card px-2.5 py-1 rounded-[8px] shadow-xs">
                 აქტიური
               </span>
             </div>
@@ -434,7 +483,7 @@ export default function ListingDetailPage({
               <Button
                 size="lg"
                 onClick={handlePhoneClick}
-                className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white font-bold h-12 text-xs sm:text-sm gap-2 shadow-ambient"
+                className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white font-bold h-11 text-xs sm:text-sm gap-2 shadow-ambient"
               >
                 {showPhone ? (
                   <>
@@ -453,7 +502,7 @@ export default function ListingDetailPage({
                 variant="outline"
                 size="lg"
                 onClick={handleChatClick}
-                className="w-full rounded-[16px] font-bold h-12 text-xs sm:text-sm gap-2 border-border/80 hover:bg-surface-container"
+                className="w-full rounded-[16px] font-bold h-11 text-xs sm:text-sm gap-2 border-border/80 hover:bg-surface-container"
               >
                 <MessageSquare className="w-4 h-4 text-primary" />
                 მიწერა გამყიდველს (Live ჩატი)
@@ -461,7 +510,9 @@ export default function ListingDetailPage({
             </div>
           </div>
 
-          {/* Seller Trust & Badges Card */}
+          {/* ══════════════════════════════════════════════════════════════════════
+              SELLER PROFILE CARD
+          ══════════════════════════════════════════════════════════════════════ */}
           <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient">
             <div className="flex items-center justify-between gap-3 mb-3">
               <div className="flex items-center gap-3">
@@ -484,7 +535,7 @@ export default function ListingDetailPage({
                   <div className="flex items-center gap-1 text-[11px] text-amber-500 font-semibold">
                     <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                     <span>{listing.seller.rating.toFixed(1)}</span>
-                    <span className="text-muted-foreground">({listing.seller.totalReviews} შეფასება)</span>
+                    <span className="text-muted-foreground">({listing.seller.totalReviews || reviews.length} შეფასება)</span>
                   </div>
                 </div>
               </div>
@@ -514,6 +565,122 @@ export default function ListingDetailPage({
               </div>
             )}
           </div>
+
+          {/* ══════════════════════════════════════════════════════════════════════
+              ⭐⭐ SELLER REVIEWS & FEEDBACK (Right Column — Under Seller Card)
+          ══════════════════════════════════════════════════════════════════════ */}
+          <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient space-y-4">
+            <div className="flex items-center justify-between border-b border-border/40 pb-3">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                გამყიდველის შეფასებები & რევიუები
+              </h3>
+              <span className="text-xs font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                ★ 4.9 ({reviews.length})
+              </span>
+            </div>
+
+            {/* Review Input Form */}
+            <form onSubmit={handleReviewSubmit} className="space-y-2.5 bg-surface-container/50 p-3 rounded-[16px] border border-border/40">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-foreground">დაწერეთ შეფასება:</span>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setNewRating(star)}
+                      className="p-0.5 hover:scale-110 transition-transform"
+                    >
+                      <Star
+                        className={`w-3.5 h-3.5 ${
+                          star <= newRating ? "fill-amber-400 text-amber-400" : "text-border"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder={
+                    currentUser
+                      ? "გაუზიარეთ თქვენი შთაბეჭდილება მყიდველებს..."
+                      : "შეფასების დასატოვებლად გაიარეთ ავტორიზაცია..."
+                  }
+                  className="w-full rounded-[10px] border border-input bg-background px-3 py-1.5 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="rounded-[10px] bg-primary hover:bg-primary-container text-white text-xs font-bold shrink-0 gap-1 h-8 px-3"
+                >
+                  <Send className="w-3 h-3" />
+                </Button>
+              </div>
+
+              {reviewSubmitted && (
+                <p className="text-[11px] text-primary font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> შეფასება წარმატებით გამოქვეყნდა!
+                </p>
+              )}
+            </form>
+
+            {/* Reviews List */}
+            <div className="space-y-3 max-h-[300px] overflow-y-auto pr-1">
+              {reviews.map((rev) => (
+                <div key={rev.id} className="border-b border-border/40 pb-2.5 last:border-b-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-5 w-5 rounded-full bg-secondary-container text-primary font-bold text-[10px] flex items-center justify-center">
+                        {rev.reviewerName.charAt(0)}
+                      </div>
+                      <span className="text-xs font-bold text-foreground">{rev.reviewerName}</span>
+                    </div>
+                    <div className="flex items-center gap-0.5 text-[10px] text-amber-500 font-bold">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      <span>{rev.rating}</span>
+                      <span className="text-muted-foreground ml-1 font-normal">({rev.createdAt})</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground pl-6 leading-relaxed">
+                    {rev.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          🌿 RELATED / SIMILAR LISTINGS (Keeps visitors browsing longer)
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="mt-12 pt-8 border-t border-border/60">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-lg sm:text-xl font-bold text-foreground flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              მსგავსი შეთავაზებები & მცენარეები
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              შეიძლება დაგაინტერესოთ სხვა მემცენარეების განცხადებებიდან
+            </p>
+          </div>
+
+          <Link href="/listings" className="text-xs font-bold text-primary hover:underline">
+            კატალოგის ნახვა →
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          {similarListings.map((simItem) => (
+            <ListingCard key={simItem.id} {...simItem} variant="compact" />
+          ))}
         </div>
       </div>
 
