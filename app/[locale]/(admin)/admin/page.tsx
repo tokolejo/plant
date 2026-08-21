@@ -94,28 +94,7 @@ export default function AdminDashboardPage() {
   }, []);
 
   // Admin Users State
-  const [users, setUsers] = React.useState<any[]>([
-    {
-      id: "usr-admin",
-      email: "tokolejo@gmail.com",
-      fullName: "Tokolejo (Creator & Super Admin)",
-      tier: "TIER_3",
-      customSlug: "tokolejo",
-      activeListings: 5,
-      isAdmin: true,
-      createdAt: "2026-08-20",
-    },
-    {
-      id: "usr-1",
-      email: "tamar@bustan.ge",
-      fullName: "თამარ ბოტანიკა",
-      tier: "TIER_2",
-      customSlug: "tamarbustan",
-      activeListings: 12,
-      isAdmin: false,
-      createdAt: "2026-08-15",
-    },
-  ]);
+  const [users, setUsers] = React.useState<any[]>([]);
 
   // Subscription Plans Dynamic Management State
   const [plans, setPlans] = React.useState<any[]>([]);
@@ -272,6 +251,24 @@ export default function AdminDashboardPage() {
       }
     }
     showNotice(`✅ მომხმარებლის ტარიფი წარმატებით განახლდა: ${newTier}`);
+  };
+
+  const updateUserSlug = async (id: string, newSlug: string) => {
+    const cleanSlug = newSlug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") || null;
+    setUsers((prev) =>
+      prev.map((u) => (u.id === id ? { ...u, customSlug: cleanSlug } : u))
+    );
+    if (!id.startsWith("usr-")) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ custom_slug: cleanSlug })
+        .eq("id", id);
+      if (error) {
+        showNotice(`❌ შეცდომა სლაგის განახლებისას: ${error.message}`);
+        return;
+      }
+    }
+    showNotice(cleanSlug ? `✅ Custom Slug განახლდა: /${cleanSlug}` : `✅ Custom Slug გასუფთავდა (არ არის)`);
   };
 
   const handlePlanChange = (planId: string, field: string, value: any) => {
@@ -1123,13 +1120,28 @@ export default function AdminDashboardPage() {
                     </td>
                     <td className="py-3 px-3 text-muted-foreground">{user.email}</td>
                     <td className="py-3 px-3">
-                      {user.customSlug ? (
-                        <Link href={`/shops/${user.customSlug}`} className="text-emerald-600 hover:underline font-mono text-[11px] font-bold">
-                          /{user.customSlug}
-                        </Link>
-                      ) : (
-                        <span className="text-muted-foreground text-[10px]">არ არის</span>
-                      )}
+                      <div className="flex items-center gap-1.5">
+                        {user.customSlug ? (
+                          <Link href={`/shops/${user.customSlug}`} className="text-emerald-600 hover:underline font-mono text-[11px] font-bold">
+                            /{user.customSlug}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground text-[10px]">არ არის</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSlug = window.prompt(`შეიყვანეთ ახალი Custom Slug მომხმარებლისთვის "${user.fullName}" (ან დატოვეთ ცარიელი გასასუფთავებლად):`, user.customSlug || "");
+                            if (newSlug !== null) {
+                              updateUserSlug(user.id, newSlug);
+                            }
+                          }}
+                          className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                          title="Custom Slug-ის შეცვლა / წაშლა"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </td>
                     <td className="py-3 px-3">
                       <Badge variant="outline" className="text-[10px] font-bold">

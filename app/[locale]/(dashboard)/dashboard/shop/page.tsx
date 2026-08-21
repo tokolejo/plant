@@ -26,15 +26,15 @@ export default function ShopSettingsDashboardPage() {
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [profile, setProfile] = React.useState<any>(null);
 
-  const [shopName, setShopName] = React.useState("თამარ ბოტანიკა");
-  const [customSlug, setCustomSlug] = React.useState("tamarbustan");
-  const [bio, setBio] = React.useState("იშვიათი ოთახის მცენარეების, აროიდების და მონსტერების ორანჟერეა.");
+  const [shopName, setShopName] = React.useState("");
+  const [customSlug, setCustomSlug] = React.useState("");
+  const [bio, setBio] = React.useState("");
   const [city, setCity] = React.useState("თბილისი");
-  const [address, setAddress] = React.useState("ჭავჭავაძის გამზ. 42");
-  const [phone, setPhone] = React.useState("+995 599 12 34 56");
-  const [whatsapp, setWhatsapp] = React.useState("+995599123456");
+  const [address, setAddress] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [whatsapp, setWhatsapp] = React.useState("");
 
-  const [isSlugAvailable, setIsSlugAvailable] = React.useState<boolean | null>(true);
+  const [isSlugAvailable, setIsSlugAvailable] = React.useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = React.useState(false);
   const [savedSuccess, setSavedSuccess] = React.useState(false);
 
@@ -50,9 +50,12 @@ export default function ShopSettingsDashboardPage() {
           .then(({ data }) => {
             if (data) {
               setProfile(data);
-              if (data.custom_slug) setCustomSlug(data.custom_slug);
-              if (data.full_name) setShopName(data.full_name);
-              if (data.phone) setPhone(data.phone);
+              setCustomSlug(data.custom_slug || "");
+              setShopName(data.full_name || "");
+              setPhone(data.phone || "");
+              setBio(data.bio || "");
+              setCity(data.city || "თბილისი");
+              setAddress(data.address || "");
             }
           });
       }
@@ -88,15 +91,20 @@ export default function ShopSettingsDashboardPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isSlugAvailable && customSlug) return;
+    if (isSlugAvailable === false && customSlug) return;
 
+    const cleanSlug = customSlug.trim() ? customSlug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") : null;
+    
     if (currentUser) {
       await supabase
         .from("profiles")
         .update({
-          custom_slug: customSlug,
-          full_name: shopName,
-          phone: phone,
+          custom_slug: cleanSlug,
+          full_name: shopName.trim() || null,
+          phone: phone.trim() || null,
+          bio: bio.trim() || null,
+          city: city || "თბილისი",
+          address: address.trim() || null,
         })
         .eq("id", currentUser.id);
     }
@@ -105,7 +113,7 @@ export default function ShopSettingsDashboardPage() {
     setTimeout(() => setSavedSuccess(false), 3500);
   };
 
-  const userTier = profile?.subscription_tier || "TIER_2";
+  const userTier = profile?.subscription_tier || "FREE";
   const allowsCustomSlug = ["TIER_2", "TIER_3"].includes(userTier) || currentUser?.email === "tokolejo@gmail.com";
 
   return (
