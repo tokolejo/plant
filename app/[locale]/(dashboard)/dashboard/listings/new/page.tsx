@@ -781,33 +781,21 @@ export default function CreateListingPage() {
           )}
         </div>
 
-        {/* 3. Bilingual Titles & Descriptions (Free to Edit) */}
+        {/* 3. Title & Description */}
         <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-            3. სათაური & აღწერა (ორენოვანი)
+            3. სათაური & აღწერა
           </label>
 
           <div>
             <span className="text-xs font-bold text-foreground mb-1 block">
-              სათაური ქართულად & ლათინური სახელი *
+              სათაური / მცენარის დასახელება *
             </span>
             <Input
               required
               value={titleKa}
               onChange={(e) => setTitleKa(e.target.value)}
               placeholder="მაგ: მონსტერა დელიციოზა (Monstera deliciosa)"
-              className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
-            />
-          </div>
-
-          <div>
-            <span className="text-xs font-bold text-muted-foreground mb-1 block">
-              Title in English (სურვილისამებრ)
-            </span>
-            <Input
-              value={titleEn}
-              onChange={(e) => setTitleEn(e.target.value)}
-              placeholder="e.g. Monstera Deliciosa (Monstera deliciosa)"
               className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
             />
           </div>
