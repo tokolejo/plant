@@ -27,6 +27,7 @@ import {
   Save,
   Check,
   Edit2,
+  Edit3,
   ExternalLink,
   Store,
   ArrowUpDown,
@@ -264,9 +265,13 @@ export default function AdminDashboardPage() {
       prev.map((u) => (u.id === id ? { ...u, tier: newTier } : u))
     );
     if (!id.startsWith("usr-")) {
-      await supabase.from("profiles").update({ subscription_tier: newTier }).eq("id", id);
+      const { error } = await supabase.from("profiles").update({ subscription_tier: newTier }).eq("id", id);
+      if (error) {
+        showNotice(`❌ შეცდომა: ${error.message}`);
+        return;
+      }
     }
-    showNotice(`✅ მომხმარებლის ტარიფი განახლდა: ${newTier}`);
+    showNotice(`✅ მომხმარებლის ტარიფი წარმატებით განახლდა: ${newTier}`);
   };
 
   const handlePlanChange = (planId: string, field: string, value: any) => {
@@ -1044,6 +1049,18 @@ export default function AdminDashboardPage() {
                             >
                               {isHidden ? "გამოჩენა" : "დამალვა"}
                             </Button>
+
+                            {/* Edit Listing Link */}
+                            <Link href={`/dashboard/listings/${item.id}/edit`}>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 w-7 p-0 rounded-[8px] text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer"
+                                title="განცხადების რედაქტირება"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </Button>
+                            </Link>
 
                             {/* View Listing Link */}
                             <Link href={`/listings/${item.id}`}>

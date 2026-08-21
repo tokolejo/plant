@@ -53,6 +53,7 @@ export interface ListingCardProps {
     badges: string[];
     tier?: string;
     customSlug?: string;
+    phone?: string;
   };
 }
 
@@ -79,6 +80,9 @@ export function ListingCard({
     ? (distanceKm < 1 ? `${Math.round(distanceKm * 1000)} მ` : `${distanceKm} კმ`) 
     : undefined;
 
+  // Clean title display (strips redundant 'საჩუქარი:' prefixes)
+  const displayTitle = (title || "").replace(/^(\s*🎁\s*საჩუქარი:?\s*|\s*🎁\s*|\s*საჩუქარი:?\s*)/i, "").trim();
+
   // ─── LIST VIEW VARIANT ───────────────────────────────────────────────────────
   if (variant === "list") {
     return (
@@ -91,7 +95,7 @@ export function ListingCard({
         <Link href={`/listings/${id}`} className="relative w-full sm:w-48 md:w-56 shrink-0 aspect-[4/3] sm:aspect-auto overflow-hidden bg-surface-container block">
           <Image
             src={primaryImage}
-            alt={title}
+            alt={displayTitle}
             fill
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 640px) 100vw, 240px"
@@ -102,11 +106,6 @@ export function ListingCard({
             {isVip && (
               <span className="backdrop-blur-md bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[8px] shadow-sm">
                 ⭐ VIP
-              </span>
-            )}
-            {transactionType === "GIFT" && (
-              <span className="backdrop-blur-md bg-emerald-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[8px] shadow-sm flex items-center gap-1">
-                <Gift className="w-3 h-3" /> გაჩუქება
               </span>
             )}
             <span className="backdrop-blur-md bg-background/90 text-foreground text-[10px] font-bold px-2 py-0.5 rounded-[8px] border border-border/40">
@@ -129,7 +128,7 @@ export function ListingCard({
               <div className="flex items-baseline gap-2">
                 {transactionType === "GIFT" ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
-                    🎁 უფასოდ / საჩუქარი
+                    🎁 უფასო
                   </span>
                 ) : transactionType === "TRADE" ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
@@ -162,7 +161,7 @@ export function ListingCard({
             {/* Title */}
             <Link href={`/listings/${id}`} className="block group-hover:text-primary transition-colors">
               <h3 className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug mb-2">
-                {title}
+                {displayTitle}
               </h3>
             </Link>
 
@@ -239,7 +238,7 @@ export function ListingCard({
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
 
-        {/* Floating Top Badges */}
+        {/* Floating Top Badges (Clean & Minimal) */}
         <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
           {isVip && (
             <span className="backdrop-blur-md bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[7px] shadow-sm flex items-center gap-0.5">
@@ -247,23 +246,9 @@ export function ListingCard({
             </span>
           )}
 
-          {transactionType === "GIFT" && (
-            <span className="backdrop-blur-md bg-emerald-600 text-white font-black text-[10px] px-1.5 py-0.5 rounded-[7px] shadow-sm flex items-center gap-0.5">
-              <Gift className="w-2.5 h-2.5" />
-              საჩუქარი
-            </span>
-          )}
-
           <span className="backdrop-blur-md bg-background/90 text-foreground border border-border/40 text-[10px] font-bold px-1.5 py-0.5 rounded-[7px]">
             {itemType === "PLANT" ? "🌱" : "🪴"}
           </span>
-
-          {transactionType === "TRADE" && (
-            <span className="backdrop-blur-md bg-amber-500/95 text-white font-bold text-[10px] px-1.5 py-0.5 rounded-[7px] flex items-center gap-0.5">
-              <RefreshCw className="w-2.5 h-2.5" />
-              გაცვლა
-            </span>
-          )}
         </div>
 
         {/* Distance Badge on bottom left of photo */}
@@ -287,7 +272,7 @@ export function ListingCard({
         <div className="flex items-baseline justify-between gap-1 mb-1">
           {transactionType === "GIFT" ? (
             <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
-              🎁 უფასოდ
+              🎁 უფასო
             </span>
           ) : transactionType === "TRADE" ? (
             <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
@@ -317,7 +302,7 @@ export function ListingCard({
         {/* Title */}
         <Link href={`/listings/${id}`} className="group-hover:text-primary transition-colors mb-2">
           <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold text-foreground leading-snug min-h-[32px]">
-            {title}
+            {displayTitle}
           </h3>
         </Link>
 

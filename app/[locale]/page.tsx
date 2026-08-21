@@ -1,7 +1,6 @@
 import { HeroSection } from "@/components/home/HeroSection";
 import { DiscoveryFeed } from "@/components/home/DiscoveryFeed";
 import { IsoBoardPreview } from "@/components/home/IsoBoardPreview";
-import { SubscriptionPlansCard } from "@/components/home/SubscriptionPlansCard";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 
 export default function HomePage() {
@@ -15,9 +14,6 @@ export default function HomePage() {
 
       {/* 3. ISO Match Board */}
       <IsoBoardPreview />
-
-      {/* 4. Subscription Plans */}
-      <SubscriptionPlansCard />
     </div>
   );
 }

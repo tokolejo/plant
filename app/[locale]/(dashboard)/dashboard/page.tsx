@@ -21,9 +21,12 @@ import {
   ArrowRight,
   Trash2,
   ExternalLink,
+  Edit3,
   Tag,
   Package,
-  Gift
+  Gift,
+  Search,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +36,7 @@ export default function UserDashboardPage() {
   const supabase = createClient();
   const [copied, setCopied] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"ALL" | "ACTIVE" | "GIFT" | "TRADE">("ALL");
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [userListings, setUserListings] = React.useState<any[]>([]);
   const [loadingListings, setLoadingListings] = React.useState(true);
   const [currentUser, setCurrentUser] = React.useState<any>(null);
@@ -89,26 +93,64 @@ export default function UserDashboardPage() {
     setUserListings((prev) => prev.filter((l) => l.id !== listingId));
   };
 
+  const currentTier = profile?.subscription_tier || profile?.tier || "FREE";
+
+  const getTierLabel = (tier: string) => {
+    switch (tier) {
+      case "TIER_1":
+        return "🌱 კოლექციონერი (Tier 1)";
+      case "TIER_2":
+        return "🌿 პრო ბოტანიკოსი (Tier 2)";
+      case "TIER_3":
+        return "🪴 ორანჟერეა & შოპი (Tier 3)";
+      default:
+        return "✨ უფასო ტარიფი (Free)";
+    }
+  };
+
+  const getMaxListings = (tier: string) => {
+    switch (tier) {
+      case "TIER_1":
+        return 20;
+      case "TIER_2":
+        return 50;
+      case "TIER_3":
+        return 999;
+      default:
+        return 5;
+    }
+  };
+
   // User Stats & Limits
   const userStats = {
-    fullName: profile?.full_name || currentUser?.email?.split("@")[0] || "თამარ ბოტანიკა",
-    tier: profile?.tier || "TIER_1",
+    fullName: profile?.full_name || currentUser?.email?.split("@")[0] || "მომხმარებელი",
+    tier: currentTier,
+    tierLabel: getTierLabel(currentTier),
     activeListingsCount: userListings.length,
-    maxListingsAllowed: profile?.tier === "TIER_2" ? 50 : 20,
+    maxListingsAllowed: getMaxListings(currentTier),
     totalViews: 842,
-    rating: 4.9,
-    totalReviews: 28,
+    rating: profile?.average_rating || 4.9,
+    totalReviews: profile?.total_reviews || 28,
     badges: ["Trusted Seller", "Green Thumb"],
     affiliateEarnings: 45,
     referralCount: 3,
   };
 
-  const filteredListings = userListings.filter((l) => {
-    if (activeTab === "ACTIVE") return l.status === "ACTIVE" || !l.status;
-    if (activeTab === "GIFT") return l.transaction_type === "GIFT" || l.transactionType === "GIFT" || l.price === 0;
-    if (activeTab === "TRADE") return l.transaction_type === "TRADE" || l.transactionType === "TRADE";
-    return true;
-  });
+  const filteredListings = React.useMemo(() => {
+    return userListings.filter((l) => {
+      if (activeTab === "ACTIVE" && l.status === "HIDDEN") return false;
+      if (activeTab === "GIFT" && !(l.transaction_type === "GIFT" || l.transactionType === "GIFT" || l.price === 0)) return false;
+      if (activeTab === "TRADE" && !(l.transaction_type === "TRADE" || l.transactionType === "TRADE")) return false;
+
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const title = (l.title_ka || l.title || "").toLowerCase();
+        const city = (l.city || "").toLowerCase();
+        if (!title.includes(q) && !city.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [userListings, activeTab, searchQuery]);
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8">
@@ -119,8 +161,8 @@ export default function UserDashboardPage() {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
               გამარჯობა, {userStats.fullName}
             </h1>
-            <Badge className="rounded-[8px] bg-secondary-container text-primary font-semibold text-xs border-none">
-              {userStats.tier === "FREE" ? "Free Tier" : "კოლექციონერი (Tier 1)"}
+            <Badge className="rounded-[8px] bg-secondary-container text-primary font-bold text-xs border-none">
+              {userStats.tierLabel}
             </Badge>
           </div>
           <p className="text-sm text-muted-foreground">
@@ -178,33 +220,38 @@ export default function UserDashboardPage() {
           </div>
         </a>
 
-        {/* 2. Views */}
+        {/* 2. Rating & Badges */}
         <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              ჯამური ნახვები
+              რეიტინგი & შეფასებები
+            </span>
+            <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
+          </div>
+          <div className="flex items-baseline gap-2 mb-1">
+            <span className="text-2xl font-black text-foreground">{userStats.rating}</span>
+            <span className="text-xs text-muted-foreground">({userStats.totalReviews} შეფასება)</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Badge variant="outline" className="text-[10px] font-bold border-primary/30 text-primary bg-primary/5 rounded-[6px]">
+              <ShieldCheck className="w-3 h-3 mr-1" /> Trusted Seller
+            </Badge>
+          </div>
+        </div>
+
+        {/* 3. Total Views */}
+        <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              ნახვები
             </span>
             <Eye className="w-4 h-4 text-primary" />
           </div>
-          <p className="text-2xl font-black text-foreground mb-1">{userStats.totalViews}</p>
-          <span className="text-[11px] text-primary font-semibold flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" /> +24% ამ კვირაში
-          </span>
-        </div>
-
-        {/* 3. Rating & Reviews */}
-        <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              რეიტინგი
-            </span>
-            <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
-          </div>
           <p className="text-2xl font-black text-foreground mb-1">
-            {userStats.rating.toFixed(1)} <span className="text-xs font-normal text-muted-foreground">/ 5.0</span>
+            {userStats.totalViews}
           </p>
-          <span className="text-[11px] text-muted-foreground">
-            {userStats.totalReviews} შეფასების საფუძველზე
+          <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+            <TrendingUp className="w-3.5 h-3.5 text-emerald-600" /> +14% ბოლო 7 დღეში
           </span>
         </div>
 
@@ -226,133 +273,156 @@ export default function UserDashboardPage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* 🌿 MY LISTINGS SECTION (ჩემი განცხადებები)                            */}
+      {/* 🌿 MY LISTINGS SECTION (ჩემი განცხადებები - კომპაქტური & სია/გრიდი)      */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      <div id="my-listings" className="rounded-[24px] border border-border/80 bg-card p-6 shadow-ambient mb-8 scroll-mt-24">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-border/50 pb-4">
+      <div id="my-listings" className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient mb-8 scroll-mt-24">
+        {/* Header Toolbar */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5 border-b border-border/50 pb-4">
           <div>
-            <h2 className="text-lg sm:text-xl font-black text-foreground flex items-center gap-2">
-              <Sprout className="w-5 h-5 text-primary" />
+            <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
+              <Sprout className="w-5 h-5 text-primary shrink-0" />
               <span>ჩემი დამატებული განცხადებები</span>
               <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-secondary-container text-primary">
-                {userListings.length}
+                {filteredListings.length}
               </span>
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              მართეთ, დაათვალიერეთ ან წაშალეთ თქვენი აქტიური განცხადებები
+              კომპაქტური მართვა, სწრაფი ძიება და რედაქტირება
             </p>
           </div>
 
-          {/* Filter Tabs */}
-          <div className="flex items-center gap-1.5 bg-secondary-container/70 p-1 rounded-[14px]">
-            <button
-              type="button"
-              onClick={() => setActiveTab("ALL")}
-              className={`px-3 py-1.5 rounded-[10px] text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "ALL" ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              ყველა ({userListings.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("GIFT")}
-              className={`px-3 py-1.5 rounded-[10px] text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "GIFT" ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              🎁 საჩუქრები
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("TRADE")}
-              className={`px-3 py-1.5 rounded-[10px] text-xs font-bold transition-all cursor-pointer ${
-                activeTab === "TRADE" ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              🔄 გაცვლა
-            </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Quick Search */}
+            <div className="relative min-w-[170px] sm:min-w-[200px]">
+              <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="მოძებნე განცხადება..."
+                className="w-full pl-8 pr-7 py-1.5 rounded-[12px] border border-border/80 bg-background text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-1 bg-secondary-container/70 p-1 rounded-[12px]">
+              <button
+                type="button"
+                onClick={() => setActiveTab("ALL")}
+                className={`px-2.5 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "ALL" ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                ყველა ({userListings.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("GIFT")}
+                className={`px-2.5 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "GIFT" ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                🎁 საჩუქარი
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("TRADE")}
+                className={`px-2.5 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === "TRADE" ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                🔄 გაცვლა
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Listings Grid */}
+        {/* Listings Content */}
         {loadingListings ? (
-          <div className="text-center py-12 text-muted-foreground text-xs">
+          <div className="text-center py-12 text-muted-foreground text-xs font-bold">
             იტვირთება განცხადებები...
           </div>
         ) : filteredListings.length === 0 ? (
-          <div className="text-center py-12 space-y-3">
-            <Package className="w-12 h-12 text-muted-foreground/40 mx-auto" />
+          <div className="text-center py-10 space-y-3">
+            <Package className="w-10 h-10 text-muted-foreground/40 mx-auto" />
             <h3 className="text-sm font-bold text-foreground">განცხადება არ მოიძებნა</h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
-              თქვენ ჯერ არ გაქვთ დამატებული განცხადება ამ კატეგორიაში.
+              {searchQuery ? "საძიებო სიტყვით განცხადება ვერ მოიძებნა." : "თქვენ ჯერ არ გაქვთ დამატებული განცხადება ამ კატეგორიაში."}
             </p>
             <Link href="/dashboard/listings/new" className="inline-block pt-1">
-              <Button size="sm" className="rounded-[14px] bg-primary text-white text-xs font-bold shadow-ambient">
-                <PlusCircle className="w-4 h-4 mr-1.5" />
+              <Button size="sm" className="rounded-[12px] bg-primary text-white text-xs font-bold shadow-ambient">
+                <PlusCircle className="w-3.5 h-3.5 mr-1.5" />
                 + ახალი განცხადების დამატება
               </Button>
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredListings.map((item) => {
-              const imageSrc = item.images?.[0] || item.image || "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600";
-              const title = item.title_ka || item.title || "მცენარე";
-              const priceVal = item.price;
-              const isGift = item.transaction_type === "GIFT" || item.transactionType === "GIFT" || priceVal === 0;
-              const isTrade = item.transaction_type === "TRADE" || item.transactionType === "TRADE";
+          /* ═══════════════════════════════════════════════════════════════════
+             ☰ COMPACT LIST VIEW (სია - მინიმალური სივრცის დანაკარგი)
+             ═══════════════════════════════════════════════════════════════════ */
+          <div className="overflow-x-auto">
+            <div className="divide-y divide-border/40 min-w-[550px]">
+              {filteredListings.map((item) => {
+                const imageSrc = item.images?.[0] || item.image || "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600";
+                const title = item.title_ka || item.title || "მცენარე";
+                const priceVal = item.price;
+                const isGift = item.transaction_type === "GIFT" || item.transactionType === "GIFT" || priceVal === 0;
+                const isTrade = item.transaction_type === "TRADE" || item.transactionType === "TRADE";
+                const isHidden = item.status === "HIDDEN";
 
-              return (
-                <div
-                  key={item.id}
-                  className="rounded-[20px] border border-border/80 bg-background/60 p-4 shadow-2xs hover:border-primary/40 hover:shadow-xs transition-all flex flex-col justify-between"
-                >
-                  <div>
-                    {/* Image & Badges */}
-                    <div className="relative aspect-4/3 rounded-[14px] overflow-hidden mb-3 bg-surface-container">
-                      <img
-                        src={imageSrc}
-                        alt={title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute top-2 left-2 flex gap-1.5">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-600/90 backdrop-blur-xs text-white text-[10px] font-extrabold flex items-center gap-1 shadow-xs">
-                          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-                          აქტიური
-                        </span>
-                        {isGift ? (
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-700/90 text-white text-[10px] font-bold backdrop-blur-xs">
-                            🎁 საჩუქარი
-                          </span>
-                        ) : isTrade ? (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-600/90 text-white text-[10px] font-bold backdrop-blur-xs">
-                            🔄 გაცვლა
-                          </span>
-                        ) : null}
+                return (
+                  <div
+                    key={item.id}
+                    className="py-2.5 px-2.5 rounded-[14px] hover:bg-surface-container/50 transition-colors flex items-center justify-between gap-3 group"
+                  >
+                    {/* Left: Thumbnail & Details */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="relative w-12 h-12 rounded-[10px] overflow-hidden bg-surface-container shrink-0 border border-border/60">
+                        <img
+                          src={imageSrc}
+                          alt={title}
+                          className="w-full h-full object-cover"
+                        />
+                        <span className={`absolute top-1 left-1 w-2 h-2 rounded-full ring-2 ring-background ${
+                          isHidden ? "bg-amber-500" : "bg-emerald-500"
+                        }`} />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-xs sm:text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                          {title}
+                        </h4>
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                          <span>📍 {item.city || "თბილისი"}</span>
+                          <span>•</span>
+                          <span className="capitalize">{item.plant_category || item.plantCategory || "მცენარე"}</span>
+                          {isHidden && (
+                            <span className="px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-bold">
+                              დამალული
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Title & City */}
-                    <h3 className="font-bold text-xs sm:text-sm text-foreground line-clamp-2 mb-1 leading-snug">
-                      {title}
-                    </h3>
-                    <p className="text-[11px] text-muted-foreground mb-2 flex items-center gap-1">
-                      <span>📍 {item.city || "თბილისი"}</span>
-                      {item.address && <span className="truncate">· {item.address}</span>}
-                    </p>
-                  </div>
-
-                  {/* Price & Actions */}
-                  <div className="pt-3 border-t border-border/50 flex items-center justify-between">
-                    <div>
+                    {/* Middle: Price Tag */}
+                    <div className="shrink-0 text-right min-w-[80px]">
                       {isGift ? (
-                        <span className="text-xs font-black text-emerald-600 dark:text-emerald-400">
-                          უფასო
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-black">
+                          🎁 უფასო
                         </span>
                       ) : isTrade ? (
-                        <span className="text-xs font-bold text-amber-600">
-                          გაცვლა
+                        <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold">
+                          🔄 გაცვლა
                         </span>
                       ) : (
                         <span className="text-sm font-black text-foreground">
@@ -361,31 +431,44 @@ export default function UserDashboardPage() {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      <Link href={`/listings/${item.id}`}>
+                    {/* Right: Actions */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <Link href={`/dashboard/listings/${item.id}/edit`}>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 px-2.5 rounded-[10px] text-xs font-semibold border-border/70 hover:bg-surface-container gap-1 cursor-pointer"
+                          className="h-7 px-2 text-[11px] font-bold rounded-[8px] border-primary/30 text-primary hover:bg-primary/10 gap-1 cursor-pointer"
+                          title="განცხადების რედაქტირება"
+                        >
+                          <Edit3 className="w-3 h-3" />
+                          ედითი
+                        </Button>
+                      </Link>
+
+                      <Link href={`/listings/${item.id}`}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 rounded-[8px] text-muted-foreground hover:text-foreground cursor-pointer"
+                          title="ნახვა"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
-                          ნახვა
                         </Button>
                       </Link>
 
                       <button
                         type="button"
                         onClick={() => handleDeleteListing(item.id)}
-                        className="p-2 rounded-[10px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-[8px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                         title="განცხადების წაშლა"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </div>

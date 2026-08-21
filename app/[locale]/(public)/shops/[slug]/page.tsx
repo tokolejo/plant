@@ -21,13 +21,52 @@ import {
   ChevronLeft,
   Lock,
   Layers,
-  Sparkles
+  Sparkles,
+  ArrowUpDown,
+  Search
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 
 import { formatDbListing } from "@/lib/listings-service";
+
+function getLocalizedBadge(badge: string) {
+  const b = badge.toLowerCase();
+  if (b.includes("trusted") || b.includes("trust") || b.includes("სანდო")) {
+    return {
+      label: "სანდო გამყიდველი",
+      icon: ShieldCheck,
+      color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
+    };
+  }
+  if (b.includes("verif") || b.includes("ვერიფიცირებული")) {
+    return {
+      label: "ვერიფიცირებული მაღაზია",
+      icon: ShieldCheck,
+      color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
+    };
+  }
+  if (b.includes("green") || b.includes("thumb") || b.includes("მებაღე")) {
+    return {
+      label: "გამოცდილი მებაღე",
+      icon: Sprout,
+      color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
+    };
+  }
+  if (b.includes("top") || b.includes("ტოპ")) {
+    return {
+      label: "ტოპ გამყიდველი",
+      icon: Award,
+      color: "text-amber-800 dark:text-amber-300 bg-amber-500/15 border-amber-500/30",
+    };
+  }
+  return {
+    label: badge,
+    icon: Sparkles,
+    color: "text-foreground bg-secondary-container/80 border-border/60",
+  };
+}
 
 export default function ShopStorefrontPage({
   params: { slug },
@@ -39,6 +78,8 @@ export default function ShopStorefrontPage({
 
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [activeTab, setActiveTab] = React.useState<"all" | "PLANT" | "INVENTORY">("all");
+  const [sortBy, setSortBy] = React.useState<"newest" | "price-asc" | "price-desc" | "views">("newest");
+  const [searchQuery, setSearchQuery] = React.useState("");
   const [copied, setCopied] = React.useState(false);
 
   // Shop Profile State
@@ -119,9 +160,28 @@ export default function ShopStorefrontPage({
     loadShopData();
   }, [slug, supabase]);
 
-  const filteredListings = shopListings.filter((l) =>
-    activeTab === "all" ? true : l.itemType === activeTab
-  );
+  const plantCount = React.useMemo(() => shopListings.filter((l) => l.itemType === "PLANT").length, [shopListings]);
+  const inventoryCount = React.useMemo(() => shopListings.filter((l) => l.itemType === "INVENTORY").length, [shopListings]);
+
+  const filteredAndSortedListings = React.useMemo(() => {
+    let result = shopListings.filter((l) => {
+      if (activeTab !== "all" && l.itemType !== activeTab) return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const matchTitle = (l.title || "").toLowerCase().includes(q);
+        const matchDesc = (l.descriptionKa || "").toLowerCase().includes(q);
+        if (!matchTitle && !matchDesc) return false;
+      }
+      return true;
+    });
+
+    return [...result].sort((a, b) => {
+      if (sortBy === "price-asc") return (a.price || 0) - (b.price || 0);
+      if (sortBy === "price-desc") return (b.price || 0) - (a.price || 0);
+      if (sortBy === "views") return (b.viewsCount || 0) - (a.viewsCount || 0);
+      return 0; // newest / default
+    });
+  }, [shopListings, activeTab, searchQuery, sortBy]);
 
   const copyShopLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -199,15 +259,19 @@ export default function ShopStorefrontPage({
 
                 {/* Badges Earned */}
                 <div className="flex flex-wrap gap-1.5 pt-2">
-                  {shop.badges.map((b: string) => (
-                    <span
-                      key={b}
-                      className="inline-flex items-center gap-1 rounded-lg bg-emerald-500/15 px-2.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-300"
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      {b}
-                    </span>
-                  ))}
+                  {shop.badges.map((b: string) => {
+                    const info = getLocalizedBadge(b);
+                    const IconComponent = info.icon;
+                    return (
+                      <span
+                        key={b}
+                        className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[11px] font-bold border transition-all ${info.color}`}
+                      >
+                        <IconComponent className="w-3 h-3" />
+                        <span>{info.label}</span>
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -247,57 +311,113 @@ export default function ShopStorefrontPage({
 
         {/* 3. Shop Catalog & Inventory Feed */}
         <div className="mt-10">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-foreground">
+              <h2 className="text-lg sm:text-xl font-extrabold text-foreground flex items-center gap-2">
+                <Store className="w-5 h-5 text-primary" />
                 მაღაზიის ასორტიმენტი
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                სულ {shopListings.length} აქტიური განცხადება
+                სულ {filteredAndSortedListings.length} აქტიური განცხადება
               </p>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-muted/60 border border-border/80">
-              <button
-                onClick={() => setActiveTab("all")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === "all"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                ყველა ({shopListings.length})
-              </button>
-              <button
-                onClick={() => setActiveTab("PLANT")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === "PLANT"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                🌱 მცენარეები
-              </button>
-              <button
-                onClick={() => setActiveTab("INVENTORY")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === "INVENTORY"
-                    ? "bg-card text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                🪴 ინვენტარი
-              </button>
+            {/* Toolbar: Category Filter Tabs & Sorting */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Category Filter Tabs */}
+              <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary-container/60 border border-border/60">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("all")}
+                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "all"
+                      ? "bg-card text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  ყველა ({shopListings.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("PLANT")}
+                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "PLANT"
+                      ? "bg-card text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  🌱 მცენარეები ({plantCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("INVENTORY")}
+                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "INVENTORY"
+                      ? "bg-card text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  🪴 ინვენტარი ({inventoryCount})
+                </button>
+              </div>
+
+              {/* Sorting Control Pills (Strict order: უახლესი - პოპულარული - ფასი) */}
+              <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary-container/60 border border-border/60">
+                <button
+                  type="button"
+                  onClick={() => setSortBy("newest")}
+                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                    sortBy === "newest"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  უახლესი
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy("views")}
+                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                    sortBy === "views"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  👁️ პოპულარული
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy(sortBy === "price-asc" ? "price-desc" : "price-asc")}
+                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    sortBy.startsWith("price")
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="ფასით სორტირება (დაკლიკეთ მიმართულების შესაცვლელად)"
+                >
+                  <span>ფასი</span>
+                  <ArrowUpDown className="w-3 h-3" />
+                  {sortBy === "price-asc" && <span className="text-[10px] font-black">↑</span>}
+                  {sortBy === "price-desc" && <span className="text-[10px] font-black">↓</span>}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* Listings Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredListings.map((listing) => (
-              <ListingCard key={listing.id} {...listing} />
-            ))}
-          </div>
+          {/* Compact Listings Grid: 6 columns on large screens (xl:grid-cols-6) */}
+          {filteredAndSortedListings.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
+              {filteredAndSortedListings.map((listing) => (
+                <ListingCard key={listing.id} {...listing} variant="compact" />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border/80">
+              <Sprout className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+              <h3 className="text-base font-bold text-foreground">განცხადებები არ მოიძებნა</h3>
+              <p className="text-xs text-muted-foreground mt-1">სცადეთ სხვა კატეგორია ან ფილტრი</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

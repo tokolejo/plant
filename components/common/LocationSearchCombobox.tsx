@@ -122,7 +122,7 @@ export function LocationSearchCombobox({
   const displayLabel = selectedCity || "მთელი საქართველო";
 
   return (
-    <div className={`relative isolate ${className}`} ref={dropdownRef}>
+    <div className={`relative ${isOpen ? "z-[60]" : "z-10"} ${className}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"
@@ -142,7 +142,7 @@ export function LocationSearchCombobox({
       {/* Dropdown Menu Modal */}
       {isOpen && (
         <div
-          className="absolute left-0 top-full mt-2 w-72 sm:w-80 rounded-[20px] border border-border/80 bg-card shadow-2xl shadow-black/25 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          className="absolute left-0 top-full mt-2 w-full min-w-[270px] sm:min-w-[290px] rounded-[20px] border border-border/90 bg-card shadow-2xl shadow-black/30 z-[9999] overflow-hidden animate-in fade-in zoom-in-95 duration-150"
           style={{ maxHeight: "min(420px, 80vh)" }}
         >
           {/* Search Header */}

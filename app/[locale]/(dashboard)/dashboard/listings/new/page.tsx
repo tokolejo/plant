@@ -42,6 +42,56 @@ export interface GeminiPlantRecognitionResult {
   tags?: string[];
 }
 
+const TRADE_TAG_AUTOCOMPLETE_LIST = [
+  "კაქტუსი (Cactus)",
+  "სუქულენტი (Succulent)",
+  "კაქტუსები / სუქულენტები",
+  "მონსტერა (Monstera)",
+  "მონსტერა ალბო (Monstera Albo)",
+  "მონსტერა ტაი (Thai Constellation)",
+  "მონსტერა ადონსონი (Adansonii)",
+  "ფილოდენდრონი (Philodendron)",
+  "ფილოდენდრონი ვარდისფერი (Pink Princess)",
+  "ფილოდენდრონი თეთრი რაინდი (White Knight)",
+  "ალოკაზია (Alocasia)",
+  "ალოკაზია პოლი (Polly)",
+  "ანთურიუმი (Anthurium)",
+  "ანთურიუმ კლარინერვიუმი (Clarinervium)",
+  "ორქიდეა (Orchid)",
+  "ფალენოპსისი (Phalaenopsis)",
+  "ფიკუსი (Ficus)",
+  "ფიკუს ლირატა (Ficus Lyrata)",
+  "ფიკუს ბენჯამინა (Ficus Benjamina)",
+  "ფიკუს ელასტიკა (Ficus Elastica)",
+  "კალათეა (Calathea)",
+  "მარანტა (Maranta)",
+  "პოთოსი (Pothos)",
+  "სცინდაპსუსი (Scindapsus)",
+  "პალმა (Palm)",
+  "გვიმრა (Fern)",
+  "ბეგონია (Begonia)",
+  "სანსევიერია (Sansevieria)",
+  "ზამიოკულკასი (ZZ Plant)",
+  "ხოია (Hoya)",
+  "სინგონიუმი (Syngonium)",
+  "ეპიპრემნუმი (Epipremnum)",
+  "ბონსაი (Bonsai)",
+  "ქოთნები (Pots)",
+  "კერამიკული ქოთანი",
+  "თიხის ქოთანი",
+  "სუბსტრატი / გრუნტი",
+  "პერლიტი / ვერმიკულიტი",
+  "ორგანული სასუქი",
+  "ფიტოლამპა / განათება",
+];
+
+const TRADE_PRESETS = [
+  "ნებისმიერი მცენარე",
+  "შემომთავაზეთ",
+  "იშვიათი მცენარეები",
+  "ქოთნები & ინვენტარი",
+];
+
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -60,6 +110,10 @@ export default function CreateListingPage() {
 
   // Form State
   const [itemType, setItemType] = React.useState<"PLANT" | "INVENTORY">("PLANT");
+  const [plantCategory, setPlantCategory] = React.useState("monstera");
+  const [customCategory, setCustomCategory] = React.useState("");
+  const [isCustomCategory, setIsCustomCategory] = React.useState(false);
+  const [dbCategories, setDbCategories] = React.useState<any[]>([]);
   const [transactionType, setTransactionType] = React.useState<"FIXED" | "NEGOTIABLE" | "TRADE" | "GIFT">("FIXED");
   const [titleKa, setTitleKa] = React.useState("");
   const [titleEn, setTitleEn] = React.useState("");
@@ -72,6 +126,8 @@ export default function CreateListingPage() {
   const [deliveryMethods, setDeliveryMethods] = React.useState<string[]>(["PICKUP"]);
   const [tagInput, setTagInput] = React.useState("");
   const [tradeTags, setTradeTags] = React.useState<string[]>([]);
+  const [showTagAutocomplete, setShowTagAutocomplete] = React.useState(false);
+  const tagInputWrapperRef = React.useRef<HTMLDivElement>(null);
   
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [previews, setPreviews] = React.useState<string[]>([]);
@@ -79,6 +135,49 @@ export default function CreateListingPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [uploadProgress, setUploadProgress] = React.useState<string>("");
   const [errorMsg, setErrorMsg] = React.useState("");
+
+  // Fetch dynamic categories from Supabase
+  React.useEffect(() => {
+    async function loadCategories() {
+      try {
+        const { data } = await supabase.from("categories").select("*").order("name_ka");
+        if (data && data.length > 0) {
+          setDbCategories(data);
+        }
+      } catch (err) {
+        console.warn("Could not load categories:", err);
+      }
+    }
+    loadCategories();
+  }, [supabase]);
+
+  // Close tag autocomplete on outside click
+  React.useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (tagInputWrapperRef.current && !tagInputWrapperRef.current.contains(e.target as Node)) {
+        setShowTagAutocomplete(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
+
+  const matchedSuggestions = React.useMemo(() => {
+    if (!tagInput.trim()) return [];
+    const q = tagInput.toLowerCase().trim();
+    return TRADE_TAG_AUTOCOMPLETE_LIST.filter(
+      (s) => s.toLowerCase().includes(q) && !tradeTags.includes(s)
+    ).slice(0, 6);
+  }, [tagInput, tradeTags]);
+
+  const addSpecificTag = (tagToAdd: string) => {
+    const trimmed = tagToAdd.trim();
+    if (trimmed && !tradeTags.includes(trimmed)) {
+      setTradeTags([...tradeTags, trimmed]);
+      setTagInput("");
+      setShowTagAutocomplete(false);
+    }
+  };
 
   // Gemini AI Plant Recognition State
   const [aiDetecting, setAiDetecting] = React.useState(false);
@@ -298,6 +397,10 @@ export default function CreateListingPage() {
 
       setUploadProgress("განცხადება ინახება მონაცემთა ბაზაში...");
 
+      const finalCategory = isCustomCategory && customCategory.trim() 
+        ? customCategory.trim() 
+        : plantCategory;
+
       const { data, error: insertError } = await supabase.from("listings").insert({
         user_id: user.id,
         title_ka: titleKa.trim() || titleEn.trim(),
@@ -305,6 +408,8 @@ export default function CreateListingPage() {
         description_ka: descKa.trim(),
         description_en: descEn.trim(),
         item_type: itemType,
+        plant_category: finalCategory,
+        inventory_category: itemType === "INVENTORY" ? finalCategory : null,
         status: "ACTIVE",
         price: (transactionType === "TRADE" || transactionType === "GIFT") ? 0 : parseFloat(price || "0"),
         transaction_type: transactionType,
@@ -345,15 +450,20 @@ export default function CreateListingPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* 1. Item Type */}
-        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-3">
-            1. კატეგორია
+        {/* 1. Item Type & Dynamic Category Selection */}
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
+          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+            1. კატეგორია & ტიპი
           </label>
+          
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setItemType("PLANT")}
+              onClick={() => {
+                setItemType("PLANT");
+                setPlantCategory("monstera");
+                setIsCustomCategory(false);
+              }}
               className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 itemType === "PLANT"
                   ? "border-primary bg-primary/10 text-primary shadow-xs"
@@ -365,7 +475,11 @@ export default function CreateListingPage() {
             </button>
             <button
               type="button"
-              onClick={() => setItemType("INVENTORY")}
+              onClick={() => {
+                setItemType("INVENTORY");
+                setPlantCategory("pots-ceramic");
+                setIsCustomCategory(false);
+              }}
               className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 itemType === "INVENTORY"
                   ? "border-primary bg-primary/10 text-primary shadow-xs"
@@ -373,8 +487,101 @@ export default function CreateListingPage() {
               }`}
             >
               <Layers className="w-4 h-4" />
-              <span>🪴 ინვენტარი / ქოთანი</span>
+              <span>🪴 ინვენტარი / მოვლა</span>
             </button>
+          </div>
+
+          {/* Sub-Category Picker */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-bold text-foreground block">
+                {itemType === "PLANT" ? "მცენარის სახეობა / ჯგუფი" : "ინვენტარის კატეგორია"}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsCustomCategory(!isCustomCategory)}
+                className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
+              >
+                {isCustomCategory ? "← სიიდან არჩევა" : "+ ახალი კატეგორიის ჩაწერა"}
+              </button>
+            </div>
+
+            {isCustomCategory ? (
+              <div className="space-y-1">
+                <Input
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  placeholder="მაგ: კაქტუსი, სუკულენტი, ბონსაი, ორქიდეა..."
+                  className="rounded-[14px] h-10 text-xs sm:text-sm font-semibold"
+                  autoFocus
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  💡 ჩაწერილი ახალი კატეგორია ავტომატურად შეიქმნება ბაზაში და გამოჩნდება შოპის ფილტრებში.
+                </p>
+              </div>
+            ) : (
+              <select
+                value={plantCategory}
+                onChange={(e) => {
+                  if (e.target.value === "__custom__") {
+                    setIsCustomCategory(true);
+                  } else {
+                    setPlantCategory(e.target.value);
+                  }
+                }}
+                className="w-full h-10 rounded-[14px] border border-border/80 bg-background px-3 py-2 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
+              >
+                {itemType === "PLANT" ? (
+                  <>
+                    <optgroup label="პოპულარული მცენარეები">
+                      <option value="monstera">🌿 მონსტერა (Monstera)</option>
+                      <option value="philodendron">🌱 ფილოდენდრონი (Philodendron)</option>
+                      <option value="cactus-succulent">🌵 კაქტუსი & სუქულენტი</option>
+                      <option value="orchid">🌸 ორქიდეა (Orchid)</option>
+                      <option value="anthurium">🌺 ანთურიუმი (Anthurium)</option>
+                      <option value="alocasia">🍃 ალოკაზია (Alocasia)</option>
+                      <option value="calathea">🌿 კალათეა / მარანტა</option>
+                      <option value="pothos-scindapsus">🌾 პოთოსი / სცინდაპსუსი</option>
+                      <option value="ficus">🌳 ფიკუსი (Ficus)</option>
+                      <option value="palm">🌴 პალმა (Palm)</option>
+                      <option value="fern">🌿 გვიმრა (Fern)</option>
+                      <option value="bonsai">🎋 ბონსაი (Bonsai)</option>
+                      <option value="sansevieria">🪴 სანსევიერია</option>
+                      <option value="zz-plant">🌿 ზამიოკულკასი (ZZ)</option>
+                      <option value="rare-variegated">✨ იშვიათი & ვარიეგატული</option>
+                      <option value="cutting">✂️ კალმები & ნერგები</option>
+                      <option value="outdoor-garden">🌻 ბაღის & ეზოს მცენარეები</option>
+                    </optgroup>
+                    {dbCategories.filter(c => c.item_type === "PLANT" && !c.is_system).length > 0 && (
+                      <optgroup label="მომხმარებლების მიერ დამატებული კატეგორიები">
+                        {dbCategories.filter(c => c.item_type === "PLANT" && !c.is_system).map(c => (
+                          <option key={c.slug} value={c.slug}>{c.icon || "🌿"} {c.name_ka}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <optgroup label="ინვენტარი & მოვლა">
+                      <option value="pots-ceramic">🏺 კერამიკული ქოთნები & სადგამები</option>
+                      <option value="pots-plastic">🪣 პლასტიკური & საწარმოო ქოთნები</option>
+                      <option value="substrate-soil">🌍 სუბსტრატები, გრუნტი & პერლიტი</option>
+                      <option value="fertilizer">🧪 სასუქები & ვიტამინები</option>
+                      <option value="tools-care">🔧 მოვლის ხელსაწყოები</option>
+                      <option value="lighting-grow">💡 ფიტო-განათება (Grow Light)</option>
+                    </optgroup>
+                    {dbCategories.filter(c => c.item_type === "INVENTORY" && !c.is_system).length > 0 && (
+                      <optgroup label="დამატებითი ინვენტარი">
+                        {dbCategories.filter(c => c.item_type === "INVENTORY" && !c.is_system).map(c => (
+                          <option key={c.slug} value={c.slug}>{c.icon || "📦"} {c.name_ka}</option>
+                        ))}
+                      </optgroup>
+                    )}
+                  </>
+                )}
+                <option value="__custom__">✨ + სხვა / ახალი კატეგორიის ჩაწერა...</option>
+              </select>
+            )}
           </div>
         </div>
 
@@ -568,33 +775,119 @@ export default function CreateListingPage() {
               />
             </div>
           ) : (
-            <div className="rounded-[18px] bg-amber-500/10 border border-amber-500/20 p-4">
-              <span className="text-xs font-bold text-amber-800 dark:text-amber-300 block mb-2">
-                🔄 რაში გსურთ გაცვლა? (Trade Tags)
-              </span>
-              <div className="flex gap-2 mb-3">
-                <Input
-                  value={tagInput}
-                  onChange={(e) => setTagInput(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTradeTag())}
-                  placeholder="მაგ: Monstera Albo, Philodendron..."
-                  className="text-xs rounded-[14px] h-9"
-                />
-                <Button type="button" onClick={addTradeTag} size="sm" className="rounded-[14px] bg-primary text-white text-xs font-bold">
-                  + დამატება
-                </Button>
+            <div className="rounded-[18px] bg-amber-500/10 border border-amber-500/20 p-4 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <span className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                  <span>🔄</span> რაში გსურთ გაცვლა? (არჩევითი)
+                </span>
+                <span className="text-[10px] text-amber-700/80 dark:text-amber-400 font-medium">
+                  შეგიძლიათ დატოვოთ ცარიელი
+                </span>
               </div>
 
-              <div className="flex flex-wrap gap-1.5">
-                {tradeTags.map((tag) => (
-                  <Badge key={tag} variant="amber" className="gap-1 text-xs rounded-full">
-                    #{tag}
-                    <button type="button" onClick={() => removeTradeTag(tag)} className="cursor-pointer">
-                      <X className="w-3 h-3" />
-                    </button>
-                  </Badge>
-                ))}
+              {/* Quick Preset Badges — Strictly 4 Presets */}
+              <div>
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block mb-1.5">
+                  სწრაფი არჩევანი (დააკლიკეთ):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {TRADE_PRESETS.map((preset) => {
+                    const isSelected = tradeTags.includes(preset);
+                    return (
+                      <button
+                        key={preset}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            removeTradeTag(preset);
+                          } else {
+                            addSpecificTag(preset);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer border ${
+                          isSelected
+                            ? "bg-amber-600 text-white border-amber-600 shadow-2xs"
+                            : "bg-card hover:bg-amber-500/15 text-foreground border-border/70 shadow-2xs"
+                        }`}
+                      >
+                        {isSelected ? "✓ " : "+ "}
+                        {preset}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Custom Tag Input with Live Autocomplete */}
+              <div className="relative" ref={tagInputWrapperRef}>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      value={tagInput}
+                      onChange={(e) => {
+                        setTagInput(e.target.value);
+                        setShowTagAutocomplete(true);
+                      }}
+                      onFocus={() => setShowTagAutocomplete(true)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          if (matchedSuggestions.length > 0 && tagInput.trim()) {
+                            addSpecificTag(matchedSuggestions[0]);
+                          } else {
+                            addTradeTag();
+                          }
+                        }
+                      }}
+                      placeholder="ჩაწერე მცენარე: მაგ. კაქტუსი, სუკულენტი, Monstera..."
+                      className="text-xs rounded-[14px] h-9 bg-card font-medium"
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={addTradeTag}
+                    size="sm"
+                    className="rounded-[14px] bg-primary text-white text-xs font-bold shrink-0 cursor-pointer h-9 px-4"
+                  >
+                    + დამატება
+                  </Button>
+                </div>
+
+                {/* 🔍 Live Autocomplete Suggestions Popup */}
+                {showTagAutocomplete && matchedSuggestions.length > 0 && (
+                  <div className="absolute left-0 right-16 top-full mt-1.5 max-h-48 overflow-y-auto rounded-[14px] border border-border/80 bg-card shadow-ambient-lg z-50 p-1.5 space-y-0.5 animate-in fade-in zoom-in-95 duration-100">
+                    <span className="text-[10px] font-bold text-muted-foreground px-2.5 py-1 block uppercase tracking-wider">
+                      შემოთავაზებული მცენარეები & ინვენტარი:
+                    </span>
+                    {matchedSuggestions.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => addSpecificTag(suggestion)}
+                        className="w-full text-left px-3 py-1.5 rounded-[10px] text-xs font-semibold hover:bg-amber-500/15 text-foreground transition-colors cursor-pointer flex items-center justify-between"
+                      >
+                        <span>🌿 {suggestion}</span>
+                        <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold">+ დამატება</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Active Selected Tags */}
+              {tradeTags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {tradeTags.map((tag) => (
+                    <Badge key={tag} variant="amber" className="gap-1 text-xs rounded-full py-0.5 px-2.5">
+                      #{tag}
+                      <button type="button" onClick={() => removeTradeTag(tag)} className="cursor-pointer hover:opacity-75">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>

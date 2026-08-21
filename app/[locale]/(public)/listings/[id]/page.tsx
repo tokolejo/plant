@@ -28,16 +28,82 @@ import {
   CheckCircle2,
   Gift,
   ExternalLink,
+  Edit3,
   ShoppingBag,
   Layers,
   Sun,
   Droplets,
   Thermometer,
-  Boxes
+  Boxes,
+  Copy,
+  Check,
+  Navigation
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+
+// ─── Social Platform Icons ──────────────────────────────────────────────────
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className || "w-4 h-4 fill-current"} viewBox="0 0 24 24">
+      <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className || "w-4 h-4 fill-current"} viewBox="0 0 24 24">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+    </svg>
+  );
+}
+
+function TelegramIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className || "w-4 h-4 fill-current"} viewBox="0 0 24 24">
+      <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.121l-6.87 4.326-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.458c.538-.196 1.006.128.832.941z"/>
+    </svg>
+  );
+}
+
+function getLocalizedBadge(badge: string) {
+  const b = badge.toLowerCase();
+  if (b.includes("trusted") || b.includes("trust") || b.includes("სანდო")) {
+    return {
+      label: "სანდო გამყიდველი",
+      icon: ShieldCheck,
+      color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
+    };
+  }
+  if (b.includes("verif") || b.includes("ვერიფიცირებული")) {
+    return {
+      label: "ვერიფიცირებული",
+      icon: CheckCircle2,
+      color: "text-blue-800 dark:text-blue-300 bg-blue-500/15 border-blue-500/30",
+    };
+  }
+  if (b.includes("green") || b.includes("thumb") || b.includes("მებაღე")) {
+    return {
+      label: "გამოცდილი მებაღე",
+      icon: Sprout,
+      color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
+    };
+  }
+  if (b.includes("top") || b.includes("ტოპ")) {
+    return {
+      label: "ტოპ გამყიდველი",
+      icon: Award,
+      color: "text-amber-800 dark:text-amber-300 bg-amber-500/15 border-amber-500/30",
+    };
+  }
+  return {
+    label: badge,
+    icon: ShieldCheck,
+    color: "text-foreground bg-secondary-container/80 border-border/60",
+  };
+}
 
 // ─── Curated Partner Retailers & Agro Hypermarkets (Domino, Gorgia, Agrohub, Bricorama) ───
 const RECOMMENDED_INVENTORY = [
@@ -121,6 +187,33 @@ const RECOMMENDED_INVENTORY = [
   },
 ];
 
+const CATEGORY_NAMES_KA: Record<string, { label: string; emoji: string }> = {
+  monstera: { label: "მონსტერა", emoji: "🌿" },
+  philodendron: { label: "ფილოდენდრონი", emoji: "🌱" },
+  anthurium: { label: "ანთურიუმი", emoji: "🌺" },
+  alocasia: { label: "ალოკაზია", emoji: "🍃" },
+  calathea: { label: "კალათეა / მარანტა", emoji: "🌿" },
+  "pothos-scindapsus": { label: "პოთოსი / სცინდაპსუსი", emoji: "🌾" },
+  orchid: { label: "ორქიდეა", emoji: "🌸" },
+  bromeliad: { label: "ბრომელია", emoji: "🌺" },
+  ficus: { label: "ფიკუსი", emoji: "🌳" },
+  palm: { label: "პალმა", emoji: "🌴" },
+  fern: { label: "გვიმრა", emoji: "🌿" },
+  "outdoor-garden": { label: "ბაღის & ეზოს", emoji: "🌻" },
+  "cactus-succulent": { label: "კაქტუსი & სუქულენტი", emoji: "🌵" },
+  "rare-variegated": { label: "იშვიათი & ვარიეგატული", emoji: "✨" },
+  cutting: { label: "კალმები & ნერგები", emoji: "✂️" },
+  bonsai: { label: "ბონსაი", emoji: "🎋" },
+  sansevieria: { label: "სანსევიერია", emoji: "🪴" },
+  "zz-plant": { label: "ზამიოკულკასი", emoji: "🌿" },
+  "pots-ceramic": { label: "კერამიკული ქოთნები", emoji: "🏺" },
+  "pots-plastic": { label: "პლასტიკური ქოთნები", emoji: "🪣" },
+  "substrate-soil": { label: "სუბსტრატი & გრუნტი", emoji: "🌍" },
+  fertilizer: { label: "სასუქები & მოვლა", emoji: "🧪" },
+  "tools-care": { label: "მოვლის ხელსაწყოები", emoji: "🔧" },
+  "lighting-grow": { label: "ფიტო-განათება", emoji: "💡" },
+};
+
 import { formatDbListing } from "@/lib/listings-service";
 
 export default function ListingDetailPage({
@@ -139,7 +232,7 @@ export default function ListingDetailPage({
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
 
-  // Fetch real listing from Supabase if not a mock ID or to get fresh updates
+  // Fetch real listing from Supabase
   React.useEffect(() => {
     async function loadRealListing() {
       try {
@@ -168,7 +261,35 @@ export default function ListingDetailPage({
       }
     }
     loadRealListing();
+
+    // Supabase Realtime Subscription
+    const channel = supabase
+      .channel(`listing-detail-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "listings", filter: `id=eq.${id}` },
+        (payload) => {
+          if (payload.new && (payload.new as any).id) {
+            setListing((prev: any) => ({
+              ...prev,
+              ...formatDbListing(payload.new, prev?.seller),
+            }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [id, supabase]);
+
+  const rawCat = listing.plantCategory || listing.plant_category || listing.inventory_category;
+  const categoryInfo = rawCat
+    ? CATEGORY_NAMES_KA[rawCat] || { label: rawCat, emoji: listing.itemType === "INVENTORY" ? "📦" : "🌿" }
+    : null;
+
+  const displayTitle = (listing.title || "").replace(/^(\s*🎁\s*საჩუქარი:?\s*|\s*🎁\s*|\s*საჩუქარი:?\s*)/i, "").trim();
 
   // Carousel Refs for smooth arrow scrolling
   const inventoryScrollRef = React.useRef<HTMLDivElement>(null);
@@ -220,19 +341,64 @@ export default function ListingDetailPage({
   const [newComment, setNewComment] = React.useState("");
   const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
 
+  const [currentUserProfile, setCurrentUserProfile] = React.useState<any>(null);
+
   React.useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       setCurrentUser(user);
+      if (user) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("is_admin, subscription_tier")
+          .eq("id", user.id)
+          .single();
+        if (prof) setCurrentUserProfile(prof);
+      }
     });
   }, [supabase]);
 
-  const handlePhoneClick = () => {
-    if (!currentUser) {
-      setAuthModalOpen(true);
-      return;
+  const [copiedLink, setCopiedLink] = React.useState(false);
+
+  // Seller phone formatting
+  const rawSellerPhone = listing.seller?.phone || "557 579 123";
+  const cleanPhoneDigits = rawSellerPhone.replace(/\D/g, "") || "557579123";
+
+  // Masked format: "557 579 ***"
+  const maskedPhone = cleanPhoneDigits.length >= 6 
+    ? `${cleanPhoneDigits.slice(0, 3)} ${cleanPhoneDigits.slice(3, 6)} ***`
+    : "557 579 ***";
+
+  // Full formatted phone: "557 579 123"
+  const formattedFullPhone = cleanPhoneDigits.length >= 9
+    ? `${cleanPhoneDigits.slice(0, 3)} ${cleanPhoneDigits.slice(3, 6)} ${cleanPhoneDigits.slice(6, 9)}`
+    : rawSellerPhone;
+
+  const handlePhoneAction = () => {
+    if (!showPhone) {
+      setShowPhone(true);
+    } else {
+      window.location.href = `tel:+995${cleanPhoneDigits}`;
     }
-    setShowPhone(!showPhone);
   };
+
+  const handleCopyLink = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 2500);
+    }
+  };
+
+  const currentUrl = typeof window !== "undefined" ? window.location.href : "";
+  const shareFbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
+  const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${displayTitle} - Plant.ge\n${currentUrl}`)}`;
+  const shareTgUrl = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(displayTitle)}`;
+  const directWaChatUrl = `https://wa.me/995${cleanPhoneDigits}?text=${encodeURIComponent(`გამარჯობა, დავინტერესდი თქვენი მცენარით Plant.ge-ზე: "${displayTitle}"`)}`;
+
+  const fullAddressString = `${listing.city || "თბილისი"}${listing.address ? `, ${listing.address}` : ""}`;
+  const googleMapsUrl = listing.lat && listing.lng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`
+    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddressString)}`;
 
   const handleChatClick = () => {
     if (!currentUser) {
@@ -268,16 +434,34 @@ export default function ListingDetailPage({
     "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80"
   ];
 
+  const isOwner = currentUser && (currentUser.id === listing.seller?.id || currentUser.id === (listing as any).userId || currentUser.id === (listing as any).user_id);
+  const isAdmin = currentUser?.email === "tokolejo@gmail.com" || currentUserProfile?.is_admin === true;
+
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 max-w-6xl">
-      {/* Back to Catalog */}
-      <Link
-        href="/listings"
-        className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary mb-4 transition-colors"
-      >
-        <ChevronLeft className="w-4 h-4" />
-        უკან კატალოგში
-      </Link>
+      {/* Top Bar: Breadcrumb + Edit Button for Owner / Admin */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <Link
+          href="/listings"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          უკან კატალოგში
+        </Link>
+
+        {(isOwner || isAdmin) && (
+          <Link href={`/dashboard/listings/${listing.id}/edit`}>
+            <Button
+              size="sm"
+              className="rounded-[14px] bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs h-9 px-4 gap-1.5 shadow-ambient cursor-pointer"
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>განცხადების რედაქტირება</span>
+              {isAdmin && !isOwner && <span className="text-[10px] opacity-90">(Admin)</span>}
+            </Button>
+          </Link>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-7 items-start">
         {/* ══════════════════════════════════════════════════════════════════════
@@ -532,137 +716,261 @@ export default function ListingDetailPage({
         <div className="lg:col-span-5 space-y-4">
           {/* Main Info Card */}
           <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3.5">
-            {/* Title & Badges */}
+            {/* Title & Clickable Category / Type Badges */}
             <div>
-              <div className="flex flex-wrap gap-1.5 mb-2.5">
-                <Badge className="rounded-[8px] bg-secondary-container text-primary border-none text-[10.5px]">
-                  {listing.itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
-                </Badge>
-                {listing.transactionType === "GIFT" && (
-                  <Badge className="rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-none font-bold text-[10.5px]">
-                    🎁 გაჩუქება / უფასოდ
+              <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                {/* 1. Item Type Tag (Clickable) */}
+                <Link href={`/listings?type=${listing.itemType}`}>
+                  <Badge className="rounded-[8px] bg-secondary-container text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-border/50 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5">
+                    {listing.itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
                   </Badge>
+                </Link>
+
+                {/* 2. Specific Plant / Inventory Category Tag (Clickable) */}
+                {categoryInfo && (
+                  <Link href={`/listings?category=${encodeURIComponent(rawCat || "")}`}>
+                    <Badge className="rounded-[8px] bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-primary/30 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5">
+                      <span>{categoryInfo.emoji}</span>
+                      <span>{categoryInfo.label}</span>
+                    </Badge>
+                  </Link>
+                )}
+
+                {/* 3. Transaction Type Tag (Clickable) */}
+                {listing.transactionType === "GIFT" && (
+                  <Link href="/listings?trans=GIFT">
+                    <Badge className="rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/25 hover:scale-105 transition-all border border-emerald-500/30 font-bold text-[11px] cursor-pointer py-1 px-2.5">
+                      🎁 უფასო
+                    </Badge>
+                  </Link>
                 )}
                 {listing.transactionType === "TRADE" && (
-                  <Badge className="rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 border-none font-bold text-[10.5px]">
-                    🔄 გაცვლა / Swap
-                  </Badge>
+                  <Link href="/listings?trans=TRADE">
+                    <Badge className="rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 hover:bg-amber-500/25 hover:scale-105 transition-all border border-amber-500/30 font-bold text-[11px] cursor-pointer py-1 px-2.5">
+                      🔄 გაცვლა / Swap
+                    </Badge>
+                  </Link>
                 )}
                 {listing.transactionType === "NEGOTIABLE" && (
-                  <Badge variant="secondary" className="rounded-[8px] text-[10.5px]">შეთანხმებით</Badge>
+                  <Link href="/listings?trans=NEGOTIABLE">
+                    <Badge variant="secondary" className="rounded-[8px] text-[11px] font-bold hover:bg-secondary hover:scale-105 transition-all border border-border/50 cursor-pointer py-1 px-2.5">
+                      🤝 შეთანხმებით
+                    </Badge>
+                  </Link>
+                )}
+                {listing.transactionType === "FIXED" && (
+                  <Link href="/listings?trans=FIXED">
+                    <Badge variant="secondary" className="rounded-[8px] text-[11px] font-bold hover:bg-secondary hover:scale-105 transition-all border border-border/50 cursor-pointer py-1 px-2.5">
+                      💰 იყიდება
+                    </Badge>
+                  </Link>
                 )}
               </div>
 
               <h1 className="text-base sm:text-lg font-extrabold text-foreground leading-snug">
-                {listing.title}
+                {displayTitle}
               </h1>
 
-              <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-medium">
-                <MapPin className="w-3.5 h-3.5 text-primary" />
-                <span>{listing.city}</span>
-                <span>•</span>
-                <span>ნახვები: {listing.viewsCount || 100}+</span>
+              <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-medium flex-wrap">
+                <Link
+                  href={`/listings?city=${encodeURIComponent(listing.city)}`}
+                  className="hover:text-primary font-bold text-foreground transition-colors inline-flex items-center gap-1"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span>{listing.city}</span>
+                </Link>
+                {listing.address && (
+                  <>
+                    <span>•</span>
+                    <span className="text-foreground font-bold">{listing.address}</span>
+                  </>
+                )}
+                {/* Google Maps Directions Button */}
+                <a
+                  href={googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-[7px] border border-emerald-500/30 transition-colors cursor-pointer shadow-2xs"
+                  title="მარშრუტის გახსნა Google Maps-ში"
+                >
+                  <Navigation className="w-3 h-3 text-emerald-600" />
+                  <span>მარშრუტი (Google Maps)</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                </a>
               </div>
             </div>
 
-            {/* Price Display */}
-            <div className="rounded-[16px] bg-secondary-container/70 border border-border/40 p-3.5 flex items-baseline justify-between">
-              <div>
-                <span className="text-[10.5px] text-muted-foreground block font-medium">გარიგება & ფასი</span>
-                {listing.transactionType === "GIFT" ? (
-                  <span className="text-lg sm:text-xl font-black text-emerald-700 dark:text-emerald-400">
-                    🎁 უფასო საჩუქარი
-                  </span>
-                ) : listing.transactionType === "TRADE" ? (
-                  <span className="text-lg font-bold text-amber-700 dark:text-amber-300">
-                    მხოლოდ გაცვლა
-                  </span>
-                ) : (
-                  <span className="text-xl sm:text-2xl font-black text-primary dark:text-emerald-400">
+            {/* Price & Status Row */}
+            <div className="rounded-[14px] bg-secondary-container/60 border border-border/50 px-3.5 py-2.5 flex items-center justify-between">
+              {listing.transactionType === "GIFT" ? (
+                <span className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400">
+                  🎁 უფასო
+                </span>
+              ) : listing.transactionType === "TRADE" ? (
+                <span className="text-base sm:text-lg font-black text-amber-700 dark:text-amber-300">
+                  🔄 მხოლოდ გაცვლა
+                </span>
+              ) : (
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
                     {formatPrice(listing.price)}
                   </span>
-                )}
-              </div>
+                  {listing.transactionType === "NEGOTIABLE" && (
+                    <span className="text-xs text-muted-foreground font-semibold">
+                      (შეთანხმებით)
+                    </span>
+                  )}
+                </div>
+              )}
 
-              <span className="text-[11px] font-bold text-primary dark:text-emerald-400 bg-card px-2.5 py-1 rounded-[7px] shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-card border border-border/50 px-2.5 py-1 rounded-[7px] shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 აქტიური
               </span>
             </div>
 
-            {/* Delivery Methods */}
-            <div>
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground mb-1.5">
-                მიწოდების ვარიანტები:
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                <div className={`flex items-center gap-1.5 p-2 rounded-[10px] border text-xs ${
-                  listing.deliveryMethods.includes("PICKUP")
-                    ? "border-primary/40 bg-secondary-container/50 text-foreground font-semibold"
-                    : "border-border/40 text-muted-foreground opacity-50"
-                }`}>
-                  <MapPin className="w-3.5 h-3.5 text-primary" />
-                  <span>ადგილზე გატანა</span>
-                </div>
+            {/* Delivery Methods (All 3 on single compact line with dimmed inactives) */}
+            <div className="grid grid-cols-3 gap-1.5 text-center">
+              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
+                listing.deliveryMethods.includes("PICKUP")
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
+                  : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
+              }`}>
+                <MapPin className="w-3 h-3 shrink-0" />
+                <span className="truncate">ადგილიდან</span>
+              </div>
 
-                <div className={`flex items-center gap-1.5 p-2 rounded-[10px] border text-xs ${
-                  listing.deliveryMethods.includes("COURIER")
-                    ? "border-primary/40 bg-secondary-container/50 text-foreground font-semibold"
-                    : "border-border/40 text-muted-foreground opacity-50"
-                }`}>
-                  <Truck className="w-3.5 h-3.5 text-primary" />
-                  <span>საკურიერო მიწოდება</span>
-                </div>
+              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
+                listing.deliveryMethods.includes("COURIER")
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
+                  : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
+              }`}>
+                <Truck className="w-3 h-3 shrink-0" />
+                <span className="truncate">კურიერი</span>
+              </div>
 
-                <div className={`flex items-center gap-1.5 p-2 rounded-[10px] border text-xs sm:col-span-2 ${
-                  listing.deliveryMethods.includes("MARSHRUTKA")
-                    ? "border-primary/40 bg-secondary-container/50 text-foreground font-semibold"
-                    : "border-border/40 text-muted-foreground opacity-50"
-                }`}>
-                  <Truck className="w-3.5 h-3.5 text-primary" />
-                  <span>სამარშრუტო / რეგიონში გაგზავნა</span>
-                </div>
+              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
+                listing.deliveryMethods.includes("MARSHRUTKA")
+                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
+                  : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
+              }`}>
+                <Truck className="w-3 h-3 shrink-0" />
+                <span className="truncate">სამარშრუტო</span>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="space-y-2 pt-1">
-              <Button
-                size="lg"
-                onClick={handlePhoneClick}
-                className="w-full rounded-[14px] bg-primary hover:bg-primary-container text-white font-bold h-10.5 text-xs sm:text-sm gap-2 shadow-ambient"
+            {/* Actions & Share */}
+            <div className="space-y-2 pt-1 border-t border-border/40">
+              {/* Primary Phone Reveal & Dial (Centered, Compact & Non-Stretched) */}
+              <button
+                type="button"
+                onClick={handlePhoneAction}
+                className={`w-full h-11 px-4 rounded-[12px] font-bold flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs ${
+                  showPhone
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
+                    : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
+                }`}
               >
-                {showPhone ? (
-                  <>
-                    <Phone className="w-4 h-4" />
-                    <span>+995 599 12 34 56</span>
-                  </>
-                ) : (
-                  <>
-                    {currentUser ? <Phone className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-                    <span>ტელეფონის ნომრის ნახვა</span>
-                  </>
-                )}
-              </Button>
+                <Phone className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-black tracking-wider">
+                  {showPhone ? formattedFullPhone : maskedPhone}
+                </span>
+                <span className="text-[10.5px] px-2 py-0.5 rounded-[6px] bg-white/20 font-black ml-0.5">
+                  {showPhone ? "დარეკვა" : "ნახვა"}
+                </span>
+              </button>
 
-              <Button
-                variant="outline"
-                size="lg"
-                onClick={handleChatClick}
-                className="w-full rounded-[14px] font-bold h-10.5 text-xs sm:text-sm gap-2 border-border/80 hover:bg-surface-container"
-              >
-                <MessageSquare className="w-4 h-4 text-primary" />
-                მიწერა გამყიდველს (Live ჩატი)
-              </Button>
+              {/* Chat & WhatsApp Row */}
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href={directWaChatUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white shadow-2xs transition-all cursor-pointer"
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={handleChatClick}
+                  className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1.5 bg-secondary-container hover:bg-secondary text-foreground border border-border/50 transition-all cursor-pointer"
+                >
+                  <MessageSquare className="w-4 h-4 text-primary" />
+                  <span>Live ჩატი</span>
+                </button>
+              </div>
+
+              {/* Icon-Only Share Strip */}
+              <div className="pt-2 flex items-center justify-between">
+                <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+                  <Share2 className="w-3.5 h-3.5 text-primary" />
+                  გაზიარება
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={shareFbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Facebook-ზე გაზიარება"
+                    className="w-8 h-8 rounded-full bg-[#1877F2]/10 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-[#1877F2]/20 flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <FacebookIcon className="w-3.5 h-3.5" />
+                  </a>
+
+                  <a
+                    href={shareWaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="WhatsApp-ში გაზიარება"
+                    className="w-8 h-8 rounded-full bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5" />
+                  </a>
+
+                  <a
+                    href={shareTgUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Telegram-ში გაზიარება"
+                    className="w-8 h-8 rounded-full bg-[#229ED9]/10 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border border-[#229ED9]/20 flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <TelegramIcon className="w-3.5 h-3.5" />
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    title={copiedLink ? "დაკოპირდა!" : "ლინკის კოპირება"}
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                      copiedLink
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                        : "bg-secondary-container hover:bg-secondary text-foreground border-border/60"
+                    }`}
+                  >
+                    {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Bottom Metadata */}
+              <div className="pt-2 flex items-center justify-between text-[10.5px] text-muted-foreground font-medium border-t border-border/30">
+                <span>ID: {listing.id.slice(0, 8)}...</span>
+                <span>👁️ {listing.viewsCount || 100}+ ნახვა</span>
+              </div>
             </div>
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════════
-              SELLER PROFILE CARD
+              SELLER PROFILE CARD (Modern, Compact & Trustworthy)
           ══════════════════════════════════════════════════════════════════════ */}
-          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient">
-            <div className="flex items-center justify-between gap-3 mb-2.5">
-              <div className="flex items-center gap-2.5">
-                <div className="relative h-11 w-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
+          <div className="rounded-[18px] border border-border/70 bg-card p-3.5 sm:p-4 shadow-xs space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              {/* Avatar & Info */}
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="relative h-11 w-11 rounded-full ring-2 ring-primary/20 bg-secondary-container text-primary flex items-center justify-center font-black text-sm shrink-0 overflow-hidden">
                   {listing.seller.avatarUrl ? (
                     <Image
                       src={listing.seller.avatarUrl}
@@ -671,43 +979,84 @@ export default function ListingDetailPage({
                       className="rounded-full object-cover"
                     />
                   ) : (
-                    listing.seller.fullName.charAt(0)
+                    <span>{listing.seller.fullName.charAt(0)}</span>
                   )}
+                  {/* Verified check badge on avatar */}
+                  <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-600 border-2 border-card flex items-center justify-center text-white text-[9px] font-black">
+                    ✓
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-xs sm:text-sm text-foreground">
-                    {listing.seller.fullName}
-                  </h4>
-                  <div className="flex items-center gap-1 text-[11px] text-amber-500 font-semibold">
-                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    <span>{listing.seller.rating.toFixed(1)}</span>
-                    <span className="text-muted-foreground">({listing.seller.totalReviews || reviews.length} შეფასება)</span>
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="font-extrabold text-sm text-foreground truncate">
+                      {listing.seller.fullName}
+                    </h4>
+                    {listing.seller.tier && listing.seller.tier !== "FREE" && (
+                      <span className="px-1.5 py-0.2 rounded text-[9px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30">
+                        PRO
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 mt-0.5 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1 text-amber-500 font-bold">
+                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                      <span>{listing.seller.rating.toFixed(1)}</span>
+                      <span className="text-muted-foreground font-normal">
+                        ({listing.seller.totalReviews || reviews.length})
+                      </span>
+                    </div>
+                    <span>•</span>
+                    <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
+                      ⚡ სწრაფი პასუხი
+                    </span>
                   </div>
                 </div>
               </div>
 
-              {listing.seller.customSlug && (
+              {/* View Shop / All listings Button */}
+              {listing.seller.customSlug ? (
                 <Link href={`/shops/${listing.seller.customSlug}`}>
-                  <Button variant="ghost" size="sm" className="gap-1 text-xs font-semibold text-primary hover:bg-secondary-container rounded-[8px] h-8">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2.5 rounded-[9px] gap-1 text-xs font-bold text-primary hover:bg-primary/10 border-primary/30 shrink-0 cursor-pointer"
+                  >
                     <Store className="w-3.5 h-3.5" />
-                    მაღაზია
+                    <span>მაღაზია</span>
+                  </Button>
+                </Link>
+              ) : (
+                <Link href={`/listings?seller=${listing.seller.id}`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2.5 rounded-[9px] gap-1 text-[11px] font-bold text-foreground hover:text-primary hover:bg-secondary-container border-border/60 shrink-0 cursor-pointer"
+                  >
+                    <span>განცხადებები</span>
+                    <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </Link>
               )}
             </div>
 
-            {/* Badges Earned */}
+            {/* Badges Earned (Georgian & Styled) */}
             {listing.seller.badges && listing.seller.badges.length > 0 && (
-              <div className="rounded-[12px] bg-secondary-container/60 p-2 flex flex-wrap gap-1">
-                {listing.seller.badges.map((badge: string, idx: number) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1 rounded-[6px] bg-card px-2 py-0.5 text-[10.5px] font-bold text-primary shadow-2xs"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    {badge}
-                  </span>
-                ))}
+              <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/40">
+                {listing.seller.badges.map((badge: string, idx: number) => {
+                  const info = getLocalizedBadge(badge);
+                  const IconComponent = info.icon;
+                  return (
+                    <span
+                      key={idx}
+                      className={`inline-flex items-center gap-1 rounded-[7px] px-2 py-0.5 text-[11px] font-bold border transition-all ${info.color}`}
+                    >
+                      <IconComponent className="w-3 h-3 shrink-0" />
+                      <span>{info.label}</span>
+                    </span>
+                  );
+                })}
               </div>
             )}
           </div>

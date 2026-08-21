@@ -18,7 +18,7 @@ import {
   Crown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
+import { ListingCard } from "@/components/listings/ListingCard";
 import { getMergedListings } from "@/lib/listings-service";
 
 interface DiscoveryFeedProps {
@@ -34,7 +34,7 @@ export function DiscoveryFeed({ listings = SAMPLE_LISTINGS }: DiscoveryFeedProps
   const [allListings, setAllListings] = React.useState<ExtendedListingCardProps[]>(listings);
   const [totalDbCount, setTotalDbCount] = React.useState<number>(listings.length);
 
-  // Fetch live active listings and total count from Supabase
+  // Fetch live active listings and total count from Supabase + Realtime WebSockets
   React.useEffect(() => {
     async function loadLiveFeed() {
       try {
@@ -50,7 +50,23 @@ export function DiscoveryFeed({ listings = SAMPLE_LISTINGS }: DiscoveryFeedProps
       }
     }
     loadLiveFeed();
-  }, [isKa]);
+
+    // Supabase Realtime WebSocket subscription: updates automatically on any DB change
+    const channel = supabase
+      .channel("public:home_discovery_feed_sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "listings" },
+        () => {
+          loadLiveFeed();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isKa, supabase]);
 
   // Fair Premium Boost Sorting & Tab Filtering
   const filtered = React.useMemo(() => {
@@ -80,7 +96,7 @@ export function DiscoveryFeed({ listings = SAMPLE_LISTINGS }: DiscoveryFeedProps
           <div>
             <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2.5">
               <span className="text-2xl">🔥</span>
-              <span>{isKa ? "ახალი & პრემიუმ შეთავაზებები" : "New & Premium Listings"}</span>
+              <span>{isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}</span>
             </h2>
             <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               {isKa 
@@ -123,100 +139,11 @@ export function DiscoveryFeed({ listings = SAMPLE_LISTINGS }: DiscoveryFeedProps
           })}
         </div>
 
-        {/* Uniform Sized Card Grid with Premium VIP Highlights */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-          {filtered.slice(0, 10).map((item, idx) => {
-            const img = item.images?.[0] || "https://images.unsplash.com/photo-1545241047-6083a3684587?w=600&auto=format&fit=crop&q=80";
-            const isVip = item.isPremium || item.isFeatured;
-
-            // Generate contextual tag
-            let tag = { text: "🌿 ბოტანიკა", icon: Sprout, bg: "bg-secondary-container text-primary font-bold" };
-            if (isVip) {
-              tag = { text: "⭐ VIP TOP", icon: Crown, bg: "bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black shadow-md" };
-            } else if (item.transactionType === "TRADE") {
-              tag = { text: "Trade 🔄", icon: RefreshCw, bg: "bg-amber-500 text-white font-black" };
-            } else if (idx % 3 === 0) {
-              tag = { text: "Rare ✨", icon: Sparkles, bg: "bg-secondary-container text-primary font-bold" };
-            } else if (idx % 3 === 1) {
-              tag = { text: "High Light ☀️", icon: Sun, bg: "bg-secondary-container text-primary font-bold" };
-            }
-
-            const Icon = tag.icon;
-
-            return (
-              <Link
-                key={item.id}
-                href={`/listings/${item.id}`}
-                className={`group flex flex-col rounded-[24px] bg-card overflow-hidden transition-all duration-300 ${
-                  isVip
-                    ? "border-2 border-amber-500/70 dark:border-amber-400/60 shadow-lg shadow-amber-500/10 ring-2 ring-amber-500/15"
-                    : "border border-border/70 shadow-ambient hover:shadow-ambient-lg hover:border-primary/40"
-                }`}
-              >
-                {/* Top Image — Uniform 4:3 Aspect Ratio */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-container">
-                  <Image
-                    src={img}
-                    alt={item.title}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 33vw, 20vw"
-                  />
-
-                  {/* Floating VIP / Category Tag */}
-                  <div className="absolute top-3.5 left-3.5 z-10">
-                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] backdrop-blur-md ${tag.bg}`}>
-                      <Icon className="w-3.5 h-3.5" />
-                      <span>{tag.text}</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* Bottom Content Area */}
-                <div className="flex flex-1 flex-col p-4 sm:p-5">
-                  {/* Title & Price in Same Row */}
-                  <div className="flex items-start justify-between gap-2 mb-1.5">
-                    <h3 className="line-clamp-2 text-sm sm:text-[15px] font-bold text-foreground leading-snug group-hover:text-primary transition-colors flex-1">
-                      {item.title}
-                    </h3>
-                    <div className="shrink-0 text-right">
-                      {item.transactionType === "TRADE" ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
-                          გაცვლა
-                        </span>
-                      ) : (
-                        <span className={`text-base sm:text-lg font-black ${
-                          isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-primary-fixed"
-                        }`}>
-                          {formatPrice(item.price)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Category / Subtitle */}
-                  <p className="text-xs text-muted-foreground line-clamp-1 mb-3">
-                    {isVip 
-                      ? (isKa ? "⭐ პრემიუმ დაწინაურებული განცხადება" : "⭐ Premium Featured Listing") 
-                      : (item.itemType === "PLANT" ? "მცენარე, ფესვიანი კალამი" : "ბოტანიკური ინვენტარი")}
-                  </p>
-
-                  {/* City Location with Icon */}
-                  <div className="mt-auto pt-2.5 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground font-semibold">
-                    <span className="flex items-center gap-1 text-primary">
-                      <MapPin className="w-3.5 h-3.5 shrink-0" />
-                      <span>{item.city}</span>
-                    </span>
-                    {item.seller?.rating && (
-                      <span className="text-amber-600 font-bold">
-                        ★ {item.seller.rating.toFixed(1)}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </Link>
-            );
-          })}
+        {/* Uniform Sized Card Grid with Shared ListingCard Component */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-3.5">
+          {filtered.slice(0, 12).map((item) => (
+            <ListingCard key={item.id} {...item} variant="compact" />
+          ))}
         </div>
 
         {/* Center View All Button */}

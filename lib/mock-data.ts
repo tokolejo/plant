@@ -399,7 +399,7 @@ export const SAMPLE_LISTINGS: ExtendedListingCardProps[] = [
   },
   {
     id: "lst-16",
-    title: "🎁 საჩუქარი: Pothos და დაფესვიანებული მონსტერას კალმები",
+    title: "Pothos და დაფესვიანებული მონსტერას კალმები",
     price: 0,
     itemType: "PLANT",
     plantCategory: "pothos-scindapsus",

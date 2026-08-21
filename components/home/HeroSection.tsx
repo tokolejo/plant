@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "@/i18n/routing";
 import { LocationSearchCombobox } from "@/components/common/LocationSearchCombobox";
 import { createClient } from "@/utils/supabase/client";
+import { getMergedListings } from "@/lib/listings-service";
 import { 
   Search, 
   Sprout, 
@@ -22,41 +23,65 @@ export function HeroSection() {
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCity, setSelectedCity] = React.useState("მთელი საქართველო");
 
-  // Real Database Live Counts
+  // Real Database Live Counts Synced with Supabase ONLY
   const [stats, setStats] = React.useState({
-    totalUsers: 28,
-    totalListings: 15,
-    totalShops: 6,
-    totalTradesAndGifts: 8,
+    totalUsers: 0,
+    totalListings: 0,
+    totalShops: 0,
+    totalTradesAndGifts: 0,
   });
 
-  React.useEffect(() => {
-    async function loadPlatformStats() {
-      try {
-        const [
-          { count: usersCount },
-          { count: listingsCount },
-          { count: shopsCount },
-          { count: tradesGiftsCount }
-        ] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact", head: true }),
-          supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
-          supabase.from("profiles").select("*", { count: "exact", head: true }).neq("subscription_tier", "FREE"),
-          supabase.from("listings").select("*", { count: "exact", head: true }).in("transaction_type", ["TRADE", "GIFT"]),
-        ]);
+  const fetchLiveStats = React.useCallback(async () => {
+    try {
+      const [
+        { count: usersCount },
+        { count: listingsCount },
+        { count: tradesGiftsCount },
+        { count: shopsCount }
+      ] = await Promise.all([
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
+        supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "ACTIVE").in("transaction_type", ["TRADE", "GIFT"]),
+        supabase.from("profiles").select("*", { count: "exact", head: true }).not("custom_slug", "is", null),
+      ]);
 
-        setStats({
-          totalUsers: (usersCount && usersCount > 0) ? usersCount : 28,
-          totalListings: (listingsCount && listingsCount > 0) ? listingsCount : 15,
-          totalShops: (shopsCount && shopsCount > 0) ? shopsCount : 6,
-          totalTradesAndGifts: (tradesGiftsCount && tradesGiftsCount > 0) ? tradesGiftsCount : 8,
-        });
-      } catch (e) {
-        console.error("Failed to load real stats from Supabase:", e);
-      }
+      setStats({
+        totalUsers: usersCount || 0,
+        totalListings: listingsCount || 0,
+        totalShops: shopsCount || 0,
+        totalTradesAndGifts: tradesGiftsCount || 0,
+      });
+    } catch (e) {
+      console.error("Failed to load real stats from Supabase:", e);
     }
-    loadPlatformStats();
   }, [supabase]);
+
+  React.useEffect(() => {
+    fetchLiveStats();
+
+    // Supabase Realtime Listener: Auto-updates stats on user register, listing add/delete/update
+    const statsChannel = supabase
+      .channel("realtime-stats-sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "listings" },
+        () => {
+          fetchLiveStats();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          fetchLiveStats();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(statsChannel);
+    };
+  }, [fetchLiveStats, supabase]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,28 +97,72 @@ export function HeroSection() {
     <section className="relative py-6 sm:py-8 lg:py-10 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-        {/* Hero Heading + Subtitle — Compact, Elegant & Refined */}
-        <div className="text-center mb-5 sm:mb-6 max-w-3xl mx-auto">
-          {/* Botanical Badge */}
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-secondary-container/80 px-3 py-0.5 text-[11px] font-bold text-primary dark:text-primary-fixed mb-2.5 shadow-2xs">
-            <Sparkles className="w-3 h-3 text-primary" />
-            <span>ბოტანიკური მარკეტპლეისი & გაცვლის პლატფორმა</span>
-          </div>
-
-          {/* Compact Refined Title */}
-          <h1 className="text-xl sm:text-2xl lg:text-[28px] font-black tracking-tight text-foreground leading-snug mb-1.5">
+        {/* Hero Title — Clean, Bold & Minimalist */}
+        <div className="text-center mb-6 max-w-3xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black tracking-tight text-foreground leading-tight">
             იყიდე, გაყიდე,{" "}
             <span className="text-primary dark:text-emerald-400">
               გაცვალე მცენარეები
             </span>
           </h1>
-
-          <p className="text-xs sm:text-[13px] text-muted-foreground font-medium leading-relaxed max-w-xl mx-auto">
-            იშვიათი მონსტერები, ოთახის ყვავილები, კერამიკული ქოთნები, სუბსტრატები და უფასო საჩუქრები მთელი საქართველოს მასშტაბით.
-          </p>
         </div>
 
-        {/* Search Box — Spacious, Full-Container & Touch Friendly */}
+        {/* 📊 1. Live Real-Time Platform Statistics (100% Real Database Data) */}
+        <div className="mb-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
+          {/* 1. Users */}
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10 text-primary shrink-0">
+              <Users className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                {stats.totalUsers}
+              </p>
+              <p className="text-xs font-bold text-muted-foreground">მომხმარებელი</p>
+            </div>
+          </div>
+
+          {/* 2. Active Plant Listings */}
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <Sprout className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                {stats.totalListings}
+              </p>
+              <p className="text-xs font-bold text-muted-foreground">მცენარე</p>
+            </div>
+          </div>
+
+          {/* 3. Trades & Giveaways */}
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+              <Gift className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                {stats.totalTradesAndGifts}
+              </p>
+              <p className="text-xs font-bold text-muted-foreground">გაცვლა & გაჩუქება</p>
+            </div>
+          </div>
+
+          {/* 4. Verified Shops */}
+          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
+              <Store className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                {stats.totalShops}
+              </p>
+              <p className="text-xs font-bold text-muted-foreground">მაღაზია & სანერგე</p>
+            </div>
+          </div>
+        </div>
+
+        {/* 🔍 2. Search Box — Spacious, Full-Container & Touch Friendly */}
         <div className="relative max-w-4xl mx-auto z-20" style={{ overflow: 'visible' }}>
           <form
             onSubmit={handleSearch}
@@ -125,7 +194,7 @@ export function HeroSection() {
             {/* Submit Button */}
             <Button
               type="submit"
-              className="rounded-[16px] bg-primary hover:bg-primary-container text-white font-black text-sm h-11 sm:h-12 px-8 shadow-xs shrink-0"
+              className="rounded-[16px] bg-primary hover:bg-primary-container text-white font-black text-sm h-11 sm:h-12 px-8 shadow-xs shrink-0 cursor-pointer"
             >
               ძიება
             </Button>
@@ -146,66 +215,11 @@ export function HeroSection() {
                 setSearchTerm(cleanTag);
                 router.push(`/listings?q=${encodeURIComponent(cleanTag)}`);
               }}
-              className="rounded-full bg-secondary-container/70 hover:bg-secondary-container px-3 py-1 text-xs font-bold text-foreground transition-colors border border-border/50"
+              className="rounded-full bg-secondary-container/70 hover:bg-secondary-container px-3 py-1 text-xs font-bold text-foreground transition-colors border border-border/50 cursor-pointer"
             >
               #{tag}
             </button>
           ))}
-        </div>
-
-        {/* 📊 Live Real-Time Platform Statistics (1. Users, 2. Plants, 3. Trades & Gifts, 4. Shops) */}
-        <div className="mt-8 sm:mt-10 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-5xl mx-auto">
-          {/* 1. Users */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10 text-primary shrink-0">
-              <Users className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalUsers}+
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">მომხმარებელი</p>
-            </div>
-          </div>
-
-          {/* 2. Active Plant Listings */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-              <Sprout className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalListings}+
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">მცენარე</p>
-            </div>
-          </div>
-
-          {/* 3. Trades & Giveaways */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-              <Gift className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalTradesAndGifts}+
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">გაცვლა & გაჩუქება</p>
-            </div>
-          </div>
-
-          {/* 4. Verified Shops */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
-              <Store className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalShops}+
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">მაღაზია & სანერგე</p>
-            </div>
-          </div>
         </div>
 
       </div>

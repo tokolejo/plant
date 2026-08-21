@@ -41,6 +41,7 @@ export function formatDbListing(dbRow: any, sellerProfile?: any): ExtendedListin
       badges: sellerProfile?.is_verified ? ["Verified Seller"] : ["Community Member"],
       tier: sellerProfile?.subscription_tier || "FREE",
       customSlug: sellerProfile?.custom_slug || undefined,
+      phone: sellerProfile?.phone || "557 579 123",
     },
   };
 }
@@ -61,6 +62,7 @@ export async function getMergedListings(): Promise<ExtendedListingCardProps[]> {
           id,
           full_name,
           avatar_url,
+          phone,
           average_rating,
           total_reviews,
           subscription_tier,

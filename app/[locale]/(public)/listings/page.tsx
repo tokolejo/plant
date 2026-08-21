@@ -124,18 +124,20 @@ function FilterSection({
   title,
   children,
   defaultOpen = true,
+  className = "",
 }: {
   title: string;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className="border-b border-border/60 py-3.5 last:border-b-0">
+    <div className={`border-b border-border/60 py-3.5 last:border-b-0 ${className}`}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between py-1 text-left group"
+        className="w-full flex items-center justify-between py-1 text-left group cursor-pointer"
       >
         <span className="text-xs font-bold uppercase tracking-wider text-foreground">
           {title}
@@ -162,9 +164,50 @@ function ListingsCatalogContent() {
 
   const queryParam = searchParams.get("q") || "";
   const cityParam = searchParams.get("city") || "მთელი საქართველო";
+  const rawType = (searchParams.get("type") || "ALL").toUpperCase();
+
+  const categoryParam = searchParams.get("category");
+  const transParam = searchParams.get("trans");
 
   // Real Database listings state
   const [allListings, setAllListings] = React.useState<any[]>(SAMPLE_LISTINGS);
+
+  // Item Type Filter: PLANT, INVENTORY, or ALL
+  const [itemTypeFilter, setItemTypeFilter] = React.useState<"ALL" | "PLANT" | "INVENTORY">(
+    rawType === "PLANT" || rawType === "INVENTORY" ? (rawType as any) : "ALL"
+  );
+
+  React.useEffect(() => {
+    if (rawType === "PLANT" || rawType === "INVENTORY") {
+      setItemTypeFilter(rawType as any);
+    } else if (!searchParams.get("type")) {
+      setItemTypeFilter("ALL");
+    }
+  }, [rawType, searchParams]);
+
+  React.useEffect(() => {
+    if (categoryParam) {
+      setSelectedCategories([categoryParam as any]);
+    }
+  }, [categoryParam]);
+
+  React.useEffect(() => {
+    if (transParam) {
+      setSelectedTrans([transParam]);
+    }
+  }, [transParam]);
+
+  React.useEffect(() => {
+    if (cityParam && cityParam !== "მთელი საქართველო") {
+      setSelectedCity(cityParam);
+    }
+  }, [cityParam]);
+
+  React.useEffect(() => {
+    if (queryParam) {
+      setSearchQ(queryParam);
+    }
+  }, [queryParam]);
 
   // User GPS / Pinpoint Coordinates
   const [userCoords, setUserCoords] = React.useState<[number, number] | null>([41.7116, 44.7554]);
@@ -182,6 +225,8 @@ function ListingsCatalogContent() {
   const [selectedDelivery, setSelectedDelivery] = React.useState<string[]>([]);
   const [priceRange, setPriceRange] = React.useState<[number, number]>([0, 500]);
   const [sortBy, setSortBy] = React.useState<"nearest" | "newest" | "price-asc" | "price-desc" | "views">("nearest");
+  const [pageSize, setPageSize] = React.useState<number>(20);
+  const [visibleCount, setVisibleCount] = React.useState<number>(20);
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
 
   // Accordion state for category groups
@@ -242,7 +287,7 @@ function ListingsCatalogContent() {
     }
   }, []);
 
-  // Fetch real listings from Supabase
+  // Fetch real listings from Supabase + Realtime WebSockets
   React.useEffect(() => {
     async function loadLiveListings() {
       try {
@@ -257,7 +302,89 @@ function ListingsCatalogContent() {
       }
     }
     loadLiveListings();
-  }, [isKa]);
+
+    const channel = supabase
+      .channel("public:catalog_listings_sync")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "listings" },
+        () => {
+          loadLiveListings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isKa, supabase]);
+
+  // Dynamic live categories from Supabase + live listings
+  const [dbCategories, setDbCategories] = React.useState<any[]>([]);
+
+  React.useEffect(() => {
+    async function loadDbCategories() {
+      try {
+        const { data } = await supabase.from("categories").select("*").order("name_ka");
+        if (data && data.length > 0) {
+          setDbCategories(data);
+        }
+      } catch (err) {
+        console.warn("Could not load db categories:", err);
+      }
+    }
+    loadDbCategories();
+  }, [supabase]);
+
+  const dynamicCategoryGroups = React.useMemo(() => {
+    const groups: LocalizedCategoryGroup[] = PLANT_CATEGORY_GROUPS.map((g) => ({
+      ...g,
+      children: [...g.children],
+    }));
+
+    const standardCatIds = new Set(
+      PLANT_CATEGORY_GROUPS.flatMap((g) => g.children.map((c) => c.id as string))
+    );
+
+    const customCatsMap = new Map<string, LocalizedCategory>();
+
+    dbCategories.forEach((dbCat: any) => {
+      const slug = dbCat.slug || dbCat.name_ka;
+      if (!standardCatIds.has(slug) && !customCatsMap.has(slug)) {
+        customCatsMap.set(slug, {
+          id: slug as any,
+          labelKa: dbCat.name_ka || slug,
+          labelEn: dbCat.name_en || dbCat.name_ka || slug,
+          emoji: dbCat.icon || (dbCat.item_type === "INVENTORY" ? "📦" : "🌿"),
+        });
+      }
+    });
+
+    allListings.forEach((item: any) => {
+      const cat = item.plantCategory || item.plant_category;
+      if (cat && !standardCatIds.has(cat) && !customCatsMap.has(cat)) {
+        customCatsMap.set(cat, {
+          id: cat as any,
+          labelKa: cat,
+          labelEn: cat,
+          emoji: item.itemType === "INVENTORY" ? "📦" : "🌿",
+        });
+      }
+    });
+
+    if (customCatsMap.size > 0) {
+      groups.push({
+        id: "custom-categories",
+        labelKa: "✨ ახალი & დამატებითი კატეგორიები",
+        labelEn: "✨ Custom & New Categories",
+        icon: Sparkles,
+        color: "text-purple-700 dark:text-purple-400",
+        children: Array.from(customCatsMap.values()),
+      });
+    }
+
+    return groups;
+  }, [allListings, dbCategories]);
 
   // Derived active filter count
   const activeFilterCount =
@@ -275,11 +402,15 @@ function ListingsCatalogContent() {
     setSelectedDelivery([]);
     setPriceRange([0, 500]);
     setSortBy("nearest");
+    setItemTypeFilter("ALL");
   };
 
-  const toggleCategory = (cat: PlantCategory) => {
+  const plantsCount = React.useMemo(() => allListings.filter((l) => l.itemType === "PLANT").length, [allListings]);
+  const inventoryCount = React.useMemo(() => allListings.filter((l) => l.itemType === "INVENTORY").length, [allListings]);
+
+  const toggleCategory = (cat: PlantCategory | string) => {
     setSelectedCategories((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+      prev.includes(cat as any) ? prev.filter((c) => c !== cat) : [...prev, cat as any]
     );
   };
 
@@ -291,9 +422,9 @@ function ListingsCatalogContent() {
     setSelectedDelivery((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
   };
 
-  // Dynamic live count by category from database
-  const countByCategory = (cat: PlantCategory) =>
-    allListings.filter((l) => l.plantCategory === cat).length;
+  // Dynamic live count by category from database and listings
+  const countByCategory = (cat: string) =>
+    allListings.filter((l) => (l.plantCategory === cat || l.plant_category === cat)).length;
 
   // Calculate distance for all listings and apply filters
   let filtered = React.useMemo(() => {
@@ -313,9 +444,13 @@ function ListingsCatalogContent() {
         if (searchQ.trim()) {
           const q = searchQ.toLowerCase();
           const matchTitle = item.title.toLowerCase().includes(q);
-          const matchCategory = item.plantCategory?.toLowerCase().includes(q);
+          const matchCategory = (item.plantCategory || item.plant_category)?.toLowerCase().includes(q);
           const matchCity = item.city.toLowerCase().includes(q);
           if (!matchTitle && !matchCategory && !matchCity) return false;
+        }
+
+        if (itemTypeFilter !== "ALL") {
+          if (item.itemType !== itemTypeFilter) return false;
         }
 
         // Filter by city ONLY if user specifically chose a city other than "მთელი საქართველო" and NOT "ჩემი ლოკაცია"
@@ -329,7 +464,11 @@ function ListingsCatalogContent() {
           }
         }
 
-        if (selectedCategories.length > 0 && !selectedCategories.includes(item.plantCategory as PlantCategory)) return false;
+        if (selectedCategories.length > 0) {
+          const itemCat = item.plantCategory || item.plant_category;
+          if (!selectedCategories.includes(itemCat as any)) return false;
+        }
+
         if (selectedTrans.length > 0 && !selectedTrans.includes(item.transactionType)) return false;
         if (selectedDelivery.length > 0 && !selectedDelivery.some((d: string) => item.deliveryMethods?.includes(d as any))) return false;
         if (item.transactionType !== "TRADE") {
@@ -339,6 +478,7 @@ function ListingsCatalogContent() {
       });
   }, [
     allListings,
+    itemTypeFilter,
     userCoords,
     searchQ,
     selectedCity,
@@ -388,6 +528,25 @@ function ListingsCatalogContent() {
     return [...topVips, ...overflowVips, ...regularPool];
   }, [sortedListings]);
 
+  // Reset pagination when filters change
+  React.useEffect(() => {
+    setVisibleCount(pageSize);
+  }, [
+    pageSize,
+    sortBy,
+    searchQ,
+    selectedCity,
+    selectedCategories,
+    selectedTrans,
+    selectedDelivery,
+    priceRange,
+    itemTypeFilter,
+  ]);
+
+  const paginatedListings = React.useMemo(() => {
+    return displayListings.slice(0, visibleCount);
+  }, [displayListings, visibleCount]);
+
   // ─── Sidebar JSX ───────────────────────────────────────────────────────────
   const SidebarContent = (
     <div className="space-y-1">
@@ -432,8 +591,8 @@ function ListingsCatalogContent() {
       </FilterSection>
 
       {/* Location */}
-      <FilterSection title={isKa ? "ლოკაცია" : "Location"}>
-        <div className="rounded-[14px] border border-border/80 bg-background overflow-visible">
+      <FilterSection title={isKa ? "ლოკაცია" : "Location"} className="relative z-40 overflow-visible">
+        <div className="rounded-[14px] border border-border/80 bg-background overflow-visible relative">
           <LocationSearchCombobox
             selectedCity={selectedCity}
             onCityChange={(cityName, coords) => {
@@ -451,7 +610,7 @@ function ListingsCatalogContent() {
       </FilterSection>
 
       {/* 💰 Price Range — Moved to Top under Search & Location */}
-      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true}>
+      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true} className="relative z-10">
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2.5">
             <div className="relative flex-1">
@@ -499,10 +658,46 @@ function ListingsCatalogContent() {
         </div>
       </FilterSection>
 
-      {/* Plant Categories */}
-      <FilterSection title={isKa ? "მცენარის კატეგორიები" : "Plant Categories"}>
+      {/* Transaction Type — Placed Above Categories */}
+      <FilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
+        <div className="grid grid-cols-1 gap-2">
+          {[
+            { id: "FIXED", label: isKa ? "💰 ფიქსირებული ფასი" : "💰 Fixed Price", desc: isKa ? "პირდაპირი ყიდვა" : "Buy instantly" },
+            { id: "NEGOTIABLE", label: isKa ? "🤝 ფასი შეთანხმებით" : "🤝 Negotiable", desc: isKa ? "მოლაპარაკება ფასზე" : "Open to offers" },
+            { id: "TRADE", label: isKa ? "🔄 მცენარის გაცვლა" : "🔄 Trade Only", desc: isKa ? "გაცვლა სხვა მცენარეში" : "Swap for other plants" },
+            { id: "GIFT", label: isKa ? "🎁 გაჩუქება (უფასოდ)" : "🎁 Free Giveaway", desc: isKa ? "საჩუქარი მემცენარეებისთვის" : "Free plant to community" },
+          ].map((t) => {
+            const active = selectedTrans.includes(t.id);
+            const count = allListings.filter((l) => l.transactionType === t.id).length;
+            return (
+              <button
+                key={t.id}
+                onClick={() => toggleTrans(t.id)}
+                className={`flex items-center justify-between p-3 rounded-[14px] border text-left transition-all ${
+                  active
+                    ? "border-primary bg-primary text-white font-bold shadow-sm"
+                    : "border-border/70 bg-card hover:bg-surface-container/50 text-foreground"
+                }`}
+              >
+                <div>
+                  <p className="text-sm font-bold">{t.label}</p>
+                  <p className={`text-xs ${active ? "text-primary-fixed/80" : "text-muted-foreground"}`}>{t.desc}</p>
+                </div>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ml-2 ${
+                  active ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* Categories */}
+      <FilterSection title={isKa ? "კატეგორიები" : "Categories"}>
         <div className="space-y-2">
-          {PLANT_CATEGORY_GROUPS.map((group) => {
+          {dynamicCategoryGroups.map((group) => {
             const Icon = group.icon;
             const groupTotal = group.children.reduce(
               (sum, c) => sum + countByCategory(c.id),
@@ -569,42 +764,6 @@ function ListingsCatalogContent() {
         </div>
       </FilterSection>
 
-      {/* Transaction Type */}
-      <FilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
-        <div className="grid grid-cols-1 gap-2">
-          {[
-            { id: "FIXED", label: isKa ? "💰 ფიქსირებული ფასი" : "💰 Fixed Price", desc: isKa ? "პირდაპირი ყიდვა" : "Buy instantly" },
-            { id: "NEGOTIABLE", label: isKa ? "🤝 ფასი შეთანხმებით" : "🤝 Negotiable", desc: isKa ? "მოლაპარაკება ფასზე" : "Open to offers" },
-            { id: "TRADE", label: isKa ? "🔄 მცენარის გაცვლა" : "🔄 Trade Only", desc: isKa ? "გაცვლა სხვა მცენარეში" : "Swap for other plants" },
-            { id: "GIFT", label: isKa ? "🎁 გაჩუქება (უფასოდ)" : "🎁 Free Giveaway", desc: isKa ? "საჩუქარი მემცენარეებისთვის" : "Free plant to community" },
-          ].map((t) => {
-            const active = selectedTrans.includes(t.id);
-            const count = allListings.filter((l) => l.transactionType === t.id).length;
-            return (
-              <button
-                key={t.id}
-                onClick={() => toggleTrans(t.id)}
-                className={`flex items-center justify-between p-3 rounded-[14px] border text-left transition-all ${
-                  active
-                    ? "border-primary bg-primary text-white font-bold shadow-sm"
-                    : "border-border/70 bg-card hover:bg-surface-container/50 text-foreground"
-                }`}
-              >
-                <div>
-                  <p className="text-sm font-bold">{t.label}</p>
-                  <p className={`text-xs ${active ? "text-primary-fixed/80" : "text-muted-foreground"}`}>{t.desc}</p>
-                </div>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ml-2 ${
-                  active ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
-                }`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </FilterSection>
-
       {/* Delivery */}
       <FilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={false}>
         <div className="space-y-1.5">
@@ -640,23 +799,61 @@ function ListingsCatalogContent() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-            {isKa ? "მცენარეები & ინვენტარი" : "Plants & Botanical Care"}
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            <strong className="text-foreground font-bold">{filtered.length}</strong> {isKa ? "აქტიური განცხადება" : "active listings"} /{" "}
-            <strong className="text-foreground font-bold">{allListings.length}</strong> {isKa ? "სულ ბაზაში" : "total in catalog"}
-          </p>
+      {/* Top Toolbar: Switcher Tabs + Mobile Filter Button */}
+      <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
+        {/* 🏷️ Item Type Switcher Tabs (All -> Plants -> Inventory & Care) */}
+        <div className="flex items-center gap-1.5 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-fit">
+          {/* 1. All */}
+          <button
+            type="button"
+            onClick={() => setItemTypeFilter("ALL")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+              itemTypeFilter === "ALL"
+                ? "bg-primary text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{isKa ? "ყველა" : "All"}</span>
+            <span className="text-[10px] opacity-80 font-mono">({allListings.length})</span>
+          </button>
+
+          {/* 2. Plants */}
+          <button
+            type="button"
+            onClick={() => setItemTypeFilter("PLANT")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+              itemTypeFilter === "PLANT"
+                ? "bg-primary text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Sprout className="w-3.5 h-3.5" />
+            <span>{isKa ? "მცენარეები" : "Plants"}</span>
+            <span className="text-[10px] opacity-80 font-mono">({plantsCount})</span>
+          </button>
+
+          {/* 3. Inventory */}
+          <button
+            type="button"
+            onClick={() => setItemTypeFilter("INVENTORY")}
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+              itemTypeFilter === "INVENTORY"
+                ? "bg-primary text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>{isKa ? "ინვენტარი & მოვლა" : "Inventory"}</span>
+            <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
+          </button>
         </div>
 
         {/* Mobile Filter Toggle */}
         <div className="lg:hidden">
           <button
             onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-[14px] border border-border bg-card text-sm font-bold text-foreground shadow-xs"
+            className="flex items-center gap-2 px-3.5 py-2 rounded-[14px] border border-border bg-card text-xs font-bold text-foreground shadow-xs cursor-pointer"
           >
             <SlidersHorizontal className="w-4 h-4 text-primary" />
             {isKa ? "ფილტრები" : "Filters"}
@@ -698,10 +895,10 @@ function ListingsCatalogContent() {
 
       {/* Mobile Filter Drawer */}
       {mobileFilterOpen && (
-        <div className="lg:hidden mb-6 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient-lg">
+        <div className="lg:hidden mb-6 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient-lg relative z-30 overflow-visible">
           <div className="flex items-center justify-between mb-3.5">
             <span className="text-base font-bold text-foreground">{isKa ? "ფილტრები" : "Filters"}</span>
-            <button onClick={() => setMobileFilterOpen(false)} className="p-1 rounded-[8px] hover:bg-surface-container">
+            <button onClick={() => setMobileFilterOpen(false)} className="p-1 rounded-[8px] hover:bg-surface-container cursor-pointer">
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
@@ -711,28 +908,30 @@ function ListingsCatalogContent() {
 
       <div className="flex gap-6 lg:gap-7">
         {/* Sidebar — Desktop */}
-        <aside className="hidden lg:block w-76 sm:w-80 shrink-0">
-          <div className="sticky top-20 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient">
+        <aside className="hidden lg:block w-76 sm:w-80 shrink-0 relative z-30">
+          <div className="sticky top-20 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient overflow-visible relative z-30">
             {SidebarContent}
           </div>
         </aside>
 
         {/* Results Column */}
         <div className="flex-1 min-w-0">
-          {/* ✨ Top Sorting Pill Bar & View Mode Switcher (Clean Single Row) */}
-          <div className="mb-5 flex items-center justify-between gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {/* Sort Buttons */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider hidden md:inline-block">
-                {isKa ? "სორტირება:" : "Sort By:"}
-              </span>
-
+          {/* ✨ Top Sorting Pill Bar & View Mode Switcher (Compact Single Row) */}
+          <div className="mb-4 flex items-center justify-between gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {/* Sort Buttons + Page Size */}
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               {[
                 { 
                   id: "nearest", 
-                  labelKa: "📍 ჩემთან ახლოს", 
+                  labelKa: "📍 ახლოს", 
                   labelEn: "📍 Nearest",
                   isActive: sortBy === "nearest"
+                },
+                { 
+                  id: "views", 
+                  labelKa: "🔥 პოპულარული", 
+                  labelEn: "🔥 Popular",
+                  isActive: sortBy === "views"
                 },
                 { 
                   id: "newest", 
@@ -746,27 +945,21 @@ function ListingsCatalogContent() {
                   labelEn: sortBy === "price-desc" ? "💰 Price ↓" : sortBy === "price-asc" ? "💰 Price ↑" : "💰 Price ⇅",
                   isActive: sortBy === "price-asc" || sortBy === "price-desc"
                 },
-                { 
-                  id: "views", 
-                  labelKa: "🔥 პოპულარული", 
-                  labelEn: "🔥 Popular",
-                  isActive: sortBy === "views"
-                },
               ].map((opt) => {
                 const isActive = opt.isActive;
                 return (
                   <button
                     key={opt.id}
                     onClick={() => handleSortClick(opt.id)}
-                    className={`px-3 sm:px-3.5 py-2 rounded-[14px] text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+                    className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                       isActive
-                        ? "bg-primary text-white shadow-ambient scale-[1.02]"
+                        ? "bg-primary text-white shadow-xs scale-[1.02]"
                         : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
                     }`}
                   >
                     {opt.id === "nearest" && gpsLoading ? (
-                      <span className="flex items-center gap-1.5">
-                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span className="flex items-center gap-1">
+                        <Loader2 className="w-3 h-3 animate-spin" />
                         {isKa ? "GPS..." : "Locating..."}
                       </span>
                     ) : (
@@ -775,34 +968,55 @@ function ListingsCatalogContent() {
                   </button>
                 );
               })}
+
+              {/* Page Size Selector Dropdown (Only numbers: 20, 40, 60, 80, 100) */}
+              <div className="relative inline-flex items-center">
+                <select
+                  value={pageSize}
+                  onChange={(e) => {
+                    const val = Number(e.target.value);
+                    setPageSize(val);
+                    setVisibleCount(val);
+                  }}
+                  className="h-8 sm:h-9 pl-2.5 pr-6 rounded-xl bg-card border border-border/70 text-xs font-bold text-foreground hover:bg-surface-container hover:border-primary/40 transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
+                  title={isKa ? "რაოდენობა" : "Items per page"}
+                >
+                  <option value={20}>20</option>
+                  <option value={40}>40</option>
+                  <option value={60}>60</option>
+                  <option value={80}>80</option>
+                  <option value={100}>100</option>
+                </select>
+                <ChevronDown className="w-3 h-3 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
+              </div>
             </div>
 
             {/* Right: View Mode Toggle (Grid vs List) */}
             <div className="flex items-center gap-1 shrink-0">
-              <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-[12px] p-1 shadow-2xs">
+              <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-xl p-0.5 shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid")}
-                  className={`p-1.5 rounded-[9px] transition-all ${
+                  className={`p-1 sm:p-1.5 rounded-[8px] transition-all cursor-pointer ${
                     viewMode === "grid"
                       ? "bg-primary text-white shadow-xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
                   }`}
                   title={isKa ? "გრიდის ხედი" : "Grid View"}
                 >
-                  <LayoutGrid className="w-4 h-4" />
+                  <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setViewMode("list")}
-                  className={`p-1.5 rounded-[9px] transition-all ${
+                  className={`p-1 sm:p-1.5 rounded-[8px] transition-all cursor-pointer ${
                     viewMode === "list"
                       ? "bg-primary text-white shadow-xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
                   }`}
                   title={isKa ? "სიის ხედი" : "List View"}
                 >
-                  <List className="w-4 h-4" />
+                  <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
@@ -830,16 +1044,38 @@ function ListingsCatalogContent() {
           ) : viewMode === "grid" ? (
             /* 2x More Compact Grid (4 to 5 columns on desktop, 2 on mobile) */
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4">
-              {displayListings.map((item) => (
+              {paginatedListings.map((item) => (
                 <ListingCard key={item.id} {...item} variant="compact" />
               ))}
             </div>
           ) : (
             /* Sleek List View */
             <div className="flex flex-col gap-3 sm:gap-3.5">
-              {displayListings.map((item) => (
+              {paginatedListings.map((item) => (
                 <ListingCard key={item.id} {...item} variant="list" />
               ))}
+            </div>
+          )}
+
+          {/* Load More Button ("მეტის ნახვა") */}
+          {displayListings.length > visibleCount && (
+            <div className="flex flex-col items-center justify-center pt-8 pb-4 space-y-2">
+              <Button
+                type="button"
+                onClick={() => setVisibleCount((prev) => prev + pageSize)}
+                className="h-11 px-8 rounded-[16px] bg-primary hover:bg-primary/90 text-white text-xs sm:text-sm font-bold shadow-ambient gap-2 hover:scale-[1.02] transition-all cursor-pointer"
+              >
+                <ChevronDown className="w-4 h-4" />
+                <span>{isKa ? "მეტის ნახვა" : "Load More"}</span>
+                <span className="bg-white/20 px-2 py-0.5 rounded-[6px] text-xs font-mono">
+                  +{Math.min(pageSize, displayListings.length - visibleCount)}
+                </span>
+              </Button>
+              <p className="text-xs text-muted-foreground font-medium">
+                {isKa
+                  ? `ნაჩვენებია ${Math.min(visibleCount, displayListings.length)} / ${displayListings.length}-დან`
+                  : `Showing ${Math.min(visibleCount, displayListings.length)} of ${displayListings.length}`}
+              </p>
             </div>
           )}
         </div>

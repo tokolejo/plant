@@ -81,9 +81,8 @@ export function Header() {
   const isAdmin = user?.email === "tokolejo@gmail.com" || profile?.is_admin === true;
 
   const navLinks = [
-    { href: "/listings?type=PLANT", label: navT("plants"), icon: Sprout, match: "/listings" },
+    { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
-    { href: "/listings?type=INVENTORY", label: navT("inventory"), icon: Layers },
     { href: "/iso", label: navT("iso"), icon: Shuffle },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles },
   ];

@@ -17,6 +17,7 @@
   },
   "Navigation": {
     "home": "Home",
+    "market": "Market",
     "plants": "Plants",
     "map": "Map",
     "inventory": "Inventory",
