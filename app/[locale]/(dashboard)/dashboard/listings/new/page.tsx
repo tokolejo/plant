@@ -113,7 +113,7 @@ export default function CreateListingPage() {
 
   // Form State
   const [itemType, setItemType] = React.useState<"PLANT" | "INVENTORY">("PLANT");
-  const [plantCategory, setPlantCategory] = React.useState("monstera");
+  const [plantCategory, setPlantCategory] = React.useState("");
   const [categorySearchQuery, setCategorySearchQuery] = React.useState("");
   const [categoryDropdownOpen, setCategoryDropdownOpen] = React.useState(false);
   const categoryWrapperRef = React.useRef<HTMLDivElement>(null);
@@ -167,7 +167,7 @@ export default function CreateListingPage() {
   }, [itemType, categorySearchQuery]);
 
   const selectedCategoryObj = React.useMemo(() => {
-    return STRUCTURED_CATEGORIES.find((c) => c.id === plantCategory) || STRUCTURED_CATEGORIES[0];
+    return STRUCTURED_CATEGORIES.find((c) => c.id === plantCategory) || null;
   }, [plantCategory]);
 
   const matchedSuggestions = React.useMemo(() => {
@@ -456,6 +456,10 @@ export default function CreateListingPage() {
       setErrorMsg("გთხოვთ შეიყვანოთ სათაური.");
       return;
     }
+    if (!plantCategory) {
+      setErrorMsg("გთხოვთ აირჩიოთ მცენარის ან ინვენტარის კატეგორია!");
+      return;
+    }
 
     setIsSubmitting(true);
     setUploadProgress("სურათების ოპტიმიზაცია და კომპრესია (WebP)...");
@@ -538,7 +542,7 @@ export default function CreateListingPage() {
               type="button"
               onClick={() => {
                 setItemType("PLANT");
-                setPlantCategory("monstera");
+                setPlantCategory("");
                 setCategorySearchQuery("");
               }}
               className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
@@ -554,7 +558,7 @@ export default function CreateListingPage() {
               type="button"
               onClick={() => {
                 setItemType("INVENTORY");
-                setPlantCategory("pots-ceramic");
+                setPlantCategory("");
                 setCategorySearchQuery("");
               }}
               className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
@@ -571,7 +575,7 @@ export default function CreateListingPage() {
           {/* Searchable Sub-Category Combobox */}
           <div className="relative" ref={categoryWrapperRef}>
             <label className="text-xs font-bold text-foreground block mb-1.5">
-              {itemType === "PLANT" ? "მცენარის სახეობა / ჯგუფი" : "ინვენტარის კატეგორია"}
+              {itemType === "PLANT" ? "მცენარის სახეობა / ჯგუფი *" : "ინვენტარის კატეგორია *"}
             </label>
 
             <div className="relative">

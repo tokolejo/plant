@@ -160,7 +160,7 @@ export default function EditListingPage() {
   }, [itemType, categorySearchQuery]);
 
   const selectedCategoryObj = React.useMemo(() => {
-    return STRUCTURED_CATEGORIES.find((c) => c.id === plantCategory) || STRUCTURED_CATEGORIES[0];
+    return STRUCTURED_CATEGORIES.find((c) => c.id === plantCategory) || null;
   }, [plantCategory]);
 
   const matchedSuggestions = React.useMemo(() => {
@@ -608,9 +608,9 @@ export default function EditListingPage() {
                 placeholder={
                   selectedCategoryObj
                     ? `${selectedCategoryObj.emoji} ${selectedCategoryObj.nameKa}`
-                    : "მოძებნეთ კატეგორია (მაგ: სუკულენტი, მონსტერა, ქოთანი...)"
+                    : "🔎 აირჩიეთ კატეგორია ან ჩაწერეთ სახეობა..."
                 }
-                className="w-full pl-10 pr-10 h-11 rounded-[14px] border border-border/80 bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-foreground placeholder:font-bold"
+                className="w-full pl-10 pr-10 h-11 rounded-[14px] border border-border/80 bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground placeholder:font-medium"
               />
               {categorySearchQuery ? (
                 <button

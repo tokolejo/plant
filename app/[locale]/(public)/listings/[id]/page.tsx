@@ -43,6 +43,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+import { getBotanicalCareDetails } from "@/lib/botanical-care";
 
 // ─── Social Platform Icons ──────────────────────────────────────────────────
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -312,6 +313,11 @@ export default function ListingDetailPage({
   const rawTitle = isKa ? (listing.titleKa || listing.title || "") : (listing.titleEn || listing.title || "");
   const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
+  // Dynamic botanical care info matching species, plant category and tags
+  const careInfo = React.useMemo(() => {
+    return getBotanicalCareDetails(listing);
+  }, [listing]);
+
   // Carousel Refs for smooth arrow scrolling
   const inventoryScrollRef = React.useRef<HTMLDivElement>(null);
   const similarScrollRef = React.useRef<HTMLDivElement>(null);
@@ -563,53 +569,118 @@ export default function ListingDetailPage({
             )}
           </div>
 
-          {/* Plant Care Metrics Card */}
-          <div className="rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient space-y-2.5">
-            <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
-              <Sprout className="w-4 h-4 text-primary" />
-              {isKa ? "მცენარის მოვლის მაჩვენებლები" : "Plant Care Guidelines"}
-            </h3>
+          {/* Dynamic Plant Care / Inventory Specifications Card */}
+          {listing.itemType === "INVENTORY" || listing.item_type === "INVENTORY" ? (
+            <div className="rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient space-y-2.5">
+              <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
+                <Boxes className="w-4 h-4 text-primary" />
+                {isKa ? "ინვენტარის მახასიათებლები" : "Inventory Specifications"}
+              </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
-                <Sun className="w-3.5 h-3.5 text-amber-500 mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">
-                  {isKa ? "განათება" : "Lighting"}
-                </span>
-                <span className="text-[11px] font-bold text-foreground">
-                  {isKa ? "გაფანტული შუქი" : "Bright Indirect"}
-                </span>
-              </div>
-
-              <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
-                <Droplets className="w-3.5 h-3.5 text-teal-500 mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">
-                  {isKa ? "მორწყვა" : "Watering"}
-                </span>
-                <span className="text-[11px] font-bold text-foreground">
-                  {isKa ? "კვირაში 1-2 ჯერ" : "1-2x per week"}
-                </span>
-              </div>
-
-              <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
-                <Boxes className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">
-                  {isKa ? "ქოთანი" : "Pot Size"}
-                </span>
-                <span className="text-[11px] font-bold text-foreground">
-                  {isKa ? "15-18 სმ ზომა" : "15-18 cm size"}
-                </span>
-              </div>
-
-              <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
-                <Thermometer className="w-3.5 h-3.5 text-rose-500 mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">
-                  {isKa ? "ტემპერატურა" : "Temperature"}
-                </span>
-                <span className="text-[11px] font-bold text-foreground">18°C - 26°C</span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "ტიპი" : "Type"}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground">
+                    {categoryInfo?.label || (isKa ? "პრემიუმ ინვენტარი" : "Equipment")}
+                  </span>
+                </div>
+                <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "მდგომარეობა" : "Condition"}
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                    {isKa ? "ახალი / უხმარი" : "Brand New"}
+                  </span>
+                </div>
+                <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "დანიშნულება" : "Intended For"}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground">
+                    {isKa ? "ოთახის & ბაღის" : "Indoor & Garden"}
+                  </span>
+                </div>
+                <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "მიწოდება" : "Packaging"}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground">
+                    {isKa ? "დაცული შეფუთვა" : "Safe Package"}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient space-y-2.5">
+              <div className="flex items-center justify-between flex-wrap gap-1">
+                <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
+                  <Sprout className="w-4 h-4 text-primary" />
+                  {isKa ? "მცენარის მოვლის მაჩვენებლები" : "Plant Care Guidelines"}
+                </h3>
+                {careInfo.scientificFamily && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                    🌿 {careInfo.scientificFamily}
+                  </span>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <div className="rounded-[12px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                  <Sun className="w-3.5 h-3.5 text-amber-500 mx-auto mb-1" />
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "განათება" : "Lighting"}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground line-clamp-2 leading-tight">
+                    {isKa ? careInfo.lightKa : careInfo.lightEn}
+                  </span>
+                </div>
+
+                <div className="rounded-[12px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                  <Droplets className="w-3.5 h-3.5 text-teal-500 mx-auto mb-1" />
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "მორწყვა" : "Watering"}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground line-clamp-2 leading-tight">
+                    {isKa ? careInfo.wateringKa : careInfo.wateringEn}
+                  </span>
+                </div>
+
+                <div className="rounded-[12px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                  <Boxes className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "სუბსტრატი / გრუნტი" : "Soil / Substrate"}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground line-clamp-2 leading-tight">
+                    {isKa ? careInfo.soilKa : careInfo.soilEn}
+                  </span>
+                </div>
+
+                <div className="rounded-[12px] bg-secondary-container/50 p-2.5 text-center border border-border/40">
+                  <Thermometer className="w-3.5 h-3.5 text-rose-500 mx-auto mb-1" />
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "ტემპერატურა" : "Temperature"}
+                  </span>
+                  <span className="text-[11px] font-bold text-foreground line-clamp-2 leading-tight">
+                    {isKa ? careInfo.tempKa : careInfo.tempEn}
+                  </span>
+                </div>
+              </div>
+
+              {/* Botanical summary footer */}
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1.5 px-1 border-t border-border/30 flex-wrap gap-1">
+                <span>
+                  {isKa ? "მოვლის სირთულე: " : "Care Level: "}
+                  <strong className="text-foreground">{isKa ? careInfo.careLevelKa : careInfo.careLevelEn}</strong>
+                </span>
+                <span>
+                  {isKa ? "ტენიანობა: " : "Humidity: "}
+                  <strong className="text-foreground">{isKa ? careInfo.humidityKa : careInfo.humidityEn}</strong>
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Description Card */}
           <div className="rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient space-y-2">

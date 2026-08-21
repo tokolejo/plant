@@ -1,41 +1,65 @@
 -- ════════════════════════════════════════════════════════════════════════════════════════
--- SEED REAL LISTINGS & ASSIGN TO TOKO LEZHAVA (SUPER ADMIN)
+-- 🌿 SEED REAL LISTINGS & ASSIGN TO YOUR GOOGLE / ADMIN ACCOUNT
 -- ════════════════════════════════════════════════════════════════════════════════════════
 
+-- 1. Ensure 'GIFT' exists in transaction_type enum if enum is used
+DO $$ BEGIN
+    ALTER TYPE public.transaction_type ADD VALUE IF NOT EXISTS 'GIFT';
+EXCEPTION
+    WHEN others THEN null;
+END $$;
+
+-- 2. Insert Real Plant Listings into public.listings (Each listing has >= 2 images)
 DO $$
 DECLARE
     target_user_id UUID;
 BEGIN
-    -- 1. Find Toko Lezhava's user ID by email or custom_slug
+    -- Look for your user profile in public.profiles
     SELECT id INTO target_user_id 
     FROM public.profiles 
-    WHERE email = 'tokolejo@gmail.com' OR custom_slug = 'tokolejo' OR full_name ILIKE '%Toko%' OR full_name ILIKE '%თოკო%'
+    WHERE is_admin = true OR custom_slug = 'tokolejo' OR full_name ILIKE '%Toko%' OR full_name ILIKE '%თოკო%'
     LIMIT 1;
 
-    -- If not found by email, take the super admin or first profile
+    -- If not found, check auth.users for Google email
     IF target_user_id IS NULL THEN
-        SELECT id INTO target_user_id FROM public.profiles WHERE is_admin = true LIMIT 1;
+        BEGIN
+            SELECT id INTO target_user_id 
+            FROM auth.users 
+            WHERE email = 'tokolejo@gmail.com' OR email ILIKE '%toko%'
+            LIMIT 1;
+        EXCEPTION WHEN others THEN
+            null;
+        END;
     END IF;
 
+    -- Fallback: first profile in the database
     IF target_user_id IS NULL THEN
         SELECT id INTO target_user_id FROM public.profiles ORDER BY created_at ASC LIMIT 1;
     END IF;
 
     IF target_user_id IS NULL THEN
-        RAISE NOTICE 'No profile found to attach listings to. Please log in first.';
-        RETURN;
+        RAISE EXCEPTION '❌ No profile found in public.profiles. Please log in to the website first so your profile is created.';
     END IF;
 
-    -- 2. Update all existing listings in DB so they belong to Toko
-    UPDATE public.listings 
-    SET user_id = target_user_id, status = 'ACTIVE'
-    WHERE user_id IS NULL OR user_id NOT IN (SELECT id FROM public.profiles);
-
-    -- 3. Insert rich real plant listings under Toko's account if they don't already exist
+    -- Insert rich real plant listings assigned to your profile
     INSERT INTO public.listings (
-        user_id, item_type, plant_category, title_ka, title_en, description_ka, description_en,
-        price, transaction_type, delivery_methods, images, city, address, lat, lng,
-        is_featured, is_boosted, status, views_count, trade_preferences
+        user_id, 
+        item_type, 
+        plant_category, 
+        title_ka, 
+        title_en, 
+        description_ka, 
+        description_en,
+        price, 
+        transaction_type, 
+        delivery_methods, 
+        images, 
+        city, 
+        address,
+        is_featured, 
+        status, 
+        views_count, 
+        trade_preferences
     )
     SELECT
         target_user_id,
@@ -51,11 +75,8 @@ BEGIN
         seed.images,
         seed.city,
         seed.address,
-        seed.lat,
-        seed.lng,
         seed.is_featured,
-        seed.is_boosted,
-        'ACTIVE',
+        'ACTIVE'::public.listing_status,
         seed.views_count,
         seed.trade_preferences
     FROM (
@@ -68,8 +89,8 @@ BEGIN
             'Healthy, uniquely variegated Monstera Thai Constellation with strong root system in premium aroid soil.',
             180.00, 'FIXED', ARRAY['PICKUP', 'COURIER']::text[],
             ARRAY['https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=800', 'https://images.unsplash.com/photo-1545241047-6083a3684587?w=800']::text[],
-            'თბილისი (ვაკე)', 'ჭავჭავაძის გამზ. 42', 41.7116, 44.7554,
-            true, true, 142, ARRAY[]::text[]
+            'თბილისი (ვაკე)', 'ჭავჭავაძის გამზ. 42',
+            true, 142, ARRAY[]::text[]
         ),
         (
             'PLANT', 'philodendron',
@@ -79,8 +100,8 @@ BEGIN
             'Pink Princess Philodendron with vibrant pink sectors. Open for trade for Monstera Albo or rare aroids.',
             0.00, 'TRADE', ARRAY['PICKUP', 'MARSHRUTKA']::text[],
             ARRAY['https://images.unsplash.com/photo-1597055181300-e3633a917c9c?w=800', 'https://images.unsplash.com/photo-1604762524889-3e2fcc145683?w=800']::text[],
-            'ბათუმი', 'რუსთაველის ქ. 15', 41.6423, 41.6339,
-            false, false, 89, ARRAY['Monstera Albo', 'Anthurium', 'Syngonium Red Spot']::text[]
+            'ბათუმი', 'რუსთაველის ქ. 15',
+            false, 89, ARRAY['Monstera Albo', 'Anthurium', 'Syngonium']::text[]
         ),
         (
             'INVENTORY', 'pots-ceramic',
@@ -90,8 +111,8 @@ BEGIN
             'Handmade ceramic pots with drainage holes and matching saucers. Ideal for indoor houseplants.',
             65.00, 'NEGOTIABLE', ARRAY['PICKUP', 'COURIER', 'MARSHRUTKA']::text[],
             ARRAY['https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=800', 'https://images.unsplash.com/photo-1509423350716-97f9360b4e09?w=800']::text[],
-            'თბილისი (საბურთალო)', 'ვაჟა-ფშაველას გამზ. 20', 41.7271, 44.7742,
-            true, false, 65, ARRAY[]::text[]
+            'თბილისი (საბურთალო)', 'ვაჟა-ფშაველას გამზ. 20',
+            true, 65, ARRAY[]::text[]
         ),
         (
             'PLANT', 'ficus',
@@ -101,8 +122,8 @@ BEGIN
             'Large and healthy Fiddle Leaf Fig planted in a ceramic pot. Perfect for living room and office.',
             110.00, 'FIXED', ARRAY['PICKUP', 'COURIER']::text[],
             ARRAY['https://images.unsplash.com/photo-1545241047-6083a3684587?w=800', 'https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=800']::text[],
-            'ქუთაისი', 'წერეთლის ქ. 8', 42.2679, 42.7180,
-            false, false, 112, ARRAY[]::text[]
+            'ქუთაისი', 'წერეთლის ქ. 8',
+            false, 112, ARRAY[]::text[]
         ),
         (
             'INVENTORY', 'substrate-soil',
@@ -112,8 +133,8 @@ BEGIN
             'Chunky and airy substrate mix for Monsteras, Philodendrons and Anthuriums. Prevents root rot.',
             25.00, 'FIXED', ARRAY['PICKUP', 'COURIER', 'MARSHRUTKA']::text[],
             ARRAY['https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800', 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800']::text[],
-            'თბილისი (დიდუბე)', 'წერეთლის გამზ. 116', 41.7483, 44.7820,
-            false, false, 204, ARRAY[]::text[]
+            'თბილისი (დიდუბე)', 'წერეთლის გამზ. 116',
+            false, 204, ARRAY[]::text[]
         ),
         (
             'PLANT', 'anthurium',
@@ -123,8 +144,8 @@ BEGIN
             'Dark green velvet leaves with striking white veins. Well rooted and actively growing.',
             75.00, 'NEGOTIABLE', ARRAY['PICKUP', 'COURIER']::text[],
             ARRAY['https://images.unsplash.com/photo-1512428813834-c702c7702b78?w=800', 'https://images.unsplash.com/photo-1597055181300-e3633a917c9c?w=800']::text[],
-            'თბილისი (ჩუღურეთი)', 'აღმაშენებლის გამზ. 85', 41.7100, 44.8000,
-            false, false, 78, ARRAY[]::text[]
+            'თბილისი (ჩუღურეთი)', 'აღმაშენებლის გამზ. 85',
+            false, 78, ARRAY[]::text[]
         ),
         (
             'PLANT', 'monstera',
@@ -132,19 +153,19 @@ BEGIN
             'Monstera Deliciosa — Free Giveaway for Plant Lovers',
             'გავაჩუქებ ჯანსაღ მონსტერას დაფესვიანებულ კალამს ახალი ფოთლით. გატანა ადგილიდან ისანში.',
             'Giving away a rooted Monstera Deliciosa cutting for free to plant enthusiasts. Pickup in Isani.',
-            0.00, 'GIFT', ARRAY['PICKUP']::text[],
-            ARRAY['https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=800']::text[],
-            'თბილისი (ისანი)', 'ნავთლუღის ქ. 10', 41.6880, 44.8350,
-            false, false, 95, ARRAY[]::text[]
+            0.00, 'FIXED', ARRAY['PICKUP']::text[],
+            ARRAY['https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=800', 'https://images.unsplash.com/photo-1545241047-6083a3684587?w=800']::text[],
+            'თბილისი (ისანი)', 'ნავთლუღის ქ. 10',
+            false, 95, ARRAY[]::text[]
         )
     ) AS seed(
         item_type, plant_category, title_ka, title_en, description_ka, description_en,
-        price, transaction_type, delivery_methods, images, city, address, lat, lng,
-        is_featured, is_boosted, views_count, trade_preferences
+        price, transaction_type, delivery_methods, images, city, address,
+        is_featured, views_count, trade_preferences
     )
     WHERE NOT EXISTS (
         SELECT 1 FROM public.listings WHERE title_ka = seed.title_ka
     );
 
-    RAISE NOTICE 'Real listings successfully linked to user: %', target_user_id;
+    RAISE NOTICE '✅ მცენარეები წარმატებით მიება პროფილს: %', target_user_id;
 END $$;
