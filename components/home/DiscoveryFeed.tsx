@@ -25,13 +25,14 @@ interface DiscoveryFeedProps {
   listings?: ExtendedListingCardProps[];
 }
 
-export function DiscoveryFeed({ listings = SAMPLE_LISTINGS }: DiscoveryFeedProps) {
+export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   const locale = useLocale();
   const isKa = locale !== "en";
   const supabase = createClient();
 
   const [activeTab, setActiveTab] = React.useState<"ALL" | "SALE" | "TRADE" | "PLANTS" | "INVENTORY">("ALL");
   const [allListings, setAllListings] = React.useState<ExtendedListingCardProps[]>(listings);
+  const [loading, setLoading] = React.useState(listings.length === 0);
   const [totalDbCount, setTotalDbCount] = React.useState<number>(listings.length);
 
   // Fetch live active listings and total count from Supabase + Realtime WebSockets
@@ -46,7 +47,9 @@ export function DiscoveryFeed({ listings = SAMPLE_LISTINGS }: DiscoveryFeedProps
         setAllListings(localized);
         setTotalDbCount(localized.length);
       } catch (e) {
-        console.error("Supabase live listings fetch failed, using fallback:", e);
+        console.error("Supabase live listings fetch failed:", e);
+      } finally {
+        setLoading(false);
       }
     }
     loadLiveFeed();

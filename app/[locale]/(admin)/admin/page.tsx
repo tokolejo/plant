@@ -39,6 +39,7 @@ import {
   Tag,
   User,
   Clock,
+  Sprout,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -290,6 +291,49 @@ export default function AdminDashboardPage() {
     setPlansSaved(true);
     showNotice("💎 ტარიფების პარამეტრები წარმატებით შეინახა!");
     setTimeout(() => setPlansSaved(false), 3000);
+  };
+
+  const handleSeedListingsToAdmin = async () => {
+    if (!currentUser) {
+      showNotice("❌ ჯერ გაიარეთ ავტორიზაცია");
+      return;
+    }
+
+    try {
+      showNotice("⏳ იწერება სატესტო მცენარეები თქვენს პროფილზე...");
+      const seedsToInsert = SAMPLE_LISTINGS.map((s) => ({
+        user_id: currentUser.id,
+        item_type: s.itemType || "PLANT",
+        plant_category: s.plantCategory || "monstera",
+        title_ka: s.titleKa || s.title || "მცენარე",
+        title_en: s.titleEn || s.title || "Plant",
+        description_ka: s.descriptionKa || "ჯანსაღი ოთახის მცენარე.",
+        description_en: s.descriptionEn || "Healthy indoor houseplant.",
+        price: s.price || 0,
+        transaction_type: s.transactionType || "FIXED",
+        delivery_methods: s.deliveryMethods || ["PICKUP"],
+        images: s.images || ["https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=800"],
+        city: s.city || "თბილისი",
+        address: s.address || "თბილისი",
+        lat: s.lat || 41.7116,
+        lng: s.lng || 44.7554,
+        is_featured: s.isPremium || false,
+        is_boosted: s.isPremium || false,
+        status: "ACTIVE",
+        views_count: s.viewsCount || 50,
+        trade_preferences: s.tradePreferences || [],
+      }));
+
+      const { data, error } = await supabase.from("listings").insert(seedsToInsert).select();
+      if (error) {
+        throw error;
+      }
+      showNotice(`🎉 ${data.length} მცენარე წარმატებით ჩაიწერა თქვენს პროფილზე!`);
+      loadAdminData(currentUser);
+    } catch (e: any) {
+      console.error("Seed error:", e);
+      showNotice(`❌ შეცდომა: ${e.message}`);
+    }
   };
 
   // ──────────────────────────────────────────────
@@ -1180,7 +1224,7 @@ export default function AdminDashboardPage() {
       {/* Tab 1: Overview */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div className="rounded-[22px] border border-border/80 bg-card p-6 shadow-ambient space-y-4">
               <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <Store className="w-4 h-4 text-primary" />
@@ -1202,8 +1246,21 @@ export default function AdminDashboardPage() {
               <p className="text-xs text-muted-foreground leading-relaxed">
                 შეცვალეთ ნებისმიერი ტარიფის ფასი, ლიმიტი — ცვლილება სასწრაფოდ ასახავს /pricing გვერდზე.
               </p>
-              <Button size="sm" onClick={() => setActiveTab("plans")} className="rounded-xl text-xs font-bold gap-1 bg-primary text-white">
+              <Button size="sm" onClick={() => setActiveTab("plans")} className="rounded-xl text-xs font-bold gap-1 bg-primary text-white cursor-pointer">
                 ტარიფების რედაქტირება <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </div>
+
+            <div className="rounded-[22px] border border-border/80 bg-card p-6 shadow-ambient space-y-4">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                <Sprout className="w-4 h-4 text-emerald-600" />
+                მცენარეები ჩემს პროფილზე
+              </h3>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                ჩაწერეთ ყველა სატესტო მცენარე (Monstera, Pink Princess, Ficus და ა.შ.) რეალურ Supabase ბაზაში თქვენს პროფილზე.
+              </p>
+              <Button size="sm" onClick={handleSeedListingsToAdmin} className="rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-ambient">
+                <Sparkles className="w-3.5 h-3.5" /> ჩაწერა ჩემს პროფილზე
               </Button>
             </div>
           </div>

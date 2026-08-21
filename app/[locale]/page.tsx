@@ -1,7 +1,6 @@
 import { HeroSection } from "@/components/home/HeroSection";
 import { DiscoveryFeed } from "@/components/home/DiscoveryFeed";
 import { IsoBoardPreview } from "@/components/home/IsoBoardPreview";
-import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 
 export default function HomePage() {
   return (
@@ -9,8 +8,8 @@ export default function HomePage() {
       {/* 1. Hero + Search */}
       <HeroSection />
 
-      {/* 2. Discovery Feed (Uniform Grid with Filter Tabs & Centered View All) */}
-      <DiscoveryFeed listings={SAMPLE_LISTINGS} />
+      {/* 2. Discovery Feed (Live Real Supabase Listings) */}
+      <DiscoveryFeed />
 
       {/* 3. ISO Match Board */}
       <IsoBoardPreview />

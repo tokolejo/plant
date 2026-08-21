@@ -170,7 +170,8 @@ function ListingsCatalogContent() {
   const transParam = searchParams.get("trans");
 
   // Real Database listings state
-  const [allListings, setAllListings] = React.useState<any[]>(SAMPLE_LISTINGS);
+  const [allListings, setAllListings] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   // Item Type Filter: PLANT, INVENTORY, or ALL
   const [itemTypeFilter, setItemTypeFilter] = React.useState<"ALL" | "PLANT" | "INVENTORY">(
@@ -298,7 +299,9 @@ function ListingsCatalogContent() {
         }));
         setAllListings(localized);
       } catch (e) {
-        console.error("Supabase live listings fetch failed, using fallback:", e);
+        console.error("Supabase live listings fetch failed:", e);
+      } finally {
+        setLoading(false);
       }
     }
     loadLiveListings();

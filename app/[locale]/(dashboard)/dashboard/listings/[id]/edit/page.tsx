@@ -25,12 +25,15 @@ import {
   Eye,
   EyeOff,
   Save,
+  Search,
+  ChevronDown,
   ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
+import { STRUCTURED_CATEGORIES, type TaxonomyCategory } from "@/lib/categories-data";
 
 const TRADE_TAG_AUTOCOMPLETE_LIST = [
   "კაქტუსი (Cactus)",
@@ -82,27 +85,6 @@ const TRADE_PRESETS = [
   "ქოთნები & ინვენტარი",
 ];
 
-const PLANT_CATEGORIES = [
-  { id: "monstera", label: "მონსტერა", emoji: "🌿" },
-  { id: "philodendron", label: "ფილოდენდრონი", emoji: "🌱" },
-  { id: "anthurium", label: "ანთურიუმი", emoji: "🌺" },
-  { id: "alocasia", label: "ალოკაზია", emoji: "🍃" },
-  { id: "calathea", label: "კალათეა / მარანტა", emoji: "🌿" },
-  { id: "orchid", label: "ორქიდეა", emoji: "🌸" },
-  { id: "ficus", label: "ფიკუსი", emoji: "🌳" },
-  { id: "palm", label: "პალმა", emoji: "🌴" },
-  { id: "cactus", label: "კაქტუსი / სუქულენტი", emoji: "🌵" },
-  { id: "other", label: "სხვა მცენარე", emoji: "✨" },
-];
-
-const INVENTORY_CATEGORIES = [
-  { id: "pots", label: "ქოთნები & კაშპო", emoji: "🪴" },
-  { id: "substrate", label: "სუბსტრატი & გრუნტი", emoji: "⛰️" },
-  { id: "fertilizer", label: "სასუქი & ვიტამინები", emoji: "🧪" },
-  { id: "tools", label: "ხელსაწყოები", emoji: "✂️" },
-  { id: "lighting", label: "განათება (Grow Light)", emoji: "💡" },
-];
-
 export default function EditListingPage() {
   const routeParams = useParams();
   const listingId = (routeParams?.id as string) || "";
@@ -126,10 +108,10 @@ export default function EditListingPage() {
   const [descEn, setDescEn] = React.useState("");
   const [price, setPrice] = React.useState("");
   const [plantCategory, setPlantCategory] = React.useState("monstera");
-  const [inventoryCategory, setInventoryCategory] = React.useState("pots");
-  const [customCategory, setCustomCategory] = React.useState("");
-  const [isCustomCategory, setIsCustomCategory] = React.useState(false);
-  const [dbCategories, setDbCategories] = React.useState<any[]>([]);
+  const [categorySearchQuery, setCategorySearchQuery] = React.useState("");
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = React.useState(false);
+  const categoryWrapperRef = React.useRef<HTMLDivElement>(null);
+
   const [city, setCity] = React.useState("თბილისი");
   const [address, setAddress] = React.useState("");
   const [status, setStatus] = React.useState<"ACTIVE" | "HIDDEN">("ACTIVE");
@@ -151,16 +133,43 @@ export default function EditListingPage() {
   const [successMsg, setSuccessMsg] = React.useState("");
   const [savedId, setSavedId] = React.useState(listingId);
 
-  // Close tag autocomplete on outside click
+  // Close tag & category autocomplete on outside click
   React.useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
       if (tagInputWrapperRef.current && !tagInputWrapperRef.current.contains(e.target as Node)) {
         setShowTagAutocomplete(false);
       }
+      if (categoryWrapperRef.current && !categoryWrapperRef.current.contains(e.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
+
+  const filteredCategories = React.useMemo(() => {
+    const list = STRUCTURED_CATEGORIES.filter((c) => c.itemType === itemType);
+    if (!categorySearchQuery.trim()) return list;
+    const q = categorySearchQuery.toLowerCase().trim();
+    return list.filter(
+      (c) =>
+        c.nameKa.toLowerCase().includes(q) ||
+        c.nameEn.toLowerCase().includes(q) ||
+        c.keywords.some((k) => k.toLowerCase().includes(q))
+    );
+  }, [itemType, categorySearchQuery]);
+
+  const selectedCategoryObj = React.useMemo(() => {
+    return STRUCTURED_CATEGORIES.find((c) => c.id === plantCategory) || STRUCTURED_CATEGORIES[0];
+  }, [plantCategory]);
+
+  const matchedSuggestions = React.useMemo(() => {
+    if (!tagInput.trim()) return [];
+    const q = tagInput.toLowerCase().trim();
+    return TRADE_TAG_AUTOCOMPLETE_LIST.filter(
+      (s) => s.toLowerCase().includes(q) && !tradeTags.includes(s)
+    ).slice(0, 6);
+  }, [tagInput, tradeTags]);
 
   // Fetch Listing & Check Permissions
   React.useEffect(() => {
@@ -249,12 +258,6 @@ export default function EditListingPage() {
 
         setOriginalListing(listingData);
 
-        // Fetch categories from Supabase
-        const { data: catData } = await supabase.from("categories").select("*").order("name_ka");
-        if (catData && catData.length > 0) {
-          setDbCategories(catData);
-        }
-
         // Populate fields
         setItemType((listingData.item_type as any) || "PLANT");
         setTransactionType((listingData.transaction_type as any) || "FIXED");
@@ -265,15 +268,7 @@ export default function EditListingPage() {
         setPrice(listingData.price !== undefined ? String(listingData.price) : "");
         
         const loadedCategory = listingData.plant_category || listingData.inventory_category || "monstera";
-        const isKnown = PLANT_CATEGORIES.some(c => c.id === loadedCategory) || INVENTORY_CATEGORIES.some(c => c.id === loadedCategory);
-        if (isKnown) {
-          setPlantCategory(loadedCategory);
-          setInventoryCategory(loadedCategory);
-          setIsCustomCategory(false);
-        } else {
-          setCustomCategory(loadedCategory);
-          setIsCustomCategory(true);
-        }
+        setPlantCategory(loadedCategory);
 
         setCity(listingData.city || "თბილისი");
         setAddress(listingData.address || "");
@@ -282,22 +277,70 @@ export default function EditListingPage() {
         setTradeTags(listingData.trade_preferences || listingData.trade_tags || []);
         setExistingImages(listingData.images || []);
       } catch (err: any) {
-        console.error("Error loading listing:", err);
-        setErrorMsg("მონაცემების ჩატვირთვა ვერ მოხერხდა.");
+        console.error("Load error:", err);
+        setErrorMsg(err.message || "მონაცემების ჩატვირთვა ვერ მოხერხდა.");
       } finally {
         setLoading(false);
       }
     }
-    loadData();
-  }, [listingId, supabase]);
 
-  const matchedSuggestions = React.useMemo(() => {
-    if (!tagInput.trim()) return [];
-    const q = tagInput.toLowerCase().trim();
-    return TRADE_TAG_AUTOCOMPLETE_LIST.filter(
-      (s) => s.toLowerCase().includes(q) && !tradeTags.includes(s)
-    ).slice(0, 6);
-  }, [tagInput, tradeTags]);
+    loadData();
+  }, [listingId, supabase, router]);
+
+  // Remove existing photo
+  const removeExistingImage = (idx: number) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Select new files
+  const handleNewFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    
+    // Total limit 6
+    const availableSlots = 6 - existingImages.length - newFiles.length;
+    const filesToAdd = files.slice(0, availableSlots);
+
+    if (filesToAdd.length < files.length) {
+      setErrorMsg("სულ დასაშვებია მაქსიმუმ 6 ფოტო.");
+      setTimeout(() => setErrorMsg(""), 3000);
+    }
+
+    setNewFiles((prev) => [...prev, ...filesToAdd]);
+
+    // Create preview URLs
+    const newUrls = filesToAdd.map((f) => URL.createObjectURL(f));
+    setNewPreviews((prev) => [...prev, ...newUrls]);
+  };
+
+  const removeNewFile = (idx: number) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== idx));
+    setNewPreviews((prev) => {
+      URL.revokeObjectURL(prev[idx]);
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
+  const toggleDelivery = (method: string) => {
+    if (deliveryMethods.includes(method)) {
+      if (deliveryMethods.length > 1) {
+        setDeliveryMethods(deliveryMethods.filter((m) => m !== method));
+      }
+    } else {
+      setDeliveryMethods([...deliveryMethods, method]);
+    }
+  };
+
+  const addTradeTag = () => {
+    if (tagInput.trim() && !tradeTags.includes(tagInput.trim())) {
+      setTradeTags([...tradeTags, tagInput.trim()]);
+      setTagInput("");
+    }
+  };
+
+  const removeTradeTag = (tag: string) => {
+    setTradeTags(tradeTags.filter((t) => t !== tag));
+  };
 
   const addSpecificTag = (tagToAdd: string) => {
     const trimmed = tagToAdd.trim();
@@ -308,99 +351,60 @@ export default function EditListingPage() {
     }
   };
 
-  const removeTradeTag = (tag: string) => {
-    setTradeTags(tradeTags.filter((t) => t !== tag));
-  };
-
-  const toggleDeliveryMethod = (method: string) => {
-    if (deliveryMethods.includes(method)) {
-      if (deliveryMethods.length > 1) {
-        setDeliveryMethods(deliveryMethods.filter((m) => m !== method));
-      }
-    } else {
-      setDeliveryMethods([...deliveryMethods, method]);
-    }
-  };
-
-  const handleNewFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    const totalCount = existingImages.length + newFiles.length + files.length;
-    if (totalCount > 6) {
-      setErrorMsg("მაქსიმუმ 6 ფოტოს ატვირთვაა შესაძლებელი.");
-      setTimeout(() => setErrorMsg(""), 3000);
-      return;
-    }
-    const updated = [...newFiles, ...files];
-    setNewFiles(updated);
-    setNewPreviews(updated.map((f) => URL.createObjectURL(f)));
-  };
-
-  const removeExistingImage = (idx: number) => {
-    setExistingImages((prev) => prev.filter((_, i) => i !== idx));
-  };
-
-  const removeNewFile = (idx: number) => {
-    const updated = newFiles.filter((_, i) => i !== idx);
-    setNewFiles(updated);
-    setNewPreviews(updated.map((f) => URL.createObjectURL(f)));
-  };
-
+  // Form Submit Handler
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     setSuccessMsg("");
 
-    if (!titleKa.trim()) {
-      setErrorMsg("გთხოვთ მიუთითოთ განცხადების სათაური.");
+    if (!titleKa.trim() && !titleEn.trim()) {
+      setErrorMsg("სათაურის შეყვანა სავალდებულოა.");
       return;
     }
 
-    if (existingImages.length === 0 && newFiles.length === 0) {
-      setErrorMsg("გთხოვთ დატოვოთ ან ატვირთოთ მინიმუმ 1 ფოტო.");
+    const totalImagesCount = existingImages.length + newFiles.length;
+    if (totalImagesCount < 1) {
+      setErrorMsg("მინიმუმ 1 ფოტო აუცილებელია.");
       return;
     }
 
     setIsSubmitting(true);
-    setUploadProgress("ინახება განცხადების ცვლილებები...");
+    setUploadProgress("ინფორმაცია მუშავდება...");
 
     try {
       // 1. Upload any new files to Supabase Storage
       const uploadedUrls: string[] = [];
-      for (let i = 0; i < newFiles.length; i++) {
-        const file = newFiles[i];
-        setUploadProgress(`იტვირთება ფოტო ${i + 1} / ${newFiles.length}...`);
-        const fileExt = file.name.split(".").pop() || "jpg";
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
-        const filePath = `listings/${currentUser?.id || "admin"}/${fileName}`;
+      if (newFiles.length > 0) {
+        setUploadProgress("ახალი ფოტოები იტვირთება სერვერზე...");
+        for (let i = 0; i < newFiles.length; i++) {
+          const file = newFiles[i];
+          const fileExt = file.name.split(".").pop() || "jpg";
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+          const filePath = `${currentUser?.id || "admin"}/${fileName}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from("listings")
-          .upload(filePath, file, { contentType: file.type });
-
-        if (uploadError) {
-          console.warn("Storage upload warning, using base64/url:", uploadError);
-          const reader = new FileReader();
-          const b64 = await new Promise<string>((res) => {
-            reader.onload = () => res(reader.result as string);
-            reader.readAsDataURL(file);
-          });
-          uploadedUrls.push(b64);
-        } else {
-          const { data: { publicUrl } } = supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from("listings")
-            .getPublicUrl(filePath);
-          uploadedUrls.push(publicUrl);
+            .upload(filePath, file, { contentType: file.type });
+
+          if (uploadError) {
+            console.warn("Storage upload warning, using base64/url:", uploadError);
+            const reader = new FileReader();
+            const b64 = await new Promise<string>((res) => {
+              reader.onload = () => res(reader.result as string);
+              reader.readAsDataURL(file);
+            });
+            uploadedUrls.push(b64);
+          } else {
+            const { data: { publicUrl } } = supabase.storage
+              .from("listings")
+              .getPublicUrl(filePath);
+            uploadedUrls.push(publicUrl);
+          }
         }
       }
 
       const finalImages = [...existingImages, ...uploadedUrls];
-
       let savedListingId = listingId;
-
-      const finalCategory = isCustomCategory && customCategory.trim() 
-        ? customCategory.trim() 
-        : (itemType === "PLANT" ? plantCategory : inventoryCategory);
 
       const listingPayload = {
         item_type: itemType,
@@ -410,8 +414,8 @@ export default function EditListingPage() {
         description_ka: descKa.trim(),
         description_en: descEn.trim() || descKa.trim(),
         price: (transactionType === "GIFT" || transactionType === "TRADE") ? 0 : Number(price) || 0,
-        plant_category: finalCategory,
-        inventory_category: itemType === "INVENTORY" ? finalCategory : null,
+        plant_category: plantCategory,
+        inventory_category: itemType === "INVENTORY" ? plantCategory : null,
         city: city,
         address: address.trim(),
         delivery_methods: deliveryMethods,
@@ -544,15 +548,19 @@ export default function EditListingPage() {
 
       {/* Main Edit Form */}
       <form onSubmit={handleSave} className="space-y-6">
-        {/* 1. Item Type Selector */}
-        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-3">
+        {/* 1. Item Type & Searchable Category Selector */}
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-            1. განცხადების ტიპი
+            1. ძირითადი კატეგორია & სახეობა
           </label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
-              onClick={() => setItemType("PLANT")}
+              onClick={() => {
+                setItemType("PLANT");
+                setPlantCategory("monstera");
+                setCategorySearchQuery("");
+              }}
               className={`p-3.5 rounded-[16px] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
                 itemType === "PLANT"
                   ? "bg-primary text-white border-primary shadow-ambient"
@@ -565,7 +573,11 @@ export default function EditListingPage() {
 
             <button
               type="button"
-              onClick={() => setItemType("INVENTORY")}
+              onClick={() => {
+                setItemType("INVENTORY");
+                setPlantCategory("pots-ceramic");
+                setCategorySearchQuery("");
+              }}
               className={`p-3.5 rounded-[16px] text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
                 itemType === "INVENTORY"
                   ? "bg-primary text-white border-primary shadow-ambient"
@@ -575,6 +587,99 @@ export default function EditListingPage() {
               <Layers className="w-4 h-4" />
               🪴 ინვენტარი & მოვლა
             </button>
+          </div>
+
+          {/* Searchable Sub-Category Combobox */}
+          <div className="relative" ref={categoryWrapperRef}>
+            <label className="text-xs font-bold text-foreground block mb-1.5">
+              {itemType === "PLANT" ? "მცენარის სახეობა / ჯგუფი" : "ინვენტარის კატეგორია"}
+            </label>
+
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={categorySearchQuery}
+                onFocus={() => setCategoryDropdownOpen(true)}
+                onChange={(e) => {
+                  setCategorySearchQuery(e.target.value);
+                  setCategoryDropdownOpen(true);
+                }}
+                placeholder={
+                  selectedCategoryObj
+                    ? `${selectedCategoryObj.emoji} ${selectedCategoryObj.nameKa}`
+                    : "მოძებნეთ კატეგორია (მაგ: სუკულენტი, მონსტერა, ქოთანი...)"
+                }
+                className="w-full pl-10 pr-10 h-11 rounded-[14px] border border-border/80 bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-foreground placeholder:font-bold"
+              />
+              {categorySearchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setCategorySearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              )}
+            </div>
+
+            {/* Selected Category Pill */}
+            {selectedCategoryObj && !categoryDropdownOpen && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[11px] text-muted-foreground font-medium">არჩეულია:</span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] bg-primary/10 text-primary border border-primary/20 text-xs font-bold">
+                  <span>{selectedCategoryObj.emoji}</span>
+                  <span>{selectedCategoryObj.nameKa}</span>
+                </span>
+              </div>
+            )}
+
+            {/* Dropdown Suggestions */}
+            {categoryDropdownOpen && (
+              <div className="absolute z-50 left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto rounded-[16px] border border-border/80 bg-card p-1.5 shadow-xl shadow-black/10">
+                {filteredCategories.length > 0 ? (
+                  <div className="space-y-1">
+                    {filteredCategories.map((cat) => {
+                      const isSelected = cat.id === plantCategory;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            setPlantCategory(cat.id);
+                            setItemType(cat.itemType);
+                            setCategorySearchQuery("");
+                            setCategoryDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between p-2.5 rounded-[12px] text-left text-xs transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-primary text-white font-bold"
+                              : "hover:bg-surface-container text-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-base">{cat.emoji}</span>
+                            <div>
+                              <p className="font-bold">{cat.nameKa}</p>
+                              <p className={`text-[10px] ${isSelected ? "text-white/80" : "text-muted-foreground"}`}>
+                                {cat.nameEn}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 shrink-0 text-white" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-xs text-muted-foreground">
+                    მსგავსი კატეგორია ვერ მოიძებნა.
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -691,63 +796,11 @@ export default function EditListingPage() {
           </div>
         </div>
 
-        {/* 4. Category & Transaction Type */}
+        {/* 4. Transaction Type & Price */}
         <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-            4. კატეგორია & გარიგების ტიპი
+            4. გარიგების ტიპი & ფასი
           </label>
-
-          {/* Category Selector */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-foreground block">
-                {itemType === "PLANT" ? "მცენარის სახეობა / ჯგუფი" : "ინვენტარის კატეგორია"}
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsCustomCategory(!isCustomCategory)}
-                className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
-              >
-                {isCustomCategory ? "← სიიდან არჩევა" : "+ ახალი კატეგორიის ჩაწერა"}
-              </button>
-            </div>
-
-            {isCustomCategory ? (
-              <div className="space-y-1">
-                <Input
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                  placeholder="მაგ: კაქტუსი, სუკულენტი, ბონსაი, ორქიდეა..."
-                  className="rounded-[14px] h-10 text-xs sm:text-sm font-semibold"
-                  autoFocus
-                />
-                <p className="text-[10px] text-muted-foreground">
-                  💡 ჩაწერილი ახალი კატეგორია ავტომატურად შეიქმნება ბაზაში და გამოჩნდება შოპის ფილტრებში.
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                {(itemType === "PLANT" ? PLANT_CATEGORIES : INVENTORY_CATEGORIES).map((cat) => {
-                  const isSelected = itemType === "PLANT" ? plantCategory === cat.id : inventoryCategory === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => itemType === "PLANT" ? setPlantCategory(cat.id) : setInventoryCategory(cat.id)}
-                      className={`py-2 px-2.5 rounded-[12px] text-xs font-bold transition-all text-left flex items-center gap-1.5 cursor-pointer border ${
-                        isSelected
-                          ? "bg-primary text-white border-primary shadow-xs"
-                          : "bg-background border-border/70 text-foreground hover:bg-surface-container"
-                      }`}
-                    >
-                      <span>{cat.emoji}</span>
-                      <span className="truncate">{cat.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
 
           {/* Transaction Type Buttons */}
           <div>
@@ -948,7 +1001,7 @@ export default function EditListingPage() {
                   <button
                     key={m.id}
                     type="button"
-                    onClick={() => toggleDeliveryMethod(m.id)}
+                    onClick={() => toggleDelivery(m.id)}
                     className={`p-2.5 rounded-[12px] text-xs font-bold transition-all text-left flex items-center justify-between cursor-pointer border ${
                       isSelected
                         ? "bg-primary/10 text-primary border-primary/40 font-bold"

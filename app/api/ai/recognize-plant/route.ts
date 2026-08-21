@@ -13,10 +13,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = 
+      process.env.GEMINI_API_KEY || 
+      process.env.GOOGLE_GEMINI_API_KEY || 
+      process.env.GOOGLE_API_KEY || 
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
     if (!apiKey) {
       return NextResponse.json(
-        { success: false, error: "Gemini API Key არ არის კონფიგურირებული" },
+        { success: false, error: "Gemini API Key არ არის კონფიგურირებული Vercel-ის Environment Variables-ში" },
         { status: 500 }
       );
     }
@@ -49,8 +54,10 @@ Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flow
 
     // Multi-model array for automatic failover in case of traffic spikes
     const modelsToTry = [
-      "gemini-3.6-flash",
-      "gemini-flash-latest",
+      "gemini-1.5-flash",
+      "gemini-2.0-flash",
+      "gemini-1.5-pro",
+      "gemini-2.5-flash",
     ];
 
     let lastErrorMsg = "";
@@ -104,13 +111,14 @@ Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flow
           continue;
         }
 
-        // Clean any markdown backticks if returned
-        const cleanedJson = rawText
-          .replace(/```json/gi, "")
-          .replace(/```/g, "")
-          .trim();
+        // Extract JSON object safely even if surrounded by markdown or extra text
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) {
+          lastErrorMsg = "Gemini-მ არ დააბრუნა ვალიდური JSON მონაცემები";
+          continue;
+        }
 
-        const parsedData = JSON.parse(cleanedJson);
+        const parsedData = JSON.parse(jsonMatch[0]);
 
         return NextResponse.json({
           success: true,

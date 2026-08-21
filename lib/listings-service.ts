@@ -73,25 +73,22 @@ export async function getMergedListings(): Promise<ExtendedListingCardProps[]> {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.warn("Error fetching Supabase listings, using sample listings:", error.message);
-      return SAMPLE_LISTINGS;
+      console.warn("Error fetching Supabase listings:", error.message);
+      return [];
     }
 
     if (!dbListings || dbListings.length === 0) {
-      return SAMPLE_LISTINGS;
+      return [];
     }
 
     const formattedDbListings = dbListings.map((row: any) =>
       formatDbListing(row, row.profiles)
     );
 
-    // Real DB listings appear first, followed by unique sample listings
-    const existingIds = new Set(formattedDbListings.map((l: any) => l.id));
-    const uniqueSampleListings = SAMPLE_LISTINGS.filter((l) => !existingIds.has(l.id));
-
-    return [...formattedDbListings, ...uniqueSampleListings];
+    // Return pure real database listings
+    return formattedDbListings;
   } catch (err) {
     console.warn("Failed to load listings from database:", err);
-    return SAMPLE_LISTINGS;
+    return [];
   }
 }

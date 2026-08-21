@@ -222,7 +222,7 @@ export default function BotanicalMap() {
     setPriceRange([0, 500]);
   };
 
-  const [allMapListings, setAllMapListings] = React.useState<any[]>(SAMPLE_LISTINGS);
+  const [allMapListings, setAllMapListings] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     getMergedListings().then((data) => {

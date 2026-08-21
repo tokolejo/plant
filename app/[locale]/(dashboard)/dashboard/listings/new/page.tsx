@@ -5,7 +5,7 @@ import { useRouter } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { uploadListingImage } from "@/utils/supabase/storage";
-import { compressImagesBatch } from "@/utils/image-compression";
+import { compressImagesBatch, compressImage } from "@/utils/image-compression";
 import { 
   Sprout, 
   Layers, 
@@ -21,11 +21,14 @@ import {
   Leaf,
   MapPin,
   Navigation,
-  CheckCircle2
+  CheckCircle2,
+  Search,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { STRUCTURED_CATEGORIES, type TaxonomyCategory } from "@/lib/categories-data";
 
 export interface GeminiPlantRecognitionResult {
   latinName?: string;
@@ -111,9 +114,10 @@ export default function CreateListingPage() {
   // Form State
   const [itemType, setItemType] = React.useState<"PLANT" | "INVENTORY">("PLANT");
   const [plantCategory, setPlantCategory] = React.useState("monstera");
-  const [customCategory, setCustomCategory] = React.useState("");
-  const [isCustomCategory, setIsCustomCategory] = React.useState(false);
-  const [dbCategories, setDbCategories] = React.useState<any[]>([]);
+  const [categorySearchQuery, setCategorySearchQuery] = React.useState("");
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = React.useState(false);
+  const categoryWrapperRef = React.useRef<HTMLDivElement>(null);
+
   const [transactionType, setTransactionType] = React.useState<"FIXED" | "NEGOTIABLE" | "TRADE" | "GIFT">("FIXED");
   const [titleKa, setTitleKa] = React.useState("");
   const [titleEn, setTitleEn] = React.useState("");
@@ -136,31 +140,35 @@ export default function CreateListingPage() {
   const [uploadProgress, setUploadProgress] = React.useState<string>("");
   const [errorMsg, setErrorMsg] = React.useState("");
 
-  // Fetch dynamic categories from Supabase
-  React.useEffect(() => {
-    async function loadCategories() {
-      try {
-        const { data } = await supabase.from("categories").select("*").order("name_ka");
-        if (data && data.length > 0) {
-          setDbCategories(data);
-        }
-      } catch (err) {
-        console.warn("Could not load categories:", err);
-      }
-    }
-    loadCategories();
-  }, [supabase]);
-
-  // Close tag autocomplete on outside click
+  // Close category & tag autocomplete on outside click
   React.useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
       if (tagInputWrapperRef.current && !tagInputWrapperRef.current.contains(e.target as Node)) {
         setShowTagAutocomplete(false);
       }
+      if (categoryWrapperRef.current && !categoryWrapperRef.current.contains(e.target as Node)) {
+        setCategoryDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleOutside);
     return () => document.removeEventListener("mousedown", handleOutside);
   }, []);
+
+  const filteredCategories = React.useMemo(() => {
+    const list = STRUCTURED_CATEGORIES.filter((c) => c.itemType === itemType);
+    if (!categorySearchQuery.trim()) return list;
+    const q = categorySearchQuery.toLowerCase().trim();
+    return list.filter(
+      (c) =>
+        c.nameKa.toLowerCase().includes(q) ||
+        c.nameEn.toLowerCase().includes(q) ||
+        c.keywords.some((k) => k.toLowerCase().includes(q))
+    );
+  }, [itemType, categorySearchQuery]);
+
+  const selectedCategoryObj = React.useMemo(() => {
+    return STRUCTURED_CATEGORIES.find((c) => c.id === plantCategory) || STRUCTURED_CATEGORIES[0];
+  }, [plantCategory]);
 
   const matchedSuggestions = React.useMemo(() => {
     if (!tagInput.trim()) return [];
@@ -231,6 +239,8 @@ export default function CreateListingPage() {
   // ──────────────────────────────────────────────
   // Real Google Gemini AI Vision: INSTANT AUTO-FILL
   // ──────────────────────────────────────────────
+  const [activeProvider, setActiveProvider] = React.useState<"gemini" | "plantnet" | null>(null);
+
   const handleAiAutoFill = async () => {
     if (selectedFiles.length === 0) {
       setErrorMsg("გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო AI ამოცნობისთვის!");
@@ -243,14 +253,20 @@ export default function CreateListingPage() {
 
     try {
       const firstFile = selectedFiles[0];
-      const base64 = await fileToBase64(firstFile);
+      // Compress image client-side to max 1000px and under 150KB for fast mobile transmission
+      const compressedForAi = await compressImage(firstFile, {
+        maxDimension: 1000,
+        quality: 0.82,
+        mimeType: "image/jpeg",
+      });
+      const base64 = await fileToBase64(compressedForAi);
 
       const res = await fetch("/api/ai/recognize-plant", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imageBase64: base64,
-          mimeType: firstFile.type || "image/jpeg",
+          mimeType: "image/jpeg",
         }),
       });
 
@@ -262,6 +278,7 @@ export default function CreateListingPage() {
 
       const result: GeminiPlantRecognitionResult = data.data;
       setAiResult(result);
+      setActiveProvider("gemini");
 
       // DIRECT INSTANT AUTO-FILL: Titles, Descriptions, ItemType, Tags (WITHOUT modifying price)
       if (result.titleKa) setTitleKa(result.titleKa);
@@ -280,6 +297,70 @@ export default function CreateListingPage() {
       setTimeout(() => setErrorMsg(""), 5000);
     } finally {
       setAiDetecting(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // Pl@ntNet Botanical AI Vision (OpenAPI)
+  // ──────────────────────────────────────────────
+  const [plantnetDetecting, setPlantnetDetecting] = React.useState(false);
+
+  const handlePlantNetAutoFill = async () => {
+    if (selectedFiles.length === 0) {
+      setErrorMsg("გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Pl@ntNet ამოცნობისთვის!");
+      setTimeout(() => setErrorMsg(""), 3000);
+      return;
+    }
+
+    setPlantnetDetecting(true);
+    setErrorMsg("");
+
+    try {
+      const firstFile = selectedFiles[0];
+      const compressedForAi = await compressImage(firstFile, {
+        maxDimension: 1200,
+        quality: 0.85,
+        mimeType: "image/jpeg",
+      });
+      const base64 = await fileToBase64(compressedForAi);
+
+      const res = await fetch("/api/ai/recognize-plantnet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          imageBase64: base64,
+          mimeType: "image/jpeg",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Pl@ntNet-ით ამოცნობა ვერ მოხერხდა");
+      }
+
+      const result = data.data;
+      setAiResult(result);
+      setActiveProvider("plantnet");
+
+      // Auto-fill form fields
+      if (result.titleKa) setTitleKa(result.titleKa);
+      if (result.titleEn) setTitleEn(result.titleEn);
+      if (result.descKa) setDescKa(result.descKa);
+      if (result.descEn) setDescEn(result.descEn);
+      if (result.category) setItemType(result.category);
+      if (result.plantCategory) setPlantCategory(result.plantCategory);
+      if (result.tags && Array.isArray(result.tags)) {
+        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags!])));
+      }
+
+      setAiApplied(true);
+    } catch (err: any) {
+      console.error("Pl@ntNet Recognition Error:", err);
+      setErrorMsg(`Pl@ntNet ამოცნობა: ${err.message || "სცადეთ ხელახლა"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setPlantnetDetecting(false);
     }
   };
 
@@ -397,10 +478,6 @@ export default function CreateListingPage() {
 
       setUploadProgress("განცხადება ინახება მონაცემთა ბაზაში...");
 
-      const finalCategory = isCustomCategory && customCategory.trim() 
-        ? customCategory.trim() 
-        : plantCategory;
-
       const { data, error: insertError } = await supabase.from("listings").insert({
         user_id: user.id,
         title_ka: titleKa.trim() || titleEn.trim(),
@@ -408,8 +485,8 @@ export default function CreateListingPage() {
         description_ka: descKa.trim(),
         description_en: descEn.trim(),
         item_type: itemType,
-        plant_category: finalCategory,
-        inventory_category: itemType === "INVENTORY" ? finalCategory : null,
+        plant_category: plantCategory,
+        inventory_category: itemType === "INVENTORY" ? plantCategory : null,
         status: "ACTIVE",
         price: (transactionType === "TRADE" || transactionType === "GIFT") ? 0 : parseFloat(price || "0"),
         transaction_type: transactionType,
@@ -462,7 +539,7 @@ export default function CreateListingPage() {
               onClick={() => {
                 setItemType("PLANT");
                 setPlantCategory("monstera");
-                setIsCustomCategory(false);
+                setCategorySearchQuery("");
               }}
               className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 itemType === "PLANT"
@@ -478,7 +555,7 @@ export default function CreateListingPage() {
               onClick={() => {
                 setItemType("INVENTORY");
                 setPlantCategory("pots-ceramic");
-                setIsCustomCategory(false);
+                setCategorySearchQuery("");
               }}
               className={`p-3.5 rounded-[18px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
                 itemType === "INVENTORY"
@@ -491,96 +568,96 @@ export default function CreateListingPage() {
             </button>
           </div>
 
-          {/* Sub-Category Picker */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-bold text-foreground block">
-                {itemType === "PLANT" ? "მცენარის სახეობა / ჯგუფი" : "ინვენტარის კატეგორია"}
-              </span>
-              <button
-                type="button"
-                onClick={() => setIsCustomCategory(!isCustomCategory)}
-                className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
-              >
-                {isCustomCategory ? "← სიიდან არჩევა" : "+ ახალი კატეგორიის ჩაწერა"}
-              </button>
+          {/* Searchable Sub-Category Combobox */}
+          <div className="relative" ref={categoryWrapperRef}>
+            <label className="text-xs font-bold text-foreground block mb-1.5">
+              {itemType === "PLANT" ? "მცენარის სახეობა / ჯგუფი" : "ინვენტარის კატეგორია"}
+            </label>
+
+            <div className="relative">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={categorySearchQuery}
+                onFocus={() => setCategoryDropdownOpen(true)}
+                onChange={(e) => {
+                  setCategorySearchQuery(e.target.value);
+                  setCategoryDropdownOpen(true);
+                }}
+                placeholder={
+                  selectedCategoryObj
+                    ? `${selectedCategoryObj.emoji} ${selectedCategoryObj.nameKa}`
+                    : "მოძებნეთ კატეგორია (მაგ: სუკულენტი, მონსტერა, ქოთანი...)"
+                }
+                className="w-full pl-10 pr-10 h-11 rounded-[14px] border border-border/80 bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-foreground placeholder:font-bold"
+              />
+              {categorySearchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setCategorySearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              )}
             </div>
 
-            {isCustomCategory ? (
-              <div className="space-y-1">
-                <Input
-                  value={customCategory}
-                  onChange={(e) => setCustomCategory(e.target.value)}
-                  placeholder="მაგ: კაქტუსი, სუკულენტი, ბონსაი, ორქიდეა..."
-                  className="rounded-[14px] h-10 text-xs sm:text-sm font-semibold"
-                  autoFocus
-                />
-                <p className="text-[10px] text-muted-foreground">
-                  💡 ჩაწერილი ახალი კატეგორია ავტომატურად შეიქმნება ბაზაში და გამოჩნდება შოპის ფილტრებში.
-                </p>
+            {/* Selected Category Pill */}
+            {selectedCategoryObj && !categoryDropdownOpen && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[11px] text-muted-foreground font-medium">არჩეულია:</span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[10px] bg-primary/10 text-primary border border-primary/20 text-xs font-bold">
+                  <span>{selectedCategoryObj.emoji}</span>
+                  <span>{selectedCategoryObj.nameKa}</span>
+                </span>
               </div>
-            ) : (
-              <select
-                value={plantCategory}
-                onChange={(e) => {
-                  if (e.target.value === "__custom__") {
-                    setIsCustomCategory(true);
-                  } else {
-                    setPlantCategory(e.target.value);
-                  }
-                }}
-                className="w-full h-10 rounded-[14px] border border-border/80 bg-background px-3 py-2 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary cursor-pointer"
-              >
-                {itemType === "PLANT" ? (
-                  <>
-                    <optgroup label="პოპულარული მცენარეები">
-                      <option value="monstera">🌿 მონსტერა (Monstera)</option>
-                      <option value="philodendron">🌱 ფილოდენდრონი (Philodendron)</option>
-                      <option value="cactus-succulent">🌵 კაქტუსი & სუქულენტი</option>
-                      <option value="orchid">🌸 ორქიდეა (Orchid)</option>
-                      <option value="anthurium">🌺 ანთურიუმი (Anthurium)</option>
-                      <option value="alocasia">🍃 ალოკაზია (Alocasia)</option>
-                      <option value="calathea">🌿 კალათეა / მარანტა</option>
-                      <option value="pothos-scindapsus">🌾 პოთოსი / სცინდაპსუსი</option>
-                      <option value="ficus">🌳 ფიკუსი (Ficus)</option>
-                      <option value="palm">🌴 პალმა (Palm)</option>
-                      <option value="fern">🌿 გვიმრა (Fern)</option>
-                      <option value="bonsai">🎋 ბონსაი (Bonsai)</option>
-                      <option value="sansevieria">🪴 სანსევიერია</option>
-                      <option value="zz-plant">🌿 ზამიოკულკასი (ZZ)</option>
-                      <option value="rare-variegated">✨ იშვიათი & ვარიეგატული</option>
-                      <option value="cutting">✂️ კალმები & ნერგები</option>
-                      <option value="outdoor-garden">🌻 ბაღის & ეზოს მცენარეები</option>
-                    </optgroup>
-                    {dbCategories.filter(c => c.item_type === "PLANT" && !c.is_system).length > 0 && (
-                      <optgroup label="მომხმარებლების მიერ დამატებული კატეგორიები">
-                        {dbCategories.filter(c => c.item_type === "PLANT" && !c.is_system).map(c => (
-                          <option key={c.slug} value={c.slug}>{c.icon || "🌿"} {c.name_ka}</option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </>
+            )}
+
+            {/* Dropdown Suggestions */}
+            {categoryDropdownOpen && (
+              <div className="absolute z-50 left-0 right-0 top-full mt-1.5 max-h-64 overflow-y-auto rounded-[16px] border border-border/80 bg-card p-1.5 shadow-xl shadow-black/10">
+                {filteredCategories.length > 0 ? (
+                  <div className="space-y-1">
+                    {filteredCategories.map((cat) => {
+                      const isSelected = cat.id === plantCategory;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            setPlantCategory(cat.id);
+                            setItemType(cat.itemType);
+                            setCategorySearchQuery("");
+                            setCategoryDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between p-2.5 rounded-[12px] text-left text-xs transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-primary text-white font-bold"
+                              : "hover:bg-surface-container text-foreground"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-base">{cat.emoji}</span>
+                            <div>
+                              <p className="font-bold">{cat.nameKa}</p>
+                              <p className={`text-[10px] ${isSelected ? "text-white/80" : "text-muted-foreground"}`}>
+                                {cat.nameEn}
+                              </p>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 shrink-0 text-white" />}
+                        </button>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <>
-                    <optgroup label="ინვენტარი & მოვლა">
-                      <option value="pots-ceramic">🏺 კერამიკული ქოთნები & სადგამები</option>
-                      <option value="pots-plastic">🪣 პლასტიკური & საწარმოო ქოთნები</option>
-                      <option value="substrate-soil">🌍 სუბსტრატები, გრუნტი & პერლიტი</option>
-                      <option value="fertilizer">🧪 სასუქები & ვიტამინები</option>
-                      <option value="tools-care">🔧 მოვლის ხელსაწყოები</option>
-                      <option value="lighting-grow">💡 ფიტო-განათება (Grow Light)</option>
-                    </optgroup>
-                    {dbCategories.filter(c => c.item_type === "INVENTORY" && !c.is_system).length > 0 && (
-                      <optgroup label="დამატებითი ინვენტარი">
-                        {dbCategories.filter(c => c.item_type === "INVENTORY" && !c.is_system).map(c => (
-                          <option key={c.slug} value={c.slug}>{c.icon || "📦"} {c.name_ka}</option>
-                        ))}
-                      </optgroup>
-                    )}
-                  </>
+                  <div className="p-4 text-center text-xs text-muted-foreground">
+                    მსგავსი კატეგორია ვერ მოიძებნა.
+                  </div>
                 )}
-                <option value="__custom__">✨ + სხვა / ახალი კატეგორიის ჩაწერა...</option>
-              </select>
+              </div>
             )}
           </div>
         </div>
@@ -592,23 +669,42 @@ export default function CreateListingPage() {
               2. ფოტოები (მინ. 2, მაქს. 5) *
             </label>
             
-            <div className="flex items-center gap-2">
-              {/* Compact Sleek AI Trigger Button */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Dual Recognition Buttons */}
               {selectedFiles.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleAiAutoFill}
-                  disabled={aiDetecting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-60"
-                  title="Google Gemini AI-ით მცენარის ამოცნობა და ფორმის ავტო-შევსება"
-                >
-                  {aiDetecting ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  )}
-                  <span>{aiDetecting ? "ამოიცნობს..." : "✨ AI ამოცნობა"}</span>
-                </button>
+                <>
+                  {/* 1. Google Gemini AI Button */}
+                  <button
+                    type="button"
+                    onClick={handleAiAutoFill}
+                    disabled={aiDetecting || plantnetDetecting}
+                    className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-60"
+                    title="Google Gemini AI-ით მცენარის ამოცნობა და ფორმის ავტო-შევსება"
+                  >
+                    {aiDetecting ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                    )}
+                    <span>{aiDetecting ? "ამოიცნობს..." : "✨ Gemini AI"}</span>
+                  </button>
+
+                  {/* 2. Pl@ntNet Botanical Vision Button */}
+                  <button
+                    type="button"
+                    onClick={handlePlantNetAutoFill}
+                    disabled={aiDetecting || plantnetDetecting}
+                    className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-teal-700 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer border border-emerald-400/30 disabled:opacity-60"
+                    title="Pl@ntNet-ის სამეცნიერო ბოტანიკური ამოცნობა (OpenAPI)"
+                  >
+                    {plantnetDetecting ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Leaf className="w-3.5 h-3.5 text-emerald-300" />
+                    )}
+                    <span>{plantnetDetecting ? "ამოიცნობს..." : "🌿 Pl@ntNet"}</span>
+                  </button>
+                </>
               )}
               
               <span className="text-xs font-bold text-primary px-2 py-0.5 rounded-full bg-secondary-container">
@@ -667,7 +763,7 @@ export default function CreateListingPage() {
               <div className="flex items-center gap-2 min-w-0">
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span className="text-xs text-emerald-800 dark:text-emerald-300 font-semibold truncate">
-                  ✨ Gemini-მ ამოიცნო: <strong>{aiResult.nameKa || aiResult.latinName}</strong> — ველები ავტომატურად შეივსო!
+                  {activeProvider === "plantnet" ? "🌿 Pl@ntNet-მა" : "✨ Gemini-მ"} ამოიცნო: <strong>{aiResult.nameKa || aiResult.latinName}</strong> — ველები ავტომატურად შეივსო!
                 </span>
               </div>
               <button
