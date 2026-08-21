@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export const maxDuration = 30; // 30 seconds timeout
+export const maxDuration = 45; // PlantNet + Gemini text generation
 
 // Botanical dictionary mapping genus/family/species to Georgian botanical taxonomy
 const BOTANICAL_GEORGIAN_MAP: Record<string, { ka: string; en: string; category: string; careKa: string; careEn: string }> = {
@@ -279,8 +279,51 @@ export async function POST(req: NextRequest) {
 
     const titleKa = `${nameKa} — ${scientificName}`;
     const titleEn = `${scientificName} (${bestCommonNameEn})`;
-    const descKa = `ჯანსაღი და ხარისხიანი მცენარე (${scientificName}).\n\n🌿 მოვლის რეკომენდაცია:\n${careKa}`;
-    const descEn = `Healthy houseplant (${scientificName}).\n\n🌿 Care guidelines:\n${careEn}`;
+
+    // ─── Gemini text-only: generate description from species name (cheap, ~100-200 tokens) ───
+    let descKa = `ჯანსაღი ${nameKa} (${scientificName}). ${careKa}`;
+    let descEn = `Healthy ${scientificName} (${bestCommonNameEn}). ${careEn}`;
+
+    const geminiKey = process.env.GEMINI_API_KEY;
+    if (geminiKey) {
+      try {
+        const geminiPrompt = `შენ ხარ მცენარეების ექსპერტი. მომხმარებელმა სურათით ამოიცნო შემდეგი მცენარე:
+სამეცნიერო სახელი: ${scientificName}
+საერთო სახელი (ინგლისური): ${bestCommonNameEn}
+ქართული სახელი: ${nameKa}
+ოჯახი: ${family || "—"}
+ამოცნობის სიზუსტე: ${Math.round(score * 100)}%
+
+დაწერე 2-3 პატარა წინადადება ქართულად (მხოლოდ ტექსტი, ემოჯი ნებადართულია), რომელიც:
+- ახასიათებს ამ მცენარეს (გარეგნობა, სადაც ჩვეულებრივ გვხვდება)
+- მოიცავს ერთ-ორ მოვლის ინსტრუქციას (განათება, მორწყვა)
+- ბოლოს მოკლედ ახსენებს სად გამოიყენება (ოთახი, ოფისი, სადარბაზო)
+პასუხი: მხოლოდ ტექსტი, სათაური არ გჭირდება.`;
+
+        const geminiRes = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: geminiPrompt }] }],
+              generationConfig: { maxOutputTokens: 256, temperature: 0.7 },
+            }),
+          }
+        );
+
+        if (geminiRes.ok) {
+          const geminiData = await geminiRes.json();
+          const generated = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+          if (generated && generated.length > 20) {
+            descKa = generated;
+          }
+        }
+      } catch (geminiErr) {
+        // Fallback silently to static description if Gemini fails
+        console.warn("[Gemini description generation failed, using fallback]", geminiErr);
+      }
+    }
 
     const tags = Array.from(
       new Set(
