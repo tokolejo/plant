@@ -273,32 +273,75 @@ export async function POST(req: NextRequest) {
       (family.includes("orchid") ? BOTANICAL_GEORGIAN_MAP["phalaenopsis"] : null);
 
     const nameKa = matchedTaxon ? matchedTaxon.ka : scientificName;
-    const plantCategory = matchedTaxon ? matchedTaxon.category : "monstera";
+    const plantCategory = matchedTaxon ? matchedTaxon.category : "other-plant";
     const careKa = matchedTaxon ? matchedTaxon.careKa : "სჭირდება გაფანტული სინათლე და რეგულარული ზომიერი მორწყვა ნიადაგის ზედაპირის შეშრობისას.";
     const careEn = matchedTaxon ? matchedTaxon.careEn : "Requires bright indirect light and moderate watering when topsoil dries.";
 
     const titleKa = `${nameKa} — ${scientificName}`;
     const titleEn = `${scientificName} (${bestCommonNameEn})`;
 
-    // ─── Gemini text-only: generate description from species name (cheap, ~100-200 tokens) ───
+    // ─── Supabase helpers for cache ───────────────────────────────────────────
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    const anonKey = (process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "");
+    const cacheHeaders = {
+      "Content-Type": "application/json",
+      "apikey": serviceKey || anonKey,
+      "Authorization": `Bearer ${serviceKey || anonKey}`,
+    };
+
+    // ─── 1. Check species cache first ────────────────────────────────────────
     let descKa = `ჯანსაღი ${nameKa} (${scientificName}). ${careKa}`;
     let descEn = `Healthy ${scientificName} (${bestCommonNameEn}). ${careEn}`;
+    let fromCache = false;
 
+    try {
+      const cacheRes = await fetch(
+        `${supabaseUrl}/rest/v1/plant_species_cache?scientific_name=ilike.${encodeURIComponent(scientificName)}&select=description_ka,description_en,hit_count&limit=1`,
+        { headers: cacheHeaders }
+      );
+      if (cacheRes.ok) {
+        const cacheRows = await cacheRes.json();
+        if (cacheRows && cacheRows.length > 0 && cacheRows[0].description_ka) {
+          descKa = cacheRows[0].description_ka;
+          if (cacheRows[0].description_en) descEn = cacheRows[0].description_en;
+          fromCache = true;
+          // Increment hit counter async (fire and forget)
+          fetch(
+            `${supabaseUrl}/rest/v1/plant_species_cache?scientific_name=ilike.${encodeURIComponent(scientificName)}`,
+            {
+              method: "PATCH",
+              headers: cacheHeaders,
+              body: JSON.stringify({ hit_count: (cacheRows[0].hit_count || 1) + 1 }),
+            }
+          ).catch(() => {});
+        }
+      }
+    } catch (cacheErr) {
+      console.warn("[Cache lookup failed, continuing without cache]", cacheErr);
+    }
+
+    // ─── 2. Generate description with Gemini if not in cache ─────────────────
     const geminiKey = process.env.GEMINI_API_KEY;
-    if (geminiKey) {
+    if (!fromCache && geminiKey) {
       try {
-        const geminiPrompt = `შენ ხარ მცენარეების ექსპერტი. მომხმარებელმა სურათით ამოიცნო შემდეგი მცენარე:
-სამეცნიერო სახელი: ${scientificName}
-საერთო სახელი (ინგლისური): ${bestCommonNameEn}
-ქართული სახელი: ${nameKa}
-ოჯახი: ${family || "—"}
-ამოცნობის სიზუსტე: ${Math.round(score * 100)}%
+        const allCommonNames = commonNames.slice(0, 3).join(", ") || bestCommonNameEn;
+        const geminiPrompt = `შენ ხარ მცენარეების ექსპერტი. მომხმარებელი ყიდის ან გაცვლის შემდეგ მცენარეს:
 
-დაწერე 2-3 პატარა წინადადება ქართულად (მხოლოდ ტექსტი, ემოჯი ნებადართულია), რომელიც:
-- ახასიათებს ამ მცენარეს (გარეგნობა, სადაც ჩვეულებრივ გვხვდება)
-- მოიცავს ერთ-ორ მოვლის ინსტრუქციას (განათება, მორწყვა)
-- ბოლოს მოკლედ ახსენებს სად გამოიყენება (ოთახი, ოფისი, სადარბაზო)
-პასუხი: მხოლოდ ტექსტი, სათაური არ გჭირდება.`;
+სამეცნიერო სახელი: ${scientificName}
+საერთო სახელები: ${allCommonNames}
+ქართული სახელი: ${nameKa}
+ოჯახი: ${family || "უცნობი"}
+
+დაწერე მოკლე, **რეალისტური და ინფორმაციული** განცხადების აღწერა ქართულად (3-4 წინადადება, ემოჯი ნებადართულია). გამოყენება: მცენარის გაყიდვის/გაცვლის განცხადება ქართულ ბაზარზე.
+
+შეიტანე:
+• მცენარის გარეგნული მახასიათებლები (ფოთლები, ზომა, ფერი)
+• სად გვხვდება ბუნებრივად (ტროპიკები, ამერიკა, აფრიკა და ა.შ.)
+• მოვლის ძირითადი მოთხოვნები (განათება + მორწყვა) — კონკრეტულად
+• ოთახის გამყოფად/ოფისში/სახლში გამოყენება
+
+ნუ გამოიყენებ ზოგად ფრაზებს. ნუ დაწყებ "ეს არის". პასუხი: მხოლოდ ტექსტი.`;
 
         const geminiRes = await fetch(
           `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${geminiKey}`,
@@ -307,7 +350,7 @@ export async function POST(req: NextRequest) {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               contents: [{ parts: [{ text: geminiPrompt }] }],
-              generationConfig: { maxOutputTokens: 256, temperature: 0.7 },
+              generationConfig: { maxOutputTokens: 320, temperature: 0.75 },
             }),
           }
         );
@@ -315,12 +358,30 @@ export async function POST(req: NextRequest) {
         if (geminiRes.ok) {
           const geminiData = await geminiRes.json();
           const generated = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-          if (generated && generated.length > 20) {
+          if (generated && generated.length > 30) {
             descKa = generated;
+
+            // ─── 3. Save to cache (async, fire-and-forget) ──────────────────
+            fetch(`${supabaseUrl}/rest/v1/plant_species_cache`, {
+              method: "POST",
+              headers: {
+                ...cacheHeaders,
+                "Prefer": "resolution=merge-duplicates",
+              },
+              body: JSON.stringify({
+                scientific_name: scientificName,
+                genus: genus || null,
+                common_name_en: bestCommonNameEn,
+                name_ka: nameKa,
+                description_ka: descKa,
+                description_en: descEn,
+                plant_category: plantCategory,
+                hit_count: 1,
+              }),
+            }).catch((e) => console.warn("[Cache write failed]", e));
           }
         }
       } catch (geminiErr) {
-        // Fallback silently to static description if Gemini fails
         console.warn("[Gemini description generation failed, using fallback]", geminiErr);
       }
     }
@@ -340,6 +401,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       provider: "plantnet",
+      fromCache,
       score: Math.round(score * 100) / 100,
       data: {
         latinName: scientificName,
@@ -363,3 +425,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
