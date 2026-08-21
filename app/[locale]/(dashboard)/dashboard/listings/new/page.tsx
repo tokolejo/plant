@@ -126,6 +126,7 @@ export default function CreateListingPage() {
   const [price, setPrice] = React.useState("");
   const [city, setCity] = React.useState("თბილისი");
   const [address, setAddress] = React.useState("");
+  const [contactPhone, setContactPhone] = React.useState("");
   
   const [deliveryMethods, setDeliveryMethods] = React.useState<string[]>(["PICKUP"]);
   const [tagInput, setTagInput] = React.useState("");
@@ -460,6 +461,14 @@ export default function CreateListingPage() {
       setErrorMsg("გთხოვთ აირჩიოთ მცენარის ან ინვენტარის კატეგორია!");
       return;
     }
+    if (!descKa.trim()) {
+      setErrorMsg("გთხოვთ შეიყვანოთ განცხადების აღწერა.");
+      return;
+    }
+    if (!contactPhone.trim()) {
+      setErrorMsg("გთხოვთ შეიყვანოთ საკონტაქტო მობილურის ნომერი.");
+      return;
+    }
 
     setIsSubmitting(true);
     setUploadProgress("სურათების ოპტიმიზაცია და კომპრესია (WebP)...");
@@ -502,6 +511,11 @@ export default function CreateListingPage() {
       }).select().single();
 
       if (insertError) throw insertError;
+
+      // Save phone number to profile so it shows on listing page
+      if (contactPhone.trim()) {
+        await supabase.from("profiles").update({ phone: contactPhone.trim() }).eq("id", user.id);
+      }
 
       router.push(`/listings/${data.id}`);
     } catch (err: any) {
@@ -674,41 +688,22 @@ export default function CreateListingPage() {
             </label>
             
             <div className="flex items-center gap-1.5 flex-wrap">
-              {/* Dual Recognition Buttons */}
+              {/* Pl@ntNet Recognition Button */}
               {selectedFiles.length > 0 && (
-                <>
-                  {/* 1. Google Gemini AI Button */}
-                  <button
-                    type="button"
-                    onClick={handleAiAutoFill}
-                    disabled={aiDetecting || plantnetDetecting}
-                    className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-60"
-                    title="Google Gemini AI-ით მცენარის ამოცნობა და ფორმის ავტო-შევსება"
-                  >
-                    {aiDetecting ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                    )}
-                    <span>{aiDetecting ? "ამოიცნობს..." : "✨ Gemini AI"}</span>
-                  </button>
-
-                  {/* 2. Pl@ntNet Botanical Vision Button */}
-                  <button
-                    type="button"
-                    onClick={handlePlantNetAutoFill}
-                    disabled={aiDetecting || plantnetDetecting}
-                    className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-teal-700 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer border border-emerald-400/30 disabled:opacity-60"
-                    title="Pl@ntNet-ის სამეცნიერო ბოტანიკური ამოცნობა (OpenAPI)"
-                  >
-                    {plantnetDetecting ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    ) : (
-                      <Leaf className="w-3.5 h-3.5 text-emerald-300" />
-                    )}
-                    <span>{plantnetDetecting ? "ამოიცნობს..." : "🌿 Pl@ntNet"}</span>
-                  </button>
-                </>
+                <button
+                  type="button"
+                  onClick={handlePlantNetAutoFill}
+                  disabled={plantnetDetecting}
+                  className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-teal-700 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer border border-emerald-400/30 disabled:opacity-60"
+                  title="Pl@ntNet-ის სამეცნიერო ბოტანიკური ამოცნობა (OpenAPI)"
+                >
+                  {plantnetDetecting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Leaf className="w-3.5 h-3.5 text-emerald-300" />
+                  )}
+                  <span>{plantnetDetecting ? "ამოიცნობს..." : "🌿 Pl@ntNet"}</span>
+                </button>
               )}
               
               <span className="text-xs font-bold text-primary px-2 py-0.5 rounded-full bg-secondary-container">
@@ -802,13 +797,14 @@ export default function CreateListingPage() {
 
           <div>
             <span className="text-xs font-bold text-foreground mb-1 block">
-              აღწერა და მოვლის დეტალები
+              აღწერა და მოვლის დეტალები *
             </span>
             <textarea
-              rows={3}
+              rows={4}
+              required
               value={descKa}
               onChange={(e) => setDescKa(e.target.value)}
-              placeholder="მიუთითეთ მცენარის მდგომარეობა, ასაკი, ქოთნის ზომა, სუბსტრატი..."
+              placeholder="მიუთითეთ მცენარის მდგომარეობა, ასაკი, ქოთნის ზომა, სუბსტრატი, ნებისმიერი სხვა დეტალი..."
               className="w-full rounded-[14px] border border-border/80 bg-background/90 px-3.5 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none font-medium leading-relaxed"
             />
           </div>
@@ -1062,7 +1058,26 @@ export default function CreateListingPage() {
               />
             </div>
           </div>
+
+          {/* Contact Phone */}
+          <div>
+            <span className="text-xs font-bold text-foreground mb-1 block">
+              📱 საკონტაქტო ნომერი *
+            </span>
+            <Input
+              type="tel"
+              required
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              placeholder="მაგ: +995 555 123 456"
+              className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
+            />
+            <p className="text-[10px] text-muted-foreground mt-1">
+              გამოჩნდება განცხადებაზე — დაინტერესებულები ამ ნომრით დაგიკავშირდებიან.
+            </p>
+          </div>
         </div>
+
 
         {/* Submit Button */}
         <div className="pt-2">

@@ -151,6 +151,62 @@ const BOTANICAL_GEORGIAN_MAP: Record<string, { ka: string; en: string; category:
     careKa: "სამკურნალო სუქულენტი. სჭირდება მზე და მშრალი, ქვიშიანი გრუნტი.",
     careEn: "Medicinal succulent needing full sun and well-draining dry soil.",
   },
+  sedum: {
+    ka: "სედუმი (ქვის ვარდი)",
+    en: "Sedum (Stonecrop)",
+    category: "cactus-succulent",
+    careKa: "გამძლე სუქულენტი. მოყვარე მზისა და კარგი დრენაჟის. ძალიან იშვიათი მორწყვა, ბუნებრივ პირობებში ატმოსფერულ ნალექზე ცხოვრობს.",
+    careEn: "Hardy stonecrop succulent. Loves sun and good drainage with very infrequent watering.",
+  },
+  sempervivum: {
+    ka: "სემპერვივუმი (ქვის ვარდი)",
+    en: "Sempervivum (Hens & Chicks)",
+    category: "cactus-succulent",
+    careKa: "ძალიან გამძლე სუქულენტი, ყინვამდეც კი. სჭირდება კარგი დრენაჟი და პირდაპირი მზე.",
+    careEn: "Extremely hardy rosette succulent, frost-tolerant. Full sun and dry, well-drained soil.",
+  },
+  kalanchoe: {
+    ka: "კალანქო",
+    en: "Kalanchoe",
+    category: "cactus-succulent",
+    careKa: "ყვავილოვანი სუქულენტი. სჭირდება კაშკაშა სინათლე, ზომიერი მორწყვა ნიადაგის გაშრობის შემდეგ.",
+    careEn: "Flowering succulent needing bright light and moderate watering once soil is dry.",
+  },
+  gasteria: {
+    ka: "გასტერია",
+    en: "Gasteria",
+    category: "cactus-succulent",
+    careKa: "ალოეს ნათესავი სუქულენტი. იტანს ნახევარჩრდილს. მორწყეთ ძალიან იშვიათად.",
+    careEn: "Aloe relative tolerating lower light than most succulents. Water very sparingly.",
+  },
+  euphorbia: {
+    ka: "ეუფორბია (ეკლიანი)",
+    en: "Euphorbia",
+    category: "cactus-succulent",
+    careKa: "კაქტუსის მსგავსი სუქულენტი ან ბუჩქი. სჭირდება მაქსიმალური მზე და იშვიათი მორწყვა.",
+    careEn: "Cactus-like succulent or shrub. Needs full sun and very infrequent watering.",
+  },
+  cereus: {
+    ka: "ცერეუსი (სვეტური კაქტუსი)",
+    en: "Cereus (Column Cactus)",
+    category: "cactus-succulent",
+    careKa: "სვეტური კაქტუსი. სჭირდება პირდაპირი მზე, ქვიშიანი გრუნტი და ძალიან იშვიათი მორწყვა.",
+    careEn: "Columnar cactus needing direct sun, sandy soil and minimal watering.",
+  },
+  mammillaria: {
+    ka: "მამილარია (ბურთულა-კაქტუსი)",
+    en: "Mammillaria Cactus",
+    category: "cactus-succulent",
+    careKa: "პოპულარული კაქტუსი. სჭირდება პირდაპირი მზე და ძალიან იშვიათი მორწყვა.",
+    careEn: "Popular globe cactus. Full sun and very sparse watering.",
+  },
+  opuntia: {
+    ka: "ოპუნცია (ბრტყელი კაქტუსი)",
+    en: "Opuntia (Prickly Pear)",
+    category: "cactus-succulent",
+    careKa: "ბრტყელი კაქტუსი. ძალიან გამძლეა, სჭირდება ბევრი მზე და მცირე მორწყვა.",
+    careEn: "Flat-pad cactus. Very hardy, needs full sun and minimal water.",
+  },
   phalaenopsis: {
     ka: "ორქიდეა (ფალენოპსისი)",
     en: "Phalaenopsis Orchid",
@@ -266,11 +322,23 @@ export async function POST(req: NextRequest) {
     const commonNames: string[] = species.commonNames || [];
     const bestCommonNameEn = commonNames[0] || scientificName;
 
-    // Lookup Georgian botanical mapping
+    // Lookup Georgian botanical mapping — genus first, then family-based fallback
+    const SUCCULENT_FAMILIES = ["crassulaceae", "aizoaceae", "asphodelaceae", "aloaceae", "cactaceae", "euphorbiaceae", "portulacaceae", "apocynaceae"];
+    const ORCHID_FAMILIES = ["orchidaceae"];
+    const AROID_FAMILIES = ["araceae"];
+    const PALM_FAMILIES = ["arecaceae", "palmae"];
+
+    const isSucculentFamily = SUCCULENT_FAMILIES.some((f) => family.includes(f) || family === f);
+    const isOrchidFamily = ORCHID_FAMILIES.some((f) => family === f);
+    const isAroidFamily = AROID_FAMILIES.some((f) => family === f);
+    const isPalmFamily = PALM_FAMILIES.some((f) => family === f || family.includes(f));
+
     const matchedTaxon =
       BOTANICAL_GEORGIAN_MAP[genus] ||
-      (family.includes("cact") ? BOTANICAL_GEORGIAN_MAP["echeveria"] : null) ||
-      (family.includes("orchid") ? BOTANICAL_GEORGIAN_MAP["phalaenopsis"] : null);
+      (isSucculentFamily ? BOTANICAL_GEORGIAN_MAP["echeveria"] : null) ||
+      (isOrchidFamily ? BOTANICAL_GEORGIAN_MAP["phalaenopsis"] : null) ||
+      (isAroidFamily ? BOTANICAL_GEORGIAN_MAP["monstera"] : null) ||
+      (isPalmFamily ? { ka: "პალმა", en: "Palm", category: "palm-bamboo", careKa: "", careEn: "" } : null);
 
     const nameKa = matchedTaxon ? matchedTaxon.ka : scientificName;
     const plantCategory = matchedTaxon ? matchedTaxon.category : "other-plant";
