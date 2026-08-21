@@ -13,7 +13,12 @@ export function LanguageSwitcher() {
 
   const toggleLocale = () => {
     const nextLocale = locale === "ka" ? "en" : "ka";
-    router.replace(pathname, { locale: nextLocale });
+    
+    // Explicitly set cookie so middleware immediately reads the user's manual preference
+    document.cookie = `NEXT_LOCALE=${nextLocale}; path=/; max-age=31536000; SameSite=Lax`;
+    
+    router.replace(pathname || "/", { locale: nextLocale });
+    router.refresh();
   };
 
   return (
@@ -21,7 +26,7 @@ export function LanguageSwitcher() {
       variant="outline"
       size="sm"
       onClick={toggleLocale}
-      className="flex items-center gap-1.5 font-medium text-xs px-2.5 h-9 rounded-xl border-border/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-500/40 transition-all"
+      className="flex items-center gap-1.5 font-medium text-xs px-2.5 h-9 rounded-xl border-border/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-500/40 transition-all cursor-pointer"
     >
       <Globe className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
       <span className="font-semibold">{locale === "ka" ? "GEO" : "ENG"}</span>
