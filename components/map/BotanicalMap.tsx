@@ -517,7 +517,7 @@ export default function BotanicalMap() {
 
         {/* Listings count pill */}
         <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[14px] bg-card/95 backdrop-blur-xl border border-border/80 text-xs font-bold text-foreground shadow-ambient">
-          <span className="text-primary font-black">{filteredListings.length}</span> / {SAMPLE_LISTINGS.length} პინი
+          <span className="text-primary font-black">{filteredListings.length}</span> / {SAMPLE_LISTINGS.length} {isKa ? "პინი" : "pins"}
         </span>
       </div>
 
@@ -749,7 +749,7 @@ export default function BotanicalMap() {
             <MapFilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={false}>
               <div className="space-y-1.5">
                 {[
-                  { id: "PICKUP", label: isKa ? "📍 ადგილზე გატანა" : "📍 Local Pickup" },
+                  { id: "PICKUP", label: isKa ? "📍 ადგილიდან გატანა" : "📍 Local Pickup" },
                   { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier" },
                   { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო" : "🚐 Intercity" },
                 ].map((d) => {

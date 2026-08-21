@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { 
   MapPin, 
   Truck, 
@@ -12,7 +13,7 @@ import {
   ShieldCheck, 
   Award, 
   Sprout, 
-  Sparkles,
+  Sparkles, 
   ChevronRight,
   Gift
 } from "lucide-react";
@@ -60,6 +61,8 @@ export interface ListingCardProps {
 export function ListingCard({
   id,
   title,
+  titleKa,
+  titleEn,
   price,
   itemType,
   transactionType,
@@ -74,14 +77,20 @@ export function ListingCard({
   variant = "compact",
   seller,
 }: ListingCardProps) {
+  const locale = useLocale();
+  const isKa = locale !== "en";
+
   const primaryImage = images?.[0] || "https://images.unsplash.com/photo-1545241047-6083a3684587?w=600&auto=format&fit=crop&q=80";
   const isVip = isFeatured || isPremium;
   const distLabel = distanceKm !== undefined 
-    ? (distanceKm < 1 ? `${Math.round(distanceKm * 1000)} მ` : `${distanceKm} კმ`) 
+    ? (distanceKm < 1 
+        ? (isKa ? `${Math.round(distanceKm * 1000)} მ` : `${Math.round(distanceKm * 1000)} m`) 
+        : (isKa ? `${distanceKm} კმ` : `${distanceKm} km`)) 
     : undefined;
 
-  // Clean title display (strips redundant 'საჩუქარი:' prefixes)
-  const displayTitle = (title || "").replace(/^(\s*🎁\s*საჩუქარი:?\s*|\s*🎁\s*|\s*საჩუქარი:?\s*)/i, "").trim();
+  // Localized clean title display (strips redundant 'საჩუქარი:' prefixes)
+  const rawTitle = isKa ? (titleKa || title || "") : (titleEn || title || "");
+  const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
   // ─── LIST VIEW VARIANT ───────────────────────────────────────────────────────
   if (variant === "list") {
@@ -109,7 +118,7 @@ export function ListingCard({
               </span>
             )}
             <span className="backdrop-blur-md bg-background/90 text-foreground text-[10px] font-bold px-2 py-0.5 rounded-[8px] border border-border/40">
-              {itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
+              {itemType === "PLANT" ? (isKa ? "🌱 მცენარე" : "🌱 Plant") : (isKa ? "🪴 ინვენტარი" : "🪴 Care & Pot")}
             </span>
           </div>
 
@@ -128,11 +137,11 @@ export function ListingCard({
               <div className="flex items-baseline gap-2">
                 {transactionType === "GIFT" ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
-                    🎁 უფასო
+                    {isKa ? "🎁 უფასო" : "🎁 Free"}
                   </span>
                 ) : transactionType === "TRADE" ? (
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
-                    🔄 გაცვლა
+                    {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
                   </span>
                 ) : (
                   <div className="flex items-baseline gap-1">
@@ -142,7 +151,9 @@ export function ListingCard({
                       {formatPrice(price)}
                     </span>
                     {transactionType === "NEGOTIABLE" && (
-                      <span className="text-[11px] font-semibold text-muted-foreground">(შეთანხმებით)</span>
+                      <span className="text-[11px] font-semibold text-muted-foreground">
+                        {isKa ? "(შეთანხმებით)" : "(Negotiable)"}
+                      </span>
                     )}
                   </div>
                 )}
@@ -169,17 +180,17 @@ export function ListingCard({
             <div className="flex flex-wrap gap-1.5 mb-2">
               {deliveryMethods?.includes("PICKUP") && (
                 <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-muted-foreground font-medium">
-                  📍 ადგილზე
+                  {isKa ? "📍 ადგილზე" : "📍 Pickup"}
                 </span>
               )}
               {deliveryMethods?.includes("COURIER") && (
                 <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-secondary-container text-primary font-bold inline-flex items-center gap-1">
-                  <Truck className="w-3 h-3" /> კურიერი
+                  <Truck className="w-3 h-3" /> {isKa ? "კურიერი" : "Courier"}
                 </span>
               )}
               {deliveryMethods?.includes("MARSHRUTKA") && (
                 <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-muted-foreground font-medium">
-                  🚐 სამარშრუტო
+                  {isKa ? "🚐 სამარშრუტო" : "🚐 Intercity"}
                 </span>
               )}
             </div>
@@ -212,7 +223,7 @@ export function ListingCard({
               href={`/listings/${id}`}
               className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-container px-2.5 py-1 rounded-[8px] bg-primary/10 hover:bg-primary/20 transition-colors"
             >
-              <span>ნახვა</span>
+              <span>{isKa ? "ნახვა" : "View"}</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -272,11 +283,11 @@ export function ListingCard({
         <div className="flex items-baseline justify-between gap-1 mb-1">
           {transactionType === "GIFT" ? (
             <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
-              🎁 უფასო
+              {isKa ? "🎁 უფასო" : "🎁 Free"}
             </span>
           ) : transactionType === "TRADE" ? (
             <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
-              🔄 გაცვლა
+              {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
             </span>
           ) : (
             <div className="flex items-baseline gap-1">
@@ -287,7 +298,7 @@ export function ListingCard({
               </span>
               {transactionType === "NEGOTIABLE" && (
                 <span className="text-[10px] font-semibold text-muted-foreground">
-                  (შეთ.)
+                  {isKa ? "(შეთ.)" : "(Neg.)"}
                 </span>
               )}
             </div>

@@ -622,7 +622,9 @@ function ListingsCatalogContent() {
                 min={0}
                 max={priceRange[1]}
               />
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">დან</span>
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">
+                {isKa ? "დან" : "From"}
+              </span>
             </div>
             <span className="text-muted-foreground font-bold text-xs">—</span>
             <div className="relative flex-1">
@@ -634,7 +636,9 @@ function ListingsCatalogContent() {
                 min={priceRange[0]}
                 max={1000}
               />
-              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">მდე</span>
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">
+                {isKa ? "მდე" : "To"}
+              </span>
             </div>
             <span className="text-sm font-black text-primary">₾</span>
           </div>
@@ -1085,11 +1089,13 @@ function ListingsCatalogContent() {
 }
 
 export default function ListingsCatalogPage() {
+  const locale = useLocale();
+  const isKa = locale !== "en";
   return (
     <React.Suspense
       fallback={
         <div className="container mx-auto px-4 py-16 text-center text-sm text-muted-foreground">
-          იტვირთება კატალოგი...
+          {isKa ? "იტვირთება კატალოგი..." : "Loading catalog..."}
         </div>
       }
     >

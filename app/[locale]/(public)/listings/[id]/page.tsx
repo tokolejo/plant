@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 import { ListingCard } from "@/components/listings/ListingCard";
@@ -68,32 +69,32 @@ function TelegramIcon({ className }: { className?: string }) {
   );
 }
 
-function getLocalizedBadge(badge: string) {
+function getLocalizedBadge(badge: string, isKa: boolean) {
   const b = badge.toLowerCase();
   if (b.includes("trusted") || b.includes("trust") || b.includes("სანდო")) {
     return {
-      label: "სანდო გამყიდველი",
+      label: isKa ? "სანდო გამყიდველი" : "Trusted Seller",
       icon: ShieldCheck,
       color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
     };
   }
   if (b.includes("verif") || b.includes("ვერიფიცირებული")) {
     return {
-      label: "ვერიფიცირებული",
+      label: isKa ? "ვერიფიცირებული" : "Verified",
       icon: CheckCircle2,
       color: "text-blue-800 dark:text-blue-300 bg-blue-500/15 border-blue-500/30",
     };
   }
   if (b.includes("green") || b.includes("thumb") || b.includes("მებაღე")) {
     return {
-      label: "გამოცდილი მებაღე",
+      label: isKa ? "გამოცდილი მებაღე" : "Experienced Grower",
       icon: Sprout,
       color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
     };
   }
   if (b.includes("top") || b.includes("ტოპ")) {
     return {
-      label: "ტოპ გამყიდველი",
+      label: isKa ? "ტოპ გამყიდველი" : "Top Seller",
       icon: Award,
       color: "text-amber-800 dark:text-amber-300 bg-amber-500/15 border-amber-500/30",
     };
@@ -109,8 +110,10 @@ function getLocalizedBadge(badge: string) {
 const RECOMMENDED_INVENTORY = [
   {
     id: "rec-inv-1",
-    title: "აროიდების & ტროპიკული მცენარეების სუბსტრატი (5L)",
-    category: "სუბსტრატი & გრუნტი",
+    titleKa: "აროიდების & ტროპიკული მცენარეების სუბსტრატი (5L)",
+    titleEn: "Aroids & Tropical Plants Substrate (5L)",
+    categoryKa: "სუბსტრატი & გრუნტი",
+    categoryEn: "Soil & Substrate",
     price: 19,
     image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80",
     shopName: "დომინო",
@@ -122,8 +125,10 @@ const RECOMMENDED_INVENTORY = [
   },
   {
     id: "rec-inv-2",
-    title: "კერამიკული მქრქალი ქოთანი სადგამით (18 სმ)",
-    category: "ქოთნები",
+    titleKa: "კერამიკული მქრქალი ქოთანი სადგამით (18 სმ)",
+    titleEn: "Matte Ceramic Pot with Saucer (18 cm)",
+    categoryKa: "ქოთნები",
+    categoryEn: "Planters & Pots",
     price: 38,
     image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&auto=format&fit=crop&q=80",
     shopName: "გორგია",
@@ -135,8 +140,10 @@ const RECOMMENDED_INVENTORY = [
   },
   {
     id: "rec-inv-3",
-    title: "ორგანული სასუქი & ფესვის ზრდის ელექსირი (500 მლ)",
-    category: "სასუქი & მოვლა",
+    titleKa: "ორგანული სასუქი & ფესვის ზრდის ელექსირი (500 მლ)",
+    titleEn: "Organic Fertilizer & Root Growth Elixir (500 ml)",
+    categoryKa: "სასუქი & მოვლა",
+    categoryEn: "Fertilizer & Care",
     price: 24,
     image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
     shopName: "აგროჰაბი",
@@ -148,8 +155,10 @@ const RECOMMENDED_INVENTORY = [
   },
   {
     id: "rec-inv-4",
-    title: "ფიტო-განათება მცენარეებისთვის (Full Spectrum LED)",
-    category: "Grow Light",
+    titleKa: "ფიტო-განათება მცენარეებისთვის (Full Spectrum LED)",
+    titleEn: "Full Spectrum LED Grow Light for Indoor Plants",
+    categoryKa: "Grow Light",
+    categoryEn: "Grow Light",
     price: 59,
     image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&auto=format&fit=crop&q=80",
     shopName: "ბრიკორამა",
@@ -161,8 +170,10 @@ const RECOMMENDED_INVENTORY = [
   },
   {
     id: "rec-inv-5",
-    title: "ბოტანიკური უჟანგავი მოსავლელი მაკრატელი",
-    category: "ხელსაწყოები",
+    titleKa: "ბოტანიკური უჟანგავი მოსავლელი მაკრატელი",
+    titleEn: "Botanical Stainless Steel Pruning Shears",
+    categoryKa: "ხელსაწყოები",
+    categoryEn: "Care Tools",
     price: 18,
     image: "https://images.unsplash.com/photo-1592150621744-aca64f48394a?w=600&auto=format&fit=crop&q=80",
     shopName: "აგრო სექტორი",
@@ -174,8 +185,10 @@ const RECOMMENDED_INVENTORY = [
   },
   {
     id: "rec-inv-6",
-    title: "ქოქოსის ბოჭკოს ხავსის საყრდენი ბოძი (Moss Pole 60 სმ)",
-    category: "აქსესუარები",
+    titleKa: "ქოქოსის ბოჭკოს ხავსის საყრდენი ბოძი (Moss Pole 60 სმ)",
+    titleEn: "Coco Coir Moss Pole Support (60 cm)",
+    categoryKa: "აქსესუარები",
+    categoryEn: "Accessories",
     price: 14,
     image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600&auto=format&fit=crop&q=80",
     shopName: "დომინო",
@@ -187,31 +200,31 @@ const RECOMMENDED_INVENTORY = [
   },
 ];
 
-const CATEGORY_NAMES_KA: Record<string, { label: string; emoji: string }> = {
-  monstera: { label: "მონსტერა", emoji: "🌿" },
-  philodendron: { label: "ფილოდენდრონი", emoji: "🌱" },
-  anthurium: { label: "ანთურიუმი", emoji: "🌺" },
-  alocasia: { label: "ალოკაზია", emoji: "🍃" },
-  calathea: { label: "კალათეა / მარანტა", emoji: "🌿" },
-  "pothos-scindapsus": { label: "პოთოსი / სცინდაპსუსი", emoji: "🌾" },
-  orchid: { label: "ორქიდეა", emoji: "🌸" },
-  bromeliad: { label: "ბრომელია", emoji: "🌺" },
-  ficus: { label: "ფიკუსი", emoji: "🌳" },
-  palm: { label: "პალმა", emoji: "🌴" },
-  fern: { label: "გვიმრა", emoji: "🌿" },
-  "outdoor-garden": { label: "ბაღის & ეზოს", emoji: "🌻" },
-  "cactus-succulent": { label: "კაქტუსი & სუქულენტი", emoji: "🌵" },
-  "rare-variegated": { label: "იშვიათი & ვარიეგატული", emoji: "✨" },
-  cutting: { label: "კალმები & ნერგები", emoji: "✂️" },
-  bonsai: { label: "ბონსაი", emoji: "🎋" },
-  sansevieria: { label: "სანსევიერია", emoji: "🪴" },
-  "zz-plant": { label: "ზამიოკულკასი", emoji: "🌿" },
-  "pots-ceramic": { label: "კერამიკული ქოთნები", emoji: "🏺" },
-  "pots-plastic": { label: "პლასტიკური ქოთნები", emoji: "🪣" },
-  "substrate-soil": { label: "სუბსტრატი & გრუნტი", emoji: "🌍" },
-  fertilizer: { label: "სასუქები & მოვლა", emoji: "🧪" },
-  "tools-care": { label: "მოვლის ხელსაწყოები", emoji: "🔧" },
-  "lighting-grow": { label: "ფიტო-განათება", emoji: "💡" },
+const CATEGORIES_DATA: Record<string, { labelKa: string; labelEn: string; emoji: string }> = {
+  monstera: { labelKa: "მონსტერა", labelEn: "Monstera", emoji: "🌿" },
+  philodendron: { labelKa: "ფილოდენდრონი", labelEn: "Philodendron", emoji: "🌱" },
+  anthurium: { labelKa: "ანთურიუმი", labelEn: "Anthurium", emoji: "🌺" },
+  alocasia: { labelKa: "ალოკაზია", labelEn: "Alocasia", emoji: "🍃" },
+  calathea: { labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta", emoji: "🌿" },
+  "pothos-scindapsus": { labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus", emoji: "🌾" },
+  orchid: { labelKa: "ორქიდეა", labelEn: "Orchid", emoji: "🌸" },
+  bromeliad: { labelKa: "ბრომელია", labelEn: "Bromeliad", emoji: "🌺" },
+  ficus: { labelKa: "ფიკუსი", labelEn: "Ficus", emoji: "🌳" },
+  palm: { labelKa: "პალმა", labelEn: "Palm", emoji: "🌴" },
+  fern: { labelKa: "გვიმრა", labelEn: "Fern", emoji: "🌿" },
+  "outdoor-garden": { labelKa: "ბაღის & ეზოს", labelEn: "Garden & Outdoor", emoji: "🌻" },
+  "cactus-succulent": { labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulents", emoji: "🌵" },
+  "rare-variegated": { labelKa: "იშვიათი & ვარიეგატული", labelEn: "Rare & Variegated", emoji: "✨" },
+  cutting: { labelKa: "კალმები & ნერგები", labelEn: "Cuttings & Seedlings", emoji: "✂️" },
+  bonsai: { labelKa: "ბონსაი", labelEn: "Bonsai", emoji: "🎋" },
+  sansevieria: { labelKa: "სანსევიერია", labelEn: "Sansevieria", emoji: "🪴" },
+  "zz-plant": { labelKa: "ზამიოკულკასი", labelEn: "ZZ Plant", emoji: "🌿" },
+  "pots-ceramic": { labelKa: "კერამიკული ქოთნები", labelEn: "Ceramic Pots", emoji: "🏺" },
+  "pots-plastic": { labelKa: "პლასტიკური ქოთნები", labelEn: "Plastic Pots", emoji: "🪣" },
+  "substrate-soil": { labelKa: "სუბსტრატი & გრუნტი", labelEn: "Soil & Substrates", emoji: "🌍" },
+  fertilizer: { labelKa: "სასუქები & მოვლა", labelEn: "Fertilizers & Care", emoji: "🧪" },
+  "tools-care": { labelKa: "მოვლის ხელსაწყოები", labelEn: "Care Tools", emoji: "🔧" },
+  "lighting-grow": { labelKa: "ფიტო-განათება", labelEn: "Grow Lighting", emoji: "💡" },
 };
 
 import { formatDbListing } from "@/lib/listings-service";
@@ -221,6 +234,8 @@ export default function ListingDetailPage({
 }: {
   params: { id: string };
 }) {
+  const locale = useLocale();
+  const isKa = locale !== "en";
   const router = useRouter();
   const supabase = createClient();
   const [listing, setListing] = React.useState<any>(() => {
@@ -285,11 +300,17 @@ export default function ListingDetailPage({
   }, [id, supabase]);
 
   const rawCat = listing.plantCategory || listing.plant_category || listing.inventory_category;
-  const categoryInfo = rawCat
-    ? CATEGORY_NAMES_KA[rawCat] || { label: rawCat, emoji: listing.itemType === "INVENTORY" ? "📦" : "🌿" }
+  const categoryInfo = rawCat && CATEGORIES_DATA[rawCat]
+    ? {
+        label: isKa ? CATEGORIES_DATA[rawCat].labelKa : CATEGORIES_DATA[rawCat].labelEn,
+        emoji: CATEGORIES_DATA[rawCat].emoji,
+      }
+    : rawCat
+    ? { label: rawCat, emoji: listing.itemType === "INVENTORY" ? "📦" : "🌿" }
     : null;
 
-  const displayTitle = (listing.title || "").replace(/^(\s*🎁\s*საჩუქარი:?\s*|\s*🎁\s*|\s*საჩუქარი:?\s*)/i, "").trim();
+  const rawTitle = isKa ? (listing.titleKa || listing.title || "") : (listing.titleEn || listing.title || "");
+  const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
   // Carousel Refs for smooth arrow scrolling
   const inventoryScrollRef = React.useRef<HTMLDivElement>(null);
@@ -324,17 +345,17 @@ export default function ListingDetailPage({
   const [reviews, setReviews] = React.useState<any[]>([
     {
       id: "rev-1",
-      reviewerName: "გიორგი მ.",
+      reviewerName: isKa ? "გიორგი მ." : "George M.",
       rating: 5,
-      comment: "ძალიან ჯანსაღი მცენარეა, შეფუთული იყო იდეალურად და კურიერმა სწრაფად მომიტანა!",
-      createdAt: "3 დღის წინ",
+      comment: isKa ? "ძალიან ჯანსაღი მცენარეა, შეფუთული იყო იდეალურად და კურიერმა სწრაფად მომიტანა!" : "Very healthy plant, packaged perfectly and delivered quickly by courier!",
+      createdAt: isKa ? "3 დღის წინ" : "3 days ago",
     },
     {
       id: "rev-2",
-      reviewerName: "ანა ბ.",
+      reviewerName: isKa ? "ანა ბ." : "Anna B.",
       rating: 5,
-      comment: "სანდო გამყიდველია, მცენარე ზუსტად ისეთი იყო როგორც ფოტოებზე.",
-      createdAt: "1 კვირის წინ",
+      comment: isKa ? "სანდო გამყიდველია, მცენარე ზუსტად ისეთი იყო როგორც ფოტოებზე." : "Trusted seller, plant was exactly as pictured.",
+      createdAt: isKa ? "1 კვირის წინ" : "1 week ago",
     }
   ]);
   const [newRating, setNewRating] = React.useState(5);
@@ -393,7 +414,11 @@ export default function ListingDetailPage({
   const shareFbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
   const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${displayTitle} - Plant.ge\n${currentUrl}`)}`;
   const shareTgUrl = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(displayTitle)}`;
-  const directWaChatUrl = `https://wa.me/995${cleanPhoneDigits}?text=${encodeURIComponent(`გამარჯობა, დავინტერესდი თქვენი მცენარით Plant.ge-ზე: "${displayTitle}"`)}`;
+  const directWaChatUrl = `https://wa.me/995${cleanPhoneDigits}?text=${encodeURIComponent(
+    isKa 
+      ? `გამარჯობა, დავინტერესდი თქვენი მცენარით Plant.ge-ზე: "${displayTitle}"`
+      : `Hello, I'm interested in your listing on Plant.ge: "${displayTitle}"`
+  )}`;
 
   const fullAddressString = `${listing.city || "თბილისი"}${listing.address ? `, ${listing.address}` : ""}`;
   const googleMapsUrl = listing.lat && listing.lng
@@ -418,10 +443,10 @@ export default function ListingDetailPage({
 
     const newRev = {
       id: `rev-${Date.now()}`,
-      reviewerName: currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0] || "მომხმარებელი",
+      reviewerName: currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0] || (isKa ? "მომხმარებელი" : "User"),
       rating: newRating,
       comment: newComment.trim(),
-      createdAt: "ახლახანს",
+      createdAt: isKa ? "ახლახანს" : "Just now",
     };
 
     setReviews([newRev, ...reviews]);
@@ -446,7 +471,7 @@ export default function ListingDetailPage({
           className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
         >
           <ChevronLeft className="w-4 h-4" />
-          უკან კატალოგში
+          {isKa ? "უკან კატალოგში" : "Back to catalog"}
         </Link>
 
         {(isOwner || isAdmin) && (
@@ -456,7 +481,7 @@ export default function ListingDetailPage({
               className="rounded-[14px] bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs h-9 px-4 gap-1.5 shadow-ambient cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5" />
-              <span>განცხადების რედაქტირება</span>
+              <span>{isKa ? "განცხადების რედაქტირება" : "Edit Listing"}</span>
               {isAdmin && !isOwner && <span className="text-[10px] opacity-90">(Admin)</span>}
             </Button>
           </Link>
@@ -474,7 +499,7 @@ export default function ListingDetailPage({
             <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[22px] bg-surface-container border border-border/80 shadow-ambient">
               <Image
                 src={images[activeImageIdx]}
-                alt={listing.title}
+                alt={displayTitle}
                 fill
                 className="object-cover"
                 priority
@@ -489,12 +514,12 @@ export default function ListingDetailPage({
                 )}
                 {listing.transactionType === "GIFT" && (
                   <Badge className="bg-emerald-600 text-white font-black text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px] flex items-center gap-1">
-                    <Gift className="w-3.5 h-3.5" /> გაჩუქება (უფასოდ)
+                    <Gift className="w-3.5 h-3.5" /> {isKa ? "გაჩუქება (უფასოდ)" : "Giveaway (Free)"}
                   </Badge>
                 )}
                 {listing.transactionType === "TRADE" && (
                   <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px] flex items-center gap-1">
-                    <RefreshCw className="w-3.5 h-3.5" /> გაცვლა
+                    <RefreshCw className="w-3.5 h-3.5" /> {isKa ? "გაცვლა" : "Swap / Trade"}
                   </Badge>
                 )}
               </div>
@@ -542,31 +567,45 @@ export default function ListingDetailPage({
           <div className="rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient space-y-2.5">
             <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-2">
               <Sprout className="w-4 h-4 text-primary" />
-              მცენარის მოვლის მაჩვენებლები
+              {isKa ? "მცენარის მოვლის მაჩვენებლები" : "Plant Care Guidelines"}
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
                 <Sun className="w-3.5 h-3.5 text-amber-500 mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">განათება</span>
-                <span className="text-[11px] font-bold text-foreground">გაფანტული შუქი</span>
+                <span className="text-[10px] text-muted-foreground block font-medium">
+                  {isKa ? "განათება" : "Lighting"}
+                </span>
+                <span className="text-[11px] font-bold text-foreground">
+                  {isKa ? "გაფანტული შუქი" : "Bright Indirect"}
+                </span>
               </div>
 
               <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
                 <Droplets className="w-3.5 h-3.5 text-teal-500 mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">მორწყვა</span>
-                <span className="text-[11px] font-bold text-foreground">კვირაში 1-2 ჯერ</span>
+                <span className="text-[10px] text-muted-foreground block font-medium">
+                  {isKa ? "მორწყვა" : "Watering"}
+                </span>
+                <span className="text-[11px] font-bold text-foreground">
+                  {isKa ? "კვირაში 1-2 ჯერ" : "1-2x per week"}
+                </span>
               </div>
 
               <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
                 <Boxes className="w-3.5 h-3.5 text-primary mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">ქოთანი</span>
-                <span className="text-[11px] font-bold text-foreground">15-18 სმ ზომა</span>
+                <span className="text-[10px] text-muted-foreground block font-medium">
+                  {isKa ? "ქოთანი" : "Pot Size"}
+                </span>
+                <span className="text-[11px] font-bold text-foreground">
+                  {isKa ? "15-18 სმ ზომა" : "15-18 cm size"}
+                </span>
               </div>
 
               <div className="rounded-[12px] bg-secondary-container/50 p-2 text-center border border-border/40">
                 <Thermometer className="w-3.5 h-3.5 text-rose-500 mx-auto mb-1" />
-                <span className="text-[10px] text-muted-foreground block font-medium">ტემპერატურა</span>
+                <span className="text-[10px] text-muted-foreground block font-medium">
+                  {isKa ? "ტემპერატურა" : "Temperature"}
+                </span>
                 <span className="text-[11px] font-bold text-foreground">18°C - 26°C</span>
               </div>
             </div>
@@ -575,17 +614,22 @@ export default function ListingDetailPage({
           {/* Description Card */}
           <div className="rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient space-y-2">
             <h3 className="text-xs sm:text-sm font-bold text-foreground">
-              აღწერა და დეტალები
+              {isKa ? "აღწერა და დეტალები" : "Description & Details"}
             </h3>
             <p className="text-xs sm:text-[13px] text-muted-foreground leading-relaxed whitespace-pre-line">
-              {listing.title} — ჯანსაღი მცენარე განვითარებული ფესვთა სისტემით. გაზრდილია იდეალურ პირობებში, სპეციალურ სუბსტრატში. არ საჭიროებს გადარგვას უახლოესი 6 თვე.
+              {(isKa ? (listing.descriptionKa || listing.description) : (listing.descriptionEn || listing.description)) || (
+                isKa 
+                  ? `${displayTitle} — ჯანსაღი მცენარე განვითარებული ფესვთა სისტემით. გაზრდილია იდეალურ პირობებში, სპეციალურ სუბსტრატში. არ საჭიროებს გადარგვას უახლოესი 6 თვე.`
+                  : `${displayTitle} — Healthy botanical specimen with established root system. Grown in optimal conditions with premium substrate. No repotting needed for 6 months.`
+              )}
             </p>
 
             {/* Trade Preferences if Swap */}
             {listing.transactionType === "TRADE" && listing.tradePreferences && listing.tradePreferences.length > 0 && (
               <div className="mt-2.5 rounded-[12px] bg-amber-500/10 border border-amber-500/20 p-2.5">
                 <p className="text-xs font-bold text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" /> იცვლება შემდეგ მცენარეებში:
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" /> 
+                  {isKa ? "იცვლება შემდეგ მცენარეებში:" : "Looking to trade for:"}
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {listing.tradePreferences.map((tag: string, idx: number) => (
@@ -608,10 +652,12 @@ export default function ListingDetailPage({
               <div>
                 <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
                   <ShoppingBag className="w-4 h-4 text-primary" />
-                  რეკომენდებული ინვენტარი ამ მცენარისთვის
+                  {isKa ? "რეკომენდებული ინვენტარი ამ მცენარისთვის" : "Recommended Care & Supplies"}
                 </h3>
                 <p className="text-[11px] text-muted-foreground">
-                  პარტნიორი აგრო და სამშენებლო ჰიპერმარკეტების შეთავაზებები
+                  {isKa 
+                    ? "პარტნიორი აგრო და სამშენებლო ჰიპერმარკეტების შეთავაზებები"
+                    : "Curated offers from partner garden centers & retailers"}
                 </p>
               </div>
 
@@ -621,7 +667,7 @@ export default function ListingDetailPage({
                   type="button"
                   onClick={() => scrollInventory("left")}
                   className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                  title="წინა 3 შეთავაზება"
+                  title={isKa ? "წინა შეთავაზებები" : "Previous offers"}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
@@ -629,7 +675,7 @@ export default function ListingDetailPage({
                   type="button"
                   onClick={() => scrollInventory("right")}
                   className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                  title="შემდეგი 3 შეთავაზება"
+                  title={isKa ? "შემდეგი შეთავაზებები" : "Next offers"}
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>
@@ -650,7 +696,7 @@ export default function ListingDetailPage({
                   <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[10px] bg-surface-container mb-2">
                     <Image
                       src={item.image}
-                      alt={item.title}
+                      alt={isKa ? item.titleKa : item.titleEn}
                       fill
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -667,10 +713,10 @@ export default function ListingDetailPage({
                   <div className="flex flex-1 flex-col justify-between">
                     <div>
                       <span className="text-[10px] text-muted-foreground font-semibold block leading-tight">
-                        {item.category}
+                        {isKa ? item.categoryKa : item.categoryEn}
                       </span>
                       <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug my-1 min-h-[32px]">
-                        {item.title}
+                        {isKa ? item.titleKa : item.titleEn}
                       </h4>
                     </div>
 
@@ -691,7 +737,7 @@ export default function ListingDetailPage({
                           rel="noopener noreferrer"
                           className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[7px] bg-primary/10 transition-colors border border-primary/20"
                         >
-                          <span>მაღაზია</span>
+                          <span>{isKa ? "მაღაზია" : "Store"}</span>
                           <ExternalLink className="w-3 h-3" />
                         </a>
                       ) : (
@@ -699,7 +745,7 @@ export default function ListingDetailPage({
                           href={item.link}
                           className="inline-flex items-center text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[7px] bg-primary/10 transition-colors border border-primary/20"
                         >
-                          ნახვა
+                          {isKa ? "ნახვა" : "View"}
                         </Link>
                       )}
                     </div>
@@ -722,7 +768,7 @@ export default function ListingDetailPage({
                 {/* 1. Item Type Tag (Clickable) */}
                 <Link href={`/listings?type=${listing.itemType}`}>
                   <Badge className="rounded-[8px] bg-secondary-container text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-border/50 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5">
-                    {listing.itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
+                    {listing.itemType === "PLANT" ? (isKa ? "🌱 მცენარე" : "🌱 Plant") : (isKa ? "🪴 ინვენტარი" : "🪴 Care & Pots")}
                   </Badge>
                 </Link>
 
@@ -740,28 +786,28 @@ export default function ListingDetailPage({
                 {listing.transactionType === "GIFT" && (
                   <Link href="/listings?trans=GIFT">
                     <Badge className="rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/25 hover:scale-105 transition-all border border-emerald-500/30 font-bold text-[11px] cursor-pointer py-1 px-2.5">
-                      🎁 უფასო
+                      {isKa ? "🎁 უფასო" : "🎁 Free"}
                     </Badge>
                   </Link>
                 )}
                 {listing.transactionType === "TRADE" && (
                   <Link href="/listings?trans=TRADE">
                     <Badge className="rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 hover:bg-amber-500/25 hover:scale-105 transition-all border border-amber-500/30 font-bold text-[11px] cursor-pointer py-1 px-2.5">
-                      🔄 გაცვლა / Swap
+                      {isKa ? "🔄 გაცვლა / Swap" : "🔄 Trade / Swap"}
                     </Badge>
                   </Link>
                 )}
                 {listing.transactionType === "NEGOTIABLE" && (
                   <Link href="/listings?trans=NEGOTIABLE">
                     <Badge variant="secondary" className="rounded-[8px] text-[11px] font-bold hover:bg-secondary hover:scale-105 transition-all border border-border/50 cursor-pointer py-1 px-2.5">
-                      🤝 შეთანხმებით
+                      {isKa ? "🤝 შეთანხმებით" : "🤝 Negotiable"}
                     </Badge>
                   </Link>
                 )}
                 {listing.transactionType === "FIXED" && (
                   <Link href="/listings?trans=FIXED">
                     <Badge variant="secondary" className="rounded-[8px] text-[11px] font-bold hover:bg-secondary hover:scale-105 transition-all border border-border/50 cursor-pointer py-1 px-2.5">
-                      💰 იყიდება
+                      {isKa ? "💰 იყიდება" : "💰 For Sale"}
                     </Badge>
                   </Link>
                 )}
@@ -791,10 +837,10 @@ export default function ListingDetailPage({
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-[7px] border border-emerald-500/30 transition-colors cursor-pointer shadow-2xs"
-                  title="მარშრუტის გახსნა Google Maps-ში"
+                  title={isKa ? "მარშრუტის გახსნა Google Maps-ში" : "Open directions in Google Maps"}
                 >
                   <Navigation className="w-3 h-3 text-emerald-600" />
-                  <span>მარშრუტი (Google Maps)</span>
+                  <span>{isKa ? "მარშრუტი (Google Maps)" : "Directions (Google Maps)"}</span>
                   <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                 </a>
               </div>
@@ -804,11 +850,11 @@ export default function ListingDetailPage({
             <div className="rounded-[14px] bg-secondary-container/60 border border-border/50 px-3.5 py-2.5 flex items-center justify-between">
               {listing.transactionType === "GIFT" ? (
                 <span className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400">
-                  🎁 უფასო
+                  {isKa ? "🎁 უფასო" : "🎁 Free"}
                 </span>
               ) : listing.transactionType === "TRADE" ? (
                 <span className="text-base sm:text-lg font-black text-amber-700 dark:text-amber-300">
-                  🔄 მხოლოდ გაცვლა
+                  {isKa ? "🔄 მხოლოდ გაცვლა" : "🔄 Trade Only"}
                 </span>
               ) : (
                 <div className="flex items-baseline gap-1.5">
@@ -817,7 +863,7 @@ export default function ListingDetailPage({
                   </span>
                   {listing.transactionType === "NEGOTIABLE" && (
                     <span className="text-xs text-muted-foreground font-semibold">
-                      (შეთანხმებით)
+                      {isKa ? "(შეთანხმებით)" : "(Negotiable)"}
                     </span>
                   )}
                 </div>
@@ -825,37 +871,37 @@ export default function ListingDetailPage({
 
               <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-card border border-border/50 px-2.5 py-1 rounded-[7px] shadow-2xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                აქტიური
+                {isKa ? "აქტიური" : "Active"}
               </span>
             </div>
 
             {/* Delivery Methods (All 3 on single compact line with dimmed inactives) */}
             <div className="grid grid-cols-3 gap-1.5 text-center">
               <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
-                listing.deliveryMethods.includes("PICKUP")
+                listing.deliveryMethods?.includes("PICKUP")
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
                   : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
               }`}>
                 <MapPin className="w-3 h-3 shrink-0" />
-                <span className="truncate">ადგილიდან</span>
+                <span className="truncate">{isKa ? "ადგილიდან" : "Pickup"}</span>
               </div>
 
               <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
-                listing.deliveryMethods.includes("COURIER")
+                listing.deliveryMethods?.includes("COURIER")
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
                   : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
               }`}>
                 <Truck className="w-3 h-3 shrink-0" />
-                <span className="truncate">კურიერი</span>
+                <span className="truncate">{isKa ? "კურიერი" : "Courier"}</span>
               </div>
 
               <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
-                listing.deliveryMethods.includes("MARSHRUTKA")
+                listing.deliveryMethods?.includes("MARSHRUTKA")
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
                   : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
               }`}>
                 <Truck className="w-3 h-3 shrink-0" />
-                <span className="truncate">სამარშრუტო</span>
+                <span className="truncate">{isKa ? "სამარშრუტო" : "Intercity"}</span>
               </div>
             </div>
 
@@ -876,7 +922,7 @@ export default function ListingDetailPage({
                   {showPhone ? formattedFullPhone : maskedPhone}
                 </span>
                 <span className="text-[10.5px] px-2 py-0.5 rounded-[6px] bg-white/20 font-black ml-0.5">
-                  {showPhone ? "დარეკვა" : "ნახვა"}
+                  {showPhone ? (isKa ? "დარეკვა" : "Call") : (isKa ? "ნახვა" : "Show")}
                 </span>
               </button>
 
@@ -898,7 +944,7 @@ export default function ListingDetailPage({
                   className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1.5 bg-secondary-container hover:bg-secondary text-foreground border border-border/50 transition-all cursor-pointer"
                 >
                   <MessageSquare className="w-4 h-4 text-primary" />
-                  <span>Live ჩატი</span>
+                  <span>{isKa ? "Live ჩატი" : "Live Chat"}</span>
                 </button>
               </div>
 
@@ -906,7 +952,7 @@ export default function ListingDetailPage({
               <div className="pt-2 flex items-center justify-between">
                 <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
                   <Share2 className="w-3.5 h-3.5 text-primary" />
-                  გაზიარება
+                  {isKa ? "გაზიარება" : "Share"}
                 </span>
 
                 <div className="flex items-center gap-1.5">
@@ -914,7 +960,7 @@ export default function ListingDetailPage({
                     href={shareFbUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="Facebook-ზე გაზიარება"
+                    title={isKa ? "Facebook-ზე გაზიარება" : "Share on Facebook"}
                     className="w-8 h-8 rounded-full bg-[#1877F2]/10 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-[#1877F2]/20 flex items-center justify-center transition-all cursor-pointer"
                   >
                     <FacebookIcon className="w-3.5 h-3.5" />
@@ -924,7 +970,7 @@ export default function ListingDetailPage({
                     href={shareWaUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="WhatsApp-ში გაზიარება"
+                    title={isKa ? "WhatsApp-ში გაზიარება" : "Share on WhatsApp"}
                     className="w-8 h-8 rounded-full bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 flex items-center justify-center transition-all cursor-pointer"
                   >
                     <WhatsAppIcon className="w-3.5 h-3.5" />
@@ -934,7 +980,7 @@ export default function ListingDetailPage({
                     href={shareTgUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="Telegram-ში გაზიარება"
+                    title={isKa ? "Telegram-ში გაზიარება" : "Share on Telegram"}
                     className="w-8 h-8 rounded-full bg-[#229ED9]/10 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border border-[#229ED9]/20 flex items-center justify-center transition-all cursor-pointer"
                   >
                     <TelegramIcon className="w-3.5 h-3.5" />
@@ -943,7 +989,7 @@ export default function ListingDetailPage({
                   <button
                     type="button"
                     onClick={handleCopyLink}
-                    title={copiedLink ? "დაკოპირდა!" : "ლინკის კოპირება"}
+                    title={copiedLink ? (isKa ? "დაკოპირდა!" : "Copied!") : (isKa ? "ლინკის კოპირება" : "Copy Link")}
                     className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
                       copiedLink
                         ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
@@ -958,7 +1004,7 @@ export default function ListingDetailPage({
               {/* Bottom Metadata */}
               <div className="pt-2 flex items-center justify-between text-[10.5px] text-muted-foreground font-medium border-t border-border/30">
                 <span>ID: {listing.id.slice(0, 8)}...</span>
-                <span>👁️ {listing.viewsCount || 100}+ ნახვა</span>
+                <span>👁️ {listing.viewsCount || 100}+ {isKa ? "ნახვა" : "views"}</span>
               </div>
             </div>
           </div>
@@ -1009,7 +1055,7 @@ export default function ListingDetailPage({
                     </div>
                     <span>•</span>
                     <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold">
-                      ⚡ სწრაფი პასუხი
+                      {isKa ? "⚡ სწრაფი პასუხი" : "⚡ Quick Response"}
                     </span>
                   </div>
                 </div>
@@ -1024,7 +1070,7 @@ export default function ListingDetailPage({
                     className="h-8 px-2.5 rounded-[9px] gap-1 text-xs font-bold text-primary hover:bg-primary/10 border-primary/30 shrink-0 cursor-pointer"
                   >
                     <Store className="w-3.5 h-3.5" />
-                    <span>მაღაზია</span>
+                    <span>{isKa ? "მაღაზია" : "Shop"}</span>
                   </Button>
                 </Link>
               ) : (
@@ -1034,18 +1080,18 @@ export default function ListingDetailPage({
                     size="sm"
                     className="h-8 px-2.5 rounded-[9px] gap-1 text-[11px] font-bold text-foreground hover:text-primary hover:bg-secondary-container border-border/60 shrink-0 cursor-pointer"
                   >
-                    <span>განცხადებები</span>
+                    <span>{isKa ? "განცხადებები" : "Listings"}</span>
                     <ChevronRight className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </Link>
               )}
             </div>
 
-            {/* Badges Earned (Georgian & Styled) */}
+            {/* Badges Earned (Bilingual & Styled) */}
             {listing.seller.badges && listing.seller.badges.length > 0 && (
               <div className="flex flex-wrap gap-1.5 pt-2 border-t border-border/40">
                 {listing.seller.badges.map((badge: string, idx: number) => {
-                  const info = getLocalizedBadge(badge);
+                  const info = getLocalizedBadge(badge, isKa);
                   const IconComponent = info.icon;
                   return (
                     <span
@@ -1068,7 +1114,7 @@ export default function ListingDetailPage({
             <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
               <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
                 <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                გამყიდველის შეფასებები & რევიუები
+                {isKa ? "გამყიდველის შეფასებები & რევიუები" : "Seller Ratings & Reviews"}
               </h3>
               <span className="text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
                 ★ 4.9 ({reviews.length})
@@ -1078,7 +1124,9 @@ export default function ListingDetailPage({
             {/* Review Input Form */}
             <form onSubmit={handleReviewSubmit} className="space-y-2 bg-surface-container/50 p-2.5 rounded-[14px] border border-border/40">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-foreground">დაწერეთ შეფასება:</span>
+                <span className="text-[11px] font-bold text-foreground">
+                  {isKa ? "დაწერეთ შეფასება:" : "Write a review:"}
+                </span>
                 <div className="flex items-center gap-0.5">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -1104,8 +1152,8 @@ export default function ListingDetailPage({
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder={
                     currentUser
-                      ? "გაუზიარეთ თქვენი შთაბეჭდილება მყიდველებს..."
-                      : "შეფასების დასატოვებლად გაიარეთ ავტორიზაცია..."
+                      ? (isKa ? "გაუზიარეთ თქვენი შთაბეჭდილება მყიდველებს..." : "Share your feedback with other buyers...")
+                      : (isKa ? "შეფასების დასატოვებლად გაიარეთ ავტორიზაცია..." : "Sign in to leave a review...")
                   }
                   className="w-full rounded-[8px] border border-input bg-background px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
@@ -1120,7 +1168,7 @@ export default function ListingDetailPage({
 
               {reviewSubmitted && (
                 <p className="text-[10px] text-primary font-semibold flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> შეფასება წარმატებით გამოქვეყნდა!
+                  <CheckCircle2 className="w-3 h-3" /> {isKa ? "შეფასება წარმატებით გამოქვეყნდა!" : "Review submitted successfully!"}
                 </p>
               )}
             </form>
@@ -1160,16 +1208,16 @@ export default function ListingDetailPage({
           <div>
             <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-primary" />
-              მსგავსი შეთავაზებები & მცენარეები
+              {isKa ? "მსგავსი შეთავაზებები & მცენარეები" : "Similar Plant Listings"}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              შეიძლება დაგაინტერესოთ სხვა მემცენარეების განცხადებებიდან
+              {isKa ? "შეიძლება დაგაინტერესოთ სხვა მემცენარეების განცხადებებიდან" : "You might also be interested in these botanical listings"}
             </p>
           </div>
 
           <div className="flex items-center gap-2">
             <Link href="/listings" className="text-xs font-bold text-primary hover:underline hidden sm:inline-block">
-              ყველა →
+              {isKa ? "ყველა →" : "View All →"}
             </Link>
 
             {/* Navigation Arrows */}
@@ -1178,7 +1226,7 @@ export default function ListingDetailPage({
                 type="button"
                 onClick={() => scrollSimilar("left")}
                 className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                title="წინა"
+                title={isKa ? "წინა" : "Previous"}
               >
                 <ChevronLeft className="w-4 h-4" />
               </button>
@@ -1186,7 +1234,7 @@ export default function ListingDetailPage({
                 type="button"
                 onClick={() => scrollSimilar("right")}
                 className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                title="შემდეგი"
+                title={isKa ? "შემდეგი" : "Next"}
               >
                 <ChevronRight className="w-4 h-4" />
               </button>
@@ -1217,31 +1265,33 @@ export default function ListingDetailPage({
 
             <div>
               <h3 className="font-bold text-base text-foreground">
-                საჭიროა ავტორიზაცია
+                {isKa ? "საჭიროა ავტორიზაცია" : "Sign In Required"}
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
-                გამყიდველის ნომრის სანახავად, ჩატში მისაწერად ან რევიუს დასატოვებლად გთხოვთ გაიაროთ ავტორიზაცია.
+                {isKa 
+                  ? "გამყიდველის ნომრის სანახავად, ჩატში მისაწერად ან რევიუს დასატოვებლად გთხოვთ გაიაროთ ავტორიზაცია."
+                  : "To view phone number, send live messages, or post reviews, please sign in."}
               </p>
             </div>
 
             <div className="space-y-2 pt-2">
               <Link href={`/auth/login?redirect=/listings/${listing.id}`} className="w-full block">
                 <Button className="w-full rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-10 shadow-ambient">
-                  შესვლა სისტემაში
+                  {isKa ? "შესვლა სისტემაში" : "Sign In"}
                 </Button>
               </Link>
 
               <Link href={`/auth/register?redirect=/listings/${listing.id}`} className="w-full block">
                 <Button variant="outline" className="w-full rounded-[14px] text-xs font-bold h-10 border-border/70">
-                  რეგისტრაცია (უფასო)
+                  {isKa ? "რეგისტრაცია (უფასო)" : "Register (Free)"}
                 </Button>
               </Link>
 
               <button
                 onClick={() => setAuthModalOpen(false)}
-                className="text-xs text-muted-foreground hover:text-foreground pt-1"
+                className="text-xs text-muted-foreground hover:text-foreground pt-1 cursor-pointer"
               >
-                დახურვა
+                {isKa ? "დახურვა" : "Close"}
               </button>
             </div>
           </div>

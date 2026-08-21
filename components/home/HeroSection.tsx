@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { LocationSearchCombobox } from "@/components/common/LocationSearchCombobox";
 import { createClient } from "@/utils/supabase/client";
 import { getMergedListings } from "@/lib/listings-service";
@@ -18,6 +19,8 @@ import { Button } from "@/components/ui/button";
 
 export function HeroSection() {
   const router = useRouter();
+  const locale = useLocale();
+  const isKa = locale !== "en";
   const supabase = createClient();
 
   const [searchTerm, setSearchTerm] = React.useState("");
@@ -97,14 +100,35 @@ export function HeroSection() {
     <section className="relative py-6 sm:py-8 lg:py-10 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-        {/* Hero Title — Clean, Bold & Minimalist */}
-        <div className="text-center mb-6 max-w-3xl mx-auto">
-          <h1 className="text-2xl sm:text-3xl lg:text-[32px] font-black tracking-tight text-foreground leading-tight">
-            იყიდე, გაყიდე,{" "}
-            <span className="text-primary dark:text-emerald-400">
-              გაცვალე მცენარეები
-            </span>
+        {/* Hero Title & Beta / Test Mode Notice */}
+        <div className="text-center mb-6 max-w-3xl mx-auto space-y-2.5">
+          <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-black tracking-tight text-foreground leading-tight">
+            {isKa ? (
+              <>
+                პირველი ქართული მცენარეების მარკეტფლეისი{" "}
+                <span className="text-primary dark:text-emerald-400">
+                  საქართველოში
+                </span>
+              </>
+            ) : (
+              <>
+                The First Plant Marketplace in{" "}
+                <span className="text-primary dark:text-emerald-400">
+                  Georgia
+                </span>
+              </>
+            )}
           </h1>
+
+          <div className="flex items-center justify-center">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs sm:text-[13px] font-bold border border-amber-500/25 shadow-2xs">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              <span>{isKa ? "საიტი მუშაობს სატესტო რეჟიმში" : "Platform operates in Beta / Test Mode"}</span>
+            </span>
+          </div>
         </div>
 
         {/* 📊 1. Live Real-Time Platform Statistics (100% Real Database Data) */}
@@ -118,7 +142,7 @@ export function HeroSection() {
               <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalUsers}
               </p>
-              <p className="text-xs font-bold text-muted-foreground">მომხმარებელი</p>
+              <p className="text-xs font-bold text-muted-foreground">{isKa ? "მომხმარებელი" : "Members"}</p>
             </div>
           </div>
 
@@ -131,7 +155,7 @@ export function HeroSection() {
               <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalListings}
               </p>
-              <p className="text-xs font-bold text-muted-foreground">მცენარე</p>
+              <p className="text-xs font-bold text-muted-foreground">{isKa ? "მცენარე" : "Plant Listings"}</p>
             </div>
           </div>
 
@@ -144,7 +168,7 @@ export function HeroSection() {
               <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalTradesAndGifts}
               </p>
-              <p className="text-xs font-bold text-muted-foreground">გაცვლა & გაჩუქება</p>
+              <p className="text-xs font-bold text-muted-foreground">{isKa ? "გაცვლა & გაჩუქება" : "Trades & Gifts"}</p>
             </div>
           </div>
 
@@ -157,7 +181,7 @@ export function HeroSection() {
               <p className="text-base sm:text-lg font-black text-foreground leading-tight">
                 {stats.totalShops}
               </p>
-              <p className="text-xs font-bold text-muted-foreground">მაღაზია & სანერგე</p>
+              <p className="text-xs font-bold text-muted-foreground">{isKa ? "მაღაზია & სანერგე" : "Shops & Nurseries"}</p>
             </div>
           </div>
         </div>
@@ -186,7 +210,7 @@ export function HeroSection() {
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="მოძებნე: Monstera, ფიკუსი, ქოთანი, სუბსტრატი..."
+                placeholder={isKa ? "მოძებნე: Monstera, ფიკუსი, ქოთანი, სუბსტრატი..." : "Search: Monstera, Ficus, Pot, Soil..."}
                 className="w-full bg-transparent text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
             </div>
@@ -196,7 +220,7 @@ export function HeroSection() {
               type="submit"
               className="rounded-[16px] bg-primary hover:bg-primary-container text-white font-black text-sm h-11 sm:h-12 px-8 shadow-xs shrink-0 cursor-pointer"
             >
-              ძიება
+              {isKa ? "ძიება" : "Search"}
             </Button>
           </form>
         </div>
@@ -204,14 +228,17 @@ export function HeroSection() {
         {/* Popular Tags */}
         <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1 font-bold text-primary dark:text-primary-fixed text-xs">
-            <TrendingUp className="w-3.5 h-3.5" /> პოპულარული:
+            <TrendingUp className="w-3.5 h-3.5" /> {isKa ? "პოპულარული:" : "Popular:"}
           </span>
-          {["Monstera Albo", "Philodendron", "Ficus Lyrata", "🎁 გაჩუქება", "კერამიკული ქოთანი", "სუბსტრატი"].map((tag) => (
+          {(isKa 
+            ? ["Monstera Albo", "Philodendron", "Ficus Lyrata", "🎁 გაჩუქება", "კერამიკული ქოთანი", "სუბსტრატი"]
+            : ["Monstera Albo", "Philodendron", "Ficus Lyrata", "🎁 Giveaway", "Ceramic Pot", "Soil Mix"]
+          ).map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => {
-                const cleanTag = tag.replace("🎁 ", "");
+                const cleanTag = tag.replace(/🎁\s*/, "");
                 setSearchTerm(cleanTag);
                 router.push(`/listings?q=${encodeURIComponent(cleanTag)}`);
               }}

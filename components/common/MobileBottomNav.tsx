@@ -7,13 +7,16 @@ import {
   Store, 
   PlusCircle, 
   MapPin, 
-  User 
+  User, 
+  LogIn 
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 
 export function MobileBottomNav() {
   const pathname = usePathname();
+  const locale = useLocale();
+  const isKa = locale !== "en";
   const t = useTranslations("Common");
   const navT = useTranslations("Navigation");
   const supabase = createClient();
@@ -71,7 +74,7 @@ export function MobileBottomNav() {
           }`}
         >
           <Store className="h-5 w-5" />
-          <span className="text-[10px]">შოპი</span>
+          <span className="text-[10px]">{navT("market")}</span>
         </Link>
 
         {/* 3. Center Add Listing Button */}
@@ -82,7 +85,9 @@ export function MobileBottomNav() {
           <div className="flex h-11 w-11 items-center justify-center rounded-[16px] bg-primary text-white shadow-ambient group-active:scale-95 transition-transform">
             <PlusCircle className="h-5 w-5 text-white" />
           </div>
-          <span className="text-[9px] font-bold text-primary dark:text-emerald-400 mt-0.5">დამატება</span>
+          <span className="text-[9px] font-bold text-primary dark:text-emerald-400 mt-0.5">
+            {isKa ? "დამატება" : "Post"}
+          </span>
         </Link>
 
         {/* 4. Map */}
@@ -93,7 +98,7 @@ export function MobileBottomNav() {
           }`}
         >
           <MapPin className="h-5 w-5" />
-          <span className="text-[10px]">რუკა</span>
+          <span className="text-[10px]">{navT("map")}</span>
         </Link>
 
         {/* 5. Profile / Dashboard */}
@@ -118,7 +123,9 @@ export function MobileBottomNav() {
           ) : (
             <User className="h-5 w-5" />
           )}
-          <span className="text-[10px]">{user ? "პროფილი" : "შესვლა"}</span>
+          <span className="text-[10px]">
+            {user ? (isKa ? "პროფილი" : "Profile") : (isKa ? "შესვლა" : "Sign In")}
+          </span>
         </Link>
 
       </div>

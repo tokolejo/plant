@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
+import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 import { ListingCard } from "@/components/listings/ListingCard";
@@ -31,32 +32,32 @@ import { formatPrice } from "@/lib/utils";
 
 import { formatDbListing } from "@/lib/listings-service";
 
-function getLocalizedBadge(badge: string) {
+function getLocalizedBadge(badge: string, isKa: boolean) {
   const b = badge.toLowerCase();
   if (b.includes("trusted") || b.includes("trust") || b.includes("სანდო")) {
     return {
-      label: "სანდო გამყიდველი",
+      label: isKa ? "სანდო გამყიდველი" : "Trusted Seller",
       icon: ShieldCheck,
       color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
     };
   }
   if (b.includes("verif") || b.includes("ვერიფიცირებული")) {
     return {
-      label: "ვერიფიცირებული მაღაზია",
+      label: isKa ? "ვერიფიცირებული მაღაზია" : "Verified Shop",
       icon: ShieldCheck,
       color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
     };
   }
   if (b.includes("green") || b.includes("thumb") || b.includes("მებაღე")) {
     return {
-      label: "გამოცდილი მებაღე",
+      label: isKa ? "გამოცდილი მებაღე" : "Experienced Grower",
       icon: Sprout,
       color: "text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 border-emerald-500/30",
     };
   }
   if (b.includes("top") || b.includes("ტოპ")) {
     return {
-      label: "ტოპ გამყიდველი",
+      label: isKa ? "ტოპ გამყიდველი" : "Top Seller",
       icon: Award,
       color: "text-amber-800 dark:text-amber-300 bg-amber-500/15 border-amber-500/30",
     };
@@ -73,6 +74,8 @@ export default function ShopStorefrontPage({
 }: {
   params: { slug: string };
 }) {
+  const locale = useLocale();
+  const isKa = locale !== "en";
   const router = useRouter();
   const supabase = createClient();
 
@@ -245,7 +248,7 @@ export default function ShopStorefrontPage({
                   <div className="flex items-center gap-1 font-bold text-amber-500">
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                     <span>{shop.rating.toFixed(1)}</span>
-                    <span className="text-muted-foreground font-normal">({shop.totalReviews} შეფასება)</span>
+                    <span className="text-muted-foreground font-normal">({shop.totalReviews} {isKa ? "შეფასება" : "reviews"})</span>
                   </div>
                   <span>•</span>
                   <span className="font-mono text-[11px] text-muted-foreground">
@@ -260,7 +263,7 @@ export default function ShopStorefrontPage({
                 {/* Badges Earned */}
                 <div className="flex flex-wrap gap-1.5 pt-2">
                   {shop.badges.map((b: string) => {
-                    const info = getLocalizedBadge(b);
+                    const info = getLocalizedBadge(b, isKa);
                     const IconComponent = info.icon;
                     return (
                       <span
@@ -293,7 +296,7 @@ export default function ShopStorefrontPage({
               >
                 <Button variant="outline" className="w-full rounded-2xl text-xs font-bold h-11 gap-2 border-emerald-500/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50">
                   <MessageSquare className="w-4 h-4 text-emerald-600" />
-                  <span>WhatsApp-ში მიწერა</span>
+                  <span>{isKa ? "WhatsApp-ში მიწერა" : "Chat on WhatsApp"}</span>
                 </Button>
               </a>
 
@@ -303,7 +306,7 @@ export default function ShopStorefrontPage({
                 className="w-full rounded-2xl text-xs font-bold h-10 gap-1.5 text-muted-foreground"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
-                <span>{copied ? "ლინკი დაკოპირდა!" : "მაღაზიის გაზიარება"}</span>
+                <span>{copied ? (isKa ? "ლინკი დაკოპირდა!" : "Link Copied!") : (isKa ? "მაღაზიის გაზიარება" : "Share Shop")}</span>
               </Button>
             </div>
           </div>
@@ -315,10 +318,12 @@ export default function ShopStorefrontPage({
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-foreground flex items-center gap-2">
                 <Store className="w-5 h-5 text-primary" />
-                მაღაზიის ასორტიმენტი
+                {isKa ? "მაღაზიის ასორტიმენტი" : "Shop Assortment"}
               </h2>
               <p className="text-xs text-muted-foreground mt-0.5">
-                სულ {filteredAndSortedListings.length} აქტიური განცხადება
+                {isKa 
+                  ? `სულ ${filteredAndSortedListings.length} აქტიური განცხადება`
+                  : `${filteredAndSortedListings.length} Active Listings`}
               </p>
             </div>
 
@@ -335,7 +340,7 @@ export default function ShopStorefrontPage({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  ყველა ({shopListings.length})
+                  {isKa ? "ყველა" : "All"} ({shopListings.length})
                 </button>
                 <button
                   type="button"
@@ -346,7 +351,7 @@ export default function ShopStorefrontPage({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  🌱 მცენარეები ({plantCount})
+                  {isKa ? "🌱 მცენარეები" : "🌱 Plants"} ({plantCount})
                 </button>
                 <button
                   type="button"
@@ -357,7 +362,7 @@ export default function ShopStorefrontPage({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  🪴 ინვენტარი ({inventoryCount})
+                  {isKa ? "🪴 ინვენტარი" : "🪴 Care & Pots"} ({inventoryCount})
                 </button>
               </div>
 
@@ -372,7 +377,7 @@ export default function ShopStorefrontPage({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  უახლესი
+                  {isKa ? "უახლესი" : "Newest"}
                 </button>
                 <button
                   type="button"
@@ -383,7 +388,7 @@ export default function ShopStorefrontPage({
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  👁️ პოპულარული
+                  👁️ {isKa ? "პოპულარული" : "Popular"}
                 </button>
                 <button
                   type="button"
@@ -393,9 +398,9 @@ export default function ShopStorefrontPage({
                       ? "bg-primary text-white shadow-xs"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
-                  title="ფასით სორტირება (დაკლიკეთ მიმართულების შესაცვლელად)"
+                  title={isKa ? "ფასით სორტირება (დაკლიკეთ მიმართულების შესაცვლელად)" : "Sort by price (click to toggle order)"}
                 >
-                  <span>ფასი</span>
+                  <span>{isKa ? "ფასი" : "Price"}</span>
                   <ArrowUpDown className="w-3 h-3" />
                   {sortBy === "price-asc" && <span className="text-[10px] font-black">↑</span>}
                   {sortBy === "price-desc" && <span className="text-[10px] font-black">↓</span>}
@@ -414,8 +419,12 @@ export default function ShopStorefrontPage({
           ) : (
             <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border/80">
               <Sprout className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
-              <h3 className="text-base font-bold text-foreground">განცხადებები არ მოიძებნა</h3>
-              <p className="text-xs text-muted-foreground mt-1">სცადეთ სხვა კატეგორია ან ფილტრი</p>
+              <h3 className="text-base font-bold text-foreground">
+                {isKa ? "განცხადებები არ მოიძებნა" : "No listings found"}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isKa ? "სცადეთ სხვა კატეგორია ან ფილტრი" : "Try selecting another category or filter"}
+              </p>
             </div>
           )}
         </div>

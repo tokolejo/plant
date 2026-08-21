@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Link, useRouter } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
+import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { 
   Sprout, 
@@ -22,18 +23,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export default function LoginPage() {
+  const locale = useLocale();
+  const isKa = locale !== "en";
   return (
     <React.Suspense fallback={
       <div className="flex items-center justify-center min-h-[50vh]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     }>
-      <AuthContainer />
+      <AuthContainer isKa={isKa} />
     </React.Suspense>
   );
 }
 
-function AuthContainer() {
+function AuthContainer({ isKa }: { isKa: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get("redirect") || "/dashboard";
@@ -94,7 +97,7 @@ function AuthContainer() {
     if (error) {
       setErrorMsg(
         error.message === "Invalid login credentials"
-          ? "ელ-ფოსტა ან პაროლი არასწორია"
+          ? (isKa ? "ელ-ფოსტა ან პაროლი არასწორია" : "Invalid email or password")
           : error.message
       );
       setLoading(false);
@@ -112,25 +115,25 @@ function AuthContainer() {
     setSuccessMsg("");
 
     if (!fullName.trim()) {
-      setErrorMsg("გთხოვთ მიუთითოთ სახელი და გვარი");
+      setErrorMsg(isKa ? "გთხოვთ მიუთითოთ სახელი და გვარი" : "Please enter your full name");
       setLoading(false);
       return;
     }
 
     if (!phone.trim()) {
-      setErrorMsg("გთხოვთ მიუთითოთ მობილურის ნომერი");
+      setErrorMsg(isKa ? "გთხოვთ მიუთითოთ მობილურის ნომერი" : "Please enter your phone number");
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setErrorMsg("პაროლი უნდა შედგებოდეს მინიმუმ 6 სიმბოლოსგან");
+      setErrorMsg(isKa ? "პაროლი უნდა შედგებოდეს მინიმუმ 6 სიმბოლოსგან" : "Password must be at least 6 characters");
       setLoading(false);
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg("პაროლები ერთმანეთს არ ემთხვევა");
+      setErrorMsg(isKa ? "პაროლები ერთმანეთს არ ემთხვევა" : "Passwords do not match");
       setLoading(false);
       return;
     }
@@ -176,7 +179,11 @@ function AuthContainer() {
     if (error) {
       setErrorMsg(error.message);
     } else {
-      setSuccessMsg("პაროლის აღდგენის ბმული გამოგეგზავნათ ელ-ფოსტაზე. გთხოვთ შეამოწმოთ თქვენი შემოსული წერილები.");
+      setSuccessMsg(
+        isKa 
+          ? "პაროლის აღდგენის ბმული გამოგეგზავნათ ელ-ფოსტაზე. გთხოვთ შეამოწმოთ თქვენი შემოსული წერილები."
+          : "Password reset link has been sent to your email. Please check your inbox."
+      );
     }
     setLoading(false);
   };
@@ -191,14 +198,14 @@ function AuthContainer() {
             <Sprout className="h-6 w-6 text-primary-fixed" />
           </div>
           <h1 className="text-2xl font-black tracking-tight text-foreground">
-            {mode === "LOGIN" && "სისტემაში შესვლა"}
-            {mode === "REGISTER" && "რეგისტრაცია"}
-            {mode === "FORGOT" && "პაროლის აღდგენა"}
+            {mode === "LOGIN" && (isKa ? "სისტემაში შესვლა" : "Sign In")}
+            {mode === "REGISTER" && (isKa ? "რეგისტრაცია" : "Create Account")}
+            {mode === "FORGOT" && (isKa ? "პაროლის აღდგენა" : "Reset Password")}
           </h1>
           <p className="text-xs text-muted-foreground mt-1 font-medium">
-            {mode === "LOGIN" && "მოგესალმებით Plant-ის ბოტანიკურ პლატფორმაზე"}
-            {mode === "REGISTER" && "შექმენით ანგარიში და დაიწყეთ მცენარეებით ვაჭრობა"}
-            {mode === "FORGOT" && "შეიყვანეთ ელ-ფოსტა აღდგენის ბმულის მისაღებად"}
+            {mode === "LOGIN" && (isKa ? "მოგესალმებით Plant-ის ბოტანიკურ პლატფორმაზე" : "Welcome to Plant.ge marketplace")}
+            {mode === "REGISTER" && (isKa ? "შექმენით ანგარიში და დაიწყეთ მცენარეებით ვაჭრობა" : "Create an account to start trading plants")}
+            {mode === "FORGOT" && (isKa ? "შეიყვანეთ ელ-ფოსტა აღდგენის ბმულის მისაღებად" : "Enter your email to receive a password reset link")}
           </p>
         </div>
 
@@ -211,23 +218,25 @@ function AuthContainer() {
 
             <div className="space-y-2">
               <h3 className="text-base font-black text-foreground">
-                ✉️ შეამოწმეთ თქვენი ელ-ფოსტა!
+                {isKa ? "✉️ შეამოწმეთ თქვენი ელ-ფოსტა!" : "✉️ Check your email!"}
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                ვერიფიკაციის ბმული გამოგეგზავნათ მისამართზე:{" "}
+                {isKa ? "ვერიფიკაციის ბმული გამოგეგზავნათ მისამართზე:" : "A verification link has been sent to:"}{" "}
                 <strong className="text-foreground font-bold">{email}</strong>.
               </p>
               <p className="text-[11px] text-muted-foreground/80 bg-secondary-container/70 p-3 rounded-[14px] border border-border/50">
-                💡 გთხოვთ გახსნათ მიღებული წერილი და დააჭიროთ დასტურის ბმულს ანგარიშის გასააქტიურებლად (შეამოწმეთ <strong>Spam</strong> საქაღალდეც).
+                {isKa 
+                  ? "💡 გთხოვთ გახსნათ მიღებული წერილი და დააჭიროთ დასტურის ბმულს ანგარიშის გასააქტიურებლად (შეამოწმეთ Spam საქაღალდეც)."
+                  : "💡 Please open the email and click the confirmation link to activate your account (also check your Spam folder)."}
               </p>
             </div>
 
             <Button
               type="button"
               onClick={() => switchMode("LOGIN")}
-              className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 shadow-ambient mt-2"
+              className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 shadow-ambient mt-2 cursor-pointer"
             >
-              შესვლის ფორმაზე დაბრუნება
+              {isKa ? "შესვლის ფორმაზე დაბრუნება" : "Back to Sign In"}
             </Button>
           </div>
         ) : (
@@ -238,24 +247,24 @@ function AuthContainer() {
                 <button
                   type="button"
                   onClick={() => switchMode("LOGIN")}
-                  className={`flex-1 py-2 rounded-[12px] text-xs font-bold transition-all ${
+                  className={`flex-1 py-2 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
                     mode === "LOGIN"
                       ? "bg-card text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  შესვლა
+                  {isKa ? "შესვლა" : "Sign In"}
                 </button>
                 <button
                   type="button"
                   onClick={() => switchMode("REGISTER")}
-                  className={`flex-1 py-2 rounded-[12px] text-xs font-bold transition-all ${
+                  className={`flex-1 py-2 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
                     mode === "REGISTER"
                       ? "bg-card text-foreground shadow-xs"
                       : "text-muted-foreground hover:text-foreground"
                   }`}
                 >
-                  რეგისტრაცია
+                  {isKa ? "რეგისტრაცია" : "Register"}
                 </button>
               </div>
             )}
@@ -304,7 +313,7 @@ function AuthContainer() {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                     />
                   </svg>
-                  <span>Google-ით ავტორიზაცია</span>
+                  <span>{isKa ? "Google-ით ავტორიზაცია" : "Continue with Google"}</span>
                 </Button>
 
                 <div className="relative my-4">
@@ -312,7 +321,7 @@ function AuthContainer() {
                     <div className="w-full border-t border-border/60" />
                   </div>
                   <div className="relative flex justify-center text-[10px] font-extrabold uppercase tracking-wider text-muted-foreground">
-                    <span className="bg-card px-3">ან ელ-ფოსტით</span>
+                    <span className="bg-card px-3">{isKa ? "ან ელ-ფოსტით" : "or with email"}</span>
                   </div>
                 </div>
               </>
@@ -323,7 +332,7 @@ function AuthContainer() {
               <form onSubmit={handleLoginSubmit} className="space-y-3.5">
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
-                    ელ-ფოსტა
+                    {isKa ? "ელ-ფოსტა" : "Email"}
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -341,14 +350,14 @@ function AuthContainer() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-bold text-foreground block">
-                      პაროლი
+                      {isKa ? "პაროლი" : "Password"}
                     </label>
                     <button
                       type="button"
                       onClick={() => switchMode("FORGOT")}
                       className="text-[11px] font-bold text-primary hover:underline cursor-pointer"
                     >
-                      დაგავიწყდათ პაროლი?
+                      {isKa ? "დაგავიწყდათ პაროლი?" : "Forgot password?"}
                     </button>
                   </div>
                   <div className="relative">
@@ -369,7 +378,7 @@ function AuthContainer() {
                   disabled={loading}
                   className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 mt-2 shadow-ambient cursor-pointer"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "სისტემაში შესვლა"}
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isKa ? "სისტემაში შესვლა" : "Sign In")}
                 </Button>
               </form>
             )}
@@ -380,7 +389,7 @@ function AuthContainer() {
                 {/* 1. Full Name */}
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
-                    სახელი და გვარი <span className="text-primary">*</span>
+                    {isKa ? "სახელი და გვარი" : "Full Name"} <span className="text-primary">*</span>
                   </label>
                   <div className="relative">
                     <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -397,7 +406,7 @@ function AuthContainer() {
                 {/* 2. Phone Number */}
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
-                    მობილურის ნომერი <span className="text-primary">*</span>
+                    {isKa ? "მობილურის ნომერი" : "Phone Number"} <span className="text-primary">*</span>
                   </label>
                   <div className="relative">
                     <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -414,7 +423,7 @@ function AuthContainer() {
                 {/* 3. Email */}
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
-                    ელ-ფოსტა <span className="text-primary">*</span>
+                    {isKa ? "ელ-ფოსტა" : "Email"} <span className="text-primary">*</span>
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -427,14 +436,16 @@ function AuthContainer() {
                     />
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-0.5">
-                    რეგისტრაციის დასასრულებლად ელ-ფოსტაზე მიიღებთ დასტურის ბმულს.
+                    {isKa 
+                      ? "რეგისტრაციის დასასრულებლად ელ-ფოსტაზე მიიღებთ დასტურის ბმულს."
+                      : "You will receive a confirmation link on your email to complete registration."}
                   </p>
                 </div>
 
                 {/* 4. Password */}
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
-                    პაროლი (მინ. 6 სიმბოლო) <span className="text-primary">*</span>
+                    {isKa ? "პაროლი (მინ. 6 სიმბოლო)" : "Password (min. 6 characters)"} <span className="text-primary">*</span>
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -451,7 +462,7 @@ function AuthContainer() {
                 {/* 5. Confirm Password */}
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
-                    გაიმეორეთ პაროლი <span className="text-primary">*</span>
+                    {isKa ? "გაიმეორეთ პაროლი" : "Confirm Password"} <span className="text-primary">*</span>
                   </label>
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -470,7 +481,7 @@ function AuthContainer() {
                   disabled={loading}
                   className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 mt-3 shadow-ambient cursor-pointer"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "რეგისტრაციის დასრულება"}
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isKa ? "რეგისტრაციის დასრულება" : "Create Account")}
                 </Button>
               </form>
             )}
@@ -480,7 +491,7 @@ function AuthContainer() {
               <form onSubmit={handleForgotSubmit} className="space-y-4">
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
-                    თქვენი რეგისტრირებული ელ-ფოსტა
+                    {isKa ? "თქვენი რეგისტრირებული ელ-ფოსტა" : "Your registered email"}
                   </label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -499,7 +510,7 @@ function AuthContainer() {
                   disabled={loading}
                   className="w-full rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-11 shadow-ambient cursor-pointer"
                 >
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "აღდგენის ბმულის გაგზავნა"}
+                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : (isKa ? "აღდგენის ბმულის გაგზავნა" : "Send Reset Link")}
                 </Button>
 
                 <button
@@ -508,7 +519,7 @@ function AuthContainer() {
                   className="w-full flex items-center justify-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary pt-2 transition-colors cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
-                  შესვლის ფორმაზე დაბრუნება
+                  {isKa ? "შესვლის ფორმაზე დაბრუნება" : "Back to Sign In"}
                 </button>
               </form>
             )}

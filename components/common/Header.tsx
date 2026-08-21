@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { 
   Sprout, 
@@ -27,6 +27,8 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
 
 export function Header() {
+  const locale = useLocale();
+  const isKa = locale !== "en";
   const t = useTranslations("Common");
   const navT = useTranslations("Navigation");
   const pathname = usePathname();
@@ -157,7 +159,7 @@ export function Header() {
               {/* + Quick Post Button for Authenticated Users (Clean Icon-Only) */}
               <Link
                 href="/dashboard/listings/new"
-                title="განცხადების დამატება"
+                title={isKa ? "განცხადების დამატება" : "Add Listing"}
                 className="hidden sm:flex items-center justify-center h-9 w-9 rounded-[14px] bg-primary hover:bg-primary-container text-white shadow-ambient transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-white" />
@@ -226,42 +228,42 @@ export function Header() {
                           className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition-colors"
                         >
                           <ShieldCheck className="w-4 h-4" />
-                          🛠️ ადმინ პანელი
+                          {isKa ? "🛠️ ადმინ პანელი" : "🛠️ Admin Panel"}
                         </Link>
                       )}
 
                       <Link href="/dashboard" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
                         <User className="w-4 h-4 text-primary" />
-                        კაბინეტი
+                        {isKa ? "კაბინეტი" : "Dashboard"}
                       </Link>
 
                       <Link href="/dashboard/shop" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
                         <Store className="w-4 h-4 text-primary" />
-                        მაღაზია & Custom URL
+                        {isKa ? "მაღაზია & Custom URL" : "Shop & Custom URL"}
                       </Link>
 
                       <Link href="/dashboard/messages" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
                         <MessageSquare className="w-4 h-4 text-primary" />
-                        შეტყობინებები
+                        {isKa ? "შეტყობინებები" : "Messages"}
                       </Link>
 
                       <Link href="/pricing" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
                         <Crown className="w-4 h-4 text-amber-500" />
-                        ტარიფები & პაკეტები
+                        {isKa ? "ტარიფები & პაკეტები" : "Pricing & Plans"}
                       </Link>
 
                       <div className="border-t border-border/50 my-1" />
 
                       <button
                         onClick={handleSignOut}
-                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-destructive/10 text-destructive transition-colors"
+                        className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-destructive/10 text-destructive transition-colors cursor-pointer"
                       >
                         <LogOut className="w-4 h-4" />
-                        გამოსვლა
+                        {isKa ? "გამოსვლა" : "Sign Out"}
                       </button>
                     </div>
                   </div>
@@ -271,7 +273,7 @@ export function Header() {
           ) : (
             <Link href="/auth/login" className="hidden sm:inline-flex">
               <Button size="sm" className="rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-9 px-4 shadow-ambient transition-all">
-                შესვლა
+                {isKa ? "შესვლა" : "Sign In"}
               </Button>
             </Link>
           )}
