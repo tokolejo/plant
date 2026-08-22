@@ -91,15 +91,15 @@ export function MobileBottomNav() {
           </span>
         </Link>
 
-        {/* 4. Wishlist */}
+        {/* 4. Botanical Map */}
         <Link
-          href="/dashboard/wishlist"
+          href="/map"
           className={`flex flex-col items-center justify-center gap-0.5 w-14 py-1 rounded-[10px] transition-all ${
-            pathname.includes("/wishlist") ? "text-rose-500 font-bold" : "text-muted-foreground hover:text-foreground"
+            isMapActive ? "text-primary dark:text-emerald-400 font-bold" : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <Heart className="h-5 w-5" />
-          <span className="text-[10px]">{isKa ? "რჩეულები" : "Wishlist"}</span>
+          <MapPin className="h-5 w-5" />
+          <span className="text-[10px]">{navT("map")}</span>
         </Link>
 
         {/* 5. Profile / Dashboard */}

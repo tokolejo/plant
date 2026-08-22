@@ -116,11 +116,11 @@ export function Header() {
         <div className="flex items-center gap-3 xl:gap-6 min-w-0">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group shrink-0">
-            <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-primary text-white shadow-ambient group-hover:scale-105 transition-all">
-              <Sprout className="h-5 w-5 text-primary-fixed" />
+            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[11px] sm:rounded-[12px] bg-primary text-white shadow-ambient group-hover:scale-105 transition-all">
+              <Sprout className="h-4 w-4 sm:h-5 sm:w-5 text-primary-fixed" />
             </div>
             <div className="flex flex-col">
-              <span className="text-base font-bold tracking-tight text-foreground flex items-center gap-0.5">
+              <span className="text-sm sm:text-base font-black tracking-tight text-foreground flex items-center gap-0.5">
                 Plant
               </span>
               <span className="text-[9px] font-medium tracking-wider text-muted-foreground uppercase leading-none hidden sm:block">
@@ -161,11 +161,11 @@ export function Header() {
               {/* Notifications Dropdown */}
               <NotificationDropdown />
 
-              {/* Wishlist Button (Desktop/Tablet only — on Mobile it is in BottomNav) */}
+              {/* Wishlist Button (Visible in Top Header) */}
               <Link
                 href="/dashboard/wishlist"
                 title={isKa ? "შენახული მცენარეები" : "Wishlist"}
-                className="hidden sm:flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-[12px] sm:rounded-[14px] border border-border/80 bg-card hover:bg-surface-container text-muted-foreground hover:text-rose-500 transition-all cursor-pointer shrink-0"
+                className="flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-[12px] sm:rounded-[14px] border border-border/80 bg-card hover:bg-surface-container text-muted-foreground hover:text-rose-500 transition-all cursor-pointer shrink-0"
               >
                 <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Link>
