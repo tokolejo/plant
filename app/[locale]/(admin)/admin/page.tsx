@@ -787,87 +787,149 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
-        <div>
-          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-1.5">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Plant • სრული ადმინ პანელი & მოდერაცია</span>
+      {/* Clean Top Bar: Simple Title & Streamlined Horizontal Navigation Tabs */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+            <ShieldCheck className="w-5 h-5" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
-            პლატფორმის მართვის ცენტრი
+          <h1 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
+            ადმინ პანელი
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            ადმინისტრატორი: <strong className="text-foreground">tokolejo@gmail.com</strong> (სრული მოდერაციის უფლება)
-          </p>
         </div>
 
-        {/* Tab Controls */}
-        <div className="flex flex-wrap items-center gap-1 bg-secondary-container/80 p-1.5 rounded-[18px] border border-border/80">
+        {/* Compact Single-Row Navigation Tabs */}
+        <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar bg-surface-container/70 dark:bg-slate-900/70 p-1.5 rounded-[16px] border border-border/70">
           {[
             { id: "overview", label: "📊 მიმოხილვა" },
-            { id: "listings", label: `📦 განცხადებები (${listings.length})` },
-            { id: "users", label: `👥 მომხმარებლები (${users.length})` },
-            { id: "affiliate", label: `🔗 Affiliate სკრეიპერი (${affiliateProducts.length})` },
-            { id: "audit", label: "📜 აუდიტი & ლოგები" },
-            { id: "analytics", label: "📈 სტატისტიკა" },
+            { id: "listings", label: "📦 განცხადებები", count: listings.length },
+            { id: "users", label: "👥 მომხმარებლები", count: users.length },
             { id: "plans", label: "💎 ტარიფები" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? tab.id === "plans" ? "bg-purple-600 text-white shadow-ambient" : tab.id === "affiliate" ? "bg-emerald-600 text-white shadow-ambient" : "bg-card text-foreground shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+            { id: "analytics", label: "📈 სტატისტიკა" },
+            { id: "audit", label: "📜 აუდიტი" },
+            { id: "affiliate", label: "🔗 Affiliate", count: affiliateProducts.length },
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-3 py-1.5 rounded-[11px] text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  isActive
+                    ? "bg-primary text-white shadow-ambient scale-[1.02]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-card/70"
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.count !== undefined && (
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                    isActive ? "bg-white/20 text-white" : "bg-secondary-container text-foreground"
+                  }`}>
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* KPI Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-muted-foreground uppercase">სულ განცხადება</span>
-            <Layers className="w-4 h-4 text-primary" />
+      {/* KPI Stats — Compact, Sleek & Fully Clickable with Target Navigation */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-6">
+        {/* Card 1: Total Listings -> Navigates to Listings tab */}
+        <div
+          onClick={() => {
+            setActiveTab("listings");
+            setStatusFilter("all");
+          }}
+          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-primary hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          title="დააჭირეთ განცხადებების სანახავად"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
+              სულ განცხადება
+            </span>
+            <div className="h-7 w-7 rounded-[9px] bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
+              <Layers className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <p className="text-2xl font-black text-foreground">{listings.length}</p>
-          <span className="text-[10px] text-primary font-bold">
-            {listings.filter((l) => (l.status || "ACTIVE") === "ACTIVE").length} აქტიური საიტზე
-          </span>
+          <div className="flex items-baseline justify-between">
+            <p className="text-xl sm:text-2xl font-black text-foreground">{listings.length}</p>
+            <span className="text-[10px] text-primary font-bold flex items-center gap-0.5">
+              {listings.filter((l) => (l.status || "ACTIVE") === "ACTIVE").length} აქტიური <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
         </div>
 
-        <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-muted-foreground uppercase">რეგისტრირებული უზერები</span>
-            <Users className="w-4 h-4 text-teal-600" />
+        {/* Card 2: Registered Users -> Navigates to Users tab */}
+        <div
+          onClick={() => setActiveTab("users")}
+          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-teal-500 hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          title="დააჭირეთ მომხმარებლების სანახავად"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-teal-600 transition-colors">
+              მომხმარებლები
+            </span>
+            <div className="h-7 w-7 rounded-[9px] bg-teal-500/10 text-teal-600 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
+              <Users className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <p className="text-2xl font-black text-foreground">{users.length}</p>
-          <span className="text-[10px] text-teal-600 font-bold">1 სუპერ ადმინი</span>
+          <div className="flex items-baseline justify-between">
+            <p className="text-xl sm:text-2xl font-black text-foreground">{users.length}</p>
+            <span className="text-[10px] text-teal-600 font-bold flex items-center gap-0.5">
+              მართვა <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
         </div>
 
-        <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-muted-foreground uppercase">დამალული / განსახილველი</span>
-            <EyeOff className="w-4 h-4 text-amber-500" />
+        {/* Card 3: Hidden/Review -> Navigates to Listings filtered by HIDDEN */}
+        <div
+          onClick={() => {
+            setActiveTab("listings");
+            setStatusFilter("HIDDEN");
+          }}
+          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-amber-500 hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          title="დააჭირეთ დამალული განცხადებების გასაფილტრად"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-amber-600 transition-colors">
+              დამალული / მოდერაცია
+            </span>
+            <div className="h-7 w-7 rounded-[9px] bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
+              <EyeOff className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <p className="text-2xl font-black text-foreground">
-            {listings.filter((l) => l.status === "HIDDEN" || l.status === "REJECTED").length}
-          </p>
-          <span className="text-[10px] text-amber-600 font-bold">მოდერაციის რეჟიმში</span>
+          <div className="flex items-baseline justify-between">
+            <p className="text-xl sm:text-2xl font-black text-foreground">
+              {listings.filter((l) => l.status === "HIDDEN" || l.status === "REJECTED").length}
+            </p>
+            <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5">
+              განხილვა <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
         </div>
 
-        <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs font-bold text-muted-foreground uppercase">სისტემის მდგომარეობა</span>
-            <Sparkles className="w-4 h-4 text-purple-600" />
+        {/* Card 4: System Status -> Navigates to Analytics */}
+        <div
+          onClick={() => setActiveTab("analytics")}
+          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-purple-500 hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          title="დააჭირეთ სტატისტიკის სანახავად"
+        >
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-purple-600 transition-colors">
+              სისტემის სტატუსი
+            </span>
+            <div className="h-7 w-7 rounded-[9px] bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <Sparkles className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <p className="text-2xl font-black text-emerald-600">100% გამართული</p>
-          <span className="text-[10px] text-muted-foreground">Supabase Live DB + PostGIS</span>
+          <div className="flex items-baseline justify-between">
+            <p className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">100% გამართული</p>
+            <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold flex items-center gap-0.5">
+              ანალიტიკა <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </span>
+          </div>
         </div>
       </div>
 
