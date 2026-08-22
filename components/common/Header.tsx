@@ -152,7 +152,7 @@ export function Header() {
         </div>
 
         {/* ═══ Right: Actions ═══ */}
-        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
           <LanguageSwitcher />
           <ThemeToggle />
 
@@ -161,20 +161,20 @@ export function Header() {
               {/* Notifications Dropdown */}
               <NotificationDropdown />
 
-              {/* Wishlist Button */}
+              {/* Wishlist Button (Desktop/Tablet only — on Mobile it is in BottomNav) */}
               <Link
                 href="/dashboard/wishlist"
                 title={isKa ? "შენახული მცენარეები" : "Wishlist"}
-                className="flex items-center justify-center h-9 w-9 rounded-[14px] border border-border/80 bg-card hover:bg-surface-container text-muted-foreground hover:text-rose-500 transition-all cursor-pointer"
+                className="hidden sm:flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-[12px] sm:rounded-[14px] border border-border/80 bg-card hover:bg-surface-container text-muted-foreground hover:text-rose-500 transition-all cursor-pointer shrink-0"
               >
-                <Heart className="w-4 h-4" />
+                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Link>
 
               {/* + Quick Post Button for Authenticated Users (Clean Icon-Only) */}
               <Link
                 href="/dashboard/listings/new"
                 title={isKa ? "განცხადების დამატება" : "Add Listing"}
-                className="hidden sm:flex items-center justify-center h-9 w-9 rounded-[14px] bg-primary hover:bg-primary-container text-white shadow-ambient transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+                className="hidden sm:flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white shadow-ambient transition-all hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-white" />
               </Link>
@@ -184,7 +184,7 @@ export function Header() {
                 <button
                   type="button"
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 p-1 sm:pr-2.5 rounded-[16px] border border-border/80 bg-card hover:bg-surface-container transition-all cursor-pointer"
+                  className="flex items-center gap-1 sm:gap-2 p-0.5 sm:p-1 sm:pr-2.5 rounded-[12px] sm:rounded-[16px] border border-border/80 bg-card hover:bg-surface-container transition-all cursor-pointer shrink-0"
                 >
                   {/* Avatar */}
                   <div className="relative">
@@ -196,7 +196,7 @@ export function Header() {
                       )}
                     </div>
                     {isAdmin && (
-                      <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-purple-600 rounded-full border-2 border-background flex items-center justify-center">
+                      <div className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-purple-600 rounded-full border-2 border-background flex items-center justify-center">
                         <div className="w-1 h-1 bg-white rounded-full" />
                       </div>
                     )}
@@ -210,7 +210,7 @@ export function Header() {
                       {isAdmin ? "⭐ ADMIN" : tierLabels[userTier] || "Free"}
                     </span>
                   </div>
-                  <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`} />
+                  <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground transition-transform duration-200 hidden sm:block ${dropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 
                 {/* Dropdown */}

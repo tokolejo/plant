@@ -96,12 +96,12 @@ export function NotificationDropdown() {
           setOpen(!open);
           if (!open) fetchNotifications();
         }}
-        className="relative flex items-center justify-center h-9 w-9 rounded-[14px] border border-border/80 bg-card hover:bg-surface-container text-muted-foreground hover:text-foreground transition-all cursor-pointer"
+        className="relative flex items-center justify-center h-8 w-8 sm:h-9 sm:w-9 rounded-[12px] sm:rounded-[14px] border border-border/80 bg-card hover:bg-surface-container text-muted-foreground hover:text-foreground transition-all cursor-pointer shrink-0"
         title="შეტყობინებები"
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 min-w-[16px] px-1 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white shadow-xs animate-pulse">
+          <span className="absolute -top-1 -right-1 flex h-3.5 min-w-[14px] sm:h-4 sm:min-w-[16px] px-1 items-center justify-center rounded-full bg-emerald-600 text-[9px] sm:text-[10px] font-black text-white shadow-xs animate-pulse">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}

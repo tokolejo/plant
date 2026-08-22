@@ -26,10 +26,10 @@ export function LanguageSwitcher() {
       variant="outline"
       size="sm"
       onClick={toggleLocale}
-      className="flex items-center gap-1.5 font-medium text-xs px-2.5 h-9 rounded-xl border-border/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-500/40 transition-all cursor-pointer"
+      className="flex items-center gap-1 font-bold text-[11px] sm:text-xs px-2 sm:px-2.5 h-8 sm:h-9 rounded-[12px] sm:rounded-xl border-border/80 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 hover:border-emerald-500/40 transition-all cursor-pointer shrink-0"
     >
-      <Globe className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-      <span className="font-semibold">{locale === "ka" ? "GEO" : "ENG"}</span>
+      <Globe className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+      <span className="font-bold">{locale === "ka" ? "GEO" : "ENG"}</span>
     </Button>
   );
 }
