@@ -834,53 +834,49 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* KPI Stats — Compact, Sleek & Fully Clickable with Target Navigation */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5 mb-6">
+      {/* KPI Stats — Ultra-Compact & Sleek Micro-Stat Badges */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-5">
         {/* Card 1: Total Listings -> Navigates to Listings tab */}
         <div
           onClick={() => {
             setActiveTab("listings");
             setStatusFilter("all");
           }}
-          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-primary hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          className="flex items-center justify-between gap-2 px-3 py-2 rounded-[13px] border border-border/70 bg-card hover:border-primary/50 hover:bg-surface-container/60 shadow-2xs transition-all duration-150 cursor-pointer group"
           title="დააჭირეთ განცხადებების სანახავად"
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-primary transition-colors">
-              სულ განცხადება
-            </span>
-            <div className="h-7 w-7 rounded-[9px] bg-primary/10 text-primary flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-colors">
-              <Layers className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-6 w-6 rounded-[7px] bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+              <Layers className="w-3 h-3" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-semibold text-muted-foreground block truncate leading-tight">განცხადება</span>
+              <span className="text-sm font-black text-foreground leading-none">{listings.length}</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-xl sm:text-2xl font-black text-foreground">{listings.length}</p>
-            <span className="text-[10px] text-primary font-bold flex items-center gap-0.5">
-              {listings.filter((l) => (l.status || "ACTIVE") === "ACTIVE").length} აქტიური <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-          </div>
+          <span className="text-[10px] text-primary font-bold flex items-center gap-0.5 shrink-0 bg-primary/10 px-1.5 py-0.5 rounded-[6px] group-hover:bg-primary group-hover:text-white transition-colors">
+            {listings.filter((l) => (l.status || "ACTIVE") === "ACTIVE").length} <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+          </span>
         </div>
 
         {/* Card 2: Registered Users -> Navigates to Users tab */}
         <div
           onClick={() => setActiveTab("users")}
-          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-teal-500 hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          className="flex items-center justify-between gap-2 px-3 py-2 rounded-[13px] border border-border/70 bg-card hover:border-teal-500/50 hover:bg-surface-container/60 shadow-2xs transition-all duration-150 cursor-pointer group"
           title="დააჭირეთ მომხმარებლების სანახავად"
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-teal-600 transition-colors">
-              მომხმარებლები
-            </span>
-            <div className="h-7 w-7 rounded-[9px] bg-teal-500/10 text-teal-600 flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-colors">
-              <Users className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-6 w-6 rounded-[7px] bg-teal-500/10 text-teal-600 flex items-center justify-center shrink-0 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+              <Users className="w-3 h-3" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-semibold text-muted-foreground block truncate leading-tight">უზერები</span>
+              <span className="text-sm font-black text-foreground leading-none">{users.length}</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-xl sm:text-2xl font-black text-foreground">{users.length}</p>
-            <span className="text-[10px] text-teal-600 font-bold flex items-center gap-0.5">
-              მართვა <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-          </div>
+          <span className="text-[10px] text-teal-600 font-bold flex items-center gap-0.5 shrink-0 bg-teal-500/10 px-1.5 py-0.5 rounded-[6px] group-hover:bg-teal-600 group-hover:text-white transition-colors">
+            მართვა <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+          </span>
         </div>
 
         {/* Card 3: Hidden/Review -> Navigates to Listings filtered by HIDDEN */}
@@ -889,47 +885,43 @@ export default function AdminDashboardPage() {
             setActiveTab("listings");
             setStatusFilter("HIDDEN");
           }}
-          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-amber-500 hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          className="flex items-center justify-between gap-2 px-3 py-2 rounded-[13px] border border-border/70 bg-card hover:border-amber-500/50 hover:bg-surface-container/60 shadow-2xs transition-all duration-150 cursor-pointer group"
           title="დააჭირეთ დამალული განცხადებების გასაფილტრად"
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-amber-600 transition-colors">
-              დამალული / მოდერაცია
-            </span>
-            <div className="h-7 w-7 rounded-[9px] bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
-              <EyeOff className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-6 w-6 rounded-[7px] bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+              <EyeOff className="w-3 h-3" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-semibold text-muted-foreground block truncate leading-tight">დამალული</span>
+              <span className="text-sm font-black text-foreground leading-none">
+                {listings.filter((l) => l.status === "HIDDEN" || l.status === "REJECTED").length}
+              </span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-xl sm:text-2xl font-black text-foreground">
-              {listings.filter((l) => l.status === "HIDDEN" || l.status === "REJECTED").length}
-            </p>
-            <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5">
-              განხილვა <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-          </div>
+          <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5 shrink-0 bg-amber-500/10 px-1.5 py-0.5 rounded-[6px] group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            განხილვა <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+          </span>
         </div>
 
         {/* Card 4: System Status -> Navigates to Analytics */}
         <div
           onClick={() => setActiveTab("analytics")}
-          className="rounded-[16px] sm:rounded-[18px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-purple-500 hover:shadow-md transition-all hover:scale-[1.02] active:scale-98 cursor-pointer group"
+          className="flex items-center justify-between gap-2 px-3 py-2 rounded-[13px] border border-border/70 bg-card hover:border-purple-500/50 hover:bg-surface-container/60 shadow-2xs transition-all duration-150 cursor-pointer group"
           title="დააჭირეთ სტატისტიკის სანახავად"
         >
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider group-hover:text-purple-600 transition-colors">
-              სისტემის სტატუსი
-            </span>
-            <div className="h-7 w-7 rounded-[9px] bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-colors">
-              <Sparkles className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="h-6 w-6 rounded-[7px] bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <Sparkles className="w-3 h-3" />
+            </div>
+            <div className="min-w-0">
+              <span className="text-[10px] font-semibold text-muted-foreground block truncate leading-tight">სისტემა</span>
+              <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 leading-none">100% OK</span>
             </div>
           </div>
-          <div className="flex items-baseline justify-between">
-            <p className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">100% გამართული</p>
-            <span className="text-[10px] text-purple-600 dark:text-purple-400 font-bold flex items-center gap-0.5">
-              ანალიტიკა <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-            </span>
-          </div>
+          <span className="text-[10px] text-purple-600 font-bold flex items-center gap-0.5 shrink-0 bg-purple-500/10 px-1.5 py-0.5 rounded-[6px] group-hover:bg-purple-600 group-hover:text-white transition-colors">
+            ანალიტიკა <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
+          </span>
         </div>
       </div>
 
