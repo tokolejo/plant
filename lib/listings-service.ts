@@ -40,6 +40,8 @@ export function formatDbListing(dbRow: any, sellerProfile?: any): ExtendedListin
       totalReviews: Number(sellerProfile?.total_reviews) || 1,
       badges: sellerProfile?.is_verified ? ["Verified Seller"] : ["Community Member"],
       tier: sellerProfile?.subscription_tier || "FREE",
+      role: sellerProfile?.role || (sellerProfile?.is_admin ? "ADMIN" : "USER"),
+      isVerified: sellerProfile?.role === "VERIFIED_SELLER" || sellerProfile?.role === "ADMIN" || sellerProfile?.role === "SUPER_ADMIN" || sellerProfile?.is_verified,
       customSlug: sellerProfile?.custom_slug || undefined,
       phone: sellerProfile?.phone || "557 579 123",
     },
@@ -66,7 +68,10 @@ export async function getMergedListings(): Promise<ExtendedListingCardProps[]> {
           average_rating,
           total_reviews,
           subscription_tier,
-          custom_slug
+          custom_slug,
+          role,
+          is_admin,
+          is_verified
         )
       `)
       .eq("status", "ACTIVE")

@@ -54,6 +54,8 @@ export interface ListingCardProps {
     totalReviews: number;
     badges: string[];
     tier?: string;
+    role?: string;
+    isVerified?: boolean;
     customSlug?: string;
     phone?: string;
   };
@@ -247,8 +249,13 @@ export function ListingCard({
                   seller.fullName.charAt(0).toUpperCase()
                 )}
               </div>
-              <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200 group-hover/seller:text-primary transition-colors">
+              <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200 group-hover/seller:text-primary transition-colors flex items-center gap-1">
                 {seller.fullName}
+                {(seller.role === "VERIFIED_SELLER" || seller.role === "ADMIN" || seller.role === "SUPER_ADMIN" || seller.isVerified || seller.badges?.includes("VERIFIED")) && (
+                  <span title="ვერიფიცირებული გამყიდველი" className="text-emerald-600 dark:text-emerald-400 text-[11px]">
+                    🌿
+                  </span>
+                )}
               </span>
               {seller.rating && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black flex items-center gap-0.5">
@@ -388,7 +395,12 @@ export function ListingCard({
                 seller.fullName.charAt(0).toUpperCase()
               )}
             </div>
-            <span className="truncate max-w-[100px]">{seller.fullName}</span>
+            <span className="truncate max-w-[90px]">{seller.fullName}</span>
+            {(seller.role === "VERIFIED_SELLER" || seller.role === "ADMIN" || seller.role === "SUPER_ADMIN" || seller.isVerified || seller.badges?.includes("VERIFIED")) && (
+              <span title="ვერიფიცირებული გამყიდველი" className="text-emerald-600 dark:text-emerald-400 text-[10px] shrink-0">
+                🌿
+              </span>
+            )}
           </Link>
 
           {seller.rating ? (

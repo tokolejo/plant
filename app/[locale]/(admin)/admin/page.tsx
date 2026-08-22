@@ -52,6 +52,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+import { 
+  UserRole, 
+  canAccessAdmin, 
+  canModerate, 
+  canManageUsers, 
+  canManagePlans, 
+  hasPermission,
+  ROLES_CONFIG 
+} from "@/lib/rbac";
 
 type SortField = "title" | "itemType" | "price" | "seller" | "status" | "date";
 type SortOrder = "asc" | "desc";
@@ -62,6 +71,7 @@ export default function AdminDashboardPage() {
   const supabase = createClient();
 
   const [currentUser, setCurrentUser] = React.useState<any>(null);
+  const [currentUserRole, setCurrentUserRole] = React.useState<UserRole>("USER");
   const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
   const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "affiliate" | "audit" | "plans" | "analytics">("overview");
 
@@ -236,7 +246,7 @@ export default function AdminDashboardPage() {
     }
   }, [supabase, currentUser]);
 
-  // Auth & Admin Verification
+  // Auth & Admin Verification with Granular RBAC
   React.useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
       setCurrentUser(user);
@@ -249,7 +259,13 @@ export default function AdminDashboardPage() {
           .eq("id", user.id)
           .single();
 
-        if (isSuperAdmin || profile?.is_admin || profile?.role === "SUPER_ADMIN" || profile?.role === "ADMIN") {
+        const role: UserRole = isSuperAdmin 
+          ? "SUPER_ADMIN" 
+          : (profile?.role as UserRole) || (profile?.is_admin ? "ADMIN" : "USER");
+
+        setCurrentUserRole(role);
+
+        if (canAccessAdmin(role, user.email)) {
           setIsAdmin(true);
           loadAdminData(user);
         } else {
@@ -322,6 +338,16 @@ export default function AdminDashboardPage() {
   };
 
   const updateUserRole = async (id: string, newRole: string) => {
+    // Permission check: only Super Admin can assign ADMIN or SUPER_ADMIN
+    if (
+      (newRole === "SUPER_ADMIN" || newRole === "ADMIN") &&
+      currentUserRole !== "SUPER_ADMIN" &&
+      currentUser?.email !== "tokolejo@gmail.com"
+    ) {
+      showNotice("❌ მხოლოდ Super Admin-ს შეუძლია ადმინისტრატორის ან სუპერ ადმინის როლის მინიჭება!");
+      return;
+    }
+
     const isNowAdmin = newRole === "ADMIN" || newRole === "SUPER_ADMIN";
 
     // Instant local state update
@@ -417,31 +443,28 @@ export default function AdminDashboardPage() {
         delivery_methods: s.deliveryMethods || ["PICKUP"],
         images: s.images || ["https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=800"],
         city: s.city || "თბილისი",
-        address: s.address || "თბილისი",
-        lat: s.lat || 41.7116,
-        lng: s.lng || 44.7554,
-        is_featured: s.isPremium || false,
-        is_boosted: s.isPremium || false,
+        address: s.address || "ცენტრი",
         status: "ACTIVE",
-        views_count: s.viewsCount || 50,
-        trade_preferences: s.tradePreferences || [],
+        views_count: s.viewsCount || 10,
+        is_featured: s.isFeatured || false,
       }));
 
-      const { data, error } = await supabase.from("listings").insert(seedsToInsert).select();
-      if (error) {
-        throw error;
-      }
-      showNotice(`🎉 ${data.length} მცენარე წარმატებით ჩაიწერა თქვენს პროფილზე!`);
-      loadAdminData(currentUser);
-    } catch (e: any) {
-      console.error("Seed error:", e);
-      showNotice(`❌ შეცდომა: ${e.message}`);
+      const { data, error } = await supabase
+        .from("listings")
+        .insert(seedsToInsert)
+        .select();
+
+      if (error) throw error;
+
+      showNotice(`🎉 წარმატებით ჩაიწერა ${data.length} სატესტო განცხადება!`);
+      loadAdminData();
+    } catch (err: any) {
+      console.error("Seed error:", err);
+      showNotice(`❌ შეცდომა ჩაწერისას: ${err.message}`);
     }
   };
 
-  // ──────────────────────────────────────────────
-  // Bulk Users State & Actions
-  // ──────────────────────────────────────────────
+  // Bulk Selection & Moderation for Users
   const [selectedUserIds, setSelectedUserIds] = React.useState<Set<string>>(new Set());
   const [bulkUserLoading, setBulkUserLoading] = React.useState(false);
 
@@ -449,7 +472,7 @@ export default function AdminDashboardPage() {
     if (selectedUserIds.size === users.length) {
       setSelectedUserIds(new Set());
     } else {
-      setSelectedUserIds(new Set(users.map((u: any) => u.id)));
+      setSelectedUserIds(new Set(users.map((u) => u.id)));
     }
   };
 
@@ -464,15 +487,14 @@ export default function AdminDashboardPage() {
 
   const bulkSuspendUsers = async () => {
     if (selectedUserIds.size === 0) return;
-    const ids = Array.from(selectedUserIds).filter((id) => !id.startsWith("usr-"));
     if (!confirm(`ნამდვილად გსურთ ${selectedUserIds.size} მომხმარებლის დაბლოკვა/გაყინვა?`)) return;
-
+    const ids = Array.from(selectedUserIds).filter((id) => !id.startsWith("usr-"));
     setBulkUserLoading(true);
     try {
       if (ids.length > 0) {
         const { error } = await supabase.rpc("bulk_suspend_users", {
           user_ids: ids,
-          reason: "Admin manual moderation",
+          reason: "Admin panel moderation action",
         });
         if (error) throw error;
       }
@@ -596,7 +618,16 @@ export default function AdminDashboardPage() {
     if (!confirm(`წაიშალოს პარტნიორი პროდუქტი: "${name}"?`)) return;
     setAffiliateProducts((prev) => prev.filter((p) => p.id !== id));
     await supabase.from("affiliate_products").delete().eq("id", id);
-    showNotice(`🗑️ პროდუქტი "${name}" წაიშალა.`);
+    showNotice(`🗑️ პარტნიორი პროდუქტი "${name}" წაიშალა`);
+  };
+
+  const handleToggleAffiliateActive = async (id: string, currentActive: boolean) => {
+    const next = !currentActive;
+    setAffiliateProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, is_active: next } : p))
+    );
+    await supabase.from("affiliate_products").update({ is_active: next }).eq("id", id);
+    showNotice(next ? "🟢 პროდუქტი გააქტიურდა" : "🟡 პროდუქტი დაპაუზდა");
   };
 
   // ──────────────────────────────────────────────
@@ -610,7 +641,15 @@ export default function AdminDashboardPage() {
     try {
       const { data, error } = await supabase
         .from("audit_logs")
-        .select("*")
+        .select(`
+          *,
+          actor:actor_id (
+            id,
+            full_name,
+            avatar_url,
+            email
+          )
+        `)
         .order("created_at", { ascending: false })
         .limit(100);
       if (!error && data) {
@@ -623,7 +662,6 @@ export default function AdminDashboardPage() {
     }
   }, [supabase]);
 
-  // Trigger loading when tab switches
   React.useEffect(() => {
     if (activeTab === "affiliate") loadAffiliates();
     if (activeTab === "audit") loadAuditLogs();
@@ -791,8 +829,8 @@ export default function AdminDashboardPage() {
     );
   }, [uniqueSellers, sellerQuery]);
 
-  // If not admin
-  if (isAdmin === false && currentUser?.email !== "tokolejo@gmail.com") {
+  // If not admin/moderator
+  if (isAdmin === false && !canAccessAdmin(currentUserRole, currentUser?.email)) {
     return (
       <div className="container mx-auto px-4 py-20 text-center max-w-md">
         <div className="rounded-3xl border border-destructive/30 bg-destructive/5 p-8 space-y-4">
@@ -801,7 +839,7 @@ export default function AdminDashboardPage() {
           </div>
           <h1 className="text-xl font-bold text-foreground">წვდომა შეზღუდულია</h1>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            ეს გვერდი განკუთვნილია მხოლოდ პლატფორმის ადმინისტრატორისთვის (tokolejo@gmail.com).
+            ეს გვერდი განკუთვნილია მხოლოდ პლატფორმის ადმინისტრატორებისა და მოდერატორებისთვის.
           </p>
           <Link href="/auth/login" className="block pt-2">
             <Button className="rounded-xl text-xs font-bold w-full bg-primary text-white">
@@ -825,50 +863,63 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Clean Top Bar: Simple Title & Streamlined Horizontal Navigation Tabs */}
+      {/* Clean Top Bar: Simple Title with Current Role Badge & Dynamic Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
             <ShieldCheck className="w-5 h-5" />
           </div>
-          <h1 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
-            ადმინ პანელი
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
+              ადმინ პანელი
+            </h1>
+            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+              currentUserRole === "SUPER_ADMIN"
+                ? "bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800 shadow-2xs"
+                : currentUserRole === "ADMIN"
+                ? "bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800 shadow-2xs"
+                : "bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800 shadow-2xs"
+            }`}>
+              {currentUserRole === "SUPER_ADMIN" ? "👑 SUPER ADMIN" : currentUserRole === "ADMIN" ? "⚡ ADMIN" : "🛡️ MODERATOR"}
+            </span>
+          </div>
         </div>
 
-        {/* Compact Single-Row Navigation Tabs */}
+        {/* Compact Single-Row Navigation Tabs Filtered by Permissions */}
         <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar bg-surface-container/70 dark:bg-slate-900/70 p-1.5 rounded-[16px] border border-border/70">
           {[
-            { id: "overview", label: "📊 მიმოხილვა" },
-            { id: "listings", label: "📦 განცხადებები", count: listings.length },
-            { id: "users", label: "👥 მომხმარებლები", count: users.length },
-            { id: "plans", label: "💎 ტარიფები" },
-            { id: "analytics", label: "📈 სტატისტიკა" },
-            { id: "audit", label: "📜 აუდიტი" },
-            { id: "affiliate", label: "🔗 Affiliate", count: affiliateProducts.length },
-          ].map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-3 py-1.5 rounded-[11px] text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
-                  isActive
-                    ? "bg-primary text-white shadow-ambient scale-[1.02]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-card/70"
-                }`}
-              >
-                <span>{tab.label}</span>
-                {tab.count !== undefined && (
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                    isActive ? "bg-white/20 text-white" : "bg-secondary-container text-foreground"
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+            { id: "overview", label: "📊 მიმოხილვა", visible: true },
+            { id: "listings", label: "📦 განცხადებები", count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
+            { id: "users", label: "👥 მომხმარებლები", count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "plans", label: "💎 ტარიფები", visible: canManagePlans(currentUserRole, currentUser?.email) },
+            { id: "analytics", label: "📈 სტატისტიკა", visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "audit", label: "📜 აუდიტი", visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "affiliate", label: "🔗 Affiliate", count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+          ]
+            .filter((tab) => tab.visible)
+            .map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-3 py-1.5 rounded-[11px] text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                    isActive
+                      ? "bg-primary text-white shadow-ambient scale-[1.02]"
+                      : "text-muted-foreground hover:text-foreground hover:bg-card/70"
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                      isActive ? "bg-white/20 text-white" : "bg-secondary-container text-foreground"
+                    }`}>
+                      {tab.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
         </div>
       </div>
 
@@ -1700,8 +1751,18 @@ export default function AdminDashboardPage() {
                           <option value="USER">👤 USER (ჩვეულებრივი)</option>
                           <option value="VERIFIED_SELLER">🌿 VERIFIED (ვერიფიცირებული)</option>
                           <option value="MODERATOR">🛡️ MODERATOR (მოდერატორი)</option>
-                          <option value="ADMIN">⚡ ADMIN (ადმინისტრატორი)</option>
-                          <option value="SUPER_ADMIN">👑 SUPER ADMIN (სუპერ ადმინი)</option>
+                          <option 
+                            value="ADMIN" 
+                            disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}
+                          >
+                            ⚡ ADMIN (ადმინისტრატორი)
+                          </option>
+                          <option 
+                            value="SUPER_ADMIN" 
+                            disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}
+                          >
+                            👑 SUPER ADMIN (სუპერ ადმინი)
+                          </option>
                         </select>
                       </td>
 
