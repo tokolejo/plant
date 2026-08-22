@@ -654,76 +654,68 @@ export default function ListingDetailPage({
 
           {/* Dynamic Plant Care / Inventory Specifications Card */}
           {listing.itemType === "INVENTORY" || listing.item_type === "INVENTORY" ? (
-            <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient space-y-4">
+            <div className="rounded-[24px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
               <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
                 <Boxes className="w-4 h-4 text-primary" />
                 {isKa ? "ინვენტარის მახასიათებლები" : "Inventory Specifications"}
               </h3>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="divide-y divide-border/40 rounded-[16px] bg-secondary-container/30 border border-border/50 overflow-hidden">
                 {/* 1. ტიპი */}
-                <div className="flex items-center gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <Boxes className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold">
-                      {isKa ? "ტიპი" : "Type"}
-                    </span>
-                    <span className="text-sm font-extrabold text-foreground leading-snug break-words">
-                      {categoryInfo?.label || (isKa ? "პრემიუმ ინვენტარი" : "Equipment")}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Boxes className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "ტიპი:" : "Type:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {categoryInfo?.label || (isKa ? "პრემიუმ ინვენტარი" : "Equipment")}
+                  </span>
                 </div>
 
                 {/* 2. მდგომარეობა */}
-                <div className="flex items-center gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                    <ShieldCheck className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold">
-                      {isKa ? "მდგომარეობა" : "Condition"}
-                    </span>
-                    <span className="text-sm font-extrabold text-emerald-600 dark:text-emerald-400 leading-snug">
-                      {isKa ? "ახალი / უხმარი" : "Brand New"}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "მდგომარეობა:" : "Condition:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 text-right">
+                    {isKa ? "ახალი / უხმარი" : "Brand New"}
+                  </span>
                 </div>
 
                 {/* 3. დანიშნულება */}
-                <div className="flex items-center gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                    <Sprout className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold">
-                      {isKa ? "დანიშნულება" : "Intended For"}
-                    </span>
-                    <span className="text-sm font-extrabold text-foreground leading-snug">
-                      {isKa ? "ოთახის & ბაღის" : "Indoor & Garden"}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Sprout className="w-4 h-4 text-blue-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "დანიშნულება:" : "Intended For:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? "ოთახის & ბაღის" : "Indoor & Garden"}
+                  </span>
                 </div>
 
                 {/* 4. მიწოდება */}
-                <div className="flex items-center gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-                    <Truck className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold">
-                      {isKa ? "მიწოდება" : "Packaging"}
-                    </span>
-                    <span className="text-sm font-extrabold text-foreground leading-snug">
-                      {isKa ? "დაცული შეფუთვა" : "Safe Package"}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Truck className="w-4 h-4 text-purple-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "მიწოდება:" : "Packaging:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? "დაცული შეფუთვა" : "Safe Package"}
+                  </span>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient space-y-4">
+            <div className="rounded-[24px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
                   <Sprout className="w-4 h-4 text-primary" />
@@ -737,79 +729,85 @@ export default function ListingDetailPage({
                 )}
               </div>
 
-              {/* 4 Horizontal Cards in 2 Columns Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Single unified sequential card rows */}
+              <div className="divide-y divide-border/40 rounded-[16px] bg-secondary-container/30 border border-border/50 overflow-hidden">
                 {/* 1. განათება */}
-                <div className="flex items-start gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 mt-0.5">
-                    <Sun className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold mb-0.5">
-                      {isKa ? "განათება" : "Lighting"}
-                    </span>
-                    <span className="text-sm font-bold text-foreground leading-relaxed block">
-                      {isKa ? careInfo.lightKa : careInfo.lightEn}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Sun className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "განათება:" : "Lighting:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? careInfo.lightKa : careInfo.lightEn}
+                  </span>
                 </div>
 
                 {/* 2. მორწყვა */}
-                <div className="flex items-start gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/10 text-teal-500 flex items-center justify-center shrink-0 mt-0.5">
-                    <Droplets className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold mb-0.5">
-                      {isKa ? "მორწყვა" : "Watering"}
-                    </span>
-                    <span className="text-sm font-bold text-foreground leading-relaxed block">
-                      {isKa ? careInfo.wateringKa : careInfo.wateringEn}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Droplets className="w-4 h-4 text-teal-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "მორწყვა:" : "Watering:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? careInfo.wateringKa : careInfo.wateringEn}
+                  </span>
                 </div>
 
                 {/* 3. სუბსტრატი / გრუნტი */}
-                <div className="flex items-start gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
-                    <Boxes className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold mb-0.5">
-                      {isKa ? "სუბსტრატი / გრუნტი" : "Soil / Substrate"}
-                    </span>
-                    <span className="text-sm font-bold text-foreground leading-relaxed block">
-                      {isKa ? careInfo.soilKa : careInfo.soilEn}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Boxes className="w-4 h-4 text-primary shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "სუბსტრატი / გრუნტი:" : "Soil / Substrate:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? careInfo.soilKa : careInfo.soilEn}
+                  </span>
                 </div>
 
                 {/* 4. ტემპერატურა */}
-                <div className="flex items-start gap-3.5 rounded-[16px] bg-secondary-container/50 hover:bg-secondary-container/80 p-3.5 border border-border/50 transition-all">
-                  <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0 mt-0.5">
-                    <Thermometer className="w-5 h-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-xs text-muted-foreground block font-semibold mb-0.5">
-                      {isKa ? "ტემპერატურა" : "Temperature"}
-                    </span>
-                    <span className="text-sm font-bold text-foreground leading-relaxed block">
-                      {isKa ? careInfo.tempKa : careInfo.tempEn}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Thermometer className="w-4 h-4 text-rose-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "ტემპერატურა:" : "Temperature:"}
                     </span>
                   </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? careInfo.tempKa : careInfo.tempEn}
+                  </span>
                 </div>
-              </div>
 
-              {/* Botanical summary footer */}
-              <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground pt-3 px-1 border-t border-border/40 flex-wrap gap-2">
-                <span className="flex items-center gap-1.5">
-                  <span className="text-muted-foreground">{isKa ? "მოვლის სირთულე: " : "Care Level: "}</span>
-                  <strong className="text-foreground font-extrabold">{isKa ? careInfo.careLevelKa : careInfo.careLevelEn}</strong>
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-muted-foreground">{isKa ? "ტენიანობა: " : "Humidity: "}</span>
-                  <strong className="text-foreground font-extrabold">{isKa ? careInfo.humidityKa : careInfo.humidityEn}</strong>
-                </span>
+                {/* 5. ტენიანობა */}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <Sparkles className="w-4 h-4 text-blue-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "ტენიანობა:" : "Humidity:"}
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? careInfo.humidityKa : careInfo.humidityEn}
+                  </span>
+                </div>
+
+                {/* 6. მოვლის სირთულე */}
+                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                      {isKa ? "მოვლის სირთულე:" : "Care Level:"}
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                    {isKa ? careInfo.careLevelKa : careInfo.careLevelEn}
+                  </span>
+                </div>
               </div>
             </div>
           )}
