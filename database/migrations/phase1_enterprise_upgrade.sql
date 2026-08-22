@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- PLANTIO / PLANT — ENTERPRISE SAAS DATABASE MIGRATION (PHASE 1)
--- C2C / B2B / B2C Plant Marketplace — Production-Ready Enterprise Schema
+-- Tailored 100% to Existing Supabase Database Schema
 -- PostgreSQL 15+ · Supabase · Strict Security Linter Compliant
 -- ==============================================================================
 
@@ -39,6 +39,8 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS last_name TEXT,
   ADD COLUMN IF NOT EXISTS phone TEXT,
   ADD COLUMN IF NOT EXISTS avatar_url TEXT,
+  ADD COLUMN IF NOT EXISTS bio TEXT,
+  ADD COLUMN IF NOT EXISTS city TEXT,
   ADD COLUMN IF NOT EXISTS location TEXT,
   ADD COLUMN IF NOT EXISTS is_on_vacation BOOLEAN NOT NULL DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE,
@@ -46,7 +48,7 @@ ALTER TABLE public.profiles
 
 -- Ensure super admin role for tokolejo@gmail.com safely via auth.users
 UPDATE public.profiles 
-SET role = 'SUPER_ADMIN' 
+SET role = 'SUPER_ADMIN', is_admin = TRUE 
 WHERE id IN (SELECT id FROM auth.users WHERE email = 'tokolejo@gmail.com');
 
 -- 1.3 B2B Storefronts (stores table)
@@ -55,26 +57,22 @@ CREATE TABLE IF NOT EXISTS public.stores (
     owner_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
     slug TEXT NOT NULL UNIQUE,
+    description TEXT,
     tax_id TEXT,
     logo_url TEXT,
     banner_url TEXT,
-    description TEXT,
+    city TEXT,
+    address TEXT,
+    phone TEXT,
+    email TEXT,
+    social_links JSONB DEFAULT '{}'::jsonb,
     is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    total_sales INTEGER NOT NULL DEFAULT 0,
+    average_rating NUMERIC(3, 2),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.stores
-  ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS name TEXT,
-  ADD COLUMN IF NOT EXISTS slug TEXT,
-  ADD COLUMN IF NOT EXISTS tax_id TEXT,
-  ADD COLUMN IF NOT EXISTS logo_url TEXT,
-  ADD COLUMN IF NOT EXISTS banner_url TEXT,
-  ADD COLUMN IF NOT EXISTS description TEXT,
-  ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
 
@@ -87,18 +85,12 @@ USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
 
 -- 1.4 Dynamic SEO Settings (site_settings table)
 CREATE TABLE IF NOT EXISTS public.site_settings (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    seo_title TEXT,
-    seo_description TEXT,
-    seo_keywords TEXT,
+    key TEXT PRIMARY KEY,
+    value JSONB NOT NULL DEFAULT '{}'::jsonb,
+    description TEXT,
+    updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.site_settings
-  ADD COLUMN IF NOT EXISTS seo_title TEXT,
-  ADD COLUMN IF NOT EXISTS seo_description TEXT,
-  ADD COLUMN IF NOT EXISTS seo_keywords TEXT,
-  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 
@@ -113,6 +105,15 @@ USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'CONTENT_MANAGER'))
 );
 
+-- Seed default global SEO settings
+INSERT INTO public.site_settings (key, value, description)
+VALUES (
+    'seo', 
+    '{"title": "Plantio - მცენარეების ონლაინ მარკეტპლეისი", "description": "იყიდეთ, გაყიდეთ და გაცვალეთ მცენარეები საქართველოში", "keywords": "მცენარეები, ყვავილები, ბოტანიკა, plantio"}'::jsonb,
+    'Global SEO Meta Configuration'
+)
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now();
+
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- SECTION 2: DYNAMIC BILLING, PLANS, INVOICING & PROMO CODES
@@ -120,70 +121,64 @@ USING (
 
 -- 2.1 Subscription Plans
 CREATE TABLE IF NOT EXISTS public.subscription_plans (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL DEFAULT 'Plan',
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name_ka TEXT NOT NULL,
+    name_en TEXT NOT NULL,
+    tier public.subscription_tier NOT NULL UNIQUE,
     price_monthly NUMERIC(10, 2) NOT NULL DEFAULT 0,
     price_yearly NUMERIC(10, 2) NOT NULL DEFAULT 0,
     listing_limit INTEGER NOT NULL DEFAULT 5,
+    vip_slots INTEGER NOT NULL DEFAULT 0,
     features JSONB NOT NULL DEFAULT '[]'::jsonb,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    sort_order INTEGER NOT NULL DEFAULT 1,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
--- Ensure all columns exist even if subscription_plans table already existed
-ALTER TABLE public.subscription_plans
-  ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT 'Plan',
-  ADD COLUMN IF NOT EXISTS price_monthly NUMERIC(10, 2) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS price_yearly NUMERIC(10, 2) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS listing_limit INTEGER NOT NULL DEFAULT 5,
-  ADD COLUMN IF NOT EXISTS features JSONB NOT NULL DEFAULT '[]'::jsonb,
-  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "plans_public_read" ON public.subscription_plans;
 CREATE POLICY "plans_public_read" ON public.subscription_plans FOR SELECT TO public USING (true);
 
--- Seed default plans
-INSERT INTO public.subscription_plans (id, name, price_monthly, price_yearly, listing_limit, features, is_active)
+-- Seed/Update default plans by unique `tier`
+INSERT INTO public.subscription_plans (
+    name_ka, name_en, tier, price_monthly, price_yearly, listing_limit, vip_slots, features, is_active, sort_order
+)
 VALUES
-    ('FREE', 'Free Starter', 0, 0, 5, '["5 აქტიური განცხადება", "სტანდარტული მხარდაჭერა", "საზოგადოებრივი ჩატი"]'::jsonb, TRUE),
-    ('TIER_1', 'Collector (Tier 1)', 15, 144, 25, '["25 აქტიური განცხადება", "Custom Shop URL", "პრიორიტეტული ძიება", "2 VIP ბუსტი / თვეში"]'::jsonb, TRUE),
-    ('TIER_2', 'Pro Shop (Tier 2)', 39, 374, 100, '["100 აქტიური განცხადება", "Verified გამყიდველის ბეიჯი", "სრული ანალიტიკა", "5 VIP ბუსტი / თვეში"]'::jsonb, TRUE),
-    ('TIER_3', 'Enterprise Nursery (Tier 3)', 89, 854, 999999, '["შეუზღუდავი განცხადებები", "VIP მხარდაჭერა 24/7", "B2B Storefront", "ავტომატური ინვოისინგი"]'::jsonb, TRUE)
-ON CONFLICT (id) DO UPDATE SET
-    name = EXCLUDED.name,
+    ('სტარტერი (უფასო)', 'Free Starter', 'FREE', 0, 0, 5, 0, '["5 აქტიური განცხადება", "სტანდარტული მხარდაჭერა", "საზოგადოებრივი ჩატი"]'::jsonb, TRUE, 1),
+    ('კოლექციონერი (Tier 1)', 'Collector (Tier 1)', 'TIER_1', 15, 144, 25, 2, '["25 აქტიური განცხადება", "Custom Shop URL", "პრიორიტეტული ძიება", "2 VIP ბუსტი / თვეში"]'::jsonb, TRUE, 2),
+    ('პრო შოპი (Tier 2)', 'Pro Shop (Tier 2)', 'TIER_2', 39, 374, 100, 5, '["100 აქტიური განცხადება", "Verified გამყიდველის ბეიჯი", "სრული ანალიტიკა", "5 VIP ბუსტი / თვეში"]'::jsonb, TRUE, 3),
+    ('ენთერპრაიზი (Tier 3)', 'Enterprise Nursery (Tier 3)', 'TIER_3', 89, 854, 999999, 15, '["შეუზღუდავი განცხადებები", "VIP მხარდაჭერა 24/7", "B2B Storefront", "ავტომატური ინვოისინგი"]'::jsonb, TRUE, 4)
+ON CONFLICT (tier) DO UPDATE SET
+    name_ka = EXCLUDED.name_ka,
+    name_en = EXCLUDED.name_en,
     price_monthly = EXCLUDED.price_monthly,
     price_yearly = EXCLUDED.price_yearly,
     listing_limit = EXCLUDED.listing_limit,
+    vip_slots = EXCLUDED.vip_slots,
     features = EXCLUDED.features,
-    is_active = EXCLUDED.is_active;
+    is_active = EXCLUDED.is_active,
+    sort_order = EXCLUDED.sort_order,
+    updated_at = now();
 
 -- 2.2 Subscriptions
 CREATE TABLE IF NOT EXISTS public.subscriptions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    plan_id TEXT NOT NULL REFERENCES public.subscription_plans(id) DEFAULT 'FREE',
-    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'past_due', 'canceled', 'trialing', 'paused')),
-    billing_cycle TEXT NOT NULL DEFAULT 'monthly' CHECK (billing_cycle IN ('monthly', 'yearly')),
-    current_period_start TIMESTAMPTZ NOT NULL DEFAULT now(),
-    current_period_end TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '30 days'),
+    plan_id UUID REFERENCES public.subscription_plans(id) ON DELETE SET NULL,
+    status public.subscription_status NOT NULL DEFAULT 'active',
+    billing_cycle public.billing_cycle NOT NULL DEFAULT 'monthly',
+    current_period_start TIMESTAMPTZ DEFAULT now(),
+    current_period_end TIMESTAMPTZ DEFAULT (now() + interval '30 days'),
+    trial_end TIMESTAMPTZ,
+    canceled_at TIMESTAMPTZ,
     cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+    external_sub_id TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.subscriptions
-  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS plan_id TEXT REFERENCES public.subscription_plans(id) DEFAULT 'FREE',
-  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active',
-  ADD COLUMN IF NOT EXISTS billing_cycle TEXT NOT NULL DEFAULT 'monthly',
-  ADD COLUMN IF NOT EXISTS current_period_start TIMESTAMPTZ NOT NULL DEFAULT now(),
-  ADD COLUMN IF NOT EXISTS current_period_end TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '30 days'),
-  ADD COLUMN IF NOT EXISTS cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
@@ -195,20 +190,15 @@ USING (user_id = auth.uid());
 CREATE TABLE IF NOT EXISTS public.transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    invoice_id UUID REFERENCES public.invoices(id) ON DELETE SET NULL,
     amount NUMERIC(10, 2) NOT NULL,
     currency TEXT NOT NULL DEFAULT 'GEL',
-    status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('pending', 'completed', 'succeeded', 'failed', 'refunded')),
-    payment_method TEXT,
+    status public.payment_status NOT NULL DEFAULT 'completed',
+    provider TEXT,
+    provider_tx_id TEXT,
+    metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.transactions
-  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS amount NUMERIC(10, 2),
-  ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'GEL',
-  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'completed',
-  ADD COLUMN IF NOT EXISTS payment_method TEXT,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
@@ -228,25 +218,18 @@ $$;
 
 CREATE TABLE IF NOT EXISTS public.invoices (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
     invoice_number TEXT NOT NULL UNIQUE DEFAULT public.generate_invoice_number(),
+    user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    subscription_id UUID REFERENCES public.subscriptions(id) ON DELETE SET NULL,
     amount NUMERIC(10, 2) NOT NULL,
     currency TEXT NOT NULL DEFAULT 'GEL',
-    status TEXT NOT NULL DEFAULT 'paid' CHECK (status IN ('paid', 'issued', 'void', 'overdue')),
+    status public.payment_status NOT NULL DEFAULT 'completed',
+    description TEXT,
     pdf_url TEXT,
+    due_date TIMESTAMPTZ,
+    paid_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.invoices
-  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS invoice_number TEXT,
-  ADD COLUMN IF NOT EXISTS amount NUMERIC(10, 2),
-  ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'GEL',
-  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'paid',
-  ADD COLUMN IF NOT EXISTS pdf_url TEXT,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 
@@ -266,15 +249,6 @@ CREATE TABLE IF NOT EXISTS public.promo_codes (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-ALTER TABLE public.promo_codes
-  ADD COLUMN IF NOT EXISTS code TEXT,
-  ADD COLUMN IF NOT EXISTS discount_percentage NUMERIC(5, 2),
-  ADD COLUMN IF NOT EXISTS usage_limit INTEGER,
-  ADD COLUMN IF NOT EXISTS used_count INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ,
-  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
-
 ALTER TABLE public.promo_codes ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "promo_codes_public_read" ON public.promo_codes;
@@ -286,23 +260,6 @@ USING (is_active = TRUE AND (expires_at IS NULL OR expires_at > now()));
 -- SECTION 3: LISTINGS, BOTANICAL AI, GEOLOCATION & DELIVERY
 -- ──────────────────────────────────────────────────────────────────────────────
 
--- 3.1 Item Category ENUM
-DO $$ BEGIN
-    CREATE TYPE public.item_category AS ENUM (
-        'PLANT', 'POT', 'FERTILIZER', 'TOOL', 'ACCESSORY', 'OTHER'
-    );
-EXCEPTION WHEN duplicate_object THEN null;
-END $$;
-
--- 3.2 Listing Status ENUM
-DO $$ BEGIN
-    CREATE TYPE public.listing_status AS ENUM (
-        'ACTIVE', 'RESERVED', 'SOLD', 'TRADED', 'DRAFT', 'HIDDEN', 'REJECTED'
-    );
-EXCEPTION WHEN duplicate_object THEN null;
-END $$;
-
--- 3.3 Listings Table Alterations
 ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS is_vip BOOLEAN NOT NULL DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS vip_until TIMESTAMPTZ,
@@ -310,8 +267,10 @@ ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS store_id UUID REFERENCES public.stores(id) ON DELETE SET NULL,
   ADD COLUMN IF NOT EXISTS quantity INTEGER NOT NULL DEFAULT 1,
   ADD COLUMN IF NOT EXISTS sku TEXT,
-  ADD COLUMN IF NOT EXISTS category public.item_category NOT NULL DEFAULT 'PLANT',
+  ADD COLUMN IF NOT EXISTS plant_category TEXT,
+  ADD COLUMN IF NOT EXISTS condition TEXT,
   ADD COLUMN IF NOT EXISTS tags TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS trade_tags TEXT[] DEFAULT '{}',
   -- Botanical & Care info (populated by Plant AI)
   ADD COLUMN IF NOT EXISTS botanical_name TEXT,
   ADD COLUMN IF NOT EXISTS common_name TEXT,
@@ -319,6 +278,7 @@ ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS light_requirement TEXT,
   ADD COLUMN IF NOT EXISTS care_difficulty TEXT,
   ADD COLUMN IF NOT EXISTS plantnet_id TEXT,
+  ADD COLUMN IF NOT EXISTS toxicity TEXT,
   -- Contact phone
   ADD COLUMN IF NOT EXISTS contact_phone TEXT,
   -- Delivery Options
@@ -329,32 +289,23 @@ ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS latitude NUMERIC(10, 7),
   ADD COLUMN IF NOT EXISTS longitude NUMERIC(10, 7);
 
--- 3.4 Affiliate Products Table
+-- 3.2 Affiliate Products Table
 CREATE TABLE IF NOT EXISTS public.affiliate_products (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     partner_name TEXT NOT NULL,
-    title TEXT NOT NULL,
-    price NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    product_name TEXT NOT NULL,
+    description TEXT,
     image_url TEXT,
     product_url TEXT NOT NULL,
-    category TEXT,
+    price NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    currency TEXT NOT NULL DEFAULT 'GEL',
+    commission_pct NUMERIC(5, 2) DEFAULT 0,
     matching_tags TEXT[] NOT NULL DEFAULT '{}',
-    commission_pct NUMERIC(5, 2) NOT NULL DEFAULT 0,
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    clicks INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.affiliate_products
-  ADD COLUMN IF NOT EXISTS partner_name TEXT,
-  ADD COLUMN IF NOT EXISTS title TEXT,
-  ADD COLUMN IF NOT EXISTS price NUMERIC(10, 2) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS image_url TEXT,
-  ADD COLUMN IF NOT EXISTS product_url TEXT,
-  ADD COLUMN IF NOT EXISTS category TEXT,
-  ADD COLUMN IF NOT EXISTS matching_tags TEXT[] NOT NULL DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS commission_pct NUMERIC(5, 2) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.affiliate_products ENABLE ROW LEVEL SECURITY;
 
@@ -369,18 +320,15 @@ USING (
     EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER'))
 );
 
--- 3.5 Listing Views Table
+-- 3.3 Listing Views Table
 CREATE TABLE IF NOT EXISTS public.listing_views (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
     viewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    ip_hash TEXT,
+    device_type TEXT,
     viewed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.listing_views
-  ADD COLUMN IF NOT EXISTS listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS viewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS viewed_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.listing_views ENABLE ROW LEVEL SECURITY;
 
@@ -399,20 +347,12 @@ CREATE POLICY "listing_views_select" ON public.listing_views FOR SELECT TO publi
 CREATE TABLE IF NOT EXISTS public.reviews (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     reviewer_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    target_id UUID NOT NULL,
-    target_type TEXT NOT NULL CHECK (target_type IN ('USER', 'STORE')),
+    seller_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    listing_id UUID REFERENCES public.listings(id) ON DELETE SET NULL,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.reviews
-  ADD COLUMN IF NOT EXISTS reviewer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS target_id UUID,
-  ADD COLUMN IF NOT EXISTS target_type TEXT,
-  ADD COLUMN IF NOT EXISTS rating INTEGER,
-  ADD COLUMN IF NOT EXISTS comment TEXT,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
@@ -432,11 +372,6 @@ CREATE TABLE IF NOT EXISTS public.wishlists (
     UNIQUE (user_id, listing_id)
 );
 
-ALTER TABLE public.wishlists
-  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
-
 ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "wishlists_owner_all" ON public.wishlists;
@@ -446,25 +381,17 @@ USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 -- 4.3 Trade Offers Table
 CREATE TABLE IF NOT EXISTS public.trade_offers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    chat_id UUID,
     sender_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     receiver_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    offered_listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
+    offered_listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
     requested_listing_id UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE,
-    cash_difference NUMERIC(10, 2) NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'countered', 'declined', 'cancelled')),
+    offered_price NUMERIC(10, 2),
+    cash_difference NUMERIC(10, 2) DEFAULT 0,
+    status public.trade_offer_status NOT NULL DEFAULT 'pending',
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.trade_offers
-  ADD COLUMN IF NOT EXISTS sender_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS receiver_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS offered_listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS requested_listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS cash_difference NUMERIC(10, 2) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.trade_offers ENABLE ROW LEVEL SECURITY;
 
@@ -478,19 +405,13 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
-    message TEXT NOT NULL,
-    type TEXT NOT NULL CHECK (type IN ('PRICE_DROP', 'TRADE_OFFER', 'BILLING', 'SYSTEM', 'CHAT')),
+    message TEXT,
+    type public.notification_type NOT NULL DEFAULT 'SYSTEM',
+    link TEXT,
+    meta JSONB DEFAULT '{}'::jsonb,
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.notifications
-  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS title TEXT,
-  ADD COLUMN IF NOT EXISTS message TEXT,
-  ADD COLUMN IF NOT EXISTS type TEXT,
-  ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
@@ -506,19 +427,16 @@ USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 -- 5.1 Audit Logs
 CREATE TABLE IF NOT EXISTS public.audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    admin_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    target_user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-    action_type TEXT NOT NULL,
-    details JSONB NOT NULL DEFAULT '{}'::jsonb,
+    actor_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    action TEXT NOT NULL,
+    target_type TEXT NOT NULL,
+    target_id UUID,
+    old_data JSONB,
+    new_data JSONB,
+    ip_address TEXT,
+    user_agent TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.audit_logs
-  ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS target_user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS action_type TEXT,
-  ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}'::jsonb,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
@@ -531,21 +449,17 @@ USING (
 -- 5.2 Reports Table
 CREATE TABLE IF NOT EXISTS public.reports (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    reporter_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-    reported_item_id UUID NOT NULL,
-    reported_type TEXT NOT NULL CHECK (reported_type IN ('LISTING', 'STORE', 'USER')),
+    reporter_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    target_type TEXT NOT NULL,
+    target_id UUID NOT NULL,
     reason TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'dismissed', 'actioned')),
+    description TEXT,
+    status public.report_status NOT NULL DEFAULT 'pending',
+    reviewed_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    resolved_at TIMESTAMPTZ,
+    resolution_note TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.reports
-  ADD COLUMN IF NOT EXISTS reporter_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
-  ADD COLUMN IF NOT EXISTS reported_item_id UUID,
-  ADD COLUMN IF NOT EXISTS reported_type TEXT,
-  ADD COLUMN IF NOT EXISTS reason TEXT,
-  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 
@@ -563,20 +477,16 @@ USING (
 CREATE TABLE IF NOT EXISTS public.daily_metrics (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     metric_date DATE NOT NULL UNIQUE,
-    mrr NUMERIC(12, 2) NOT NULL DEFAULT 0,
-    total_users INTEGER NOT NULL DEFAULT 0,
-    active_vip_count INTEGER NOT NULL DEFAULT 0,
-    total_listings INTEGER NOT NULL DEFAULT 0,
+    new_users INTEGER NOT NULL DEFAULT 0,
+    new_listings INTEGER NOT NULL DEFAULT 0,
+    active_listings INTEGER NOT NULL DEFAULT 0,
+    total_views INTEGER NOT NULL DEFAULT 0,
+    new_messages INTEGER NOT NULL DEFAULT 0,
+    new_reviews INTEGER NOT NULL DEFAULT 0,
+    revenue_gel NUMERIC(12, 2) NOT NULL DEFAULT 0,
+    metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-
-ALTER TABLE public.daily_metrics
-  ADD COLUMN IF NOT EXISTS metric_date DATE,
-  ADD COLUMN IF NOT EXISTS mrr NUMERIC(12, 2) NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS total_users INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS active_vip_count INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS total_listings INTEGER NOT NULL DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
 
 ALTER TABLE public.daily_metrics ENABLE ROW LEVEL SECURITY;
 
@@ -592,7 +502,7 @@ USING (
 -- ──────────────────────────────────────────────────────────────────────────────
 
 -- 6.1 GIN Indexes for JSONB & Arrays
-CREATE INDEX IF NOT EXISTS idx_audit_logs_details_gin ON public.audit_logs USING gin (details);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_new_data_gin ON public.audit_logs USING gin (new_data);
 CREATE INDEX IF NOT EXISTS idx_listings_tags_gin ON public.listings USING gin (tags);
 CREATE INDEX IF NOT EXISTS idx_affiliate_matching_tags_gin ON public.affiliate_products USING gin (matching_tags);
 
@@ -627,12 +537,24 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    -- Fetch active plan limit
+    -- Fetch active plan limit from active subscription or profile tier
     SELECT COALESCE(p.listing_limit, 5) INTO v_plan_limit
     FROM public.subscriptions s
     JOIN public.subscription_plans p ON s.plan_id = p.id
-    WHERE s.user_id = NEW.user_id AND s.status = 'active'
+    WHERE s.user_id = NEW.user_id AND s.status::text = 'active'
     LIMIT 1;
+
+    IF v_plan_limit IS NULL THEN
+        SELECT 
+            CASE 
+                WHEN subscription_tier::text = 'TIER_3' THEN 999999
+                WHEN subscription_tier::text = 'TIER_2' THEN 100
+                WHEN subscription_tier::text = 'TIER_1' THEN 25
+                ELSE 5
+            END INTO v_plan_limit
+        FROM public.profiles 
+        WHERE id = NEW.user_id;
+    END IF;
 
     IF v_plan_limit IS NULL THEN
         v_plan_limit := 5;
@@ -642,7 +564,7 @@ BEGIN
     SELECT COUNT(*) INTO v_current_active_count
     FROM public.listings
     WHERE user_id = NEW.user_id 
-      AND status = 'ACTIVE'
+      AND status::text = 'ACTIVE'
       AND deleted_at IS NULL;
 
     IF v_current_active_count >= v_plan_limit THEN
@@ -672,7 +594,7 @@ DECLARE
     v_title TEXT;
 BEGIN
     IF (NEW.price < OLD.price AND OLD.price > 0 AND NEW.price > 0) THEN
-        v_title := COALESCE(NEW.title_ka, NEW.title, 'მცენარე');
+        v_title := COALESCE(NEW.title_ka, NEW.title_en, 'მცენარე');
         FOR r_wishlist IN 
             SELECT user_id FROM public.wishlists WHERE listing_id = NEW.id
         LOOP
@@ -704,11 +626,13 @@ SECURITY INVOKER
 SET search_path = public, pg_temp
 AS $$
 BEGIN
-    IF (NEW.status = 'accepted' AND (OLD.status IS DISTINCT FROM 'accepted')) THEN
-        -- Reserve offered listing
-        UPDATE public.listings 
-        SET status = 'RESERVED' 
-        WHERE id = NEW.offered_listing_id;
+    IF (NEW.status::text = 'accepted' AND (OLD.status::text IS DISTINCT FROM 'accepted')) THEN
+        -- Reserve offered listing if present
+        IF NEW.offered_listing_id IS NOT NULL THEN
+            UPDATE public.listings 
+            SET status = 'RESERVED' 
+            WHERE id = NEW.offered_listing_id;
+        END IF;
 
         -- Reserve requested listing
         UPDATE public.listings 
@@ -718,8 +642,8 @@ BEGIN
         -- Notify both parties
         INSERT INTO public.notifications (user_id, title, message, type)
         VALUES 
-            (NEW.sender_id, '🤝 გაცვლის შეთავაზება მიღებულია!', 'თქვენი გაცვლის შეთავაზება წარმატებით დადასტურდა. განცხადებები დარეზერვდა.', 'TRADE_OFFER'),
-            (NEW.receiver_id, '🤝 გაცვლა დადასტურდა!', 'გაცვლის შეთანხმება შედგა. განცხადებები დარეზერვდა.', 'TRADE_OFFER');
+            (NEW.sender_id, '🤝 გაცვლის შეთავაზება მიღებულია!', 'თქვენი გაცვლის შეთავაზება წარმატებით დადასტურდა. განცხადებები დარეზერვდა.', 'TRADE'),
+            (NEW.receiver_id, '🤝 გაცვლა დადასტურდა!', 'გაცვლის შეთანხმება შედგა. განცხადებები დარეზერვდა.', 'TRADE');
     END IF;
     RETURN NEW;
 END;
@@ -747,19 +671,25 @@ DECLARE
     u_id UUID;
 BEGIN
     FOREACH u_id IN ARRAY user_ids LOOP
-        -- Extend existing subscription or insert one
+        -- Extend existing subscription
         UPDATE public.subscriptions
         SET current_period_end = GREATEST(current_period_end, now()) + (extra_days || ' days')::interval,
             status = 'active',
             updated_at = now()
         WHERE user_id = u_id;
 
+        -- Also update profile expires_at
+        UPDATE public.profiles
+        SET subscription_expires_at = GREATEST(COALESCE(subscription_expires_at, now()), now()) + (extra_days || ' days')::interval
+        WHERE id = u_id;
+
         -- Audit log entry
-        INSERT INTO public.audit_logs (admin_id, target_user_id, action_type, details)
+        INSERT INTO public.audit_logs (actor_id, action, target_type, target_id, new_data)
         VALUES (
             admin_id,
-            u_id,
             'BULK_EXTEND_SUBSCRIPTION',
+            'USER',
+            u_id,
             jsonb_build_object('extra_days', extra_days, 'timestamp', now())
         );
     END LOOP;
@@ -790,14 +720,15 @@ BEGIN
         -- Hide all active listings
         UPDATE public.listings
         SET status = 'HIDDEN'
-        WHERE user_id = u_id AND status = 'ACTIVE';
+        WHERE user_id = u_id AND status::text = 'ACTIVE';
 
         -- Audit log entry
-        INSERT INTO public.audit_logs (admin_id, target_user_id, action_type, details)
+        INSERT INTO public.audit_logs (actor_id, action, target_type, target_id, new_data)
         VALUES (
             admin_id,
-            u_id,
             'BULK_SUSPEND_USER',
+            'USER',
+            u_id,
             jsonb_build_object('reason', reason, 'timestamp', now())
         );
     END LOOP;

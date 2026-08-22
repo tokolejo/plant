@@ -348,7 +348,7 @@ export default function AdminDashboardPage() {
       return;
     }
 
-    const isNowAdmin = newRole === "ADMIN" || newRole === "SUPER_ADMIN";
+    const isNowAdmin = newRole === "SUPER_ADMIN" || newRole === "FINANCE_ADMIN" || newRole === "CONTENT_MANAGER" || newRole === "ADMIN";
 
     // Instant local state update
     setUsers((prev) =>
@@ -374,10 +374,12 @@ export default function AdminDashboardPage() {
 
     const roleNameKa: Record<string, string> = {
       SUPER_ADMIN: "👑 SUPER ADMIN (სუპერ ადმინი)",
-      ADMIN: "⚡ ADMIN (ადმინისტრატორი)",
+      FINANCE_ADMIN: "💰 FINANCE ADMIN (ფინანსური ადმინი)",
+      CONTENT_MANAGER: "📝 CONTENT MANAGER (კონტენტ მენეჯერი)",
       MODERATOR: "🛡️ MODERATOR (მოდერატორი)",
-      VERIFIED_SELLER: "🌿 VERIFIED SELLER (ვერიფიცირებული)",
-      USER: "👤 USER (ჩვეულებრივი მომხმარებელი)",
+      SUPPORT: "🎧 SUPPORT (მხარდაჭერა)",
+      PARTNER: "🤝 PARTNER (B2B პარტნიორი)",
+      USER: "👤 USER (მომხმარებელი)",
     };
 
     showNotice(`✅ როლი წარმატებით განახლდა: ${roleNameKa[newRole] || newRole}`);
@@ -1711,27 +1713,14 @@ export default function AdminDashboardPage() {
                       
                       {/* Role & Status Badge — High-Contrast & Legible */}
                       <td className="py-3 px-3">
-                        {currentRole === "SUPER_ADMIN" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-[10px] font-black border border-purple-300 dark:border-purple-800 shadow-2xs">
-                            👑 SUPER ADMIN
-                          </span>
-                        ) : currentRole === "ADMIN" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 text-[10px] font-black border border-indigo-300 dark:border-indigo-800 shadow-2xs">
-                            ⚡ ADMIN
-                          </span>
-                        ) : currentRole === "MODERATOR" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 text-[10px] font-black border border-blue-300 dark:border-blue-800 shadow-2xs">
-                            🛡️ MODERATOR
-                          </span>
-                        ) : currentRole === "VERIFIED_SELLER" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-black border border-emerald-300 dark:border-emerald-800 shadow-2xs">
-                            🌿 VERIFIED
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-300 dark:border-slate-700 shadow-2xs">
-                            👤 USER
-                          </span>
-                        )}
+                        {(() => {
+                          const config = ROLES_CONFIG[currentRole as UserRole] || ROLES_CONFIG.USER;
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full ${config.badgeBg} ${config.badgeText} ${config.badgeBorder} text-[10px] font-black border shadow-2xs`}>
+                              {config.badgeEmoji} {config.nameKa.toUpperCase()}
+                            </span>
+                          );
+                        })()}
                       </td>
 
                       {/* Subscription Tier Badge */}
@@ -1741,21 +1730,23 @@ export default function AdminDashboardPage() {
                         </Badge>
                       </td>
 
-                      {/* Change Role Dropdown */}
+                      {/* Change Role Dropdown (All 7 Roles) */}
                       <td className="py-3 px-3">
                         <select
                           value={currentRole}
                           onChange={(e) => updateUserRole(user.id, e.target.value)}
                           className="py-1 px-2.5 rounded-[9px] border border-border/80 bg-background text-foreground text-[11px] font-bold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer hover:border-primary/50 shadow-2xs transition-colors"
                         >
-                          <option value="USER">👤 USER (ჩვეულებრივი)</option>
-                          <option value="VERIFIED_SELLER">🌿 VERIFIED (ვერიფიცირებული)</option>
+                          <option value="USER">👤 USER (მომხმარებელი)</option>
+                          <option value="PARTNER">🤝 PARTNER (B2B პარტნიორი)</option>
+                          <option value="SUPPORT">🎧 SUPPORT (მხარდაჭერა)</option>
                           <option value="MODERATOR">🛡️ MODERATOR (მოდერატორი)</option>
+                          <option value="CONTENT_MANAGER">📝 CONTENT MANAGER (კონტენტ მენეჯერი)</option>
                           <option 
-                            value="ADMIN" 
+                            value="FINANCE_ADMIN" 
                             disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}
                           >
-                            ⚡ ADMIN (ადმინისტრატორი)
+                            💰 FINANCE ADMIN (ფინანსური ადმინი)
                           </option>
                           <option 
                             value="SUPER_ADMIN" 
