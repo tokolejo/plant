@@ -671,14 +671,14 @@ function ListingsCatalogContent() {
         </div>
       </FilterSection>
 
-      {/* Transaction Type — Placed Above Categories */}
+      {/* Transaction Type */}
       <FilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
         <div className="grid grid-cols-1 gap-2">
           {[
-            { id: "FIXED", label: isKa ? "💰 ფიქსირებული ფასი" : "💰 Fixed Price", desc: isKa ? "პირდაპირი ყიდვა" : "Buy instantly" },
-            { id: "NEGOTIABLE", label: isKa ? "🤝 ფასი შეთანხმებით" : "🤝 Negotiable", desc: isKa ? "მოლაპარაკება ფასზე" : "Open to offers" },
-            { id: "TRADE", label: isKa ? "🔄 მცენარის გაცვლა" : "🔄 Trade Only", desc: isKa ? "გაცვლა სხვა მცენარეში" : "Swap for other plants" },
-            { id: "GIFT", label: isKa ? "🎁 გაჩუქება (უფასოდ)" : "🎁 Free Giveaway", desc: isKa ? "საჩუქარი მემცენარეებისთვის" : "Free plant to community" },
+            { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
+            { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
+            { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Trade Only" },
+            { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
             const count = allListings.filter((l) => l.transactionType === t.id).length;
@@ -686,21 +686,49 @@ function ListingsCatalogContent() {
               <button
                 key={t.id}
                 onClick={() => toggleTrans(t.id)}
-                className={`flex items-center justify-between p-3 rounded-[14px] border text-left transition-all ${
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-[12px] border text-left transition-all cursor-pointer ${
                   active
                     ? "border-primary bg-primary text-white font-bold shadow-sm"
-                    : "border-border/70 bg-card hover:bg-surface-container/50 text-foreground"
+                    : "border-border/70 bg-card hover:bg-surface-container/60 text-foreground font-semibold"
                 }`}
               >
-                <div>
-                  <p className="text-sm font-bold">{t.label}</p>
-                  <p className={`text-xs ${active ? "text-primary-fixed/80" : "text-muted-foreground"}`}>{t.desc}</p>
-                </div>
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ml-2 ${
+                <span className="text-xs sm:text-sm">{t.label}</span>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
                   active ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
                 }`}>
                   {count}
                 </span>
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* Delivery Methods — Placed Right After Transaction Type */}
+      <FilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={true}>
+        <div className="space-y-1.5">
+          {[
+            { id: "PICKUP", label: isKa ? "📍 ადგილზე გატანა" : "📍 Local Pickup" },
+            { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier Delivery" },
+            { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო ტრანსპორტი" : "🚐 Intercity Transport" },
+          ].map((d) => {
+            const active = selectedDelivery.includes(d.id);
+            return (
+              <button
+                key={d.id}
+                onClick={() => toggleDelivery(d.id)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[12px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
+                  active
+                    ? "bg-primary/10 text-primary font-bold border border-primary/30"
+                    : "text-foreground hover:bg-surface-container border border-border/50 bg-card"
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-[6px] border flex items-center justify-center shrink-0 ${
+                  active ? "bg-primary border-primary text-white" : "border-border"
+                }`}>
+                  {active && <Check className="w-3 h-3" />}
+                </div>
+                <span className="font-semibold">{d.label}</span>
               </button>
             );
           })}
@@ -725,7 +753,7 @@ function ListingsCatalogContent() {
                 <button
                   type="button"
                   onClick={() => toggleGroup(group.id)}
-                  className="w-full flex items-center justify-between py-2 px-2 rounded-[10px] text-left hover:bg-surface-container/60 transition-colors"
+                  className="w-full flex items-center justify-between py-2 px-2 rounded-[10px] text-left hover:bg-surface-container/60 transition-colors cursor-pointer"
                 >
                   <div className={`flex items-center gap-2 ${group.color}`}>
                     <Icon className="w-4 h-4 shrink-0" />
@@ -751,7 +779,7 @@ function ListingsCatalogContent() {
                         <button
                           key={cat.id}
                           onClick={() => toggleCategory(cat.id)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs sm:text-sm transition-all text-left ${
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
                             isActive
                               ? "bg-primary text-white font-bold shadow-sm"
                               : "text-foreground hover:bg-surface-container font-medium"
@@ -772,37 +800,6 @@ function ListingsCatalogContent() {
                   </div>
                 )}
               </div>
-            );
-          })}
-        </div>
-      </FilterSection>
-
-      {/* Delivery */}
-      <FilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={false}>
-        <div className="space-y-1.5">
-          {[
-            { id: "PICKUP", label: isKa ? "📍 ადგილზე გატანა" : "📍 Local Pickup" },
-            { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier Delivery" },
-            { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო ტრანსპორტი" : "🚐 Intercity Transport" },
-          ].map((d) => {
-            const active = selectedDelivery.includes(d.id);
-            return (
-              <button
-                key={d.id}
-                onClick={() => toggleDelivery(d.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[12px] text-sm transition-all text-left ${
-                  active
-                    ? "bg-primary/10 text-primary font-bold border border-primary/30"
-                    : "text-foreground hover:bg-surface-container border border-transparent"
-                }`}
-              >
-                <div className={`w-4 h-4 rounded-[6px] border flex items-center justify-center shrink-0 ${
-                  active ? "bg-primary border-primary text-white" : "border-border"
-                }`}>
-                  {active && <Check className="w-3 h-3" />}
-                </div>
-                <span className="font-semibold">{d.label}</span>
-              </button>
             );
           })}
         </div>
@@ -893,7 +890,7 @@ function ListingsCatalogContent() {
           })}
           {selectedTrans.map((t) => (
             <span key={t} className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] bg-amber-500/15 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-bold border border-amber-500/30">
-              {t === "FIXED" ? (isKa ? "💰 ფიქსირებული" : "💰 Fixed") : t === "NEGOTIABLE" ? (isKa ? "🤝 შეთანხმებით" : "🤝 Negotiable") : (isKa ? "🔄 გაცვლა" : "🔄 Trade")}
+              {t === "FIXED" ? (isKa ? "ფიქსირებული" : "Fixed") : t === "NEGOTIABLE" ? (isKa ? "შეთანხმებით" : "Negotiable") : (isKa ? "გაცვლა" : "Trade")}
               <button onClick={() => toggleTrans(t)} className="hover:opacity-75"><X className="w-3.5 h-3.5" /></button>
             </span>
           ))}
@@ -929,33 +926,33 @@ function ListingsCatalogContent() {
 
         {/* Results Column */}
         <div className="flex-1 min-w-0">
-          {/* ✨ Top Sorting Pill Bar & View Mode Switcher (Compact Single Row) */}
+          {/* Top Sorting Pill Bar & View Mode Switcher (Compact Single Row) */}
           <div className="mb-4 flex items-center justify-between gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
             {/* Sort Buttons + Page Size */}
             <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
               {[
                 { 
                   id: "nearest", 
-                  labelKa: "📍 ახლოს", 
-                  labelEn: "📍 Nearest",
+                  labelKa: "ახლოს", 
+                  labelEn: "Nearest",
                   isActive: sortBy === "nearest"
                 },
                 { 
                   id: "views", 
-                  labelKa: "🔥 პოპულარული", 
-                  labelEn: "🔥 Popular",
+                  labelKa: "პოპულარული", 
+                  labelEn: "Popular",
                   isActive: sortBy === "views"
                 },
                 { 
                   id: "newest", 
-                  labelKa: "✨ უახლესი", 
-                  labelEn: "✨ Newest",
+                  labelKa: "უახლესი", 
+                  labelEn: "Newest",
                   isActive: sortBy === "newest"
                 },
                 { 
                   id: "price", 
-                  labelKa: sortBy === "price-desc" ? "💰 ფასი ↓" : sortBy === "price-asc" ? "💰 ფასი ↑" : "💰 ფასი ⇅", 
-                  labelEn: sortBy === "price-desc" ? "💰 Price ↓" : sortBy === "price-asc" ? "💰 Price ↑" : "💰 Price ⇅",
+                  labelKa: sortBy === "price-desc" ? "ფასი ↓" : sortBy === "price-asc" ? "ფასი ↑" : "ფასი ⇅", 
+                  labelEn: sortBy === "price-desc" ? "Price ↓" : sortBy === "price-asc" ? "Price ↑" : "Price ⇅",
                   isActive: sortBy === "price-asc" || sortBy === "price-desc"
                 },
               ].map((opt) => {

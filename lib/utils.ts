@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatPrice(price: number | null | undefined, currency: string = "₾", isKa: boolean = true) {
   if (price === 0 || price === null || price === undefined) {
-    return isKa ? "🎁 უფასო" : "🎁 Free";
+    return isKa ? "უფასო" : "Free";
   }
   return `${Number(price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}\u00A0${currency}`;
 }

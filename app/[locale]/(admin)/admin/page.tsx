@@ -439,16 +439,16 @@ export default function AdminDashboardPage() {
     }
 
     const roleNameKa: Record<string, string> = {
-      SUPER_ADMIN: "👑 SUPER ADMIN (სუპერ ადმინი)",
-      FINANCE_ADMIN: "💰 FINANCE ADMIN (ფინანსური ადმინი)",
-      CONTENT_MANAGER: "📝 CONTENT MANAGER (კონტენტ მენეჯერი)",
-      MODERATOR: "🛡️ MODERATOR (მოდერატორი)",
-      SUPPORT: "🎧 SUPPORT (მხარდაჭერა)",
-      PARTNER: "🤝 PARTNER (B2B პარტნიორი)",
-      USER: "👤 USER (მომხმარებელი)",
+      SUPER_ADMIN: "SUPER ADMIN (სუპერ ადმინი)",
+      FINANCE_ADMIN: "FINANCE ADMIN (ფინანსური ადმინი)",
+      CONTENT_MANAGER: "CONTENT MANAGER (კონტენტ მენეჯერი)",
+      MODERATOR: "MODERATOR (მოდერატორი)",
+      SUPPORT: "SUPPORT (მხარდაჭერა)",
+      PARTNER: "PARTNER (B2B პარტნიორი)",
+      USER: "USER (მომხმარებელი)",
     };
 
-    showNotice(`✅ როლი წარმატებით განახლდა: ${roleNameKa[newRole] || newRole}`);
+    showNotice(`როლი წარმატებით განახლდა: ${roleNameKa[newRole] || newRole}`);
   };
 
   const updateUserSlug = async (id: string, newSlug: string) => {
@@ -1287,13 +1287,13 @@ export default function AdminDashboardPage() {
         {/* Full-Width, Non-Clipped Responsive Navigation Tabs Bar */}
         <div className="flex flex-wrap items-center gap-1.5 bg-surface-container/70 dark:bg-slate-900/70 p-1.5 rounded-2xl border border-border/70 w-full shadow-2xs">
           {[
-            { id: "overview", label: "📊 მიმოხილვა", visible: true },
-            { id: "listings", label: "📦 განცხადებები", count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
-            { id: "users", label: "👥 მომხმარებლები", count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { id: "plans", label: "💎 ტარიფები", count: plans.length, visible: canManagePlans(currentUserRole, currentUser?.email) },
-            { id: "analytics", label: "📈 სტატისტიკა", visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { id: "audit", label: "📜 აუდიტი", visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { id: "affiliate", label: "🔗 Affiliate", count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "overview", label: "მიმოხილვა", visible: true },
+            { id: "listings", label: "განცხადებები", count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
+            { id: "users", label: "მომხმარებლები", count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "plans", label: "ტარიფები", count: plans.length, visible: canManagePlans(currentUserRole, currentUser?.email) },
+            { id: "analytics", label: "სტატისტიკა", visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "audit", label: "აუდიტი", visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "affiliate", label: "Affiliate", count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
           ]
             .filter((tab) => tab.visible)
             .map((tab) => {
