@@ -173,9 +173,9 @@ export default function BotanicalMap() {
   const [priceRange, setPriceRange] = React.useState<[number, number]>([0, 500]);
   const [isMapReady, setIsMapReady] = React.useState(false);
 
-  // Accordion Category Groups State
+  // Accordion Category Groups State — all collapsed by default
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
-    aroid: true,
+    aroid: false,
     flowering: false,
     "tree-ficus": false,
     "cactus-etc": false,

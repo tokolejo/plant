@@ -189,6 +189,12 @@ function ListingsCatalogContent() {
   React.useEffect(() => {
     if (categoryParam) {
       setSelectedCategories([categoryParam as any]);
+      const parentGroup = PLANT_CATEGORY_GROUPS.find((g) =>
+        g.children.some((c) => c.id === categoryParam)
+      );
+      if (parentGroup) {
+        setOpenGroups((prev) => ({ ...prev, [parentGroup.id]: true }));
+      }
     }
   }, [categoryParam]);
 
@@ -230,9 +236,9 @@ function ListingsCatalogContent() {
   const [visibleCount, setVisibleCount] = React.useState<number>(20);
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
 
-  // Accordion state for category groups
+  // Accordion state for category groups — all groups collapsed by default
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
-    aroid: true,
+    aroid: false,
     flowering: false,
     "tree-ficus": false,
     "cactus-etc": false,
