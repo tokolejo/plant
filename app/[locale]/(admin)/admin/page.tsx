@@ -83,6 +83,64 @@ export default function AdminDashboardPage() {
   // Feedback Notification
   const [actionNotice, setActionNotice] = React.useState<string>("");
 
+  // ── Bulk Selection State ──────────────────────────────────────
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = React.useState(false);
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filteredListings.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredListings.map((l: any) => l.id)));
+    }
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const bulkAction = async (action: "ACTIVE" | "HIDDEN" | "DELETE") => {
+    if (selectedIds.size === 0) return;
+    const ids = Array.from(selectedIds);
+    const realIds = ids.filter((id) => !id.startsWith("lst-"));
+    setBulkLoading(true);
+    try {
+      if (action === "DELETE") {
+        if (!confirm(`ნამდვილად გსურთ ${ids.length} განცხადების წაშლა?`)) return;
+        // Optimistic UI
+        setListings((prev) => prev.filter((l) => !selectedIds.has(l.id)));
+        if (realIds.length > 0) {
+          const { error } = await supabase.rpc("bulk_delete_listings", { listing_ids: realIds });
+          if (error) throw error;
+        }
+        showNotice(`🗑️ ${ids.length} განცხადება წარმატებით წაიშალა!`);
+      } else {
+        setListings((prev) =>
+          prev.map((l) => selectedIds.has(l.id) ? { ...l, status: action } : l)
+        );
+        if (realIds.length > 0) {
+          const { error } = await supabase.rpc("bulk_update_listing_status", {
+            listing_ids: realIds,
+            new_status: action,
+          });
+          if (error) throw error;
+        }
+        const label = action === "ACTIVE" ? "🟢 გამოჩენილი" : "🟡 დამალული";
+        showNotice(`✅ ${ids.length} განცხადება — ${label}!`);
+      }
+      setSelectedIds(new Set());
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა: ${err.message}`);
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   // Close seller dropdown on outside click
   React.useEffect(() => {
     const handleOutside = (e: MouseEvent) => {
@@ -863,11 +921,68 @@ export default function AdminDashboardPage() {
             )}
           </div>
 
+          {/* ── Bulk Action Toolbar ── */}
+          {selectedIds.size > 0 && (
+            <div className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-[16px] px-4 py-2.5 animate-in fade-in slide-in-from-top-1">
+              <span className="text-xs font-bold text-primary">
+                ✅ {selectedIds.size} განცხადება მონიშნული
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={bulkLoading}
+                  onClick={() => bulkAction("ACTIVE")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition-all cursor-pointer disabled:opacity-60"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  გამოჩენა
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkLoading}
+                  onClick={() => bulkAction("HIDDEN")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold transition-all cursor-pointer disabled:opacity-60"
+                >
+                  <EyeOff className="w-3.5 h-3.5" />
+                  დამალვა
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkLoading}
+                  onClick={() => bulkAction("DELETE")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-[10px] bg-destructive hover:bg-destructive/80 text-white text-[11px] font-bold transition-all cursor-pointer disabled:opacity-60"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  წაშლა
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds(new Set())}
+                  className="p-1.5 rounded-[8px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+                  title="მონიშვნის გასუფთავება"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* 📋 Data Table with Interactive Sorting Headers */}
           <div className="overflow-x-auto rounded-[18px] border border-border/80">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[11px] font-bold select-none">
                 <tr>
+                  {/* Checkbox — Select All */}
+                  <th className="py-3 px-3.5 w-10">
+                    <input
+                      type="checkbox"
+                      checked={filteredListings.length > 0 && selectedIds.size === filteredListings.length}
+                      ref={(el) => { if (el) el.indeterminate = selectedIds.size > 0 && selectedIds.size < filteredListings.length; }}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 rounded accent-primary cursor-pointer"
+                      title="ყველას მონიშვნა"
+                    />
+                  </th>
                   {/* Title Header */}
                   <th
                     onClick={() => handleSort("title")}
@@ -966,19 +1081,34 @@ export default function AdminDashboardPage() {
               <tbody className="divide-y divide-border/40">
                 {filteredListings.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="py-12 text-center text-muted-foreground text-xs font-semibold">
+                    <td colSpan={8} className="py-12 text-center text-muted-foreground text-xs font-semibold">
                       განცხადებები არჩეული ფილტრებით არ მოიძებნა.
                     </td>
                   </tr>
                 ) : (
-                  filteredListings.map((item) => {
+                  filteredListings.map((item: any) => {
                     const isHidden = item.status === "HIDDEN";
                     const isRejected = item.status === "REJECTED";
                     const isDeleted = item.status === "DELETED";
+                    const isSelected = selectedIds.has(item.id);
                     const formattedDate = item.rawCreatedAt ? new Date(item.rawCreatedAt).toLocaleDateString("ka-GE") : "15 აგვ";
 
                     return (
-                      <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                      <tr
+                        key={item.id}
+                        className={`hover:bg-muted/30 transition-colors ${
+                          isSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
+                        }`}
+                      >
+                        {/* Checkbox */}
+                        <td className="py-3 px-3.5">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectOne(item.id)}
+                            className="w-4 h-4 rounded accent-primary cursor-pointer"
+                          />
+                        </td>
                         {/* Title & Image */}
                         <td className="py-3 px-3.5 max-w-[240px]">
                           <div className="flex items-center gap-2.5">
