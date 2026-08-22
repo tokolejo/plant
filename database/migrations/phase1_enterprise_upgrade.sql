@@ -63,6 +63,19 @@ CREATE TABLE IF NOT EXISTS public.stores (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.stores
+  ADD COLUMN IF NOT EXISTS owner_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS name TEXT,
+  ADD COLUMN IF NOT EXISTS slug TEXT,
+  ADD COLUMN IF NOT EXISTS tax_id TEXT,
+  ADD COLUMN IF NOT EXISTS logo_url TEXT,
+  ADD COLUMN IF NOT EXISTS banner_url TEXT,
+  ADD COLUMN IF NOT EXISTS description TEXT,
+  ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "stores_public_read" ON public.stores;
@@ -80,6 +93,13 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
     seo_keywords TEXT,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.site_settings
+  ADD COLUMN IF NOT EXISTS seo_title TEXT,
+  ADD COLUMN IF NOT EXISTS seo_description TEXT,
+  ADD COLUMN IF NOT EXISTS seo_keywords TEXT,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "site_settings_public_read" ON public.site_settings;
@@ -101,7 +121,7 @@ USING (
 -- 2.1 Subscription Plans
 CREATE TABLE IF NOT EXISTS public.subscription_plans (
     id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
+    name TEXT NOT NULL DEFAULT 'Plan',
     price_monthly NUMERIC(10, 2) NOT NULL DEFAULT 0,
     price_yearly NUMERIC(10, 2) NOT NULL DEFAULT 0,
     listing_limit INTEGER NOT NULL DEFAULT 5,
@@ -109,6 +129,17 @@ CREATE TABLE IF NOT EXISTS public.subscription_plans (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Ensure all columns exist even if subscription_plans table already existed
+ALTER TABLE public.subscription_plans
+  ADD COLUMN IF NOT EXISTS name TEXT NOT NULL DEFAULT 'Plan',
+  ADD COLUMN IF NOT EXISTS price_monthly NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS price_yearly NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS listing_limit INTEGER NOT NULL DEFAULT 5,
+  ADD COLUMN IF NOT EXISTS features JSONB NOT NULL DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "plans_public_read" ON public.subscription_plans;
@@ -142,6 +173,18 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.subscriptions
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS plan_id TEXT REFERENCES public.subscription_plans(id) DEFAULT 'FREE',
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'active',
+  ADD COLUMN IF NOT EXISTS billing_cycle TEXT NOT NULL DEFAULT 'monthly',
+  ADD COLUMN IF NOT EXISTS current_period_start TIMESTAMPTZ NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS current_period_end TIMESTAMPTZ NOT NULL DEFAULT (now() + interval '30 days'),
+  ADD COLUMN IF NOT EXISTS cancel_at_period_end BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "subscriptions_owner_read" ON public.subscriptions;
@@ -158,6 +201,15 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     payment_method TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.transactions
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS amount NUMERIC(10, 2),
+  ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'GEL',
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'completed',
+  ADD COLUMN IF NOT EXISTS payment_method TEXT,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "transactions_owner_read" ON public.transactions;
@@ -185,6 +237,17 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     pdf_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.invoices
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS invoice_number TEXT,
+  ADD COLUMN IF NOT EXISTS amount NUMERIC(10, 2),
+  ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'GEL',
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'paid',
+  ADD COLUMN IF NOT EXISTS pdf_url TEXT,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "invoices_owner_read" ON public.invoices;
@@ -202,6 +265,16 @@ CREATE TABLE IF NOT EXISTS public.promo_codes (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.promo_codes
+  ADD COLUMN IF NOT EXISTS code TEXT,
+  ADD COLUMN IF NOT EXISTS discount_percentage NUMERIC(5, 2),
+  ADD COLUMN IF NOT EXISTS usage_limit INTEGER,
+  ADD COLUMN IF NOT EXISTS used_count INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS expires_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.promo_codes ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "promo_codes_public_read" ON public.promo_codes;
@@ -270,6 +343,19 @@ CREATE TABLE IF NOT EXISTS public.affiliate_products (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.affiliate_products
+  ADD COLUMN IF NOT EXISTS partner_name TEXT,
+  ADD COLUMN IF NOT EXISTS title TEXT,
+  ADD COLUMN IF NOT EXISTS price NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS image_url TEXT,
+  ADD COLUMN IF NOT EXISTS product_url TEXT,
+  ADD COLUMN IF NOT EXISTS category TEXT,
+  ADD COLUMN IF NOT EXISTS matching_tags TEXT[] NOT NULL DEFAULT '{}',
+  ADD COLUMN IF NOT EXISTS commission_pct NUMERIC(5, 2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.affiliate_products ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "affiliate_products_public_read" ON public.affiliate_products;
@@ -290,6 +376,12 @@ CREATE TABLE IF NOT EXISTS public.listing_views (
     viewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     viewed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.listing_views
+  ADD COLUMN IF NOT EXISTS listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS viewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS viewed_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.listing_views ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "listing_views_insert" ON public.listing_views;
@@ -313,6 +405,15 @@ CREATE TABLE IF NOT EXISTS public.reviews (
     comment TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.reviews
+  ADD COLUMN IF NOT EXISTS reviewer_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS target_id UUID,
+  ADD COLUMN IF NOT EXISTS target_type TEXT,
+  ADD COLUMN IF NOT EXISTS rating INTEGER,
+  ADD COLUMN IF NOT EXISTS comment TEXT,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "reviews_public_read" ON public.reviews;
@@ -330,6 +431,12 @@ CREATE TABLE IF NOT EXISTS public.wishlists (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (user_id, listing_id)
 );
+
+ALTER TABLE public.wishlists
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "wishlists_owner_all" ON public.wishlists;
@@ -348,6 +455,17 @@ CREATE TABLE IF NOT EXISTS public.trade_offers (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.trade_offers
+  ADD COLUMN IF NOT EXISTS sender_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS receiver_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS offered_listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS requested_listing_id UUID REFERENCES public.listings(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS cash_difference NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.trade_offers ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "trade_offers_participant_access" ON public.trade_offers;
@@ -365,6 +483,15 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.notifications
+  ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS title TEXT,
+  ADD COLUMN IF NOT EXISTS message TEXT,
+  ADD COLUMN IF NOT EXISTS type TEXT,
+  ADD COLUMN IF NOT EXISTS is_read BOOLEAN NOT NULL DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "notifications_owner_all" ON public.notifications;
@@ -385,6 +512,14 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     details JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.audit_logs
+  ADD COLUMN IF NOT EXISTS admin_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS target_user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS action_type TEXT,
+  ADD COLUMN IF NOT EXISTS details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "audit_logs_admin_read" ON public.audit_logs;
@@ -403,6 +538,15 @@ CREATE TABLE IF NOT EXISTS public.reports (
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'dismissed', 'actioned')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.reports
+  ADD COLUMN IF NOT EXISTS reporter_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS reported_item_id UUID,
+  ADD COLUMN IF NOT EXISTS reported_type TEXT,
+  ADD COLUMN IF NOT EXISTS reason TEXT,
+  ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "reports_reporter_insert" ON public.reports;
@@ -425,6 +569,15 @@ CREATE TABLE IF NOT EXISTS public.daily_metrics (
     total_listings INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.daily_metrics
+  ADD COLUMN IF NOT EXISTS metric_date DATE,
+  ADD COLUMN IF NOT EXISTS mrr NUMERIC(12, 2) NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_users INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS active_vip_count INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_listings INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+
 ALTER TABLE public.daily_metrics ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "daily_metrics_admin_read" ON public.daily_metrics;
