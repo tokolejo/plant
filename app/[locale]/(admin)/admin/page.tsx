@@ -3029,8 +3029,8 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* Grid of Dynamic Plan Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
+          {/* Grid of Dynamic Plan Cards — 2 Wide studio cards per row on desktop, 1 on mobile */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {plans.map((p) => {
               const features = p.featuresKa || [];
               const isFree = p.monthlyPrice === 0;
@@ -3041,196 +3041,251 @@ export default function AdminDashboardPage() {
               return (
                 <div
                   key={p.id}
-                  className="rounded-[22px] border border-border/80 p-5 bg-card shadow-ambient hover:shadow-lg transition-all flex flex-col justify-between space-y-4 relative"
+                  className="rounded-[24px] border border-border/80 bg-card p-6 shadow-ambient hover:shadow-xl transition-all flex flex-col justify-between space-y-5 relative overflow-hidden"
                 >
-                  {/* Top Bar: Tier Identifier & Badge */}
-                  <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-3">
-                    <span className="font-mono text-xs font-black text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-800 px-2.5 py-1 rounded-lg shrink-0">
-                      {p.tier || p.id}
-                    </span>
+                  {/* Top Header: Tier identifier + Badge editor */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3.5">
+                    <div className="flex items-center gap-2.5">
+                      <span className="font-mono text-xs font-black text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-800 px-3 py-1 rounded-xl shadow-2xs shrink-0">
+                        ⚡ {p.tier || p.id}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-semibold">
+                        რიგითობა: #{p.sortOrder || 1}
+                      </span>
+                    </div>
 
-                    {/* Badge editor */}
-                    <input
-                      type="text"
-                      placeholder="ბეიჯი (მაგ: პოპულარული)"
-                      value={p.badge || ""}
-                      onChange={(e) => handlePlanChange(p.id, "badge", e.target.value || undefined)}
-                      className="text-xs font-black text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-300/80 flex-1 min-w-[110px] text-right focus:outline-none focus:ring-1 focus:ring-amber-500 truncate"
-                      title="ბეიჯის ტექსტი"
-                    />
-                  </div>
-
-                  {/* Plan Names (KA & EN) */}
-                  <div className="space-y-2">
-                    <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">სათაური (KA)</label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold text-muted-foreground">ბეიჯი:</span>
                       <input
                         type="text"
-                        value={p.nameKa}
-                        onChange={(e) => handlePlanChange(p.id, "nameKa", e.target.value)}
-                        className="w-full py-2 px-3 rounded-xl border border-input text-sm bg-background font-black text-foreground"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">სათაური (EN)</label>
-                      <input
-                        type="text"
-                        value={p.nameEn || ""}
-                        onChange={(e) => handlePlanChange(p.id, "nameEn", e.target.value)}
-                        className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-background text-muted-foreground font-medium"
+                        placeholder="მაგ: პოპულარული"
+                        value={p.badge || ""}
+                        onChange={(e) => handlePlanChange(p.id, "badge", e.target.value || undefined)}
+                        className="text-xs font-bold text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/50 px-3 py-1 rounded-xl border border-amber-300/70 w-44 text-right focus:outline-none focus:ring-2 focus:ring-amber-500/30"
                       />
                     </div>
                   </div>
 
-                  {/* Pricing Inputs with Auto-Calculation & Discount */}
-                  <div className="bg-secondary-container/40 p-3 rounded-2xl border border-border/70 space-y-2.5">
-                    <div className="grid grid-cols-2 gap-2.5">
-                      <div>
-                        <label className="text-[10px] font-bold text-muted-foreground block mb-1">თვიური (₾)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={p.monthlyPrice}
-                          onChange={(e) => handlePlanChange(p.id, "monthlyPrice", parseFloat(e.target.value) || 0)}
-                          className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-black text-foreground"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] font-bold text-muted-foreground block mb-1">ფასდაკლება (%)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="99"
-                          value={discount}
-                          onChange={(e) => handlePlanChange(p.id, "discountPercent", parseFloat(e.target.value) || 0)}
-                          className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-black text-amber-600 dark:text-amber-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-[10px] font-bold text-muted-foreground">წლიური ჯამი (₾)</label>
-                        {!isFree && (
-                          <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">
-                            ავტო-გამოთვლილი
-                          </span>
-                        )}
-                      </div>
-                      <input
-                        type="number"
-                        min="0"
-                        value={p.yearlyPrice}
-                        onChange={(e) => handlePlanChange(p.id, "yearlyPrice", parseFloat(e.target.value) || 0)}
-                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-black text-emerald-600 dark:text-emerald-400"
-                      />
-                    </div>
-
-                    {!isFree && (
-                      <div className="text-[10px] text-muted-foreground font-medium flex items-center justify-between pt-1 border-t border-border/40">
-                        <span>თვეში გამოდის: <strong className="text-foreground">{effectiveMonthlyPrice} ₾</strong></span>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">დაზოგვა: {yearlySavings} ₾</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Limits & Perks */}
-                  <div className="grid grid-cols-2 gap-2.5">
-                    <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">განცხადებები</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={p.listingLimit}
-                        onChange={(e) => handlePlanChange(p.id, "listingLimit", parseInt(e.target.value) || 5)}
-                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-bold"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">VIP ბუსტები</label>
-                      <input
-                        type="number"
-                        min="0"
-                        value={p.vipSlots || 0}
-                        onChange={(e) => handlePlanChange(p.id, "vipSlots", parseInt(e.target.value) || 0)}
-                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-bold"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Features Bullet Points Editor */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-muted-foreground block">მახასიათებლები (Features)</label>
-                    <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1">
-                      {features.map((feat, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 bg-background border border-border/70 rounded-lg px-2.5 py-1.5 text-xs">
-                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  {/* 2-Column Responsive Body: Left = Identity & Pricing, Right = Quotas & Features */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Left Column: Titles & Pricing Studio */}
+                    <div className="space-y-4">
+                      {/* Title Inputs */}
+                      <div className="space-y-2">
+                        <div>
+                          <label className="text-[10px] font-black uppercase text-muted-foreground block mb-1">
+                            სათაური (ქართულად)
+                          </label>
                           <input
                             type="text"
-                            value={feat}
-                            onChange={(e) => {
-                              const updated = [...features];
-                              updated[idx] = e.target.value;
-                              handlePlanChange(p.id, "featuresKa", updated);
-                            }}
-                            className="w-full bg-transparent text-xs font-medium focus:outline-none"
+                            value={p.nameKa}
+                            onChange={(e) => handlePlanChange(p.id, "nameKa", e.target.value)}
+                            className="w-full py-2 px-3 rounded-xl border border-border/80 text-sm bg-background font-extrabold text-foreground focus:ring-2 focus:ring-primary/20 focus:outline-none"
                           />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFeature(p.id, idx)}
-                            className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5"
-                            title="პუნქტის წაშლა"
-                          >
-                            <X className="w-3.5 h-3.5" />
-                          </button>
                         </div>
-                      ))}
+                        <div>
+                          <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">
+                            სათაური (ინგლისურად)
+                          </label>
+                          <input
+                            type="text"
+                            value={p.nameEn || ""}
+                            onChange={(e) => handlePlanChange(p.id, "nameEn", e.target.value)}
+                            className="w-full py-1.5 px-3 rounded-xl border border-border/80 text-xs bg-background text-muted-foreground font-medium focus:ring-2 focus:ring-primary/20 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Pricing Studio Card */}
+                      <div className="rounded-2xl border border-border/80 bg-secondary-container/40 p-4 space-y-3">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider block">
+                          💰 ფასწარმოქმნა & ფასდაკლება
+                        </span>
+
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div>
+                            <label className="text-[10px] font-bold text-muted-foreground block mb-1">
+                              თვიური (₾)
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                min="0"
+                                value={p.monthlyPrice}
+                                onChange={(e) => handlePlanChange(p.id, "monthlyPrice", parseFloat(e.target.value) || 0)}
+                                className="w-full py-1.5 pl-3 pr-7 rounded-xl border border-border/80 text-sm bg-background font-black text-foreground"
+                              />
+                              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-muted-foreground">₾</span>
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-[10px] font-bold text-muted-foreground block mb-1">
+                              ფასდაკლება (%)
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="number"
+                                min="0"
+                                max="99"
+                                value={discount}
+                                onChange={(e) => handlePlanChange(p.id, "discountPercent", parseFloat(e.target.value) || 0)}
+                                className="w-full py-1.5 pl-3 pr-7 rounded-xl border border-border/80 text-sm bg-background font-black text-amber-600 dark:text-amber-400"
+                              />
+                              <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-amber-600">%</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-[10px] font-bold text-muted-foreground">
+                              წლიური ჯამი (₾)
+                            </label>
+                            {!isFree && (
+                              <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                                ავტო-გამოთვლილი
+                              </span>
+                            )}
+                          </div>
+                          <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              value={p.yearlyPrice}
+                              onChange={(e) => handlePlanChange(p.id, "yearlyPrice", parseFloat(e.target.value) || 0)}
+                              className="w-full py-2 pl-3 pr-8 rounded-xl border border-emerald-500/30 text-base bg-emerald-500/5 font-black text-emerald-600 dark:text-emerald-400"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-black text-emerald-600">₾</span>
+                          </div>
+                        </div>
+
+                        {!isFree && (
+                          <div className="pt-2 border-t border-border/50 text-[11px] font-medium text-muted-foreground flex items-center justify-between">
+                            <span>თვეში: <strong className="text-foreground">{effectiveMonthlyPrice} ₾</strong></span>
+                            <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                              დაზოგვა: {yearlySavings} ₾/წელში
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Add Feature Item Input */}
-                    <div className="pt-1">
-                      <input
-                        type="text"
-                        placeholder="+ დაამატეთ პუნქტი (დააჭირეთ Enter)..."
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.preventDefault();
-                            handleAddFeature(p.id, (e.target as HTMLInputElement).value);
-                            (e.target as HTMLInputElement).value = "";
-                          }
-                        }}
-                        className="w-full py-1.5 px-2.5 rounded-lg border border-dashed border-border/90 text-xs bg-secondary-container/30 font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary"
-                      />
+                    {/* Right Column: Quotas, VIP slots & Features Editor */}
+                    <div className="space-y-4">
+                      {/* Quotas */}
+                      <div className="rounded-2xl border border-border/80 bg-secondary-container/30 p-3.5 space-y-3">
+                        <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider block">
+                          📊 ლიმიტები & VIP პრივილეგიები
+                        </span>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[10px] font-bold text-muted-foreground block mb-1">
+                              განცხადებები
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={p.listingLimit}
+                              onChange={(e) => handlePlanChange(p.id, "listingLimit", parseInt(e.target.value) || 5)}
+                              className="w-full py-1.5 px-3 rounded-xl border border-border/80 text-xs bg-background font-bold text-foreground"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[10px] font-bold text-muted-foreground block mb-1">
+                              VIP ბუსტები
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              value={p.vipSlots || 0}
+                              onChange={(e) => handlePlanChange(p.id, "vipSlots", parseInt(e.target.value) || 0)}
+                              className="w-full py-1.5 px-3 rounded-xl border border-border/80 text-xs bg-background font-bold text-foreground"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Features Bullet Points */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">
+                            მახასიათებლები ({features.length})
+                          </label>
+                        </div>
+
+                        <div className="space-y-1.5 max-h-[170px] overflow-y-auto pr-1">
+                          {features.map((feat, idx) => (
+                            <div key={idx} className="flex items-center gap-2 bg-background border border-border/70 rounded-xl px-3 py-1.5 text-xs shadow-2xs group">
+                              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <input
+                                type="text"
+                                value={feat}
+                                onChange={(e) => {
+                                  const updated = [...features];
+                                  updated[idx] = e.target.value;
+                                  handlePlanChange(p.id, "featuresKa", updated);
+                                }}
+                                className="w-full bg-transparent text-xs font-semibold focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveFeature(p.id, idx)}
+                                className="text-muted-foreground hover:text-destructive opacity-70 group-hover:opacity-100 transition-opacity cursor-pointer p-0.5"
+                                title="პუნქტის წაშლა"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Add feature input */}
+                        <input
+                          type="text"
+                          placeholder="+ დაამატეთ ახალი პუნქტი (Enter)..."
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddFeature(p.id, (e.target as HTMLInputElement).value);
+                              (e.target as HTMLInputElement).value = "";
+                            }
+                          }}
+                          className="w-full py-2 px-3 rounded-xl border border-dashed border-border/90 text-xs bg-secondary-container/20 font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Card Bottom Actions: Duplicate, Delete, Save */}
-                  <div className="flex items-center justify-between border-t border-border/50 pt-3 gap-2">
-                    <div className="flex items-center gap-1">
-                      <button
+                  {/* Card Footer Actions: Sleek spacious bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-4">
+                    <div className="flex items-center gap-2">
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleDeletePlan(p.id)}
-                        className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 font-bold transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-destructive/10"
-                        title="ტარიფის წაშლა"
+                        className="rounded-xl text-xs font-bold border-destructive/30 text-destructive hover:bg-destructive/10 cursor-pointer h-9 px-3 gap-1.5"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> წაშლა
-                      </button>
+                      </Button>
 
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
+                        size="sm"
                         onClick={() => handleDuplicatePlan(p.id)}
-                        className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 flex items-center gap-1 font-bold transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-purple-500/10"
-                        title="ტარიფის დუბლირება / ასლის შექმნა"
+                        className="rounded-xl text-xs font-bold border-purple-500/30 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 cursor-pointer h-9 px-3 gap-1.5"
                       >
                         <Plus className="w-3.5 h-3.5" /> დუბლირება
-                      </button>
+                      </Button>
                     </div>
 
                     <Button
                       type="button"
                       size="sm"
                       onClick={handleSavePlans}
-                      className="h-8 px-3 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 cursor-pointer shadow-xs gap-1"
+                      className="rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer h-9 px-4 gap-1.5 shadow-sm"
                     >
                       <Save className="w-3.5 h-3.5" /> შენახვა
                     </Button>
