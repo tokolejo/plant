@@ -21,17 +21,16 @@ BEGIN
             'PARTNER',
             'USER'
         );
-    ELSE
-        -- Ensure all 7 roles exist in existing ENUM
-        ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'SUPER_ADMIN';
-        ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'FINANCE_ADMIN';
-        ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'CONTENT_MANAGER';
-        ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'MODERATOR';
-        ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'SUPPORT';
-        ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'PARTNER';
-        ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'USER';
     END IF;
 END $$;
+
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'SUPER_ADMIN';
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'FINANCE_ADMIN';
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'CONTENT_MANAGER';
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'MODERATOR';
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'SUPPORT';
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'PARTNER';
+ALTER TYPE public.user_role ADD VALUE IF NOT EXISTS 'USER';
 
 -- 1.2 Profiles table extension
 ALTER TABLE public.profiles
@@ -89,9 +88,9 @@ CREATE POLICY "site_settings_public_read" ON public.site_settings FOR SELECT TO 
 DROP POLICY IF EXISTS "site_settings_admin_manage" ON public.site_settings;
 CREATE POLICY "site_settings_admin_manage" ON public.site_settings FOR ALL TO authenticated
 USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'CONTENT_MANAGER'))
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'CONTENT_MANAGER'))
 ) WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'CONTENT_MANAGER'))
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'CONTENT_MANAGER'))
 );
 
 
@@ -279,9 +278,9 @@ CREATE POLICY "affiliate_products_public_read" ON public.affiliate_products FOR 
 DROP POLICY IF EXISTS "affiliate_products_admin_manage" ON public.affiliate_products;
 CREATE POLICY "affiliate_products_admin_manage" ON public.affiliate_products FOR ALL TO authenticated
 USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER'))
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER'))
 ) WITH CHECK (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER'))
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER'))
 );
 
 -- 3.5 Listing Views Table
@@ -391,7 +390,7 @@ ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "audit_logs_admin_read" ON public.audit_logs;
 CREATE POLICY "audit_logs_admin_read" ON public.audit_logs FOR SELECT TO authenticated
 USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'MODERATOR'))
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'MODERATOR'))
 );
 
 -- 5.2 Reports Table
@@ -413,7 +412,7 @@ WITH CHECK (reporter_id = auth.uid());
 DROP POLICY IF EXISTS "reports_moderator_all" ON public.reports;
 CREATE POLICY "reports_moderator_all" ON public.reports FOR ALL TO authenticated
 USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'MODERATOR'))
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'MODERATOR'))
 );
 
 -- 5.3 Daily Metrics Table
@@ -431,7 +430,7 @@ ALTER TABLE public.daily_metrics ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "daily_metrics_admin_read" ON public.daily_metrics;
 CREATE POLICY "daily_metrics_admin_read" ON public.daily_metrics FOR SELECT TO authenticated
 USING (
-    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN'))
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role::text IN ('SUPER_ADMIN', 'FINANCE_ADMIN'))
 );
 
 
@@ -465,12 +464,12 @@ SECURITY INVOKER
 SET search_path = public, pg_temp
 AS $$
 DECLARE
-    v_user_role user_role;
+    v_user_role TEXT;
     v_plan_limit INT := 5;
     v_current_active_count INT;
 BEGIN
     -- Admins and Super Admins have unlimited listings
-    SELECT role INTO v_user_role FROM public.profiles WHERE id = NEW.user_id;
+    SELECT role::text INTO v_user_role FROM public.profiles WHERE id = NEW.user_id;
     IF v_user_role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER', 'MODERATOR') THEN
         RETURN NEW;
     END IF;
