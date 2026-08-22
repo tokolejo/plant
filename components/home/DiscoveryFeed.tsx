@@ -144,75 +144,72 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
           </div>
         </div>
 
-        {/* 🏷️ 2. Centered Filter Tabs */}
-        <div className="flex items-center justify-center gap-2 overflow-x-auto pb-1 mb-6 no-scrollbar">
-          {[
-            { id: "ALL", labelKa: "ყველა", labelEn: "All" },
-            { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
-            { id: "TRADE", labelKa: "გაცვლა 🔄", labelEn: "Trade 🔄" },
-            { id: "PLANTS", labelKa: "მცენარეები 🌱", labelEn: "Plants 🌱" },
-            { id: "INVENTORY", labelKa: "ინვენტარი 🪴", labelEn: "Inventory 🪴" },
-          ].map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  isActive
-                    ? "bg-primary text-white shadow-ambient scale-[1.02]"
-                    : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
-                }`}
-              >
-                {isKa ? tab.labelKa : tab.labelEn}
-              </button>
-            );
-          })}
-        </div>
+        {/* 🏷️ 2. Tabs Row + High-Visibility Desktop Slider Navigation Arrows */}
+        <div className="flex items-center justify-between gap-2 mb-5">
+          <div className="flex-1 flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+            {[
+              { id: "ALL", labelKa: "ყველა", labelEn: "All" },
+              { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
+              { id: "TRADE", labelKa: "გაცვლა 🔄", labelEn: "Trade 🔄" },
+              { id: "PLANTS", labelKa: "მცენარეები 🌱", labelEn: "Plants 🌱" },
+              { id: "INVENTORY", labelKa: "ინვენტარი 🪴", labelEn: "Inventory 🪴" },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-white shadow-ambient scale-[1.02]"
+                      : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
+                  }`}
+                >
+                  {isKa ? tab.labelKa : tab.labelEn}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* 📱 3. Horizontal Touch-Swipeable Slider with High-Visibility Desktop Floating Arrows */}
-        {filtered.length > 0 ? (
-          <div className="relative group">
-            {/* Desktop Prominent Floating Left Navigation Arrow */}
+          {/* Desktop Prominent Slider Navigation Arrows (In tabs row, not covering cards) */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0 ml-2">
             <button
               type="button"
               onClick={() => scrollSlider("left")}
               disabled={!canScrollLeft}
               aria-label={isKa ? "წინა" : "Previous"}
-              className={`hidden md:flex absolute -left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-card/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-border/80 hover:border-primary text-foreground hover:text-white hover:bg-primary items-center justify-center shadow-xl shadow-black/25 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer ${
-                !canScrollLeft ? "opacity-0 pointer-events-none" : "opacity-100"
-              }`}
+              className="h-10 w-10 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "წინა" : "Previous"}
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-
-            {/* Slider Track (Compact on Mobile, Expansive 5-6 Cards on Desktop) */}
-            <div
-              ref={sliderRef}
-              className="flex gap-3 sm:gap-3.5 md:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
-            >
-              {filtered.map((item) => (
-                <div
-                  key={item.id}
-                  className="w-[165px] sm:w-[200px] md:w-[220px] lg:w-[calc(20%-13px)] xl:w-[calc(16.666%-14px)] shrink-0 snap-start"
-                >
-                  <ListingCard {...item} variant="compact" />
-                </div>
-              ))}
-            </div>
-
-            {/* Desktop Prominent Floating Right Navigation Arrow */}
             <button
               type="button"
               onClick={() => scrollSlider("right")}
               disabled={!canScrollRight}
               aria-label={isKa ? "შემდეგი" : "Next"}
-              className={`hidden md:flex absolute -right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-card/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-border/80 hover:border-primary text-foreground hover:text-white hover:bg-primary items-center justify-center shadow-xl shadow-black/25 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer ${
-                !canScrollRight ? "opacity-0 pointer-events-none" : "opacity-100"
-              }`}
+              className="h-10 w-10 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "შემდეგი" : "Next"}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
+          </div>
+        </div>
+
+        {/* 📱 3. Horizontal Touch-Swipeable Slider */}
+        {filtered.length > 0 ? (
+          <div
+            ref={sliderRef}
+            className="flex gap-3 sm:gap-3.5 md:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+          >
+            {filtered.map((item) => (
+              <div
+                key={item.id}
+                className="w-[165px] sm:w-[200px] md:w-[220px] lg:w-[calc(20%-13px)] xl:w-[calc(16.666%-14px)] shrink-0 snap-start"
+              >
+                <ListingCard {...item} variant="compact" />
+              </div>
+            ))}
           </div>
         ) : (
           <div className="py-12 text-center rounded-[20px] border border-border/60 bg-card p-6">
@@ -222,18 +219,18 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
           </div>
         )}
 
-        {/* 🔗 4. Center View All Button */}
-        <div className="flex justify-center items-center mt-8">
+        {/* 🔗 4. Compact & Refined View All Button */}
+        <div className="flex justify-center items-center mt-6">
           <Link href="/listings">
             <Button
-              className="rounded-[20px] px-8 h-12 text-sm font-bold bg-primary hover:bg-primary-container text-white shadow-ambient gap-2 hover:scale-[1.02] transition-all cursor-pointer"
+              className="rounded-[14px] sm:rounded-[18px] px-5 sm:px-6 h-9 sm:h-10 text-xs sm:text-sm font-bold bg-primary hover:bg-primary-container text-white shadow-ambient gap-1.5 hover:scale-[1.02] transition-all cursor-pointer"
             >
-              <Sprout className="w-4 h-4" />
-              <span>{isKa ? "ყველა განცხადების ნახვა" : "View All Listings"}</span>
-              <span className="bg-white/20 text-white text-xs px-2 py-0.5 rounded-full ml-1 font-black">
+              <Sprout className="w-3.5 h-3.5" />
+              <span>{isKa ? "ყველა განცხადება" : "View All Listings"}</span>
+              <span className="bg-white/20 text-white text-[11px] px-2 py-0.5 rounded-full font-black">
                 {totalDbCount}
               </span>
-              <ArrowRight className="w-4 h-4 ml-1" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </Link>
         </div>

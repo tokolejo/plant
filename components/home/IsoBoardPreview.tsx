@@ -112,42 +112,54 @@ export function IsoBoardPreview() {
           </p>
         </div>
 
-        {/* 🌟 2. Centered Action Buttons Row (Above Cards) */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <Link href="/iso">
-            <Button variant="outline" className="gap-1.5 rounded-[12px] sm:rounded-[14px] text-xs sm:text-sm font-bold h-10 px-4 border-border/80 hover:bg-surface-container shadow-2xs cursor-pointer">
-              <span>{isKa ? "სრული დაფა" : "View All"}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          </Link>
-          <Link href="/dashboard/iso/new">
-            <Button className="gap-1.5 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-black h-10 px-4 shadow-ambient cursor-pointer">
-              <PlusCircle className="w-4 h-4" />
-              <span>{isKa ? "+ მოთხოვნა" : "+ Post Request"}</span>
-            </Button>
-          </Link>
+        {/* 🌟 2. Action Buttons & High-Visibility Desktop Slider Navigation Arrows */}
+        <div className="flex items-center justify-between gap-2 mb-5">
+          {/* Centered Actions */}
+          <div className="flex-1 flex items-center justify-center gap-3">
+            <Link href="/iso">
+              <Button variant="outline" className="gap-1.5 rounded-[12px] sm:rounded-[14px] text-xs sm:text-sm font-bold h-9 sm:h-10 px-4 border-border/80 hover:bg-surface-container shadow-2xs cursor-pointer">
+                <span>{isKa ? "სრული დაფა" : "View All"}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
+            <Link href="/dashboard/iso/new">
+              <Button className="gap-1.5 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-black h-9 sm:h-10 px-4 shadow-ambient cursor-pointer">
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>{isKa ? "+ მოთხოვნა" : "+ Post Request"}</span>
+              </Button>
+            </Link>
+          </div>
+
+          {/* Desktop Prominent Slider Navigation Arrows (In header row, not covering cards) */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => scrollSlider("left")}
+              disabled={!canScrollLeft}
+              aria-label={isKa ? "წინა" : "Previous"}
+              className="h-10 w-10 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "წინა" : "Previous"}
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollSlider("right")}
+              disabled={!canScrollRight}
+              aria-label={isKa ? "შემდეგი" : "Next"}
+              className="h-10 w-10 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "შემდეგი" : "Next"}
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
-        {/* 📱 3. Horizontal Touch-Swipeable Slider with High-Visibility Desktop Floating Arrows */}
-        <div className="relative group">
-          {/* Desktop Prominent Floating Left Navigation Arrow */}
-          <button
-            type="button"
-            onClick={() => scrollSlider("left")}
-            disabled={!canScrollLeft}
-            aria-label={isKa ? "წინა" : "Previous"}
-            className={`hidden md:flex absolute -left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-card/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-border/80 hover:border-primary text-foreground hover:text-white hover:bg-primary items-center justify-center shadow-xl shadow-black/25 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer ${
-              !canScrollLeft ? "opacity-0 pointer-events-none" : "opacity-100"
-            }`}
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-
-          {/* Slider Track */}
-          <div
-            ref={sliderRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
-          >
+        {/* 📱 3. Horizontal Touch-Swipeable Slider */}
+        <div
+          ref={sliderRef}
+          className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+        >
             {sampleRequests.map((iso) => (
               <div
                 key={iso.id}
@@ -207,20 +219,6 @@ export function IsoBoardPreview() {
                 </div>
               </div>
             ))}
-          </div>
-
-          {/* Desktop Prominent Floating Right Navigation Arrow */}
-          <button
-            type="button"
-            onClick={() => scrollSlider("right")}
-            disabled={!canScrollRight}
-            aria-label={isKa ? "შემდეგი" : "Next"}
-            className={`hidden md:flex absolute -right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-card/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-border/80 hover:border-primary text-foreground hover:text-white hover:bg-primary items-center justify-center shadow-xl shadow-black/25 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer ${
-              !canScrollRight ? "opacity-0 pointer-events-none" : "opacity-100"
-            }`}
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
         </div>
 
       </div>
