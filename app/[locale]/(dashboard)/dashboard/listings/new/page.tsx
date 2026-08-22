@@ -331,6 +331,65 @@ export default function CreateListingPage() {
   const [confidenceScore, setConfidenceScore] = React.useState<number | null>(null);
 
   // ──────────────────────────────────────────────
+  // Plant.id v3 Botanical AI Identification
+  // ──────────────────────────────────────────────
+  const [plantIdDetecting, setPlantIdDetecting] = React.useState(false);
+
+  const handlePlantIdAutoFill = async () => {
+    if (selectedFiles.length === 0) {
+      setErrorMsg("გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Plant.id ამოცნობისთვის!");
+      setTimeout(() => setErrorMsg(""), 3000);
+      return;
+    }
+
+    setPlantIdDetecting(true);
+    setErrorMsg("");
+
+    try {
+      const firstFile = selectedFiles[0];
+      const formData = new FormData();
+      formData.append("image", firstFile);
+
+      const res = await fetch("/api/ai/recognize-plantid", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Plant.id-ით ამოცნობა ვერ მოხერხდა");
+      }
+
+      const result = data.data;
+      setAiResult(result);
+      setActiveProvider("plantnet"); // or Plant.id
+
+      // Auto-fill form fields (EXCEPT category - category selection is strictly manual!)
+      if (result.title_ka) setTitleKa(result.title_ka);
+      if (result.title_en) setTitleEn(result.title_en);
+      if (result.botanical_name) setBotanicalName(result.botanical_name);
+      if (result.watering_schedule) setWateringSchedule(result.watering_schedule);
+      if (result.light_requirement) setLightRequirement(result.light_requirement);
+      if (result.care_difficulty) setCareDifficulty(result.care_difficulty);
+      if (result.toxicity) setToxicity(result.toxicity);
+      if (result.plantnet_id) setPlantnetId(result.plantnet_id);
+      if (result.confidence_score) setConfidenceScore(result.confidence_score);
+      if (result.tags && Array.isArray(result.tags)) {
+        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
+      }
+
+      setAiApplied(true);
+    } catch (err: any) {
+      console.error("Plant.id Recognition Error:", err);
+      setErrorMsg(`Plant.id ამოცნობა: ${err.message || "სცადეთ ხელახლა"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setPlantIdDetecting(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────
   // Pl@ntNet Botanical AI Identification (OpenAPI)
   // ──────────────────────────────────────────────
   const [plantnetDetecting, setPlantnetDetecting] = React.useState(false);
@@ -725,12 +784,30 @@ export default function CreateListingPage() {
             </label>
             
             <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Plant.id Recognition Button */}
+              {selectedFiles.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handlePlantIdAutoFill}
+                  disabled={plantIdDetecting || plantnetDetecting}
+                  className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer border border-emerald-400/30 disabled:opacity-60"
+                  title="Plant.id v3 AI ამოცნობა და მოვლის პარამეტრები"
+                >
+                  {plantIdDetecting ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                  )}
+                  <span>{plantIdDetecting ? "ამოიცნობს..." : "🌱 Plant.id"}</span>
+                </button>
+              )}
+
               {/* Pl@ntNet Recognition Button */}
               {selectedFiles.length > 0 && (
                 <button
                   type="button"
                   onClick={handlePlantNetAutoFill}
-                  disabled={plantnetDetecting}
+                  disabled={plantnetDetecting || plantIdDetecting}
                   className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-gradient-to-r from-teal-700 to-emerald-800 hover:from-teal-800 hover:to-emerald-900 text-white text-[11px] font-bold shadow-xs active:scale-95 transition-all cursor-pointer border border-emerald-400/30 disabled:opacity-60"
                   title="Pl@ntNet-ის სამეცნიერო ბოტანიკური ამოცნობა (OpenAPI)"
                 >
