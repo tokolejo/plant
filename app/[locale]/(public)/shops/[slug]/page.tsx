@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
-import { SAMPLE_LISTINGS } from "@/lib/mock-data";
+import { SAMPLE_LISTINGS, type PlantCategory, type ExtendedListingCardProps } from "@/lib/mock-data";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { 
   Store, 
@@ -18,21 +18,141 @@ import {
   Sprout, 
   Share2, 
   Check, 
-  ExternalLink,
   ChevronLeft,
-  Lock,
+  ChevronDown,
+  ChevronUp,
   Layers,
   Sparkles,
-  ArrowUpDown,
   Search,
-  Flame,
-  RefreshCw
+  SlidersHorizontal,
+  RotateCcw,
+  X,
+  Leaf,
+  Flower2,
+  TreeDeciduous,
+  Navigation
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatPrice } from "@/lib/utils";
-
 import { formatDbListing } from "@/lib/listings-service";
+
+type LocalizedCategory = {
+  id: PlantCategory;
+  labelKa: string;
+  labelEn: string;
+  emoji: string;
+};
+
+type LocalizedCategoryGroup = {
+  id: string;
+  labelKa: string;
+  labelEn: string;
+  icon: React.ElementType;
+  color: string;
+  children: LocalizedCategory[];
+};
+
+const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
+  {
+    id: "aroid",
+    labelKa: "აროიდები",
+    labelEn: "Aroids",
+    icon: Leaf,
+    color: "text-emerald-700 dark:text-emerald-400",
+    children: [
+      { id: "monstera", labelKa: "მონსტერა", labelEn: "Monstera", emoji: "🌿" },
+      { id: "philodendron", labelKa: "ფილოდენდრონი", labelEn: "Philodendron", emoji: "🌱" },
+      { id: "anthurium", labelKa: "ანთურიუმი", labelEn: "Anthurium", emoji: "🌺" },
+      { id: "alocasia", labelKa: "ალოკაზია", labelEn: "Alocasia", emoji: "🍃" },
+      { id: "calathea", labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta", emoji: "🌿" },
+      { id: "pothos-scindapsus", labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus", emoji: "🌾" },
+    ],
+  },
+  {
+    id: "flowering",
+    labelKa: "ყვავილოვანი მცენარეები",
+    labelEn: "Flowering Plants",
+    icon: Flower2,
+    color: "text-rose-700 dark:text-rose-400",
+    children: [
+      { id: "orchid", labelKa: "ორქიდეა", labelEn: "Orchid", emoji: "🌸" },
+      { id: "bromeliad", labelKa: "ბრომელია", labelEn: "Bromeliad", emoji: "🌺" },
+    ],
+  },
+  {
+    id: "tree-ficus",
+    labelKa: "ხეები, ფიკუსები & პალმები",
+    labelEn: "Trees, Ficus & Palms",
+    icon: TreeDeciduous,
+    color: "text-teal-700 dark:text-teal-400",
+    children: [
+      { id: "ficus", labelKa: "ფიკუსი", labelEn: "Ficus", emoji: "🌳" },
+      { id: "palm", labelKa: "პალმა", labelEn: "Palm", emoji: "🌴" },
+      { id: "fern", labelKa: "გვიმრა", labelEn: "Fern", emoji: "🌿" },
+      { id: "outdoor-garden", labelKa: "ბაღის & ეზოს მცენარეები", labelEn: "Outdoor & Garden", emoji: "🌻" },
+    ],
+  },
+  {
+    id: "cactus-etc",
+    labelKa: "კაქტუსები, სუქულენტები & იშვიათები",
+    labelEn: "Cactus, Succulents & Rare",
+    icon: Sprout,
+    color: "text-amber-700 dark:text-amber-400",
+    children: [
+      { id: "cactus-succulent", labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulent", emoji: "🌵" },
+      { id: "rare-variegated", labelKa: "იშვიათი & ვარიეგატული მცენარეები", labelEn: "Rare & Variegated", emoji: "✨" },
+      { id: "cutting", labelKa: "კალმები & ფესვიანები", labelEn: "Cuttings & Rooted", emoji: "✂️" },
+    ],
+  },
+  {
+    id: "inventory",
+    labelKa: "ინვენტარი, მოვლა & აქსესუარები",
+    labelEn: "Inventory, Care & Tools",
+    icon: Layers,
+    color: "text-slate-800 dark:text-slate-200",
+    children: [
+      { id: "pots-ceramic", labelKa: "კერამიკული ქოთნები & სადგამები", labelEn: "Ceramic Pots & Saucers", emoji: "🏺" },
+      { id: "pots-plastic", labelKa: "პლასტიკური & საწარმოო ქოთნები", labelEn: "Plastic & Nursery Pots", emoji: "🪣" },
+      { id: "substrate-soil", labelKa: "სუბსტრატები, გრუნტი & პერლიტი", labelEn: "Substrates, Soil & Perlite", emoji: "🌍" },
+      { id: "fertilizer", labelKa: "სასუქები, ვიტამინები & მოვლა", labelEn: "Fertilizer & Growth Nutrients", emoji: "🧪" },
+      { id: "tools-care", labelKa: "მცენარის მოვლის ხელსაწყოები", labelEn: "Care Tools & Shears", emoji: "🔧" },
+      { id: "lighting-grow", labelKa: "ფიტო-განათება (Grow Light)", labelEn: "Grow Lighting", emoji: "💡" },
+    ],
+  },
+];
+
+function FilterSection({
+  title,
+  children,
+  defaultOpen = true,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  className?: string;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  return (
+    <div className={`border-b border-border/60 py-4 last:border-b-0 ${className}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between py-1 text-left group cursor-pointer"
+      >
+        <span className="text-xs font-black uppercase tracking-wider text-foreground">
+          {title}
+        </span>
+        {open ? (
+          <ChevronUp className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+        )}
+      </button>
+      {open && <div className="pt-3 pb-1">{children}</div>}
+    </div>
+  );
+}
 
 function getLocalizedBadge(badge: string, isKa: boolean) {
   const b = badge.toLowerCase();
@@ -78,21 +198,65 @@ export default function ShopStorefrontPage({
 }) {
   const locale = useLocale();
   const isKa = locale !== "en";
-  const router = useRouter();
   const supabase = createClient();
 
-  const [currentUser, setCurrentUser] = React.useState<any>(null);
-  const [activeCategory, setActiveCategory] = React.useState<string>("all");
+  // Filter States
+  const [searchTerm, setSearchTerm] = React.useState("");
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
+  const [selectedTrans, setSelectedTrans] = React.useState<string[]>([]);
+  const [selectedDelivery, setSelectedDelivery] = React.useState<string[]>([]);
+  const [itemTypeFilter, setItemTypeFilter] = React.useState<"ALL" | "PLANT" | "INVENTORY">("ALL");
+  const [priceRange, setPriceRange] = React.useState<[number, number]>([0, 500]);
   const [sortBy, setSortBy] = React.useState<"newest" | "price-asc" | "price-desc" | "views">("newest");
-  const [searchQuery, setSearchQuery] = React.useState("");
   const [visibleCount, setVisibleCount] = React.useState<number>(16);
+  const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
+
+  // Accordion State for category groups
+  const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
+    aroid: true,
+    flowering: false,
+    "tree-ficus": false,
+    "cactus-etc": false,
+    inventory: false,
+  });
+
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
+
+  const toggleCategory = (catId: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(catId) ? prev.filter((c) => c !== catId) : [...prev, catId]
+    );
+    setVisibleCount(16);
+  };
+
+  const toggleTrans = (t: string) => {
+    setSelectedTrans((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]));
+    setVisibleCount(16);
+  };
+
+  const toggleDelivery = (d: string) => {
+    setSelectedDelivery((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
+    setVisibleCount(16);
+  };
+
+  const resetAllFilters = () => {
+    setSearchTerm("");
+    setSelectedCategories([]);
+    setSelectedTrans([]);
+    setSelectedDelivery([]);
+    setItemTypeFilter("ALL");
+    setPriceRange([0, 500]);
+    setVisibleCount(16);
+  };
 
   // Shop Profile State
   const [shop, setShop] = React.useState<any>({
-    id: "usr-1",
+    id: "usr-shop",
     customSlug: slug,
-    shopName: slug === "tamarbustan" ? "თამარ ბოტანიკა (Tamar Botanica)" : `მცენარეთა მაღაზია @${slug}`,
+    shopName: slug === "tamarbustan" ? "თამარ ბოტანიკა" : `@${slug}`,
     bio: "იშვიათი ოთახის მცენარეების, აროიდების, მონსტერების და პრემიუმ სუბსტრატების ორანჟერეა.",
     avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
     bannerUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
@@ -101,14 +265,23 @@ export default function ShopStorefrontPage({
     phone: "+995 599 12 34 56",
     whatsapp: "+995599123456",
     rating: 5.0,
-    totalReviews: 1,
-    badges: ["Trusted Seller", "Green Thumb", "Verified Shop"],
-    tier: "TIER_1",
+    totalReviews: 8,
+    badges: ["Verified Shop", "Trusted Seller", "Green Thumb"],
+    tier: "TIER_2",
   });
 
-  const [shopListings, setShopListings] = React.useState<any[]>(() =>
-    SAMPLE_LISTINGS.filter((l) => l.seller.customSlug === slug || l.seller.id === "usr-1")
-  );
+  const [shopListings, setShopListings] = React.useState<ExtendedListingCardProps[]>(() => {
+    return SAMPLE_LISTINGS.map((l, index) => ({
+      ...l,
+      id: `${slug}-${l.id}`,
+      seller: {
+        ...l.seller,
+        id: "usr-shop",
+        fullName: slug === "tamarbustan" ? "თამარ ბოტანიკა" : `@${slug}`,
+        customSlug: slug,
+      },
+    }));
+  });
 
   React.useEffect(() => {
     async function loadShopData() {
@@ -128,11 +301,20 @@ export default function ShopStorefrontPage({
           profile = pById;
         }
 
+        if (!profile) {
+          const { data: pByEmail } = await supabase
+            .from("profiles")
+            .select("*")
+            .ilike("email", `${slug}%`)
+            .maybeSingle();
+          profile = pByEmail;
+        }
+
         if (profile) {
-          setShop({
+          const currentShopData = {
             id: profile.id,
             customSlug: profile.custom_slug || slug,
-            shopName: profile.full_name || `მაღაზია @${slug}`,
+            shopName: profile.full_name || `@${slug}`,
             bio: profile.bio || "ჯანსაღი და ხარისხიანი მცენარეები.",
             avatarUrl: profile.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
             bannerUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
@@ -145,7 +327,8 @@ export default function ShopStorefrontPage({
             badges: ["Verified Shop", "Community Member"],
             tier: profile.subscription_tier || "FREE",
             isOnVacation: profile.is_on_vacation || false,
-          });
+          };
+          setShop(currentShopData);
 
           const { data: dbListings } = await supabase
             .from("listings")
@@ -156,6 +339,20 @@ export default function ShopStorefrontPage({
 
           if (dbListings && dbListings.length > 0) {
             setShopListings(dbListings.map((row) => formatDbListing(row, profile)));
+          } else {
+            // Populate demo listings for rich interactive storefront showcase
+            setShopListings(
+              SAMPLE_LISTINGS.map((l) => ({
+                ...l,
+                id: `${slug}-${l.id}`,
+                seller: {
+                  ...l.seller,
+                  id: profile.id,
+                  fullName: currentShopData.shopName,
+                  customSlug: slug,
+                },
+              }))
+            );
           }
         }
       } catch (e) {
@@ -165,26 +362,62 @@ export default function ShopStorefrontPage({
     loadShopData();
   }, [slug, supabase]);
 
+  const countByCategory = (catId: string) =>
+    shopListings.filter((l) => l.plantCategory === catId).length;
+
+  const plantsCount = React.useMemo(
+    () => shopListings.filter((l) => l.itemType === "PLANT").length,
+    [shopListings]
+  );
+  const inventoryCount = React.useMemo(
+    () => shopListings.filter((l) => l.itemType === "INVENTORY").length,
+    [shopListings]
+  );
+
+  const activeFilterCount =
+    (searchTerm.trim() ? 1 : 0) +
+    selectedCategories.length +
+    selectedTrans.length +
+    selectedDelivery.length +
+    (itemTypeFilter !== "ALL" ? 1 : 0) +
+    (priceRange[0] > 0 || priceRange[1] < 500 ? 1 : 0);
+
   const filteredAndSortedListings = React.useMemo(() => {
     let result = shopListings.filter((l) => {
-      if (activeCategory === "trade") {
-        if (l.transactionType !== "TRADE") return false;
-      } else if (activeCategory === "plants-indoor" || activeCategory === "plants-rare" || activeCategory === "plants-cuttings") {
-        if (l.itemType !== "PLANT") return false;
-      } else if (activeCategory.startsWith("inv-")) {
-        if (l.itemType !== "INVENTORY") return false;
-      } else if (activeCategory === "PLANT" && l.itemType !== "PLANT") {
-        return false;
-      } else if (activeCategory === "INVENTORY" && l.itemType !== "INVENTORY") {
-        return false;
-      }
+      // 1. Item Type Filter (ALL / PLANT / INVENTORY)
+      if (itemTypeFilter === "PLANT" && l.itemType !== "PLANT") return false;
+      if (itemTypeFilter === "INVENTORY" && l.itemType !== "INVENTORY") return false;
 
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
+      // 2. Keyword Search
+      if (searchTerm.trim()) {
+        const q = searchTerm.toLowerCase();
         const matchTitle = (l.title || "").toLowerCase().includes(q);
         const matchDesc = (l.descriptionKa || "").toLowerCase().includes(q);
         if (!matchTitle && !matchDesc) return false;
       }
+
+      // 3. Category Filter
+      if (selectedCategories.length > 0) {
+        if (!selectedCategories.includes(l.plantCategory as string)) return false;
+      }
+
+      // 4. Transaction Type
+      if (selectedTrans.length > 0) {
+        if (!selectedTrans.includes(l.transactionType)) return false;
+      }
+
+      // 5. Delivery Methods
+      if (selectedDelivery.length > 0) {
+        const hasDelivery = l.deliveryMethods?.some((d) => selectedDelivery.includes(d));
+        if (!hasDelivery) return false;
+      }
+
+      // 6. Price Range
+      const p = l.price ?? 0;
+      if (l.transactionType !== "GIFT" && (p < priceRange[0] || p > priceRange[1])) {
+        return false;
+      }
+
       return true;
     });
 
@@ -194,24 +427,251 @@ export default function ShopStorefrontPage({
       if (sortBy === "views") return (b.viewsCount || 0) - (a.viewsCount || 0);
       return 0;
     });
-  }, [shopListings, activeCategory, searchQuery, sortBy]);
+  }, [shopListings, itemTypeFilter, searchTerm, selectedCategories, selectedTrans, selectedDelivery, priceRange, sortBy]);
 
   const copyShopLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
-  const SHOP_CATEGORIES = [
-    { id: "all", labelKa: "ყველა", labelEn: "All" },
-    { id: "plants-indoor", labelKa: "ოთახის მცენარეები", labelEn: "Indoor Plants", icon: Sprout },
-    { id: "plants-rare", labelKa: "იშვიათი & აროიდები", labelEn: "Rare & Aroids", icon: Flame },
-    { id: "plants-cuttings", labelKa: "კალმები & ფესვიანები", labelEn: "Cuttings", icon: Sprout },
-    { id: "inv-pots", labelKa: "ქოთნები & დეკორი", labelEn: "Pots & Planters", icon: Layers },
-    { id: "inv-soil", labelKa: "გრუნტი & სუბსტრატები", labelEn: "Soil & Substrates", icon: Layers },
-    { id: "inv-care", labelKa: "სასუქები & მოვლა", labelEn: "Fertilizers & Care", icon: Layers },
-    { id: "trade", labelKa: "მხოლოდ გაცვლა", labelEn: "Trade Only", icon: RefreshCw },
-  ];
+  const SidebarContent = (
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-border/70">
+        <div className="flex items-center gap-2">
+          <SlidersHorizontal className="w-4 h-4 text-primary" />
+          <span className="text-sm font-black text-foreground">
+            {isKa ? "ფილტრები" : "Filters"}
+          </span>
+          {activeFilterCount > 0 && (
+            <span className="w-5 h-5 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
+        </div>
+        {activeFilterCount > 0 && (
+          <button
+            onClick={resetAllFilters}
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary font-semibold transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>{isKa ? "გასუფთავება" : "Reset"}</span>
+          </button>
+        )}
+      </div>
+
+      {/* 🔍 Search Keyword */}
+      <FilterSection title={isKa ? "საძიებო სიტყვა" : "Keyword Search"}>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder={isKa ? "მონსტერა, ქოთანი, ფიკუსი..." : "Monstera, Pot, Ficus..."}
+            className="w-full pl-9 pr-8 py-2 rounded-[12px] border border-input bg-background text-xs sm:text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+      </FilterSection>
+
+      {/* 💰 Price Range */}
+      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true}>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-2.5">
+            <div className="relative flex-1">
+              <input
+                type="number"
+                value={priceRange[0]}
+                onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                className="w-full pl-7 pr-2 py-2 rounded-[10px] border border-input bg-background text-xs sm:text-sm font-bold text-center"
+                min={0}
+                max={priceRange[1]}
+              />
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">
+                {isKa ? "დან" : "From"}
+              </span>
+            </div>
+            <span className="text-muted-foreground font-bold text-xs">—</span>
+            <div className="relative flex-1">
+              <input
+                type="number"
+                value={priceRange[1]}
+                onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                className="w-full pl-7 pr-2 py-2 rounded-[10px] border border-input bg-background text-xs sm:text-sm font-bold text-center"
+                min={priceRange[0]}
+                max={1000}
+              />
+              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-muted-foreground">
+                {isKa ? "მდე" : "To"}
+              </span>
+            </div>
+            <span className="text-sm font-black text-primary">₾</span>
+          </div>
+
+          <div className="flex flex-wrap gap-1.5 pt-0.5">
+            {[[0, 30], [0, 100], [0, 200], [0, 500]].map(([min, max]) => (
+              <button
+                key={`${min}-${max}`}
+                onClick={() => setPriceRange([min, max])}
+                className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-all cursor-pointer ${
+                  priceRange[0] === min && priceRange[1] === max
+                    ? "bg-primary text-white shadow-2xs"
+                    : "bg-secondary-container text-foreground hover:bg-secondary-container/80"
+                }`}
+              >
+                {min === 0 ? `≤ ${max} ₾` : `${min}–${max} ₾`}
+              </button>
+            ))}
+          </div>
+        </div>
+      </FilterSection>
+
+      {/* Transaction Type */}
+      <FilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
+        <div className="grid grid-cols-1 gap-2">
+          {[
+            { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
+            { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
+            { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Trade Only" },
+            { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
+          ].map((t) => {
+            const active = selectedTrans.includes(t.id);
+            const count = shopListings.filter((l) => l.transactionType === t.id).length;
+            return (
+              <button
+                key={t.id}
+                onClick={() => toggleTrans(t.id)}
+                className={`flex items-center justify-between px-3.5 py-2.5 rounded-[12px] border text-left transition-all cursor-pointer ${
+                  active
+                    ? "border-primary bg-primary text-white font-bold shadow-sm"
+                    : "border-border/70 bg-card hover:bg-surface-container/60 text-foreground font-semibold"
+                }`}
+              >
+                <span className="text-xs sm:text-sm">{t.label}</span>
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
+                  active ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* Delivery Methods — Placed Right After Transaction Type */}
+      <FilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={true}>
+        <div className="space-y-1.5">
+          {[
+            { id: "PICKUP", label: isKa ? "📍 ადგილზე გატანა" : "📍 Local Pickup" },
+            { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier Delivery" },
+            { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო ტრანსპორტი" : "🚐 Intercity Transport" },
+          ].map((d) => {
+            const active = selectedDelivery.includes(d.id);
+            return (
+              <button
+                key={d.id}
+                onClick={() => toggleDelivery(d.id)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[12px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
+                  active
+                    ? "bg-primary/10 text-primary font-bold border border-primary/30"
+                    : "text-foreground hover:bg-surface-container border border-border/50 bg-card"
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-[6px] border flex items-center justify-center shrink-0 ${
+                  active ? "bg-primary border-primary text-white" : "border-border"
+                }`}>
+                  {active && <Check className="w-3 h-3" />}
+                </div>
+                <span className="font-semibold">{d.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* Categories */}
+      <FilterSection title={isKa ? "კატეგორიები" : "Categories"}>
+        <div className="space-y-2">
+          {PLANT_CATEGORY_GROUPS.map((group) => {
+            const Icon = group.icon;
+            const groupTotal = group.children.reduce(
+              (sum, c) => sum + countByCategory(c.id),
+              0
+            );
+            if (groupTotal === 0) return null;
+            const isGroupOpen = openGroups[group.id] ?? false;
+            const groupLabel = isKa ? group.labelKa : group.labelEn;
+
+            return (
+              <div key={group.id} className="border-b border-border/40 pb-2 last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  className="w-full flex items-center justify-between py-2 px-2 rounded-[10px] text-left hover:bg-surface-container/60 transition-colors cursor-pointer"
+                >
+                  <div className={`flex items-center gap-2 ${group.color}`}>
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="text-sm font-bold text-foreground">{groupLabel}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-muted-foreground bg-secondary-container px-2 py-0.5 rounded-full">
+                      {groupTotal}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isGroupOpen ? "rotate-180" : ""}`} />
+                  </div>
+                </button>
+
+                {isGroupOpen && (
+                  <div className="space-y-1 mt-1 pl-2">
+                    {group.children.map((cat) => {
+                      const count = countByCategory(cat.id);
+                      if (count === 0) return null;
+                      const isActive = selectedCategories.includes(cat.id);
+                      const catLabel = isKa ? cat.labelKa : cat.labelEn;
+
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => toggleCategory(cat.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
+                            isActive
+                              ? "bg-primary text-white font-bold shadow-sm"
+                              : "text-foreground hover:bg-surface-container font-medium"
+                          }`}
+                        >
+                          <span className="flex items-center gap-2 pr-2">
+                            <span className="text-base shrink-0">{cat.emoji}</span>
+                            <span className="break-words">{catLabel}</span>
+                          </span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-auto ${
+                            isActive ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                          }`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </FilterSection>
+    </div>
+  );
 
   return (
     <div className="min-h-screen pb-16">
@@ -237,11 +697,13 @@ export default function ShopStorefrontPage({
       </div>
 
       {/* 2. Shop Identity & Info Container */}
-      <div className="container mx-auto px-4 sm:px-6 -mt-16 relative z-10 space-y-4">
+      <div className="container mx-auto px-4 sm:px-6 -mt-16 relative z-10 space-y-6 max-w-7xl">
         {/* Vacation Mode Banner */}
         {shop.isOnVacation && (
           <div className="rounded-2xl bg-amber-500/15 border border-amber-500/30 p-4 text-amber-800 dark:text-amber-300 text-xs sm:text-sm font-bold flex items-center gap-3 shadow-md backdrop-blur-md animate-in fade-in">
-            <span className="text-2xl">🏖️</span>
+            <span className="text-sm font-black uppercase tracking-wider bg-amber-500/20 px-2.5 py-1 rounded-md">
+              {isKa ? "შვებულება" : "Vacation"}
+            </span>
             <div>
               <p className="font-extrabold text-foreground">
                 {isKa ? "მაღაზია დროებით იმყოფება შვებულებაში" : "Store is currently on vacation mode"}
@@ -280,7 +742,7 @@ export default function ShopStorefrontPage({
 
                 <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                   <span className="flex items-center gap-1 font-semibold text-emerald-600">
-                    <MapPin className="w-3.5 h-3.5" /> {shop.city}, {shop.address}
+                    <MapPin className="w-3.5 h-3.5" /> {shop.city} {shop.address && `• ${shop.address}`}
                   </span>
                   <span>•</span>
                   <div className="flex items-center gap-1 font-bold text-amber-500">
@@ -341,7 +803,7 @@ export default function ShopStorefrontPage({
               <Button
                 variant="ghost"
                 onClick={copyShopLink}
-                className="w-full rounded-2xl text-xs font-bold h-10 gap-1.5 text-muted-foreground"
+                className="w-full rounded-2xl text-xs font-bold h-10 gap-1.5 text-muted-foreground cursor-pointer"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
                 <span>{copied ? (isKa ? "ლინკი დაკოპირდა!" : "Link Copied!") : (isKa ? "მაღაზიის გაზიარება" : "Share Shop")}</span>
@@ -350,125 +812,217 @@ export default function ShopStorefrontPage({
           </div>
         </div>
 
-        {/* 3. Shop Catalog & Inventory Feed */}
-        <div className="mt-10 space-y-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg sm:text-xl font-extrabold text-foreground flex items-center gap-2">
-                <Store className="w-5 h-5 text-primary" />
-                {isKa ? "მაღაზიის ასორტიმენტი" : "Shop Assortment"}
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {isKa 
-                  ? `სულ ${filteredAndSortedListings.length} აქტიური განცხადება`
-                  : `${filteredAndSortedListings.length} Active Listings`}
-              </p>
-            </div>
-
-            {/* Sorting Control Pills */}
-            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary-container/60 border border-border/60 shrink-0">
+        {/* 3. Shop Catalog & Inventory Feed with Full Filter System */}
+        <div className="space-y-5 pt-4">
+          {/* Top Toolbar: Switcher Tabs + Mobile Filter Button + Sorting */}
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            {/* Item Type Switcher Tabs */}
+            <div className="flex items-center gap-1.5 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-fit">
               <button
                 type="button"
-                onClick={() => setSortBy("newest")}
-                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
-                  sortBy === "newest"
+                onClick={() => {
+                  setItemTypeFilter("ALL");
+                  setVisibleCount(16);
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+                  itemTypeFilter === "ALL"
                     ? "bg-primary text-white shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {isKa ? "უახლესი" : "Newest"}
+                <span>{isKa ? "ყველა" : "All"}</span>
+                <span className="text-[10px] opacity-80 font-mono">({shopListings.length})</span>
               </button>
+
               <button
                 type="button"
-                onClick={() => setSortBy("views")}
-                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
-                  sortBy === "views"
+                onClick={() => {
+                  setItemTypeFilter("PLANT");
+                  setVisibleCount(16);
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+                  itemTypeFilter === "PLANT"
                     ? "bg-primary text-white shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                {isKa ? "პოპულარული" : "Popular"}
+                <span>{isKa ? "მცენარეები" : "Plants"}</span>
+                <span className="text-[10px] opacity-80 font-mono">({plantsCount})</span>
               </button>
+
               <button
                 type="button"
-                onClick={() => setSortBy(sortBy === "price-asc" ? "price-desc" : "price-asc")}
-                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                  sortBy.startsWith("price")
+                onClick={() => {
+                  setItemTypeFilter("INVENTORY");
+                  setVisibleCount(16);
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+                  itemTypeFilter === "INVENTORY"
                     ? "bg-primary text-white shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
-                title={isKa ? "ფასით სორტირება (დაკლიკეთ მიმართულების შესაცვლელად)" : "Sort by price"}
               >
-                <span>{isKa ? "ფასი" : "Price"}</span>
-                <ArrowUpDown className="w-3 h-3" />
-                {sortBy === "price-asc" && <span className="text-[10px] font-black">↑</span>}
-                {sortBy === "price-desc" && <span className="text-[10px] font-black">↓</span>}
+                <span>{isKa ? "ინვენტარი" : "Inventory"}</span>
+                <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
               </button>
             </div>
-          </div>
 
-          {/* Full Marketplace Category Filter Bar */}
-          <div className="w-full overflow-x-auto no-scrollbar py-1">
-            <div className="flex items-center gap-2 min-w-max">
-              {SHOP_CATEGORIES.map((cat) => {
-                const Icon = cat.icon;
-                const isSelected = activeCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => {
-                      setActiveCategory(cat.id);
-                      setVisibleCount(16);
-                    }}
-                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
-                      isSelected
-                        ? "bg-primary text-white shadow-lg scale-[1.02]"
-                        : "bg-secondary-container/70 hover:bg-secondary-container text-foreground border border-border/40 hover:border-primary/30"
-                    }`}
-                  >
-                    {Icon && <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-primary"}`} />}
-                    <span>{isKa ? cat.labelKa : cat.labelEn}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+            {/* Mobile Filter Button */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
+                className="lg:hidden flex items-center gap-2 px-3.5 py-2 rounded-[14px] bg-card border border-border/80 text-foreground font-bold text-xs shadow-xs cursor-pointer"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                <span>{isKa ? "ფილტრები" : "Filters"}</span>
+                {activeFilterCount > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
 
-          {/* 4-Column Grid: 4 columns x 4 rows = 16 items per view */}
-          {filteredAndSortedListings.length > 0 ? (
-            <div className="space-y-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
-                {filteredAndSortedListings.slice(0, visibleCount).map((listing) => (
-                  <ListingCard key={listing.id} {...listing} variant="compact" />
-                ))}
+              {/* Sorting Pills */}
+              <div className="flex items-center gap-1 p-1 rounded-xl bg-secondary-container/60 border border-border/60 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setSortBy("newest")}
+                  className={`px-3 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                    sortBy === "newest"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {isKa ? "უახლესი" : "Newest"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy("views")}
+                  className={`px-3 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                    sortBy === "views"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {isKa ? "პოპულარული" : "Popular"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSortBy(sortBy === "price-asc" ? "price-desc" : "price-asc")}
+                  className={`px-3 py-1 rounded-[8px] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    sortBy.startsWith("price")
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <span>{isKa ? (sortBy === "price-desc" ? "ფასი ↓" : "ფასი ↑") : (sortBy === "price-desc" ? "Price ↓" : "Price ↑")}</span>
+                </button>
               </div>
+            </div>
+          </div>
 
-              {/* Load More Button */}
-              {visibleCount < filteredAndSortedListings.length && (
-                <div className="flex justify-center pt-4">
+          {/* Active Filter Badges */}
+          {(selectedCategories.length > 0 || selectedTrans.length > 0 || selectedDelivery.length > 0 || searchTerm.trim()) && (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {searchTerm.trim() && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+                  <span>"{searchTerm}"</span>
+                  <button onClick={() => setSearchTerm("")} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                </span>
+              )}
+              {selectedCategories.map((catId) => {
+                const cat = PLANT_CATEGORY_GROUPS.flatMap((g) => g.children).find((c) => c.id === catId);
+                return cat ? (
+                  <span key={catId} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-primary/10 text-primary text-xs font-bold border border-primary/20">
+                    {cat.emoji} {isKa ? cat.labelKa : cat.labelEn}
+                    <button onClick={() => toggleCategory(catId)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                  </span>
+                ) : null;
+              })}
+              {selectedTrans.map((t) => (
+                <span key={t} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-amber-500/15 text-amber-900 dark:text-amber-200 text-xs font-bold border border-amber-500/30">
+                  {t === "FIXED" ? (isKa ? "ფიქსირებული" : "Fixed") : t === "NEGOTIABLE" ? (isKa ? "შეთანხმებით" : "Negotiable") : (isKa ? "გაცვლა" : "Trade")}
+                  <button onClick={() => toggleTrans(t)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                </span>
+              ))}
+              {selectedDelivery.map((d) => (
+                <span key={d} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-teal-500/15 text-teal-900 dark:text-teal-200 text-xs font-bold border border-teal-500/30">
+                  {d === "COURIER" ? (isKa ? "🚚 კურიერი" : "🚚 Courier") : d === "MARSHRUTKA" ? (isKa ? "🚐 სამარშრუტო" : "🚐 Intercity") : (isKa ? "📍 ადგილზე" : "📍 Pickup")}
+                  <button onClick={() => toggleDelivery(d)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Mobile Filter Drawer */}
+          {mobileFilterOpen && (
+            <div className="lg:hidden mb-6 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient-lg relative z-30">
+              <div className="flex items-center justify-between mb-3.5">
+                <span className="text-base font-bold text-foreground">{isKa ? "ფილტრები" : "Filters"}</span>
+                <button onClick={() => setMobileFilterOpen(false)} className="p-1 rounded-[8px] hover:bg-surface-container cursor-pointer">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+              {SidebarContent}
+            </div>
+          )}
+
+          {/* Main Layout: Sidebar on Left (Desktop) + 4-Column Grid on Right */}
+          <div className="flex gap-6 lg:gap-7">
+            {/* Sidebar — Desktop */}
+            <aside className="hidden lg:block w-76 sm:w-80 shrink-0 relative z-30">
+              <div className="sticky top-20 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient">
+                {SidebarContent}
+              </div>
+            </aside>
+
+            {/* Results Column: 4 Columns x 4 Rows = 16 Items */}
+            <div className="flex-1 min-w-0">
+              {filteredAndSortedListings.length > 0 ? (
+                <div className="space-y-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+                    {filteredAndSortedListings.slice(0, visibleCount).map((listing) => (
+                      <ListingCard key={listing.id} {...listing} variant="compact" />
+                    ))}
+                  </div>
+
+                  {/* Load More Button */}
+                  {visibleCount < filteredAndSortedListings.length && (
+                    <div className="flex justify-center pt-4">
+                      <Button
+                        type="button"
+                        onClick={() => setVisibleCount((prev) => prev + 16)}
+                        className="px-8 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer shadow-ambient"
+                      >
+                        {isKa 
+                          ? `მეტის ნახვა (დარჩენილია ${filteredAndSortedListings.length - visibleCount})` 
+                          : `Load More (${filteredAndSortedListings.length - visibleCount} remaining)`}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border/80">
+                  <Sprout className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                  <h3 className="text-base font-bold text-foreground">
+                    {isKa ? "განცხადებები არ მოიძებნა" : "No listings found"}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {isKa ? "სცადეთ სხვა კატეგორია ან გაასუფთავეთ ფილტრი" : "Try selecting another category or reset filters"}
+                  </p>
                   <Button
-                    type="button"
-                    onClick={() => setVisibleCount((prev) => prev + 16)}
-                    className="px-8 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer shadow-ambient"
+                    variant="outline"
+                    size="sm"
+                    onClick={resetAllFilters}
+                    className="mt-4 rounded-xl text-xs font-bold cursor-pointer"
                   >
-                    {isKa 
-                      ? `მეტის ნახვა (დარჩენილია ${filteredAndSortedListings.length - visibleCount})` 
-                      : `Load More (${filteredAndSortedListings.length - visibleCount} remaining)`}
+                    {isKa ? "ფილტრების გასუფთავება" : "Reset Filters"}
                   </Button>
                 </div>
               )}
             </div>
-          ) : (
-            <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border/80">
-              <Sprout className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
-              <h3 className="text-base font-bold text-foreground">
-                {isKa ? "განცხადებები არ მოიძებნა" : "No listings found"}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                {isKa ? "სცადეთ სხვა კატეგორია ან ფილტრი" : "Try selecting another category or filter"}
-              </p>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </div>
