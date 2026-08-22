@@ -114,8 +114,17 @@ export default function EditListingPage() {
 
   const [city, setCity] = React.useState("თბილისი");
   const [address, setAddress] = React.useState("");
+  const [contactPhone, setContactPhone] = React.useState("");
+  const [syncPhoneWithProfile, setSyncPhoneWithProfile] = React.useState(true);
   const [status, setStatus] = React.useState<"ACTIVE" | "HIDDEN">("ACTIVE");
   
+  // Botanical Care State
+  const [botanicalName, setBotanicalName] = React.useState("");
+  const [wateringSchedule, setWateringSchedule] = React.useState("Weekly (კვირაში 1-ხელ)");
+  const [lightRequirement, setLightRequirement] = React.useState("Bright Indirect (კაშკაშა გაფანტული)");
+  const [careDifficulty, setCareDifficulty] = React.useState<"Easy" | "Medium" | "Expert">("Easy");
+  const [toxicity, setToxicity] = React.useState("");
+
   const [deliveryMethods, setDeliveryMethods] = React.useState<string[]>(["PICKUP"]);
   const [tagInput, setTagInput] = React.useState("");
   const [tradeTags, setTradeTags] = React.useState<string[]>([]);
@@ -272,6 +281,12 @@ export default function EditListingPage() {
 
         setCity(listingData.city || "თბილისი");
         setAddress(listingData.address || "");
+        setContactPhone(listingData.contact_phone || listingData.seller?.phone || "");
+        setBotanicalName(listingData.botanical_name || "");
+        setWateringSchedule(listingData.watering_schedule || "Weekly (კვირაში 1-ხელ)");
+        setLightRequirement(listingData.light_requirement || "Bright Indirect (კაშკაშა გაფანტული)");
+        setCareDifficulty(listingData.care_difficulty || "Easy");
+        setToxicity(listingData.toxicity || "");
         setStatus(listingData.status === "HIDDEN" ? "HIDDEN" : "ACTIVE");
         setDeliveryMethods(listingData.delivery_methods || ["PICKUP"]);
         setTradeTags(listingData.trade_preferences || listingData.trade_tags || []);
@@ -418,6 +433,13 @@ export default function EditListingPage() {
         inventory_category: itemType === "INVENTORY" ? plantCategory : null,
         city: city,
         address: address.trim(),
+        contact_phone: contactPhone.trim() || null,
+        botanical_name: botanicalName.trim() || null,
+        common_name: titleKa.trim() || null,
+        watering_schedule: wateringSchedule || null,
+        light_requirement: lightRequirement || null,
+        care_difficulty: careDifficulty || null,
+        toxicity: toxicity.trim() || null,
         delivery_methods: deliveryMethods,
         trade_preferences: transactionType === "TRADE" ? tradeTags : [],
         images: finalImages,
@@ -457,6 +479,14 @@ export default function EditListingPage() {
           setSavedId(newRow.id);
           router.replace(`/dashboard/listings/${newRow.id}/edit`);
         }
+      }
+
+      // Sync phone to profile if checked
+      if (syncPhoneWithProfile && contactPhone.trim() && currentUser?.id) {
+        await supabase.from("profiles").update({
+          phone: contactPhone.trim(),
+          updated_at: new Date().toISOString()
+        }).eq("id", currentUser.id);
       }
 
       setSavedId(savedListingId);
@@ -796,6 +826,88 @@ export default function EditListingPage() {
           </div>
         </div>
 
+        {/* 3.1 Botanical Care & Characteristics */}
+        {itemType === "PLANT" && (
+          <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Sprout className="w-4 h-4 text-primary" />
+              ბოტანიკური მახასიათებლები & მოვლა
+            </label>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  ლათინური ბოტანიკური სახელი
+                </label>
+                <Input
+                  value={botanicalName}
+                  onChange={(e) => setBotanicalName(e.target.value)}
+                  placeholder="მაგ: Monstera deliciosa"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  💧 მორწყვის გრაფიკი
+                </label>
+                <Input
+                  value={wateringSchedule}
+                  onChange={(e) => setWateringSchedule(e.target.value)}
+                  placeholder="მაგ: Weekly (კვირაში 1-ხელ)"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  ☀️ განათების მოთხოვნა
+                </label>
+                <Input
+                  value={lightRequirement}
+                  onChange={(e) => setLightRequirement(e.target.value)}
+                  placeholder="მაგ: Bright Indirect (კაშკაშა გაფანტული)"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  🌱 მოვლის სირთულე
+                </label>
+                <div className="grid grid-cols-3 gap-1.5 h-10">
+                  {(["Easy", "Medium", "Expert"] as const).map((lvl) => (
+                    <button
+                      key={lvl}
+                      type="button"
+                      onClick={() => setCareDifficulty(lvl)}
+                      className={`rounded-[10px] text-xs font-bold transition-all cursor-pointer ${
+                        careDifficulty === lvl
+                          ? "bg-primary text-white shadow-2xs"
+                          : "bg-muted/40 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {lvl === "Easy" ? "მარტივი" : lvl === "Medium" ? "საშუალო" : "რთული"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  🐾 ტოქსიკურობა (შინაური ცხოველების უსაფრთხოება)
+                </label>
+                <Input
+                  value={toxicity}
+                  onChange={(e) => setToxicity(e.target.value)}
+                  placeholder="მაგ: არატოქსიკურია / ტოქსიკურია კატებისთვის"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 4. Transaction Type & Price */}
         <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
           <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
@@ -1013,6 +1125,35 @@ export default function EditListingPage() {
                   </button>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Contact Phone */}
+          <div className="border-t border-border/50 pt-3">
+            <span className="text-xs font-bold text-foreground mb-1 block">
+              📱 საკონტაქტო ნომერი *
+            </span>
+            <Input
+              type="tel"
+              required
+              value={contactPhone}
+              onChange={(e) => setContactPhone(e.target.value)}
+              placeholder="მაგ: +995 555 123 456"
+              className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
+            />
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mt-2">
+              <p className="text-[10px] text-muted-foreground">
+                გამოჩნდება განცხადებაზე — დაინტერესებულები ამ ნომრით დაგიკავშირდებიან.
+              </p>
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-primary cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={syncPhoneWithProfile}
+                  onChange={(e) => setSyncPhoneWithProfile(e.target.checked)}
+                  className="rounded-[4px] text-primary focus:ring-primary h-3.5 w-3.5 accent-emerald-600"
+                />
+                <span>შენახვა ჩემს ძირითად პროფილშიც</span>
+              </label>
             </div>
           </div>
         </div>

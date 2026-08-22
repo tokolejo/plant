@@ -26,7 +26,8 @@ import {
   Package,
   Gift,
   Search,
-  X
+  X,
+  User
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -170,11 +171,17 @@ export default function UserDashboardPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Link href="/dashboard/profile">
+            <Button variant="outline" size="sm" className="rounded-[14px] text-xs font-bold h-10 px-3.5 gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer">
+              <User className="w-4 h-4 text-primary" />
+              პროფილი
+            </Button>
+          </Link>
           <Link href="/pricing">
-            <Button variant="outline" size="sm" className="rounded-[14px] text-xs font-semibold h-10 px-4 gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer">
+            <Button variant="outline" size="sm" className="rounded-[14px] text-xs font-semibold h-10 px-3.5 gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer">
               <Crown className="w-4 h-4 text-amber-500" />
-              ტარიფის შეცვლა
+              ტარიფი
             </Button>
           </Link>
           <Link href="/dashboard/listings/new">

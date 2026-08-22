@@ -127,6 +127,7 @@ export default function CreateListingPage() {
   const [city, setCity] = React.useState("თბილისი");
   const [address, setAddress] = React.useState("");
   const [contactPhone, setContactPhone] = React.useState("");
+  const [syncPhoneWithProfile, setSyncPhoneWithProfile] = React.useState(true);
   
   const [deliveryMethods, setDeliveryMethods] = React.useState<string[]>(["PICKUP"]);
   const [tagInput, setTagInput] = React.useState("");
@@ -140,6 +141,25 @@ export default function CreateListingPage() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [uploadProgress, setUploadProgress] = React.useState<string>("");
   const [errorMsg, setErrorMsg] = React.useState("");
+
+  // Pre-fill contact phone and city from user profile
+  React.useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (user) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("phone, city, location")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (prof) {
+          if (prof.phone) setContactPhone(prof.phone);
+          if (prof.city) setCity(prof.city);
+          if (prof.location) setAddress(prof.location);
+        }
+      }
+    });
+  }, [supabase]);
 
   // Close category & tag autocomplete on outside click
   React.useEffect(() => {
@@ -306,6 +326,7 @@ export default function CreateListingPage() {
   const [wateringSchedule, setWateringSchedule] = React.useState("Weekly (კვირაში 1-ხელ)");
   const [lightRequirement, setLightRequirement] = React.useState("Bright Indirect (კაშკაშა გაფანტული)");
   const [careDifficulty, setCareDifficulty] = React.useState<"Easy" | "Medium" | "Expert">("Easy");
+  const [toxicity, setToxicity] = React.useState("");
   const [plantnetId, setPlantnetId] = React.useState("");
   const [confidenceScore, setConfidenceScore] = React.useState<number | null>(null);
 
@@ -344,17 +365,14 @@ export default function CreateListingPage() {
       setAiResult(result);
       setActiveProvider("plantnet");
 
-      // Auto-fill form fields
+      // Auto-fill form fields (EXCEPT category - category selection is strictly manual!)
       if (result.title_ka) setTitleKa(result.title_ka);
       if (result.title_en) setTitleEn(result.title_en);
-      if (result.category) {
-        setPlantCategory(result.category);
-        setItemType("PLANT");
-      }
       if (result.botanical_name) setBotanicalName(result.botanical_name);
       if (result.watering_schedule) setWateringSchedule(result.watering_schedule);
       if (result.light_requirement) setLightRequirement(result.light_requirement);
       if (result.care_difficulty) setCareDifficulty(result.care_difficulty);
+      if (result.toxicity) setToxicity(result.toxicity);
       if (result.plantnet_id) setPlantnetId(result.plantnet_id);
       if (result.confidence_score) setConfidenceScore(result.confidence_score);
       if (result.tags && Array.isArray(result.tags)) {
@@ -513,19 +531,27 @@ export default function CreateListingPage() {
         images: uploadedUrls,
         city,
         address: address.trim(),
+        contact_phone: contactPhone.trim() || null,
         trade_preferences: tradeTags,
         botanical_name: botanicalName.trim() || null,
+        common_name: titleKa.trim() || null,
         watering_schedule: wateringSchedule || null,
         light_requirement: lightRequirement || null,
         care_difficulty: careDifficulty || null,
+        toxicity: toxicity.trim() || null,
         plantnet_id: plantnetId || null,
       }).select().single();
 
       if (insertError) throw insertError;
 
-      // Save phone number to profile so it shows on listing page
-      if (contactPhone.trim()) {
-        await supabase.from("profiles").update({ phone: contactPhone.trim() }).eq("id", user.id);
+      // Sync phone and location to permanent profile if enabled
+      if (syncPhoneWithProfile && contactPhone.trim()) {
+        await supabase.from("profiles").update({ 
+          phone: contactPhone.trim(),
+          city: city || undefined,
+          location: address.trim() || undefined,
+          updated_at: new Date().toISOString()
+        }).eq("id", user.id);
       }
 
       router.push(`/listings/${data.id}`);
@@ -894,6 +920,18 @@ export default function CreateListingPage() {
                   ))}
                 </div>
               </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  🐾 ტოქსიკურობა (შინაური ცხოველების უსაფრთხოება)
+                </label>
+                <Input
+                  value={toxicity}
+                  onChange={(e) => setToxicity(e.target.value)}
+                  placeholder="მაგ: არატოქსიკურია / ტოქსიკურია კატებისთვის"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
             </div>
           </div>
         )}
@@ -1160,9 +1198,20 @@ export default function CreateListingPage() {
               placeholder="მაგ: +995 555 123 456"
               className="rounded-[14px] h-10 text-xs sm:text-sm font-medium"
             />
-            <p className="text-[10px] text-muted-foreground mt-1">
-              გამოჩნდება განცხადებაზე — დაინტერესებულები ამ ნომრით დაგიკავშირდებიან.
-            </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mt-2">
+              <p className="text-[10px] text-muted-foreground">
+                გამოჩნდება განცხადებაზე — დაინტერესებულები ამ ნომრით დაგიკავშირდებიან.
+              </p>
+              <label className="flex items-center gap-1.5 text-[11px] font-bold text-primary cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={syncPhoneWithProfile}
+                  onChange={(e) => setSyncPhoneWithProfile(e.target.checked)}
+                  className="rounded-[4px] text-primary focus:ring-primary h-3.5 w-3.5 accent-emerald-600"
+                />
+                <span>შენახვა ჩემს ძირითად პროფილშიც</span>
+              </label>
+            </div>
           </div>
         </div>
 
