@@ -212,9 +212,9 @@ export default function ShopStorefrontPage({
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
 
-  // Accordion State for category groups
+  // Accordion State for category groups — all groups collapsed by default
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
-    aroid: true,
+    aroid: false,
     flowering: false,
     "tree-ficus": false,
     "cactus-etc": false,

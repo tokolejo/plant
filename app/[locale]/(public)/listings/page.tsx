@@ -189,12 +189,6 @@ function ListingsCatalogContent() {
   React.useEffect(() => {
     if (categoryParam) {
       setSelectedCategories([categoryParam as any]);
-      const parentGroup = PLANT_CATEGORY_GROUPS.find((g) =>
-        g.children.some((c) => c.id === categoryParam)
-      );
-      if (parentGroup) {
-        setOpenGroups((prev) => ({ ...prev, [parentGroup.id]: true }));
-      }
     }
   }, [categoryParam]);
 
@@ -823,7 +817,6 @@ function ListingsCatalogContent() {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
             <span>{isKa ? "ყველა" : "All"}</span>
             <span className="text-[10px] opacity-80 font-mono">({allListings.length})</span>
           </button>
