@@ -86,6 +86,9 @@ const config: Config = {
           clay: "#c08552",
         },
       },
+      fontFamily: {
+        sans: ["'Google Sans'", "'Noto Sans Georgian'", "'Plus Jakarta Sans'", "'Inter'", "system-ui", "-apple-system", "sans-serif"],
+      },
       borderRadius: {
         "20px": "20px",
         "12px": "12px",
