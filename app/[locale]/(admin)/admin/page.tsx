@@ -1658,26 +1658,26 @@ export default function AdminDashboardPage() {
                         </div>
                       </td>
                       
-                      {/* Role & Status Badge */}
+                      {/* Role & Status Badge — High-Contrast & Legible */}
                       <td className="py-3 px-3">
                         {currentRole === "SUPER_ADMIN" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 text-[10px] font-black border border-purple-500/30">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-[10px] font-black border border-purple-300 dark:border-purple-800 shadow-2xs">
                             👑 SUPER ADMIN
                           </span>
                         ) : currentRole === "ADMIN" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-[10px] font-black border border-indigo-500/30">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 text-[10px] font-black border border-indigo-300 dark:border-indigo-800 shadow-2xs">
                             ⚡ ADMIN
                           </span>
                         ) : currentRole === "MODERATOR" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 text-[10px] font-black border border-blue-500/30">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 text-[10px] font-black border border-blue-300 dark:border-blue-800 shadow-2xs">
                             🛡️ MODERATOR
                           </span>
                         ) : currentRole === "VERIFIED_SELLER" ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-black border border-emerald-500/30">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-black border border-emerald-300 dark:border-emerald-800 shadow-2xs">
                             🌿 VERIFIED
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-muted-foreground text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold border border-slate-300 dark:border-slate-700 shadow-2xs">
                             👤 USER
                           </span>
                         )}
@@ -1685,7 +1685,7 @@ export default function AdminDashboardPage() {
 
                       {/* Subscription Tier Badge */}
                       <td className="py-3 px-3">
-                        <Badge variant="outline" className="text-[10px] font-bold">
+                        <Badge variant="outline" className="text-[10px] font-bold bg-background">
                           {user.tier}
                         </Badge>
                       </td>
@@ -1695,10 +1695,10 @@ export default function AdminDashboardPage() {
                         <select
                           value={currentRole}
                           onChange={(e) => updateUserRole(user.id, e.target.value)}
-                          className="py-1 px-2 rounded-lg border border-input text-[11px] bg-background font-semibold focus:outline-none focus:border-primary cursor-pointer hover:border-primary/50"
+                          className="py-1 px-2.5 rounded-[9px] border border-border/80 bg-background text-foreground text-[11px] font-bold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer hover:border-primary/50 shadow-2xs transition-colors"
                         >
                           <option value="USER">👤 USER (ჩვეულებრივი)</option>
-                          <option value="VERIFIED_SELLER">🌿 VERIFIED SELLER</option>
+                          <option value="VERIFIED_SELLER">🌿 VERIFIED (ვერიფიცირებული)</option>
                           <option value="MODERATOR">🛡️ MODERATOR (მოდერატორი)</option>
                           <option value="ADMIN">⚡ ADMIN (ადმინისტრატორი)</option>
                           <option value="SUPER_ADMIN">👑 SUPER ADMIN (სუპერ ადმინი)</option>
@@ -1710,7 +1710,7 @@ export default function AdminDashboardPage() {
                         <select
                           value={user.tier}
                           onChange={(e) => updateUserTier(user.id, e.target.value)}
-                          className="py-1 px-2 rounded-lg border border-input text-[11px] bg-background font-semibold focus:outline-none focus:border-primary cursor-pointer hover:border-primary/50"
+                          className="py-1 px-2.5 rounded-[9px] border border-border/80 bg-background text-foreground text-[11px] font-bold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer hover:border-primary/50 shadow-2xs transition-colors"
                         >
                           <option value="FREE">Free (5 განცხადება)</option>
                           <option value="TIER_1">Tier 1 - Collector (25 განცხადება)</option>
