@@ -25,6 +25,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { ThemeToggle } from "./ThemeToggle";
+import { NotificationDropdown } from "./NotificationDropdown";
+import { Heart, BarChart3 } from "lucide-react";
 
 export function Header() {
   const locale = useLocale();
@@ -156,6 +158,18 @@ export function Header() {
 
           {user ? (
             <>
+              {/* Notifications Dropdown */}
+              <NotificationDropdown />
+
+              {/* Wishlist Button */}
+              <Link
+                href="/dashboard/wishlist"
+                title={isKa ? "შენახული მცენარეები" : "Wishlist"}
+                className="flex items-center justify-center h-9 w-9 rounded-[14px] border border-border/80 bg-card hover:bg-surface-container text-muted-foreground hover:text-rose-500 transition-all cursor-pointer"
+              >
+                <Heart className="w-4 h-4" />
+              </Link>
+
               {/* + Quick Post Button for Authenticated Users (Clean Icon-Only) */}
               <Link
                 href="/dashboard/listings/new"
@@ -236,6 +250,18 @@ export function Header() {
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
                         <User className="w-4 h-4 text-primary" />
                         {isKa ? "კაბინეტი" : "Dashboard"}
+                      </Link>
+
+                      <Link href="/dashboard/seller" onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors">
+                        <BarChart3 className="w-4 h-4 text-emerald-600" />
+                        {isKa ? "📊 სელერის პორტალი" : "📊 Seller Portal"}
+                      </Link>
+
+                      <Link href="/dashboard/wishlist" onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
+                        <Heart className="w-4 h-4 text-rose-500" />
+                        {isKa ? "შენახული (Wishlist)" : "Wishlist"}
                       </Link>
 
                       <Link href="/dashboard/shop" onClick={() => setDropdownOpen(false)}

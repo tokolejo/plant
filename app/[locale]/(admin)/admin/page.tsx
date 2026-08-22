@@ -40,7 +40,14 @@ import {
   User,
   Clock,
   Sprout,
-  X
+  X,
+  Download,
+  Globe,
+  FileText,
+  Activity,
+  UserX,
+  CalendarPlus,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -56,7 +63,7 @@ export default function AdminDashboardPage() {
 
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "plans" | "analytics">("overview");
+  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "affiliate" | "audit" | "plans" | "analytics">("overview");
 
   // Admin Listings State
   const [listings, setListings] = React.useState<any[]>(SAMPLE_LISTINGS);
@@ -395,6 +402,202 @@ export default function AdminDashboardPage() {
   };
 
   // ──────────────────────────────────────────────
+  // Bulk Users State & Actions
+  // ──────────────────────────────────────────────
+  const [selectedUserIds, setSelectedUserIds] = React.useState<Set<string>>(new Set());
+  const [bulkUserLoading, setBulkUserLoading] = React.useState(false);
+
+  const toggleSelectAllUsers = () => {
+    if (selectedUserIds.size === users.length) {
+      setSelectedUserIds(new Set());
+    } else {
+      setSelectedUserIds(new Set(users.map((u: any) => u.id)));
+    }
+  };
+
+  const toggleSelectOneUser = (id: string) => {
+    setSelectedUserIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const bulkSuspendUsers = async () => {
+    if (selectedUserIds.size === 0) return;
+    const ids = Array.from(selectedUserIds).filter((id) => !id.startsWith("usr-"));
+    if (!confirm(`ნამდვილად გსურთ ${selectedUserIds.size} მომხმარებლის დაბლოკვა/გაყინვა?`)) return;
+
+    setBulkUserLoading(true);
+    try {
+      if (ids.length > 0) {
+        const { error } = await supabase.rpc("bulk_suspend_users", {
+          user_ids: ids,
+          reason: "Admin manual moderation",
+        });
+        if (error) throw error;
+      }
+      showNotice(`🚫 ${selectedUserIds.size} მომხმარებელი გაიყინა!`);
+      setSelectedUserIds(new Set());
+      loadAdminData();
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა: ${err.message}`);
+    } finally {
+      setBulkUserLoading(false);
+    }
+  };
+
+  const bulkExtendUsers = async (extraDays: number = 30) => {
+    if (selectedUserIds.size === 0) return;
+    const ids = Array.from(selectedUserIds).filter((id) => !id.startsWith("usr-"));
+    setBulkUserLoading(true);
+    try {
+      if (ids.length > 0) {
+        const { error } = await supabase.rpc("bulk_extend_subscription", {
+          user_ids: ids,
+          extra_days: extraDays,
+        });
+        if (error) throw error;
+      }
+      showNotice(`💎 ${selectedUserIds.size} მომხმარებელს გაუგრძელდა ტარიფი +${extraDays} დღით!`);
+      setSelectedUserIds(new Set());
+      loadAdminData();
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა: ${err.message}`);
+    } finally {
+      setBulkUserLoading(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // Affiliate Cross-Selling & Live Scraper State
+  // ──────────────────────────────────────────────
+  const [affiliateUrl, setAffiliateUrl] = React.useState("");
+  const [affiliatePartner, setAffiliatePartner] = React.useState("");
+  const [affiliateCommission, setAffiliateCommission] = React.useState("5");
+  const [scrapingAffiliate, setScrapingAffiliate] = React.useState(false);
+  const [scrapedPreview, setScrapedPreview] = React.useState<any>(null);
+  const [affiliateProducts, setAffiliateProducts] = React.useState<any[]>([]);
+  const [loadingAffiliates, setLoadingAffiliates] = React.useState(false);
+
+  const loadAffiliates = React.useCallback(async () => {
+    setLoadingAffiliates(true);
+    try {
+      const { data, error } = await supabase
+        .from("affiliate_products")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error && data) {
+        setAffiliateProducts(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingAffiliates(false);
+    }
+  }, [supabase]);
+
+  const handleScrapeAffiliate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!affiliateUrl.trim()) {
+      showNotice("❌ შეიყვანეთ პროდუქტის URL");
+      return;
+    }
+    setScrapingAffiliate(true);
+    setScrapedPreview(null);
+    try {
+      const res = await fetch("/api/affiliate/scrape", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: affiliateUrl.trim(),
+          partnerName: affiliatePartner.trim() || undefined,
+          commissionPct: parseFloat(affiliateCommission || "0"),
+          autoSave: false,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || "სკრეიპინგი ვერ შესრულდა");
+      setScrapedPreview(json.data);
+      showNotice("✅ პროდუქტის მონაცემები წარმატებით ამოღებულია!");
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა: ${err.message}`);
+    } finally {
+      setScrapingAffiliate(false);
+    }
+  };
+
+  const handleSaveAffiliate = async () => {
+    if (!scrapedPreview) return;
+    try {
+      const { data, error } = await supabase.from("affiliate_products").insert({
+        partner_name: scrapedPreview.partnerName,
+        product_name: scrapedPreview.productName,
+        description: scrapedPreview.description,
+        image_url: scrapedPreview.imageUrl,
+        product_url: scrapedPreview.productUrl,
+        price: scrapedPreview.price,
+        currency: scrapedPreview.currency || "GEL",
+        commission_pct: scrapedPreview.commissionPct || 0,
+        matching_tags: scrapedPreview.matchingTags || [],
+        is_active: true,
+      }).select().single();
+
+      if (error) throw error;
+      showNotice(`🎉 პარტნიორი პროდუქტი "${scrapedPreview.productName}" შენახულია!`);
+      setScrapedPreview(null);
+      setAffiliateUrl("");
+      loadAffiliates();
+    } catch (err: any) {
+      showNotice(`❌ შენახვის შეცდომა: ${err.message}`);
+    }
+  };
+
+  const handleDeleteAffiliate = async (id: string, name: string) => {
+    if (!confirm(`წაიშალოს პარტნიორი პროდუქტი: "${name}"?`)) return;
+    setAffiliateProducts((prev) => prev.filter((p) => p.id !== id));
+    await supabase.from("affiliate_products").delete().eq("id", id);
+    showNotice(`🗑️ პროდუქტი "${name}" წაიშალა.`);
+  };
+
+  // ──────────────────────────────────────────────
+  // Audit Logs State
+  // ──────────────────────────────────────────────
+  const [auditLogs, setAuditLogs] = React.useState<any[]>([]);
+  const [loadingAudit, setLoadingAudit] = React.useState(false);
+
+  const loadAuditLogs = React.useCallback(async () => {
+    setLoadingAudit(true);
+    try {
+      const { data, error } = await supabase
+        .from("audit_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (!error && data) {
+        setAuditLogs(data);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingAudit(false);
+    }
+  }, [supabase]);
+
+  // Trigger loading when tab switches
+  React.useEffect(() => {
+    if (activeTab === "affiliate") loadAffiliates();
+    if (activeTab === "audit") loadAuditLogs();
+  }, [activeTab, loadAffiliates, loadAuditLogs]);
+
+  // CSV Export helper
+  const handleExport = (type: "listings" | "users" | "audit") => {
+    window.open(`/api/admin/export?type=${type}`, "_blank");
+    showNotice(`📥 ${type} ექსპორტის ფაილის გადმოწერა დაიწყო...`);
+  };
+
+  // ──────────────────────────────────────────────
   // Sorting Handler
   // ──────────────────────────────────────────────
   const handleSort = (field: SortField) => {
@@ -605,6 +808,8 @@ export default function AdminDashboardPage() {
             { id: "overview", label: "📊 მიმოხილვა" },
             { id: "listings", label: `📦 განცხადებები (${listings.length})` },
             { id: "users", label: `👥 მომხმარებლები (${users.length})` },
+            { id: "affiliate", label: `🔗 Affiliate სკრეიპერი (${affiliateProducts.length})` },
+            { id: "audit", label: "📜 აუდიტი & ლოგები" },
             { id: "analytics", label: "📈 სტატისტიკა" },
             { id: "plans", label: "💎 ტარიფები" },
           ].map((tab) => (
@@ -613,7 +818,7 @@ export default function AdminDashboardPage() {
               onClick={() => setActiveTab(tab.id as any)}
               className={`px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? tab.id === "plans" ? "bg-purple-600 text-white shadow-ambient" : "bg-card text-foreground shadow-xs"
+                  ? tab.id === "plans" ? "bg-purple-600 text-white shadow-ambient" : tab.id === "affiliate" ? "bg-emerald-600 text-white shadow-ambient" : "bg-card text-foreground shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -687,16 +892,30 @@ export default function AdminDashboardPage() {
               </p>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => { loadAdminData(); showNotice("🔄 მონაცემები გადამოწმდა და განახლდა!"); }}
-              className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
-            >
-              <RefreshCw className="w-3.5 h-3.5 text-primary" />
-              ბაზის გადატვირთვა
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport("listings")}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+                title="განცხადებების CSV ექსპორტი (Excel UTF-8)"
+              >
+                <Download className="w-3.5 h-3.5 text-emerald-600" />
+                CSV ექსპორტი
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { loadAdminData(); showNotice("🔄 მონაცემები გადამოწმდა და განახლდა!"); }}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                ბაზის გადატვირთვა
+              </Button>
+            </div>
           </div>
 
           {/* 🔍 Search & Filter Bar */}
@@ -1267,17 +1486,102 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab 3: Users & Subscription Tiers */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 3: USERS & BULK MODERATION                                      */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "users" && (
-        <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient">
-          <h2 className="text-base font-bold text-foreground mb-4">
-            მომხმარებლების, შოპებისა და ტარიფების მართვა
-          </h2>
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
+                <Users className="w-5 h-5 text-teal-600" />
+                <span>მომხმარებლების, შოპებისა და ტარიფების მართვა</span>
+                <Badge className="bg-secondary-container text-primary text-xs font-bold border-none">
+                  {users.length} მომხმარებელი
+                </Badge>
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                მართეთ ტარიფები, Custom URL-ები, განახორციელეთ ჯგუფური დაბლოკვა ან ვადის გაგრძელება
+              </p>
+            </div>
 
-          <div className="overflow-x-auto">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport("users")}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+                title="მომხმარებლების CSV ექსპორტი"
+              >
+                <Download className="w-3.5 h-3.5 text-teal-600" />
+                CSV ექსპორტი
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { loadAdminData(); showNotice("🔄 მომხმარებლების სია განახლდა!"); }}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                განახლება
+              </Button>
+            </div>
+          </div>
+
+          {/* Bulk User Actions Toolbar */}
+          {selectedUserIds.size > 0 && (
+            <div className="flex items-center justify-between gap-3 bg-teal-500/10 border border-teal-500/30 rounded-[16px] px-4 py-2.5 animate-in fade-in">
+              <span className="text-xs font-bold text-teal-800 dark:text-teal-300">
+                👥 {selectedUserIds.size} მომხმარებელი მონიშნულია
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={bulkUserLoading}
+                  onClick={() => bulkExtendUsers(30)}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-[10px] bg-purple-600 hover:bg-purple-700 text-white text-[11px] font-bold transition-all cursor-pointer disabled:opacity-60"
+                  title="30 დღის დამატება"
+                >
+                  <CalendarPlus className="w-3.5 h-3.5" />
+                  +30 დღე
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkUserLoading}
+                  onClick={bulkSuspendUsers}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-[10px] bg-destructive hover:bg-destructive/80 text-white text-[11px] font-bold transition-all cursor-pointer disabled:opacity-60"
+                  title="დაბლოკვა / გაყინვა"
+                >
+                  <UserX className="w-3.5 h-3.5" />
+                  დაბლოკვა
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedUserIds(new Set())}
+                  className="p-1 rounded-[8px] text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="overflow-x-auto rounded-[18px] border border-border/80">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-border/60 text-muted-foreground uppercase text-[10px]">
+              <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[10px] font-bold select-none">
                 <tr>
+                  <th className="py-3 px-3.5 w-10">
+                    <input
+                      type="checkbox"
+                      checked={users.length > 0 && selectedUserIds.size === users.length}
+                      ref={(el) => { if (el) el.indeterminate = selectedUserIds.size > 0 && selectedUserIds.size < users.length; }}
+                      onChange={toggleSelectAllUsers}
+                      className="w-4 h-4 rounded accent-primary cursor-pointer"
+                    />
+                  </th>
                   <th className="py-3 px-3">მომხმარებელი</th>
                   <th className="py-3 px-3">ელ-ფოსტა</th>
                   <th className="py-3 px-3">Custom Slug</th>
@@ -1287,64 +1591,354 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
-                {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="py-3 px-3 font-bold text-foreground">
-                      {user.fullName}
-                    </td>
-                    <td className="py-3 px-3 text-muted-foreground">{user.email}</td>
-                    <td className="py-3 px-3">
-                      <div className="flex items-center gap-1.5">
-                        {user.customSlug ? (
-                          <Link href={`/shops/${user.customSlug}`} className="text-emerald-600 hover:underline font-mono text-[11px] font-bold">
-                            /{user.customSlug}
-                          </Link>
+                {users.map((user) => {
+                  const isSelected = selectedUserIds.has(user.id);
+                  return (
+                    <tr
+                      key={user.id}
+                      className={`hover:bg-muted/30 transition-colors ${
+                        isSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
+                      }`}
+                    >
+                      <td className="py-3 px-3.5">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleSelectOneUser(user.id)}
+                          className="w-4 h-4 rounded accent-primary cursor-pointer"
+                        />
+                      </td>
+                      <td className="py-3 px-3 font-bold text-foreground">
+                        {user.fullName}
+                      </td>
+                      <td className="py-3 px-3 text-muted-foreground">{user.email}</td>
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-1.5">
+                          {user.customSlug ? (
+                            <Link href={`/shops/${user.customSlug}`} className="text-emerald-600 hover:underline font-mono text-[11px] font-bold">
+                              /{user.customSlug}
+                            </Link>
+                          ) : (
+                            <span className="text-muted-foreground text-[10px]">არ არის</span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newSlug = window.prompt(`შეიყვანეთ ახალი Custom Slug მომხმარებლისთვის "${user.fullName}":`, user.customSlug || "");
+                              if (newSlug !== null) {
+                                updateUserSlug(user.id, newSlug);
+                              }
+                            }}
+                            className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
+                            title="Custom Slug-ის შეცვლა"
+                          >
+                            <Edit3 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3">
+                        <Badge variant="outline" className="text-[10px] font-bold">
+                          {user.tier}
+                        </Badge>
+                      </td>
+                      <td className="py-3 px-3">
+                        {user.isAdmin ? (
+                          <span className="text-[10px] font-extrabold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-full">
+                            ⭐ SUPER ADMIN
+                          </span>
                         ) : (
-                          <span className="text-muted-foreground text-[10px]">არ არის</span>
+                          <span className="text-[10px] text-emerald-600 font-bold">🟢 აქტიური</span>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newSlug = window.prompt(`შეიყვანეთ ახალი Custom Slug მომხმარებლისთვის "${user.fullName}" (ან დატოვეთ ცარიელი გასასუფთავებლად):`, user.customSlug || "");
-                            if (newSlug !== null) {
-                              updateUserSlug(user.id, newSlug);
-                            }
-                          }}
-                          className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors cursor-pointer"
-                          title="Custom Slug-ის შეცვლა / წაშლა"
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <select
+                          value={user.tier}
+                          onChange={(e) => updateUserTier(user.id, e.target.value)}
+                          className="py-1 px-2 rounded-lg border border-input text-[11px] bg-background font-semibold focus:outline-none"
                         >
-                          <Edit3 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </td>
-                    <td className="py-3 px-3">
-                      <Badge variant="outline" className="text-[10px] font-bold">
-                        {user.tier}
+                          <option value="FREE">Free (5 განცხადება)</option>
+                          <option value="TIER_1">Tier 1 - Collector (25 განცხადება)</option>
+                          <option value="TIER_2">Tier 2 - Pro Shop (100 განცხადება)</option>
+                          <option value="TIER_3">Tier 3 - Enterprise (უსაზღვრო)</option>
+                        </select>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 4: AFFILIATE CROSS-SELLING & LIVE URL SCRAPER                    */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === "affiliate" && (
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
+                <Globe className="w-5 h-5 text-emerald-600" />
+                <span>Affiliate Cross-Selling & ჭკვიანი URL სკრეიპერი</span>
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                შეიყვანეთ პარტნიორის პროდუქტის ბმული (Gorgia, Domini, Amazon) და სისტემა ავტომატურად ამოიღებს სათაურს, ფოტოს, ფასს და ტეგებს
+              </p>
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={loadAffiliates}
+              className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-primary" />
+              სიის განახლება
+            </Button>
+          </div>
+
+          {/* Scraper Input Form */}
+          <form onSubmit={handleScrapeAffiliate} className="p-4 rounded-[20px] bg-secondary-container/40 border border-border/60 space-y-3">
+            <label className="text-xs font-bold text-foreground block">
+              🔗 პროდუქტის URL სკრეიპინგისთვის
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="sm:col-span-2">
+                <input
+                  type="url"
+                  required
+                  value={affiliateUrl}
+                  onChange={(e) => setAffiliateUrl(e.target.value)}
+                  placeholder="https://gorgia.ge/ka/product/ceramic-pot-25cm..."
+                  className="w-full h-10 px-3 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
+                />
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={affiliatePartner}
+                  onChange={(e) => setAffiliatePartner(e.target.value)}
+                  placeholder="პარტნიორი (optional)"
+                  className="w-1/2 h-10 px-3 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-medium"
+                />
+                <Button
+                  type="submit"
+                  disabled={scrapingAffiliate}
+                  className="flex-1 h-10 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-ambient cursor-pointer"
+                >
+                  {scrapingAffiliate ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  <span>{scrapingAffiliate ? "სკრეიპინგი..." : "ამოღება"}</span>
+                </Button>
+              </div>
+            </div>
+          </form>
+
+          {/* Scraped Live Preview Card */}
+          {scrapedPreview && (
+            <div className="rounded-[20px] border border-emerald-500/40 bg-emerald-500/5 p-5 animate-in fade-in space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <CheckCircle className="w-4 h-4 text-emerald-600" />
+                  ამოღებული პროდუქტის მონაცემები
+                </span>
+                <Button
+                  size="sm"
+                  onClick={handleSaveAffiliate}
+                  className="rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-ambient cursor-pointer"
+                >
+                  💾 ბაზაში შენახვა
+                </Button>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                {scrapedPreview.imageUrl && (
+                  <div className="h-24 w-24 rounded-[14px] overflow-hidden bg-surface-container shrink-0 border border-border/60">
+                    <img
+                      src={scrapedPreview.imageUrl}
+                      alt={scrapedPreview.productName}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="min-w-0 space-y-1.5">
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    {scrapedPreview.partnerName}
+                  </span>
+                  <h3 className="text-sm font-bold text-foreground">
+                    {scrapedPreview.productName}
+                  </h3>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {scrapedPreview.description}
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    {scrapedPreview.price && (
+                      <span className="text-sm font-black text-primary">
+                        {scrapedPreview.price} {scrapedPreview.currency}
+                      </span>
+                    )}
+                    {scrapedPreview.matchingTags?.map((tag: string) => (
+                      <Badge key={tag} variant="outline" className="text-[9px]">
+                        #{tag}
                       </Badge>
-                    </td>
-                    <td className="py-3 px-3">
-                      {user.isAdmin ? (
-                        <span className="text-[10px] font-extrabold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-full">
-                          ⭐ SUPER ADMIN
-                        </span>
-                      ) : (
-                        <span className="text-[10px] text-emerald-600">🟢 აქტიური</span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Active Affiliate Products List */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              აქტიური პარტნიორი პროდუქტები ({affiliateProducts.length})
+            </h3>
+            {loadingAffiliates ? (
+              <p className="text-xs text-muted-foreground text-center py-6">იტვირთება...</p>
+            ) : affiliateProducts.length === 0 ? (
+              <p className="text-xs text-muted-foreground text-center py-6">
+                პარტნიორი პროდუქტები ჯერ არ არის დამატებული.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {affiliateProducts.map((p) => (
+                  <div
+                    key={p.id}
+                    className="rounded-[18px] border border-border/80 bg-card p-3.5 shadow-2xs space-y-2.5 flex flex-col justify-between"
+                  >
+                    <div className="flex items-start gap-3">
+                      {p.image_url && (
+                        <img
+                          src={p.image_url}
+                          alt={p.product_name}
+                          className="h-14 w-14 rounded-[10px] object-cover bg-surface-container shrink-0"
+                        />
                       )}
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      <select
-                        value={user.tier}
-                        onChange={(e) => updateUserTier(user.id, e.target.value)}
-                        className="py-1 px-2 rounded-lg border border-input text-[11px] bg-background font-semibold focus:outline-none"
+                      <div className="min-w-0">
+                        <span className="text-[9px] font-bold text-muted-foreground block">{p.partner_name}</span>
+                        <h4 className="text-xs font-bold text-foreground truncate">{p.product_name}</h4>
+                        {p.price && (
+                          <span className="text-xs font-black text-primary">{p.price} {p.currency}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                      <a
+                        href={p.product_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1"
                       >
-                        <option value="FREE">Free (5 განცხადება)</option>
-                        <option value="TIER_1">Tier 1 - Collector (20 განცხადება)</option>
-                        <option value="TIER_2">Tier 2 - Pro Shop (50 განცხადება)</option>
-                        <option value="TIER_3">Tier 3 - Premium (უსაზღვრო)</option>
-                      </select>
+                        <span>ბმული</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteAffiliate(p.id, p.product_name)}
+                        className="p-1 text-muted-foreground hover:text-destructive cursor-pointer"
+                        title="წაშლა"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB 5: SYSTEM AUDIT LOGS                                             */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === "audit" && (
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
+                <Activity className="w-5 h-5 text-purple-600" />
+                <span>სისტემური აუდიტი & ადმინისტრაციული ლოგები</span>
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                ადმინისტრატორებისა და სისტემის მიერ შესრულებული ყველა კრიტიკული მოქმედების ჟურნალი
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport("audit")}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+                title="ლოგების CSV ექსპორტი"
+              >
+                <Download className="w-3.5 h-3.5 text-purple-600" />
+                CSV ექსპორტი
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={loadAuditLogs}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                განახლება
+              </Button>
+            </div>
+          </div>
+
+          <div className="overflow-x-auto rounded-[18px] border border-border/80">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[10px] font-bold">
+                <tr>
+                  <th className="py-3 px-3.5">დრო</th>
+                  <th className="py-3 px-3">მოქმედება</th>
+                  <th className="py-3 px-3">ობიექტი</th>
+                  <th className="py-3 px-3">დეტალები</th>
+                  <th className="py-3 px-3">შემსრულებელი</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40 font-mono text-[11px]">
+                {loadingAudit ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-muted-foreground text-xs font-sans">
+                      ლოგები იტვირთება...
                     </td>
                   </tr>
-                ))}
+                ) : auditLogs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="py-12 text-center text-muted-foreground text-xs font-sans">
+                      ლოგების ჩანაწერები არ მოიძებნა.
+                    </td>
+                  </tr>
+                ) : (
+                  auditLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-3.5 whitespace-nowrap text-muted-foreground font-sans">
+                        {log.created_at ? new Date(log.created_at).toLocaleString("ka-GE") : ""}
+                      </td>
+                      <td className="py-3 px-3 font-bold text-primary">
+                        {log.action}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded-full bg-secondary-container text-foreground text-[10px] font-bold uppercase">
+                          {log.target_type}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 max-w-xs truncate text-muted-foreground">
+                        {JSON.stringify(log.new_data || {})}
+                      </td>
+                      <td className="py-3 px-3 text-muted-foreground truncate max-w-[120px]">
+                        {log.actor_id || "სისტემა"}
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
