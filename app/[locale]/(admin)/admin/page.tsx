@@ -176,6 +176,7 @@ export default function AdminDashboardPage() {
   // Subscription Plans Dynamic Management State
   const [plans, setPlans] = React.useState<SubscriptionPlanItem[]>(DEFAULT_PLANS);
   const [plansSaved, setPlansSaved] = React.useState(false);
+  const [newFeatureText, setNewFeatureText] = React.useState<Record<string, string>>({});
   const [showNewPlanModal, setShowNewPlanModal] = React.useState(false);
   const [newPlanForm, setNewPlanForm] = React.useState<Partial<SubscriptionPlanItem>>({
     tier: "TIER_4",
@@ -550,10 +551,12 @@ export default function AdminDashboardPage() {
     setPlans((prev) =>
       prev.map((p) => {
         if (p.id !== planId) return p;
+        const currentKa = Array.isArray(p.featuresKa) ? p.featuresKa : [];
+        const currentEn = Array.isArray(p.featuresEn) ? p.featuresEn : currentKa;
         return {
           ...p,
-          featuresKa: [...p.featuresKa, trimmed],
-          featuresEn: [...(p.featuresEn || p.featuresKa), trimmed],
+          featuresKa: [...currentKa, trimmed],
+          featuresEn: [...currentEn, trimmed],
         };
       })
     );
@@ -564,10 +567,12 @@ export default function AdminDashboardPage() {
     setPlans((prev) =>
       prev.map((p) => {
         if (p.id !== planId) return p;
+        const currentKa = Array.isArray(p.featuresKa) ? p.featuresKa : [];
+        const currentEn = Array.isArray(p.featuresEn) ? p.featuresEn : currentKa;
         return {
           ...p,
-          featuresKa: p.featuresKa.filter((_, i) => i !== index),
-          featuresEn: (p.featuresEn || p.featuresKa).filter((_, i) => i !== index),
+          featuresKa: currentKa.filter((_, i) => i !== index),
+          featuresEn: currentEn.filter((_, i) => i !== index),
         };
       })
     );
@@ -3207,52 +3212,82 @@ export default function AdminDashboardPage() {
                       </div>
 
                       {/* Features Bullet Points */}
-                      <div className="space-y-2">
+                      <div className="space-y-2.5">
                         <div className="flex items-center justify-between">
                           <label className="text-[10px] font-black uppercase text-muted-foreground tracking-wider">
                             მახასიათებლები ({features.length})
                           </label>
+                          {features.length > 0 && (
+                            <span className="text-[10px] text-muted-foreground">დააწკაპუნეთ ტექსტზე რედაქტირებისთვის</span>
+                          )}
                         </div>
 
-                        <div className="space-y-1.5 max-h-[170px] overflow-y-auto pr-1">
-                          {features.map((feat, idx) => (
-                            <div key={idx} className="flex items-center gap-2 bg-background border border-border/70 rounded-xl px-3 py-1.5 text-xs shadow-2xs group">
-                              <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                              <input
-                                type="text"
-                                value={feat}
-                                onChange={(e) => {
-                                  const updated = [...features];
-                                  updated[idx] = e.target.value;
-                                  handlePlanChange(p.id, "featuresKa", updated);
-                                }}
-                                className="w-full bg-transparent text-xs font-semibold focus:outline-none"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveFeature(p.id, idx)}
-                                className="text-muted-foreground hover:text-destructive opacity-70 group-hover:opacity-100 transition-opacity cursor-pointer p-0.5"
-                                title="პუნქტის წაშლა"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                        {features.length === 0 ? (
+                          <div className="text-center py-3.5 px-3 rounded-xl bg-muted/20 border border-dashed border-border/80 text-xs text-muted-foreground">
+                            მახასიათებლები ცარიელია. ჩაწერეთ ქვემოთ და დააჭირეთ „+ დამატება“-ს
+                          </div>
+                        ) : (
+                          <div className="space-y-1.5 max-h-[170px] overflow-y-auto pr-1">
+                            {features.map((feat, idx) => (
+                              <div key={idx} className="flex items-center gap-2 bg-background border border-border/70 rounded-xl px-3 py-1.5 text-xs shadow-2xs group">
+                                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                                <input
+                                  type="text"
+                                  value={feat}
+                                  onChange={(e) => {
+                                    const current = Array.isArray(p.featuresKa) ? [...p.featuresKa] : [];
+                                    current[idx] = e.target.value;
+                                    handlePlanChange(p.id, "featuresKa", current);
+                                  }}
+                                  className="w-full bg-transparent text-xs font-semibold focus:outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveFeature(p.id, idx)}
+                                  className="text-muted-foreground hover:text-destructive opacity-70 group-hover:opacity-100 transition-opacity cursor-pointer p-0.5"
+                                  title="პუნქტის წაშლა"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
 
-                        {/* Add feature input */}
-                        <input
-                          type="text"
-                          placeholder="+ დაამატეთ ახალი პუნქტი (Enter)..."
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleAddFeature(p.id, (e.target as HTMLInputElement).value);
-                              (e.target as HTMLInputElement).value = "";
-                            }
-                          }}
-                          className="w-full py-2 px-3 rounded-xl border border-dashed border-border/90 text-xs bg-secondary-container/20 font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary"
-                        />
+                        {/* Add feature input with Enter key & Visible "+ დამატება" button */}
+                        <div className="flex items-center gap-2 pt-1">
+                          <input
+                            type="text"
+                            placeholder="ახალი პუნქტი (მაგ: VIP მხარდაჭერა 24/7)..."
+                            value={newFeatureText[p.id] || ""}
+                            onChange={(e) => setNewFeatureText((prev) => ({ ...prev, [p.id]: e.target.value }))}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const val = newFeatureText[p.id] || "";
+                                if (val.trim()) {
+                                  handleAddFeature(p.id, val);
+                                  setNewFeatureText((prev) => ({ ...prev, [p.id]: "" }));
+                                }
+                              }
+                            }}
+                            className="flex-1 py-2 px-3 rounded-xl border border-input text-xs bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={() => {
+                              const val = newFeatureText[p.id] || "";
+                              if (val.trim()) {
+                                handleAddFeature(p.id, val);
+                                setNewFeatureText((prev) => ({ ...prev, [p.id]: "" }));
+                              }
+                            }}
+                            className="rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white cursor-pointer h-9 px-3.5 shrink-0 gap-1 shadow-xs"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> დამატება
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
