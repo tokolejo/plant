@@ -15,7 +15,8 @@ import {
   Sprout, 
   Sparkles, 
   ChevronRight,
-  Gift
+  Gift,
+  Heart
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
@@ -92,6 +93,25 @@ export function ListingCard({
   const rawTitle = isKa ? (titleKa || title || "") : (titleEn || title || "");
   const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
+  // Wishlist toggle state
+  const [isWishlisted, setIsWishlisted] = React.useState(false);
+
+  const handleWishlistClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nextState = !isWishlisted;
+    setIsWishlisted(nextState);
+    try {
+      await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: id }),
+      });
+    } catch {
+      setIsWishlisted(!nextState);
+    }
+  };
+
   // ─── LIST VIEW VARIANT ───────────────────────────────────────────────────────
   if (variant === "list") {
     return (
@@ -121,6 +141,20 @@ export function ListingCard({
               {itemType === "PLANT" ? (isKa ? "🌱 მცენარე" : "🌱 Plant") : (isKa ? "🪴 ინვენტარი" : "🪴 Care & Pot")}
             </span>
           </div>
+
+          {/* Wishlist Heart Button Top Right */}
+          <button
+            type="button"
+            onClick={handleWishlistClick}
+            className={`absolute top-2.5 right-2.5 z-20 h-7 w-7 rounded-full backdrop-blur-md flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+              isWishlisted
+                ? "bg-rose-500 text-white"
+                : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
+            }`}
+            title={isWishlisted ? "რჩეულებიდან ამოშლა" : "რჩეულებში დამატება"}
+          >
+            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-current" : ""}`} />
+          </button>
 
           {images?.length > 1 && (
             <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white">
@@ -261,6 +295,20 @@ export function ListingCard({
             {itemType === "PLANT" ? "🌱" : "🪴"}
           </span>
         </div>
+
+        {/* Wishlist Heart Button Top Right */}
+        <button
+          type="button"
+          onClick={handleWishlistClick}
+          className={`absolute top-2 right-2 z-20 h-6.5 w-6.5 rounded-full backdrop-blur-md flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+            isWishlisted
+              ? "bg-rose-500 text-white"
+              : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
+          }`}
+          title={isWishlisted ? "რჩეულებიდან ამოშლა" : "რჩეულებში დამატება"}
+        >
+          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-current" : ""}`} />
+        </button>
 
         {/* Distance Badge on bottom left of photo */}
         {distLabel && (

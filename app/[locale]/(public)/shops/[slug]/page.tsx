@@ -142,6 +142,7 @@ export default function ShopStorefrontPage({
             totalReviews: Number(profile.total_reviews) || 0,
             badges: ["Verified Shop", "Community Member"],
             tier: profile.subscription_tier || "FREE",
+            isOnVacation: profile.is_on_vacation || false,
           });
 
           // Fetch listings belonging to this seller
@@ -216,7 +217,24 @@ export default function ShopStorefrontPage({
       </div>
 
       {/* 2. Shop Identity & Info Container */}
-      <div className="container mx-auto px-4 sm:px-6 -mt-16 relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 -mt-16 relative z-10 space-y-4">
+        {/* Vacation Mode Banner */}
+        {shop.isOnVacation && (
+          <div className="rounded-2xl bg-amber-500/15 border border-amber-500/30 p-4 text-amber-800 dark:text-amber-300 text-xs sm:text-sm font-bold flex items-center gap-3 shadow-md backdrop-blur-md animate-in fade-in">
+            <span className="text-2xl">🏖️</span>
+            <div>
+              <p className="font-extrabold text-foreground">
+                {isKa ? "მაღაზია დროებით იმყოფება შვებულებაში" : "Store is currently on vacation mode"}
+              </p>
+              <p className="text-xs text-muted-foreground font-normal mt-0.5">
+                {isKa
+                  ? "მომხმარებელს დროებით შეჩერებული აქვს შეკვეთების მიღება. შეგიძლიათ დაათვალიეროთ ასორტიმენტი ან შეინახოთ რჩეულებში."
+                  : "The seller is temporarily not taking new orders. You can still browse the inventory or save items to your wishlist."}
+              </p>
+            </div>
+          </div>
+        )}
+
         <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8 shadow-xl">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             {/* Left: Avatar & Bio */}

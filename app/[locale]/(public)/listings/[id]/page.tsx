@@ -248,7 +248,14 @@ export default function ListingDetailPage({
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [authModalOpen, setAuthModalOpen] = React.useState(false);
 
-  // Fetch real listing from Supabase
+  // ── Wishlist State ──
+  const [inWishlist, setInWishlist] = React.useState(false);
+  const [wishlistNotice, setWishlistNotice] = React.useState("");
+
+  // ── Dynamic Affiliate Cross-Selling Offers ──
+  const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>(RECOMMENDED_INVENTORY);
+
+  // Fetch real listing & track view from Supabase
   React.useEffect(() => {
     async function loadRealListing() {
       try {
@@ -263,7 +270,8 @@ export default function ListingDetailPage({
               average_rating,
               total_reviews,
               subscription_tier,
-              custom_slug
+              custom_slug,
+              is_on_vacation
             )
           `)
           .eq("id", id)
@@ -272,11 +280,65 @@ export default function ListingDetailPage({
         if (dbRow && !error) {
           setListing(formatDbListing(dbRow, dbRow.profiles));
         }
+
+        // Fire background view tracking
+        if (!id.startsWith("lst-")) {
+          fetch("/api/listings/track-view", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ listingId: id }),
+          }).catch(() => {});
+        }
       } catch (err) {
         console.warn("Could not load listing from Supabase, using mock fallback:", err);
       }
     }
     loadRealListing();
+
+    // Check wishlist status
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (user) {
+        const { data: wish } = await supabase
+          .from("wishlists")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("listing_id", id)
+          .maybeSingle();
+        if (wish) setInWishlist(true);
+      }
+    });
+
+    // Load active affiliate products from DB matching plant category/supplies
+    async function loadAffiliateOffers() {
+      try {
+        const { data: affData, error: affErr } = await supabase
+          .from("affiliate_products")
+          .select("*")
+          .eq("is_active", true)
+          .limit(10);
+
+        if (!affErr && affData && affData.length > 0) {
+          const mapped = affData.map((a) => ({
+            id: a.id,
+            titleKa: a.product_name,
+            titleEn: a.product_name,
+            categoryKa: a.matching_tags?.[0] || "ინვენტარი",
+            categoryEn: a.matching_tags?.[0] || "Supplies",
+            price: a.price || 25,
+            image: a.image_url || "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600",
+            shopName: a.partner_name || "პარტნიორი",
+            shopBadge: a.partner_name || "პარტნიორი",
+            shopLogo: "🪴",
+            link: a.product_url,
+            isExternal: true,
+          }));
+          setAffiliateOffers([...mapped, ...RECOMMENDED_INVENTORY]);
+        }
+      } catch {
+        // fallback
+      }
+    }
+    loadAffiliateOffers();
 
     // Supabase Realtime Subscription
     const channel = supabase
@@ -299,6 +361,26 @@ export default function ListingDetailPage({
       supabase.removeChannel(channel);
     };
   }, [id, supabase]);
+
+  const handleToggleWishlist = async () => {
+    if (!currentUser) {
+      setAuthModalOpen(true);
+      return;
+    }
+    const nextState = !inWishlist;
+    setInWishlist(nextState);
+    setWishlistNotice(nextState ? "❤️ დაემატა რჩეულებში!" : "💔 ამოიშალა რჩეულებიდან");
+    setTimeout(() => setWishlistNotice(""), 3000);
+    try {
+      await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ listingId: id }),
+      });
+    } catch {
+      setInWishlist(!nextState);
+    }
+  };
 
   const rawCat = listing.plantCategory || listing.plant_category || listing.inventory_category;
   const categoryInfo = rawCat && CATEGORIES_DATA[rawCat]
@@ -753,12 +835,12 @@ export default function ListingDetailPage({
               </div>
             </div>
 
-            {/* Scrollable Track — Paginated 3 Items per Desktop View (No Partial Cutoff) */}
+            {/* Scrollable Track — Dynamic Affiliate Offers with Click Tracking */}
             <div
               ref={inventoryScrollRef}
               className="flex gap-2.5 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-1 pt-0.5"
             >
-              {RECOMMENDED_INVENTORY.map((item) => (
+              {affiliateOffers.map((item) => (
                 <div
                   key={item.id}
                   className="snap-start group relative flex flex-col justify-between w-[calc(50%-5px)] sm:w-[calc(33.333%-6.7px)] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-background/95 hover:border-primary/50 transition-all p-2.5 shadow-2xs hover:shadow-sm"
@@ -806,6 +888,15 @@ export default function ListingDetailPage({
                           href={item.link}
                           target="_blank"
                           rel="noopener noreferrer"
+                          onClick={() => {
+                            if (item.id && !item.id.startsWith("rec-")) {
+                              fetch("/api/affiliate/click", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ affiliateId: item.id, targetUrl: item.link }),
+                              }).catch(() => {});
+                            }
+                          }}
                           className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[7px] bg-primary/10 transition-colors border border-primary/20"
                         >
                           <span>{isKa ? "მაღაზია" : "Store"}</span>
@@ -1019,12 +1110,28 @@ export default function ListingDetailPage({
                 </button>
               </div>
 
-              {/* Icon-Only Share Strip */}
-              <div className="pt-2 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-muted-foreground flex items-center gap-1">
-                  <Share2 className="w-3.5 h-3.5 text-primary" />
-                  {isKa ? "გაზიარება" : "Share"}
-                </span>
+              {/* Wishlist Notice */}
+              {wishlistNotice && (
+                <div className="rounded-[12px] bg-primary/10 border border-primary/30 p-2 text-center text-xs text-primary font-bold animate-in fade-in">
+                  {wishlistNotice}
+                </div>
+              )}
+
+              {/* Icon-Only Share & Wishlist Strip */}
+              <div className="pt-2 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={handleToggleWishlist}
+                  className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                    inWishlist
+                      ? "bg-rose-500 text-white border-rose-500 shadow-xs"
+                      : "bg-secondary-container hover:bg-secondary text-foreground border-border/60 hover:text-rose-500"
+                  }`}
+                  title={inWishlist ? "შენახულია რჩეულებში" : "სურვილების სიაში დამატება"}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${inWishlist ? "fill-current" : ""}`} />
+                  <span>{inWishlist ? (isKa ? "შენახულია" : "Saved") : (isKa ? "შენახვა" : "Wishlist")}</span>
+                </button>
 
                 <div className="flex items-center gap-1.5">
                   <a
@@ -1079,6 +1186,20 @@ export default function ListingDetailPage({
               </div>
             </div>
           </div>
+
+          {/* Seller Vacation Warning Banner */}
+          {(listing.seller?.isOnVacation || listing.seller?.is_on_vacation) && (
+            <div className="rounded-[18px] bg-amber-500/15 border border-amber-500/30 p-3.5 text-amber-800 dark:text-amber-300 text-xs font-bold flex items-center gap-2.5 shadow-2xs animate-in fade-in">
+              <span className="text-lg">🏖️</span>
+              <div>
+                <p className="leading-snug">
+                  {isKa
+                    ? "გამყიდველი იმყოფება შვებულებაში — შეტყობინებაზე ან ზარზე პასუხი შეიძლება დაგვიანდეს"
+                    : "Seller is currently on vacation mode — replies may be delayed"}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* ══════════════════════════════════════════════════════════════════════
               SELLER PROFILE CARD (Modern, Compact & Trustworthy)

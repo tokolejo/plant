@@ -8,7 +8,8 @@ import {
   PlusCircle, 
   MapPin, 
   User, 
-  LogIn 
+  LogIn,
+  Heart
 } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
@@ -90,15 +91,15 @@ export function MobileBottomNav() {
           </span>
         </Link>
 
-        {/* 4. Map */}
+        {/* 4. Wishlist */}
         <Link
-          href="/map"
+          href="/dashboard/wishlist"
           className={`flex flex-col items-center justify-center gap-0.5 w-14 py-1 rounded-[10px] transition-all ${
-            isMapActive ? "text-primary dark:text-emerald-400 font-bold" : "text-muted-foreground hover:text-foreground"
+            pathname.includes("/wishlist") ? "text-rose-500 font-bold" : "text-muted-foreground hover:text-foreground"
           }`}
         >
-          <MapPin className="h-5 w-5" />
-          <span className="text-[10px]">{navT("map")}</span>
+          <Heart className="h-5 w-5" />
+          <span className="text-[10px]">{isKa ? "რჩეულები" : "Wishlist"}</span>
         </Link>
 
         {/* 5. Profile / Dashboard */}
