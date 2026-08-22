@@ -162,9 +162,19 @@ export default function BotanicalMap() {
   const markersRef = React.useRef<any[]>([]);
   const userMarkerRef = React.useRef<any>(null);
 
-  // Filter States — Closed by default on page visit
+  // Filter States — Open on desktop by default, closed on mobile
   const [filterPanelOpen, setFilterPanelOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth >= 1024) {
+        setFilterPanelOpen(true);
+      } else {
+        setFilterPanelOpen(false);
+      }
+    }
+  }, []);
   const [selectedCity, setSelectedCity] = React.useState("მთელი საქართველო");
   const [userCoords, setUserCoords] = React.useState<[number, number] | null>(null);
   const [selectedCategories, setSelectedCategories] = React.useState<PlantCategory[]>([]);
@@ -500,11 +510,11 @@ export default function BotanicalMap() {
           : '';
 
         const popupPriceText = isVip
-          ? `⭐ VIP ${isGift ? '🎁 საჩუქარი' : priceLabel}`
+          ? `VIP ${isGift ? 'საჩუქარი' : priceLabel}`
           : isGift
-          ? '🎁 უფასო საჩუქარი'
+          ? 'უფასო საჩუქარი'
           : isTrade
-          ? '🔄 გაცვლა'
+          ? 'გაცვლა'
           : priceLabel;
 
         const popupContent = `
@@ -722,6 +732,70 @@ export default function BotanicalMap() {
               </div>
             </MapFilterSection>
 
+            {/* Transaction Type */}
+            <MapFilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
+              <div className="grid grid-cols-1 gap-1.5">
+                {[
+                  { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
+                  { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
+                  { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Trade Only" },
+                  { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
+                ].map((t) => {
+                  const active = selectedTrans.includes(t.id);
+                  const count = SAMPLE_LISTINGS.filter((l) => l.transactionType === t.id).length;
+                  return (
+                    <button
+                      key={t.id}
+                      onClick={() => toggleTrans(t.id)}
+                      className={`flex items-center justify-between px-3 py-2 rounded-[12px] border text-left transition-all cursor-pointer ${
+                        active
+                          ? "border-primary bg-primary text-white font-bold shadow-sm"
+                          : "border-border/70 bg-card hover:bg-surface-container/60 text-foreground font-semibold"
+                      }`}
+                    >
+                      <span className="text-xs">{t.label}</span>
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
+                        active ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </MapFilterSection>
+
+            {/* Delivery Methods — Right below Transaction Type */}
+            <MapFilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={true}>
+              <div className="space-y-1.5">
+                {[
+                  { id: "PICKUP", label: isKa ? "📍 ადგილიდან გატანა" : "📍 Local Pickup" },
+                  { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier" },
+                  { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო" : "🚐 Intercity" },
+                ].map((d) => {
+                  const active = selectedDelivery.includes(d.id);
+                  return (
+                    <button
+                      key={d.id}
+                      onClick={() => toggleDelivery(d.id)}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-xs font-semibold transition-all text-left cursor-pointer ${
+                        active
+                          ? "bg-primary/10 text-primary font-bold border border-primary/30"
+                          : "text-foreground hover:bg-surface-container border border-border/50 bg-card"
+                      }`}
+                    >
+                      <div className={`w-3.5 h-3.5 rounded-[4px] border flex items-center justify-center shrink-0 ${
+                        active ? "bg-primary border-primary text-white" : "border-border"
+                      }`}>
+                        {active && <Check className="w-2.5 h-2.5" />}
+                      </div>
+                      <span>{d.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </MapFilterSection>
+
             {/* Categories with Accordion & Counts */}
             <MapFilterSection title={isKa ? "მცენარის კატეგორიები" : "Plant Categories"}>
               <div className="space-y-2">
@@ -740,7 +814,7 @@ export default function BotanicalMap() {
                       <button
                         type="button"
                         onClick={() => toggleGroup(group.id)}
-                        className="w-full flex items-center justify-between py-1.5 px-2 rounded-[10px] text-left hover:bg-surface-container/60 transition-colors"
+                        className="w-full flex items-center justify-between py-1.5 px-2 rounded-[10px] text-left hover:bg-surface-container/60 transition-colors cursor-pointer"
                       >
                         <div className={`flex items-center gap-2 ${group.color}`}>
                           <Icon className="w-4 h-4 shrink-0" />
@@ -766,7 +840,7 @@ export default function BotanicalMap() {
                               <button
                                 key={cat.id}
                                 onClick={() => toggleCategory(cat.id)}
-                                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[10px] text-xs transition-all text-left ${
+                                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-[10px] text-xs transition-all text-left cursor-pointer ${
                                   isActive
                                     ? "bg-primary text-white font-bold shadow-sm"
                                     : "text-foreground hover:bg-surface-container font-medium"
@@ -787,70 +861,6 @@ export default function BotanicalMap() {
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            </MapFilterSection>
-
-            {/* Transaction Type */}
-            <MapFilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
-              <div className="grid grid-cols-1 gap-1.5">
-                {[
-                  { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
-                  { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
-                  { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Trade Only" },
-                  { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
-                ].map((t) => {
-                  const active = selectedTrans.includes(t.id);
-                  const count = SAMPLE_LISTINGS.filter((l) => l.transactionType === t.id).length;
-                  return (
-                    <button
-                      key={t.id}
-                      onClick={() => toggleTrans(t.id)}
-                      className={`flex items-center justify-between p-2.5 rounded-[12px] border text-left transition-all ${
-                        active
-                          ? "border-primary bg-primary text-white font-bold shadow-sm"
-                          : "border-border/70 bg-card hover:bg-surface-container/50 text-foreground"
-                      }`}
-                    >
-                      <span className="text-xs font-bold">{t.label}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
-                        active ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
-                      }`}>
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </MapFilterSection>
-
-            {/* Delivery Methods */}
-            <MapFilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={false}>
-              <div className="space-y-1.5">
-                {[
-                  { id: "PICKUP", label: isKa ? "📍 ადგილიდან გატანა" : "📍 Local Pickup" },
-                  { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier" },
-                  { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო" : "🚐 Intercity" },
-                ].map((d) => {
-                  const active = selectedDelivery.includes(d.id);
-                  return (
-                    <button
-                      key={d.id}
-                      onClick={() => toggleDelivery(d.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-[10px] text-xs font-semibold transition-all text-left ${
-                        active
-                          ? "bg-primary/10 text-primary font-bold border border-primary/30"
-                          : "text-foreground hover:bg-surface-container border border-transparent"
-                      }`}
-                    >
-                      <div className={`w-3.5 h-3.5 rounded-[4px] border flex items-center justify-center shrink-0 ${
-                        active ? "bg-primary border-primary text-white" : "border-border"
-                      }`}>
-                        {active && <Check className="w-2.5 h-2.5" />}
-                      </div>
-                      <span>{d.label}</span>
-                    </button>
                   );
                 })}
               </div>
