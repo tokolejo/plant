@@ -225,10 +225,12 @@ export default function AdminDashboardPage() {
         id: p.id,
         email: p.email || p.full_name || "მომხმარებელი",
         fullName: p.full_name || "მომხმარებელი",
+        avatarUrl: p.avatar_url,
         tier: p.subscription_tier || "FREE",
+        role: p.role || (p.is_admin ? "ADMIN" : "USER"),
         customSlug: p.custom_slug,
         activeListings: dbListings?.filter((l: any) => l.user_id === p.id).length || 0,
-        isAdmin: p.is_admin || (p.email === "tokolejo@gmail.com"),
+        isAdmin: p.is_admin || p.role === "SUPER_ADMIN" || p.role === "ADMIN" || p.email === "tokolejo@gmail.com",
         createdAt: p.created_at ? new Date(p.created_at).toISOString().split("T")[0] : "2026-08-20",
       })));
     }
@@ -243,11 +245,11 @@ export default function AdminDashboardPage() {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("is_admin")
+          .select("is_admin, role")
           .eq("id", user.id)
           .single();
 
-        if (isSuperAdmin || profile?.is_admin) {
+        if (isSuperAdmin || profile?.is_admin || profile?.role === "SUPER_ADMIN" || profile?.role === "ADMIN") {
           setIsAdmin(true);
           loadAdminData(user);
         } else {
@@ -317,6 +319,42 @@ export default function AdminDashboardPage() {
       }
     }
     showNotice(`✅ მომხმარებლის ტარიფი წარმატებით განახლდა: ${newTier}`);
+  };
+
+  const updateUserRole = async (id: string, newRole: string) => {
+    const isNowAdmin = newRole === "ADMIN" || newRole === "SUPER_ADMIN";
+
+    // Instant local state update
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === id ? { ...u, role: newRole, isAdmin: isNowAdmin } : u
+      )
+    );
+
+    if (!id.startsWith("usr-")) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          role: newRole,
+          is_admin: isNowAdmin,
+        })
+        .eq("id", id);
+
+      if (error) {
+        showNotice(`❌ შეცდომა როლის მინიჭებისას: ${error.message}`);
+        return;
+      }
+    }
+
+    const roleNameKa: Record<string, string> = {
+      SUPER_ADMIN: "👑 SUPER ADMIN (სუპერ ადმინი)",
+      ADMIN: "⚡ ADMIN (ადმინისტრატორი)",
+      MODERATOR: "🛡️ MODERATOR (მოდერატორი)",
+      VERIFIED_SELLER: "🌿 VERIFIED SELLER (ვერიფიცირებული)",
+      USER: "👤 USER (ჩვეულებრივი მომხმარებელი)",
+    };
+
+    showNotice(`✅ როლი წარმატებით განახლდა: ${roleNameKa[newRole] || newRole}`);
   };
 
   const updateUserSlug = async (id: string, newSlug: string) => {
@@ -1550,14 +1588,17 @@ export default function AdminDashboardPage() {
                   <th className="py-3 px-3">მომხმარებელი</th>
                   <th className="py-3 px-3">ელ-ფოსტა</th>
                   <th className="py-3 px-3">Custom Slug</th>
-                  <th className="py-3 px-3">მიმდინარე ტარიფი</th>
-                  <th className="py-3 px-3">სტატუსი</th>
+                  <th className="py-3 px-3">როლი & უფლებები</th>
+                  <th className="py-3 px-3">ტარიფი</th>
+                  <th className="py-3 px-3">როლის მინიჭება</th>
                   <th className="py-3 px-3 text-right">ტარიფის შეცვლა</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/40">
                 {users.map((user) => {
                   const isSelected = selectedUserIds.has(user.id);
+                  const currentRole = user.role || (user.isAdmin ? "SUPER_ADMIN" : "USER");
+
                   return (
                     <tr
                       key={user.id}
@@ -1573,8 +1614,23 @@ export default function AdminDashboardPage() {
                           className="w-4 h-4 rounded accent-primary cursor-pointer"
                         />
                       </td>
-                      <td className="py-3 px-3 font-bold text-foreground">
-                        {user.fullName}
+                      <td className="py-3 px-3">
+                        <div className="flex items-center gap-2">
+                          {user.avatarUrl ? (
+                            <img
+                              src={user.avatarUrl}
+                              alt={user.fullName}
+                              className="h-7 w-7 rounded-full object-cover border border-border"
+                            />
+                          ) : (
+                            <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs">
+                              {(user.fullName || "U").charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="font-bold text-foreground truncate max-w-[140px]">
+                            {user.fullName}
+                          </span>
+                        </div>
                       </td>
                       <td className="py-3 px-3 text-muted-foreground">{user.email}</td>
                       <td className="py-3 px-3">
@@ -1601,25 +1657,60 @@ export default function AdminDashboardPage() {
                           </button>
                         </div>
                       </td>
+                      
+                      {/* Role & Status Badge */}
+                      <td className="py-3 px-3">
+                        {currentRole === "SUPER_ADMIN" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/15 text-purple-700 dark:text-purple-300 text-[10px] font-black border border-purple-500/30">
+                            👑 SUPER ADMIN
+                          </span>
+                        ) : currentRole === "ADMIN" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-[10px] font-black border border-indigo-500/30">
+                            ⚡ ADMIN
+                          </span>
+                        ) : currentRole === "MODERATOR" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-700 dark:text-blue-300 text-[10px] font-black border border-blue-500/30">
+                            🛡️ MODERATOR
+                          </span>
+                        ) : currentRole === "VERIFIED_SELLER" ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-black border border-emerald-500/30">
+                            🌿 VERIFIED
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-secondary text-muted-foreground text-[10px] font-bold">
+                            👤 USER
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Subscription Tier Badge */}
                       <td className="py-3 px-3">
                         <Badge variant="outline" className="text-[10px] font-bold">
                           {user.tier}
                         </Badge>
                       </td>
+
+                      {/* Change Role Dropdown */}
                       <td className="py-3 px-3">
-                        {user.isAdmin ? (
-                          <span className="text-[10px] font-extrabold text-purple-600 bg-purple-500/10 px-2 py-0.5 rounded-full">
-                            ⭐ SUPER ADMIN
-                          </span>
-                        ) : (
-                          <span className="text-[10px] text-emerald-600 font-bold">🟢 აქტიური</span>
-                        )}
+                        <select
+                          value={currentRole}
+                          onChange={(e) => updateUserRole(user.id, e.target.value)}
+                          className="py-1 px-2 rounded-lg border border-input text-[11px] bg-background font-semibold focus:outline-none focus:border-primary cursor-pointer hover:border-primary/50"
+                        >
+                          <option value="USER">👤 USER (ჩვეულებრივი)</option>
+                          <option value="VERIFIED_SELLER">🌿 VERIFIED SELLER</option>
+                          <option value="MODERATOR">🛡️ MODERATOR (მოდერატორი)</option>
+                          <option value="ADMIN">⚡ ADMIN (ადმინისტრატორი)</option>
+                          <option value="SUPER_ADMIN">👑 SUPER ADMIN (სუპერ ადმინი)</option>
+                        </select>
                       </td>
+
+                      {/* Change Tier Dropdown */}
                       <td className="py-3 px-3 text-right">
                         <select
                           value={user.tier}
                           onChange={(e) => updateUserTier(user.id, e.target.value)}
-                          className="py-1 px-2 rounded-lg border border-input text-[11px] bg-background font-semibold focus:outline-none"
+                          className="py-1 px-2 rounded-lg border border-input text-[11px] bg-background font-semibold focus:outline-none focus:border-primary cursor-pointer hover:border-primary/50"
                         >
                           <option value="FREE">Free (5 განცხადება)</option>
                           <option value="TIER_1">Tier 1 - Collector (25 განცხადება)</option>
