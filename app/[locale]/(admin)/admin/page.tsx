@@ -2893,22 +2893,23 @@ export default function AdminDashboardPage() {
 
           {/* New Plan Creator Drawer/Card */}
           {showNewPlanModal && (
-            <div className="rounded-[20px] border-2 border-purple-500/30 bg-purple-500/5 p-5 space-y-4 animate-in fade-in slide-in-from-top-2">
+            <div className="rounded-[20px] border-2 border-purple-500/30 bg-purple-500/5 p-5 sm:p-6 space-y-4 animate-in fade-in slide-in-from-top-2">
               <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <Sparkles className="w-5 h-5 text-purple-600" />
                   <h3 className="text-sm font-black text-foreground">ახალი ტარიფის შექმნა</h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowNewPlanModal(false)}
-                  className="p-1 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
+                  className="p-1.5 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg hover:bg-muted/40"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+              {/* Form Fields: Row 1 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 <div>
                   <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">ტარიფის სახელი (KA) *</label>
                   <input
@@ -2951,50 +2952,13 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+              {/* Form Fields: Row 2 */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                 <div>
                   <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">თვიური ფასი (₾)</label>
                   <input
                     type="number"
-                    value={newPlanForm.monthlyPrice || 0}
-                    onChange={(e) => setNewPlanForm({ ...newPlanForm, monthlyPrice: parseFloat(e.target.value) || 0 })}
-                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">წლიური ფასი (₾)</label>
-                  <input
-                    type="number"
-                    value={newPlanForm.yearlyPrice || 0}
-                    onChange={(e) => setNewPlanForm({ ...newPlanForm, yearlyPrice: parseFloat(e.target.value) || 0 })}
-                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">განცხადებების ლიმიტი</label>
-                  <input
-                    type="number"
-                    value={newPlanForm.listingLimit || 10}
-                    onChange={(e) => setNewPlanForm({ ...newPlanForm, listingLimit: parseInt(e.target.value) || 5 })}
-                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">VIP ბუსტები / თვეში</label>
-                  <input
-                    type="number"
-                    value={newPlanForm.vipSlots || 0}
-                    onChange={(e) => setNewPlanForm({ ...newPlanForm, vipSlots: parseInt(e.target.value) || 0 })}
-                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
-                <div>
-                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">თვიური ფასი (₾)</label>
-                  <input
-                    type="number"
+                    min="0"
                     value={newPlanForm.monthlyPrice || 0}
                     onChange={(e) => {
                       const m = parseFloat(e.target.value) || 0;
@@ -3025,6 +2989,7 @@ export default function AdminDashboardPage() {
                   <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">წლიური ფასი (₾)</label>
                   <input
                     type="number"
+                    min="0"
                     value={newPlanForm.yearlyPrice || 0}
                     onChange={(e) => setNewPlanForm({ ...newPlanForm, yearlyPrice: parseFloat(e.target.value) || 0 })}
                     className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold text-emerald-600 dark:text-emerald-400"
@@ -3034,6 +2999,7 @@ export default function AdminDashboardPage() {
                   <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">განცხადებების ლიმიტი</label>
                   <input
                     type="number"
+                    min="1"
                     value={newPlanForm.listingLimit || 10}
                     onChange={(e) => setNewPlanForm({ ...newPlanForm, listingLimit: parseInt(e.target.value) || 5 })}
                     className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
@@ -3041,13 +3007,13 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-500/20">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowNewPlanModal(false)}
-                  className="rounded-lg text-xs cursor-pointer"
+                  className="rounded-xl text-xs cursor-pointer"
                 >
                   გაუქმება
                 </Button>
@@ -3055,7 +3021,7 @@ export default function AdminDashboardPage() {
                   type="button"
                   size="sm"
                   onClick={handleCreateNewPlan}
-                  className="rounded-lg text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white gap-1.5 cursor-pointer"
+                  className="rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white gap-1.5 cursor-pointer shadow-sm"
                 >
                   <Check className="w-4 h-4" /> შექმნა და დამატება
                 </Button>
@@ -3064,7 +3030,7 @@ export default function AdminDashboardPage() {
           )}
 
           {/* Grid of Dynamic Plan Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
             {plans.map((p) => {
               const features = p.featuresKa || [];
               const isFree = p.monthlyPrice === 0;
@@ -3075,15 +3041,13 @@ export default function AdminDashboardPage() {
               return (
                 <div
                   key={p.id}
-                  className="rounded-[22px] border border-border/80 p-5 bg-background shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative"
+                  className="rounded-[22px] border border-border/80 p-5 bg-card shadow-ambient hover:shadow-lg transition-all flex flex-col justify-between space-y-4 relative"
                 >
                   {/* Top Bar: Tier Identifier & Badge */}
                   <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-3">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-[11px] font-black text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/70 px-2 py-0.5 rounded-md">
-                        {p.tier || p.id}
-                      </span>
-                    </div>
+                    <span className="font-mono text-xs font-black text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-800 px-2.5 py-1 rounded-lg shrink-0">
+                      {p.tier || p.id}
+                    </span>
 
                     {/* Badge editor */}
                     <input
@@ -3091,7 +3055,7 @@ export default function AdminDashboardPage() {
                       placeholder="ბეიჯი (მაგ: პოპულარული)"
                       value={p.badge || ""}
                       onChange={(e) => handlePlanChange(p.id, "badge", e.target.value || undefined)}
-                      className="text-[10px] font-black text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-300/60 max-w-[120px] text-right"
+                      className="text-xs font-black text-amber-800 dark:text-amber-300 bg-amber-100/80 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-300/80 flex-1 min-w-[110px] text-right focus:outline-none focus:ring-1 focus:ring-amber-500 truncate"
                       title="ბეიჯის ტექსტი"
                     />
                   </div>
@@ -3099,89 +3063,97 @@ export default function AdminDashboardPage() {
                   {/* Plan Names (KA & EN) */}
                   <div className="space-y-2">
                     <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">სათაური (KA)</label>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">სათაური (KA)</label>
                       <input
                         type="text"
                         value={p.nameKa}
                         onChange={(e) => handlePlanChange(p.id, "nameKa", e.target.value)}
-                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-extrabold text-foreground"
+                        className="w-full py-2 px-3 rounded-xl border border-input text-sm bg-background font-black text-foreground"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">სათაური (EN)</label>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">სათაური (EN)</label>
                       <input
                         type="text"
                         value={p.nameEn || ""}
                         onChange={(e) => handlePlanChange(p.id, "nameEn", e.target.value)}
-                        className="w-full py-1 px-2.5 rounded-lg border border-input text-[11px] bg-card text-muted-foreground font-medium"
+                        className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-background text-muted-foreground font-medium"
                       />
                     </div>
                   </div>
 
                   {/* Pricing Inputs with Auto-Calculation & Discount */}
-                  <div className="bg-muted/30 p-2.5 rounded-xl border border-border/60 space-y-2">
-                    <div className="grid grid-cols-3 gap-1.5">
+                  <div className="bg-secondary-container/40 p-3 rounded-2xl border border-border/70 space-y-2.5">
+                    <div className="grid grid-cols-2 gap-2.5">
                       <div>
-                        <label className="text-[9px] font-bold text-muted-foreground block mb-0.5">თვიური (₾)</label>
+                        <label className="text-[10px] font-bold text-muted-foreground block mb-1">თვიური (₾)</label>
                         <input
                           type="number"
                           min="0"
                           value={p.monthlyPrice}
                           onChange={(e) => handlePlanChange(p.id, "monthlyPrice", parseFloat(e.target.value) || 0)}
-                          className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-black text-foreground"
+                          className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-black text-foreground"
                         />
                       </div>
                       <div>
-                        <label className="text-[9px] font-bold text-muted-foreground block mb-0.5">ფასდაკლ. (%)</label>
+                        <label className="text-[10px] font-bold text-muted-foreground block mb-1">ფასდაკლება (%)</label>
                         <input
                           type="number"
                           min="0"
                           max="99"
                           value={discount}
                           onChange={(e) => handlePlanChange(p.id, "discountPercent", parseFloat(e.target.value) || 0)}
-                          className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-black text-amber-600 dark:text-amber-400"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[9px] font-bold text-muted-foreground block mb-0.5">წლიური (₾)</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={p.yearlyPrice}
-                          onChange={(e) => handlePlanChange(p.id, "yearlyPrice", parseFloat(e.target.value) || 0)}
-                          className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-black text-emerald-600 dark:text-emerald-400"
+                          className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-black text-amber-600 dark:text-amber-400"
                         />
                       </div>
                     </div>
 
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[10px] font-bold text-muted-foreground">წლიური ჯამი (₾)</label>
+                        {!isFree && (
+                          <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">
+                            ავტო-გამოთვლილი
+                          </span>
+                        )}
+                      </div>
+                      <input
+                        type="number"
+                        min="0"
+                        value={p.yearlyPrice}
+                        onChange={(e) => handlePlanChange(p.id, "yearlyPrice", parseFloat(e.target.value) || 0)}
+                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-black text-emerald-600 dark:text-emerald-400"
+                      />
+                    </div>
+
                     {!isFree && (
-                      <div className="text-[10px] text-muted-foreground font-medium flex items-center justify-between pt-0.5 border-t border-border/40">
-                        <span>თვეში: <strong className="text-foreground">{effectiveMonthlyPrice} ₾</strong></span>
-                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">დაზოგვა: {yearlySavings} ₾/წელში</span>
+                      <div className="text-[10px] text-muted-foreground font-medium flex items-center justify-between pt-1 border-t border-border/40">
+                        <span>თვეში გამოდის: <strong className="text-foreground">{effectiveMonthlyPrice} ₾</strong></span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">დაზოგვა: {yearlySavings} ₾</span>
                       </div>
                     )}
                   </div>
 
                   {/* Limits & Perks */}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-2.5">
                     <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">განცხადებები</label>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">განცხადებები</label>
                       <input
                         type="number"
                         min="1"
                         value={p.listingLimit}
                         onChange={(e) => handlePlanChange(p.id, "listingLimit", parseInt(e.target.value) || 5)}
-                        className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-bold"
+                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-bold"
                       />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">VIP ბუსტები</label>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-1">VIP ბუსტები</label>
                       <input
                         type="number"
                         min="0"
                         value={p.vipSlots || 0}
                         onChange={(e) => handlePlanChange(p.id, "vipSlots", parseInt(e.target.value) || 0)}
-                        className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-bold"
+                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-bold"
                       />
                     </div>
                   </div>
@@ -3191,8 +3163,8 @@ export default function AdminDashboardPage() {
                     <label className="text-[10px] font-bold text-muted-foreground block">მახასიათებლები (Features)</label>
                     <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1">
                       {features.map((feat, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5 bg-card border border-border/70 rounded-md px-2 py-1 text-[11px]">
-                          <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                        <div key={idx} className="flex items-center gap-1.5 bg-background border border-border/70 rounded-lg px-2.5 py-1.5 text-xs">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                           <input
                             type="text"
                             value={feat}
@@ -3201,7 +3173,7 @@ export default function AdminDashboardPage() {
                               updated[idx] = e.target.value;
                               handlePlanChange(p.id, "featuresKa", updated);
                             }}
-                            className="w-full bg-transparent text-[11px] font-medium focus:outline-none"
+                            className="w-full bg-transparent text-xs font-medium focus:outline-none"
                           />
                           <button
                             type="button"
@@ -3209,7 +3181,7 @@ export default function AdminDashboardPage() {
                             className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5"
                             title="პუნქტის წაშლა"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ))}
@@ -3227,18 +3199,18 @@ export default function AdminDashboardPage() {
                             (e.target as HTMLInputElement).value = "";
                           }
                         }}
-                        className="w-full py-1 px-2 rounded-md border border-dashed border-border/90 text-[10px] bg-muted/20 font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                        className="w-full py-1.5 px-2.5 rounded-lg border border-dashed border-border/90 text-xs bg-secondary-container/30 font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary"
                       />
                     </div>
                   </div>
 
                   {/* Card Bottom Actions: Duplicate, Delete, Save */}
-                  <div className="flex items-center justify-between border-t border-border/50 pt-3 gap-1.5">
-                    <div className="flex items-center gap-1.5">
+                  <div className="flex items-center justify-between border-t border-border/50 pt-3 gap-2">
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
                         onClick={() => handleDeletePlan(p.id)}
-                        className="text-[11px] text-muted-foreground hover:text-destructive flex items-center gap-1 font-bold transition-colors cursor-pointer p-1 rounded hover:bg-destructive/10"
+                        className="text-xs text-muted-foreground hover:text-destructive flex items-center gap-1 font-bold transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-destructive/10"
                         title="ტარიფის წაშლა"
                       >
                         <Trash2 className="w-3.5 h-3.5" /> წაშლა
@@ -3247,7 +3219,7 @@ export default function AdminDashboardPage() {
                       <button
                         type="button"
                         onClick={() => handleDuplicatePlan(p.id)}
-                        className="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-700 flex items-center gap-1 font-bold transition-colors cursor-pointer p-1 rounded hover:bg-purple-500/10"
+                        className="text-xs text-purple-600 dark:text-purple-400 hover:text-purple-700 flex items-center gap-1 font-bold transition-colors cursor-pointer px-2 py-1 rounded-lg hover:bg-purple-500/10"
                         title="ტარიფის დუბლირება / ასლის შექმნა"
                       >
                         <Plus className="w-3.5 h-3.5" /> დუბლირება
@@ -3258,9 +3230,9 @@ export default function AdminDashboardPage() {
                       type="button"
                       size="sm"
                       onClick={handleSavePlans}
-                      className="h-7 px-2.5 rounded-lg text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer"
+                      className="h-8 px-3 rounded-xl text-xs font-bold bg-primary text-white hover:bg-primary/90 cursor-pointer shadow-xs gap-1"
                     >
-                      <Save className="w-3 h-3" /> შენახვა
+                      <Save className="w-3.5 h-3.5" /> შენახვა
                     </Button>
                   </div>
                 </div>
