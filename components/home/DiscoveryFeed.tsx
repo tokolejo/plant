@@ -127,23 +127,21 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
               { id: "ALL", labelKa: "ყველა", labelEn: "All" },
               { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
               { id: "TRADE", labelKa: "გაცვლა", labelEn: "Trade" },
-              { id: "PLANTS", labelKa: "მცენარეები", labelEn: "Plants", icon: Sprout },
-              { id: "INVENTORY", labelKa: "ინვენტარი", labelEn: "Inventory", icon: Layers },
+              { id: "PLANTS", labelKa: "მცენარეები", labelEn: "Plants" },
+              { id: "INVENTORY", labelKa: "ინვენტარი", labelEn: "Inventory" },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
-              const Icon = (tab as any).icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
+                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     isActive
                       ? "bg-primary text-white shadow-ambient scale-[1.02]"
                       : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
                   }`}
                 >
-                  {Icon && <Icon className="w-3.5 h-3.5" />}
-                  <span>{isKa ? tab.labelKa : tab.labelEn}</span>
+                  {isKa ? tab.labelKa : tab.labelEn}
                 </button>
               );
             })}
