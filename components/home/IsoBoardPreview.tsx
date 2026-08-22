@@ -5,11 +5,12 @@ import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { 
   Shuffle, 
-  Sparkles, 
   MapPin, 
   ArrowRight, 
   MessageSquare,
-  Sprout
+  ChevronLeft,
+  ChevronRight,
+  PlusCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,116 +19,164 @@ export function IsoBoardPreview() {
   const locale = useLocale();
   const isKa = locale !== "en";
 
+  const sliderRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(true);
+
   const sampleRequests = [
     {
       id: "iso-1",
       userName: isKa ? "ნინო (Tbilisi Plants)" : "Nino (Tbilisi Plants)",
-      avatarUrl: "",
       userRating: 4.9,
       title: isKa ? "ვეძებ Monstera Albo-ს დაფესვიანებულ კალამს" : "Looking for rooted Monstera Albo cutting",
       description: isKa ? "მაქვს გასაცვლელად Philodendron White Princess და Anthurium Clarinervium." : "Have Philodendron White Princess and Anthurium Clarinervium available for trade.",
       desiredTags: ["Monstera Albo", "Variegated", "Rare Aroids"],
       budget: isKa ? "100 ₾ (ან გაცვლა)" : "100 ₾ (or Swap)",
-      city: isKa ? "თბილისი (საბურთალო)" : "Tbilisi (Saburtalo)",
-      createdAt: isKa ? "2 საათის წინ" : "2 hours ago",
+      city: isKa ? "თბილისი" : "Tbilisi",
+      createdAt: isKa ? "2 სთ წინ" : "2h ago",
     },
     {
       id: "iso-2",
       userName: isKa ? "გიორგი მებოსტნე" : "George Grower",
-      avatarUrl: "",
       userRating: 5.0,
       title: isKa ? "ვეძებ იშვიათი სუკულენტებისა და კაქტუსების კოლექციას" : "ISO Rare Succulents & Cacti Collection",
       description: isKa ? "განვიხილავ როგორც ყიდვას, ასევე გაცვლას იშვიათ ფიკუსებში." : "Open to buying or trading for rare ficus varieties.",
       desiredTags: ["Echeveria", "Astrophytum", "Succulents"],
       budget: isKa ? "შეთანხმებით" : "Negotiable",
       city: isKa ? "ბათუმი" : "Batumi",
-      createdAt: isKa ? "5 საათის წინ" : "5 hours ago",
+      createdAt: isKa ? "5 სთ წინ" : "5h ago",
     },
     {
       id: "iso-3",
       userName: isKa ? "თამარ ბოტანიკოსი" : "Tamar Botanist",
-      avatarUrl: "",
       userRating: 4.8,
       title: isKa ? "ვეძებ კერამიკულ ხელნაკეთ ქოთნებს (დიდი ზომა)" : "ISO Handmade Ceramic Pots (Large)",
       description: isKa ? "მჭირდება 5 ცალი 30სმ+ დიამეტრის ქოთანი დრენაჟით." : "Need 5 pots with 30cm+ diameter and drainage holes.",
-      desiredTags: [isKa ? "კერამიკა" : "Ceramics", isKa ? "დიდი ქოთანი" : "Large Pot", isKa ? "ხელნაკეთი" : "Handmade"],
+      desiredTags: [isKa ? "კერამიკა" : "Ceramics", isKa ? "დიდი ქოთანი" : "Large Pot"],
       budget: "250 ₾",
       city: isKa ? "ქუთაისი" : "Kutaisi",
-      createdAt: isKa ? "1 დღის წინ" : "1 day ago",
+      createdAt: isKa ? "1 დღის წინ" : "1d ago",
+    },
+    {
+      id: "iso-4",
+      userName: isKa ? "ლევან კოლექციონერი" : "Levan Collector",
+      userRating: 4.9,
+      title: isKa ? "ვეძებ Ficus Lyrata (Bambino) ან Sansevieria Moonshine-ს" : "ISO Ficus Lyrata (Bambino) or Moonshine",
+      description: isKa ? "სანაცვლოდ გთავაზობთ Syngonium Albo-ს ან Zamioculcas Raven-ს." : "Trading Syngonium Albo or Zamioculcas Raven in exchange.",
+      desiredTags: ["Ficus Bambino", "Sansevieria", "Raven"],
+      budget: isKa ? "გაცვლა" : "Swap Only",
+      city: isKa ? "თბილისი" : "Tbilisi",
+      createdAt: isKa ? "1 დღის წინ" : "1d ago",
     },
   ];
 
-  return (
-    <section className="py-12 sm:py-16 bg-surface-cream/60 border-y border-border/60">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
-          <div>
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider mb-2">
-              <Shuffle className="w-3.5 h-3.5" />
-              <span>{isKa ? "მცენარეების გაცვლის დაფა" : "Plant ISO Match Board"}</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-              {isKa ? "ეძებ იშვიათ მცენარეს ან გსურს გაცვლა?" : "Looking for rare plants or plant swap?"}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              {isKa 
-                ? "განათავსე მოთხოვნა და იპოვე სხვა კოლექციონერები გაცვლისთვის."
-                : "Post your wishlist and connect with fellow collectors for trades."}
-            </p>
-          </div>
+  const checkScroll = () => {
+    if (!sliderRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
 
-          <div className="flex items-center gap-3">
-            <Link href="/iso">
-              <Button variant="outline" className="gap-2 rounded-[14px] text-xs font-semibold h-10 px-4 border-border/70 hover:bg-surface-container">
-                {isKa ? "სრული დაფა" : "View All ISO"} <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
-            </Link>
-            <Link href="/dashboard/iso/new">
-              <Button className="gap-2 rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-10 px-4 shadow-ambient">
-                {isKa ? "+ მოთხოვნის დამატება" : "+ Post Request"}
-              </Button>
-            </Link>
+  React.useEffect(() => {
+    checkScroll();
+    const el = sliderRef.current;
+    if (el) {
+      el.addEventListener("scroll", checkScroll, { passive: true });
+      return () => el.removeEventListener("scroll", checkScroll);
+    }
+  }, []);
+
+  const scrollSlider = (direction: "left" | "right") => {
+    if (!sliderRef.current) return;
+    const offset = direction === "left" ? -sliderRef.current.clientWidth * 0.85 : sliderRef.current.clientWidth * 0.85;
+    sliderRef.current.scrollBy({ left: offset, behavior: "smooth" });
+  };
+
+  return (
+    <section className="py-8 sm:py-12 bg-surface-cream/40 border-y border-border/60">
+      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+        
+        {/* 🌟 1. Centered Header (Matches DiscoveryFeed & User Request) */}
+        <div className="text-center max-w-2xl mx-auto space-y-2 mb-6">
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+            <Shuffle className="w-3.5 h-3.5" />
+            <span>{isKa ? "მცენარეების გაცვლის დაფა" : "Plant ISO Match Board"}</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground">
+            {isKa ? "ეძებ იშვიათ მცენარეს ან გსურს გაცვლა?" : "Looking for rare plants or plant swap?"}
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
+            {isKa 
+              ? "განათავსე მოთხოვნა და იპოვე სხვა კოლექციონერები გაცვლისთვის."
+              : "Post your wishlist and connect with fellow collectors for trades."}
+          </p>
+        </div>
+
+        {/* Navigation Arrows for Slider */}
+        <div className="flex items-center justify-end mb-3 sm:mb-4">
+          <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+            <button
+              type="button"
+              onClick={() => scrollSlider("left")}
+              disabled={!canScrollLeft}
+              className="h-8 w-8 rounded-full border border-border/70 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-all shadow-2xs active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "წინა" : "Previous"}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollSlider("right")}
+              disabled={!canScrollRight}
+              className="h-8 w-8 rounded-full border border-border/70 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-all shadow-2xs active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "შემდეგი" : "Next"}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
         </div>
 
-        {/* Requests Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* 📱 2. Horizontal Touch-Swipeable Slider (4 items on desktop, swipe on mobile) */}
+        <div
+          ref={sliderRef}
+          className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+        >
           {sampleRequests.map((iso) => (
             <div
               key={iso.id}
-              className="flex flex-col justify-between rounded-[20px] border border-border/70 bg-card p-5 shadow-ambient hover:border-primary/40 hover:shadow-ambient-lg transition-all"
+              className="w-[260px] sm:w-[280px] md:w-[300px] lg:w-[calc(25%-12px)] shrink-0 snap-start flex flex-col justify-between rounded-[18px] border border-border/70 bg-card p-4 shadow-ambient hover:border-primary/40 hover:shadow-ambient-lg transition-all select-none"
             >
               <div>
                 {/* Header */}
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="h-8 w-8 rounded-full bg-secondary-container text-primary flex items-center justify-center font-bold text-xs">
+                <div className="flex items-center justify-between gap-1.5 mb-2.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="h-7 w-7 rounded-full bg-secondary-container text-primary flex items-center justify-center font-black text-xs shrink-0">
                       {iso.userName.charAt(0)}
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-xs font-bold text-foreground">{iso.userName}</span>
-                      <span className="text-[10px] text-muted-foreground">{iso.createdAt}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{iso.userName}</span>
+                      <span className="text-[10px] text-slate-700 dark:text-slate-300 font-bold">{iso.createdAt}</span>
                     </div>
                   </div>
-                  <Badge className="text-[10px] px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 font-semibold">
-                    {isKa ? "გაცვლის მოთხოვნა" : "Swap Request"}
+                  <Badge className="text-[10px] px-2 py-0.5 rounded-[7px] bg-amber-500/15 text-amber-800 dark:text-amber-300 font-black shrink-0 border border-amber-500/25">
+                    {isKa ? "🔄 გაცვლა" : "Swap"}
                   </Badge>
                 </div>
 
                 {/* Title & Description */}
-                <h3 className="font-bold text-sm text-foreground mb-2 line-clamp-2">
+                <h3 className="font-bold text-xs sm:text-[13px] text-foreground mb-1.5 line-clamp-2 leading-snug">
                   {iso.title}
                 </h3>
-                <p className="text-xs text-muted-foreground line-clamp-2 mb-4 leading-relaxed">
+                <p className="text-[11px] text-slate-700 dark:text-slate-300 line-clamp-2 mb-3 leading-relaxed font-medium">
                   {iso.description}
                 </p>
 
                 {/* Desired Tags */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
+                <div className="flex flex-wrap gap-1 mb-3">
                   {iso.desiredTags.map((tag, idx) => (
                     <span
                       key={idx}
-                      className="rounded-[8px] bg-secondary-container/70 px-2 py-0.5 text-[11px] font-medium text-on-secondary-container"
+                      className="rounded-[6px] bg-secondary-container/80 px-1.5 py-0.5 text-[10px] font-bold text-slate-800 dark:text-slate-200 border border-border/40"
                     >
                       #{tag}
                     </span>
@@ -136,22 +185,39 @@ export function IsoBoardPreview() {
               </div>
 
               {/* Footer */}
-              <div className="border-t border-border/50 pt-3 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <MapPin className="w-3.5 h-3.5 text-primary" />
-                  <span className="truncate max-w-[130px]">{iso.city}</span>
+              <div className="border-t border-border/50 pt-2.5 flex items-center justify-between gap-2 mt-auto">
+                <div className="flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-200 font-bold">
+                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="truncate max-w-[100px]">{iso.city}</span>
                 </div>
 
                 <Link href={`/iso/${iso.id}`}>
-                  <Button size="sm" variant="ghost" className="h-8 text-xs font-semibold gap-1 text-primary hover:bg-secondary-container rounded-[10px]">
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    {isKa ? "შეთავაზება" : "Make Offer"}
+                  <Button size="sm" variant="ghost" className="h-7 text-xs font-bold gap-1 text-primary hover:bg-secondary-container rounded-[8px] px-2.5 cursor-pointer">
+                    <MessageSquare className="w-3 h-3" />
+                    <span>{isKa ? "შეთავაზება" : "Offer"}</span>
                   </Button>
                 </Link>
               </div>
             </div>
           ))}
         </div>
+
+        {/* 🔗 3. Centered Action Buttons */}
+        <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
+          <Link href="/iso">
+            <Button variant="outline" className="gap-2 rounded-[16px] text-xs sm:text-sm font-bold h-11 px-5 border-border/80 hover:bg-surface-container shadow-2xs cursor-pointer">
+              <span>{isKa ? "სრული გაცვლის დაფა" : "View All ISO"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+          <Link href="/dashboard/iso/new">
+            <Button className="gap-2 rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-black h-11 px-5 shadow-ambient cursor-pointer">
+              <PlusCircle className="w-4 h-4" />
+              <span>{isKa ? "მოთხოვნის დამატება" : "Post Request"}</span>
+            </Button>
+          </Link>
+        </div>
+
       </div>
     </section>
   );
