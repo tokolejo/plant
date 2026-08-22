@@ -161,106 +161,94 @@ export function HeroSection() {
         </div>
 
         {/* 📊 1. Live Real-Time Platform Statistics with Community Growth Micro-Copy */}
-        <div className="mb-6 space-y-2 max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="mb-6 space-y-2.5 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             {/* 1. Users */}
-            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10 text-primary shrink-0">
-                <Users className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5">
-                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                    {stats.totalUsers}
-                  </p>
-                  <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                    {stats.totalUsers < 100 ? (isKa ? "🚀 მზარდი" : "🚀 Rising") : "+"}
-                  </span>
+            <div className="flex flex-col justify-between p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[10px] sm:rounded-[12px] bg-primary/10 text-primary shrink-0">
+                  <Users className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </div>
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
-                  {isKa ? "მომხმარებელი" : "Members"}
+                <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-[6px] border border-emerald-500/20 whitespace-nowrap">
+                  {stats.totalUsers < 100 ? (isKa ? "🚀 მზარდი" : "🚀 Rising") : "+"}
+                </span>
+              </div>
+              <div>
+                <p className="text-lg sm:text-xl font-black text-foreground leading-tight tracking-tight">
+                  {stats.totalUsers}
                 </p>
-                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
-                  {isKa ? "სწრაფად მზარდი კომუნიტი" : "Rapidly growing"}
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-snug">
+                  {isKa ? "მომხმარებელი" : "Members"}
                 </p>
               </div>
             </div>
 
             {/* 2. Active Plant Listings */}
-            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Sprout className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5">
-                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                    {stats.totalListings}
-                  </p>
-                  <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                    {isKa ? "🌱 ცოცხალი" : "🌱 Live"}
-                  </span>
+            <div className="flex flex-col justify-between p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[10px] sm:rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <Sprout className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </div>
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
-                  {isKa ? "მცენარე" : "Plant Listings"}
+                <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-[6px] border border-emerald-500/20 whitespace-nowrap">
+                  {isKa ? "🌱 ცოცხალი" : "🌱 Live"}
+                </span>
+              </div>
+              <div>
+                <p className="text-lg sm:text-xl font-black text-foreground leading-tight tracking-tight">
+                  {stats.totalListings}
                 </p>
-                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
-                  {isKa ? "100% რეალური მცენარეები" : "100% authentic plants"}
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-snug">
+                  {isKa ? "მცენარე" : "Plant Listings"}
                 </p>
               </div>
             </div>
 
             {/* 3. Trades & Giveaways */}
-            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                <Gift className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5">
-                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                    {stats.totalTradesAndGifts}
-                  </p>
-                  <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-                    {isKa ? "🎁 უფასო" : "🎁 Free"}
-                  </span>
+            <div className="flex flex-col justify-between p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[10px] sm:rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                  <Gift className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </div>
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
-                  {isKa ? "გაცვლა & გაჩუქება" : "Trades & Gifts"}
+                <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-[6px] border border-amber-500/20 whitespace-nowrap">
+                  {isKa ? "🎁 უფასო" : "🎁 Free"}
+                </span>
+              </div>
+              <div>
+                <p className="text-lg sm:text-xl font-black text-foreground leading-tight tracking-tight">
+                  {stats.totalTradesAndGifts}
                 </p>
-                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
-                  {isKa ? "აქტიური გაცვლები" : "Active swaps"}
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-snug">
+                  {isKa ? "გაცვლა & ჩუქება" : "Trades & Gifts"}
                 </p>
               </div>
             </div>
 
             {/* 4. Verified Shops */}
-            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
-                <Store className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-1.5">
-                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                    {stats.totalShops}
-                  </p>
-                  <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider">
-                    {isKa ? "⭐ ვერიფიცირებული" : "⭐ Verified"}
-                  </span>
+            <div className="flex flex-col justify-between p-3 sm:p-4 rounded-[16px] sm:rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex items-center justify-between gap-1 mb-1.5">
+                <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-[10px] sm:rounded-[12px] bg-secondary-container text-primary shrink-0">
+                  <Store className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
                 </div>
-                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
-                  {isKa ? "მაღაზია & სანერგე" : "Shops & Nurseries"}
+                <span className="text-[10px] font-extrabold text-primary bg-primary/10 px-1.5 py-0.5 rounded-[6px] border border-primary/20 whitespace-nowrap">
+                  {isKa ? "⭐ მაღაზია" : "⭐ Verified"}
+                </span>
+              </div>
+              <div>
+                <p className="text-lg sm:text-xl font-black text-foreground leading-tight tracking-tight">
+                  {stats.totalShops}
                 </p>
-                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
-                  {isKa ? "ბოტანიკური პარტნიორები" : "Botanical partners"}
+                <p className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-snug">
+                  {isKa ? "სანერგე & შოპი" : "Shops & Nurseries"}
                 </p>
               </div>
             </div>
           </div>
 
           {/* Social Proof & Invitation Micro-Copy */}
-          <div className="text-center pt-1">
+          <div className="text-center pt-1 px-2">
             <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
               🌿 {isKa 
-                ? "იყავი პირველ ელიტურ კოლექციონერთა შორის — შემოუერთდი მცენარეების მოყვარულთა უდიდეს საზოგადოებას!" 
+                ? "იყავი პირველ ელიტურ კოლექციონერთა შორის — შემოუერთდი მცენარეების მოყვარულთა საზოგადოებას!" 
                 : "Be among the first elite collectors — join our rapidly growing botanical community!"}
             </p>
           </div>

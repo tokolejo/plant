@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { getMergedListings, applyDiverseSellerRotation } from "@/lib/listings-service";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface DiscoveryFeedProps {
   listings?: ExtendedListingCardProps[];
@@ -34,6 +35,10 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   const [allListings, setAllListings] = React.useState<ExtendedListingCardProps[]>(listings);
   const [loading, setLoading] = React.useState(listings.length === 0);
   const [totalDbCount, setTotalDbCount] = React.useState<number>(listings.length);
+
+  const sliderRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(true);
 
   // Fetch live active listings and total count from Supabase + Realtime WebSockets
   React.useEffect(() => {
@@ -71,6 +76,28 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
     };
   }, [isKa, supabase]);
 
+  const checkScroll = () => {
+    if (!sliderRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  React.useEffect(() => {
+    checkScroll();
+    const el = sliderRef.current;
+    if (el) {
+      el.addEventListener("scroll", checkScroll, { passive: true });
+      return () => el.removeEventListener("scroll", checkScroll);
+    }
+  }, [allListings, activeTab]);
+
+  const scrollSlider = (direction: "left" | "right") => {
+    if (!sliderRef.current) return;
+    const offset = direction === "left" ? -sliderRef.current.clientWidth * 0.85 : sliderRef.current.clientWidth * 0.85;
+    sliderRef.current.scrollBy({ left: offset, behavior: "smooth" });
+  };
+
   // Fair Premium Boost Sorting & Diverse Tab Filtering (Anti-Monopoly Grid)
   const filtered = React.useMemo(() => {
     // 1. Filter by Tab
@@ -95,68 +122,107 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   }, [allListings, activeTab]);
 
   return (
-    <section className="py-10 sm:py-14">
+    <section className="py-8 sm:py-12">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-        {/* Header & Live Database Metric Badge */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center gap-2.5">
-              <span className="text-2xl">🔥</span>
-              <span>{isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}</span>
-            </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-              {isKa 
-                ? "საუკეთესო და დაწინაურებული შეთავაზებები მცენარეების მოყვარულებისგან" 
-                : "Top featured & latest listings from verified growers"}
-            </p>
-          </div>
+        
+        {/* 🌟 1. Centered Header (Matches User Request & Design System) */}
+        <div className="text-center max-w-2xl mx-auto space-y-2 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center justify-center gap-2">
+            <span>🔥</span>
+            <span>{isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}</span>
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
+            {isKa 
+              ? "საუკეთესო და დაწინაურებული შეთავაზებები მცენარეების მოყვარულებისგან" 
+              : "Top featured & latest listings from verified growers"}
+          </p>
 
-          {/* Real Live Database Count Metric */}
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-secondary-container text-primary dark:text-primary-fixed text-xs sm:text-sm font-bold shadow-xs border border-border/50">
+          {/* Centered Real Live Database Count Metric */}
+          <div className="pt-1 flex items-center justify-center">
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-secondary-container text-primary dark:text-primary-fixed text-xs font-bold shadow-2xs border border-border/50">
               🌿 <strong className="font-black">{totalDbCount}</strong> {isKa ? "აქტიური შეთავაზება ბაზაში" : "active listings in database"}
             </span>
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-8 no-scrollbar">
-          {[
-            { id: "ALL", labelKa: "ყველა", labelEn: "All" },
-            { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
-            { id: "TRADE", labelKa: "გაცვლა 🔄", labelEn: "Trade 🔄" },
-            { id: "PLANTS", labelKa: "მცენარეები 🌱", labelEn: "Plants 🌱" },
-            { id: "INVENTORY", labelKa: "ინვენტარი 🪴", labelEn: "Inventory 🪴" },
-          ].map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 ${
-                  isActive
-                    ? "bg-primary text-white shadow-ambient scale-[1.02]"
-                    : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
-                }`}
+        {/* 🏷️ 2. Centered Filter Tabs with Left/Right Arrows for Slider on Desktop */}
+        <div className="flex items-center justify-between gap-2 mb-6">
+          <div className="flex-1 flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+            {[
+              { id: "ALL", labelKa: "ყველა", labelEn: "All" },
+              { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
+              { id: "TRADE", labelKa: "გაცვლა 🔄", labelEn: "Trade 🔄" },
+              { id: "PLANTS", labelKa: "მცენარეები 🌱", labelEn: "Plants 🌱" },
+              { id: "INVENTORY", labelKa: "ინვენტარი 🪴", labelEn: "Inventory 🪴" },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    isActive
+                      ? "bg-primary text-white shadow-ambient scale-[1.02]"
+                      : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
+                  }`}
+                >
+                  {isKa ? tab.labelKa : tab.labelEn}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Desktop Slider Navigation Arrows */}
+          <div className="hidden sm:flex items-center gap-1.5 shrink-0 ml-2">
+            <button
+              type="button"
+              onClick={() => scrollSlider("left")}
+              disabled={!canScrollLeft}
+              className="h-8 w-8 rounded-full border border-border/70 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-all shadow-2xs active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "წინა" : "Previous"}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollSlider("right")}
+              disabled={!canScrollRight}
+              className="h-8 w-8 rounded-full border border-border/70 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-all shadow-2xs active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "შემდეგი" : "Next"}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* 📱 3. Horizontal Touch-Swipeable Slider (Shows 4 cards cleanly on desktop, smooth swipe on mobile) */}
+        {filtered.length > 0 ? (
+          <div
+            ref={sliderRef}
+            className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+          >
+            {filtered.map((item) => (
+              <div
+                key={item.id}
+                className="w-[165px] sm:w-[210px] md:w-[240px] lg:w-[calc(25%-12px)] shrink-0 snap-start"
               >
-                {isKa ? tab.labelKa : tab.labelEn}
-              </button>
-            );
-          })}
-        </div>
+                <ListingCard {...item} variant="compact" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="py-12 text-center rounded-[20px] border border-border/60 bg-card p-6">
+            <p className="text-sm font-bold text-muted-foreground">
+              {isKa ? "ამ კატეგორიაში განცხადებები ჯერ არ არის." : "No listings found in this category."}
+            </p>
+          </div>
+        )}
 
-        {/* Uniform Sized Card Grid with Shared ListingCard Component */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4">
-          {filtered.slice(0, 12).map((item) => (
-            <ListingCard key={item.id} {...item} variant="compact" />
-          ))}
-        </div>
-
-        {/* Center View All Button */}
-        <div className="flex justify-center items-center mt-10">
+        {/* 🔗 4. Center View All Button */}
+        <div className="flex justify-center items-center mt-8">
           <Link href="/listings">
             <Button
-              className="rounded-[20px] px-8 h-12 text-sm font-bold bg-primary hover:bg-primary-container text-white shadow-ambient-lg gap-2 hover:scale-[1.02] transition-all"
+              className="rounded-[20px] px-8 h-12 text-sm font-bold bg-primary hover:bg-primary-container text-white shadow-ambient gap-2 hover:scale-[1.02] transition-all cursor-pointer"
             >
               <Sprout className="w-4 h-4" />
               <span>{isKa ? "ყველა განცხადების ნახვა" : "View All Listings"}</span>
@@ -167,6 +233,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
             </Button>
           </Link>
         </div>
+
       </div>
     </section>
   );
