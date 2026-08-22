@@ -128,70 +128,99 @@ export function IsoBoardPreview() {
           </Link>
         </div>
 
-        {/* 📱 3. Horizontal Touch-Swipeable Slider (4 items on desktop, swipe on mobile) */}
-        <div
-          ref={sliderRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
-        >
-          {sampleRequests.map((iso) => (
-            <div
-              key={iso.id}
-              className="w-[260px] sm:w-[280px] md:w-[300px] lg:w-[calc(25%-12px)] shrink-0 snap-start flex flex-col justify-between rounded-[18px] border border-border/70 bg-card p-4 shadow-ambient hover:border-primary/40 hover:shadow-ambient-lg transition-all select-none"
-            >
-              <div>
-                {/* Header */}
-                <div className="flex items-center justify-between gap-1.5 mb-2.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <div className="h-7 w-7 rounded-full bg-secondary-container text-primary flex items-center justify-center font-black text-xs shrink-0">
-                      {iso.userName.charAt(0)}
+        {/* 📱 3. Horizontal Touch-Swipeable Slider with High-Visibility Desktop Floating Arrows */}
+        <div className="relative group">
+          {/* Desktop Prominent Floating Left Navigation Arrow */}
+          <button
+            type="button"
+            onClick={() => scrollSlider("left")}
+            disabled={!canScrollLeft}
+            aria-label={isKa ? "წინა" : "Previous"}
+            className={`hidden md:flex absolute -left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-card/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-border/80 hover:border-primary text-foreground hover:text-white hover:bg-primary items-center justify-center shadow-xl shadow-black/25 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer ${
+              !canScrollLeft ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+
+          {/* Slider Track */}
+          <div
+            ref={sliderRef}
+            className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+          >
+            {sampleRequests.map((iso) => (
+              <div
+                key={iso.id}
+                className="w-[260px] sm:w-[280px] md:w-[300px] lg:w-[calc(25%-12px)] shrink-0 snap-start flex flex-col justify-between rounded-[18px] border border-border/70 bg-card p-4 shadow-ambient hover:border-primary/40 hover:shadow-ambient-lg transition-all select-none"
+              >
+                <div>
+                  {/* Header */}
+                  <div className="flex items-center justify-between gap-1.5 mb-2.5">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="h-7 w-7 rounded-full bg-secondary-container text-primary flex items-center justify-center font-black text-xs shrink-0">
+                        {iso.userName.charAt(0)}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{iso.userName}</span>
+                        <span className="text-[10px] text-slate-700 dark:text-slate-300 font-bold">{iso.createdAt}</span>
+                      </div>
                     </div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{iso.userName}</span>
-                      <span className="text-[10px] text-slate-700 dark:text-slate-300 font-bold">{iso.createdAt}</span>
-                    </div>
+                    <Badge className="text-[10px] px-2 py-0.5 rounded-[7px] bg-amber-500/15 text-amber-800 dark:text-amber-300 font-black shrink-0 border border-amber-500/25">
+                      {isKa ? "🔄 გაცვლა" : "Swap"}
+                    </Badge>
                   </div>
-                  <Badge className="text-[10px] px-2 py-0.5 rounded-[7px] bg-amber-500/15 text-amber-800 dark:text-amber-300 font-black shrink-0 border border-amber-500/25">
-                    {isKa ? "🔄 გაცვლა" : "Swap"}
-                  </Badge>
+
+                  {/* Title & Description */}
+                  <h3 className="font-bold text-xs sm:text-[13px] text-foreground mb-1.5 line-clamp-2 leading-snug">
+                    {iso.title}
+                  </h3>
+                  <p className="text-[11px] text-slate-700 dark:text-slate-300 line-clamp-2 mb-3 leading-relaxed font-medium">
+                    {iso.description}
+                  </p>
+
+                  {/* Desired Tags */}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {iso.desiredTags.map((tag, idx) => (
+                      <span
+                        key={idx}
+                        className="rounded-[6px] bg-secondary-container/80 px-1.5 py-0.5 text-[10px] font-bold text-slate-800 dark:text-slate-200 border border-border/40"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Title & Description */}
-                <h3 className="font-bold text-xs sm:text-[13px] text-foreground mb-1.5 line-clamp-2 leading-snug">
-                  {iso.title}
-                </h3>
-                <p className="text-[11px] text-slate-700 dark:text-slate-300 line-clamp-2 mb-3 leading-relaxed font-medium">
-                  {iso.description}
-                </p>
+                {/* Footer */}
+                <div className="border-t border-border/50 pt-2.5 flex items-center justify-between gap-2 mt-auto">
+                  <div className="flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-200 font-bold">
+                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <span className="truncate max-w-[100px]">{iso.city}</span>
+                  </div>
 
-                {/* Desired Tags */}
-                <div className="flex flex-wrap gap-1 mb-3">
-                  {iso.desiredTags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="rounded-[6px] bg-secondary-container/80 px-1.5 py-0.5 text-[10px] font-bold text-slate-800 dark:text-slate-200 border border-border/40"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
+                  <Link href={`/iso/${iso.id}`}>
+                    <Button size="sm" variant="ghost" className="h-7 text-xs font-bold gap-1 text-primary hover:bg-secondary-container rounded-[8px] px-2.5 cursor-pointer">
+                      <MessageSquare className="w-3 h-3" />
+                      <span>{isKa ? "შეთავაზება" : "Offer"}</span>
+                    </Button>
+                  </Link>
                 </div>
               </div>
+            ))}
+          </div>
 
-              {/* Footer */}
-              <div className="border-t border-border/50 pt-2.5 flex items-center justify-between gap-2 mt-auto">
-                <div className="flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-200 font-bold">
-                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span className="truncate max-w-[100px]">{iso.city}</span>
-                </div>
-
-                <Link href={`/iso/${iso.id}`}>
-                  <Button size="sm" variant="ghost" className="h-7 text-xs font-bold gap-1 text-primary hover:bg-secondary-container rounded-[8px] px-2.5 cursor-pointer">
-                    <MessageSquare className="w-3 h-3" />
-                    <span>{isKa ? "შეთავაზება" : "Offer"}</span>
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          ))}
+          {/* Desktop Prominent Floating Right Navigation Arrow */}
+          <button
+            type="button"
+            onClick={() => scrollSlider("right")}
+            disabled={!canScrollRight}
+            aria-label={isKa ? "შემდეგი" : "Next"}
+            className={`hidden md:flex absolute -right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-20 h-11 w-11 rounded-full bg-card/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-border/80 hover:border-primary text-foreground hover:text-white hover:bg-primary items-center justify-center shadow-xl shadow-black/25 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer ${
+              !canScrollRight ? "opacity-0 pointer-events-none" : "opacity-100"
+            }`}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
         </div>
 
       </div>
