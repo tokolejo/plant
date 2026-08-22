@@ -54,28 +54,28 @@ export function CompactListingCard({
         )}
 
         {/* Price pill */}
-        <div className="absolute bottom-1.5 right-1.5 rounded-md bg-black/65 backdrop-blur-sm px-2 py-0.5 text-[11px] font-extrabold text-white">
-          {transactionType === "TRADE" ? "Trade" : formatPrice(price)}
+        <div className="absolute bottom-1.5 right-1.5 rounded-md bg-black/75 backdrop-blur-sm px-2 py-0.5 text-[11px] font-black text-white shadow-sm">
+          {transactionType === "TRADE" ? "🔄 Trade" : transactionType === "GIFT" || price === 0 || !price ? "🎁 უფასო" : formatPrice(price)}
         </div>
       </div>
 
       {/* Info */}
       <div className="p-2.5 flex flex-col gap-1 flex-1">
-        <h3 className="line-clamp-2 text-[11px] font-semibold text-foreground leading-snug group-hover:text-emerald-600 transition-colors">
+        <h3 className="line-clamp-2 text-[11px] font-bold text-foreground leading-snug group-hover:text-emerald-600 transition-colors">
           {title}
         </h3>
 
         <div className="flex items-center justify-between mt-auto pt-1">
           {/* Seller */}
           <div className="flex items-center gap-1 min-w-0">
-            <div className="h-4 w-4 shrink-0 rounded-full bg-emerald-600/15 text-emerald-700 flex items-center justify-center text-[8px] font-bold overflow-hidden">
+            <div className="h-4 w-4 shrink-0 rounded-full bg-emerald-600/15 text-emerald-700 flex items-center justify-center text-[8px] font-black overflow-hidden">
               {seller.avatarUrl ? (
                 <img src={seller.avatarUrl} alt={seller.fullName} className="w-full h-full object-cover" />
               ) : (
                 seller.fullName.charAt(0).toUpperCase()
               )}
             </div>
-            <span className="text-[9px] text-muted-foreground truncate max-w-[60px]">
+            <span className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate max-w-[60px]">
               {seller.fullName.split(" ")[0]}
             </span>
           </div>
@@ -83,13 +83,13 @@ export function CompactListingCard({
           {/* Location + rating */}
           <div className="flex items-center gap-1.5 shrink-0">
             {seller.totalReviews > 0 && (
-              <span className="flex items-center gap-0.5 text-[9px] text-amber-600 font-bold">
+              <span className="flex items-center gap-0.5 text-[10px] text-amber-600 dark:text-amber-400 font-black">
                 <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                 {seller.rating.toFixed(1)}
               </span>
             )}
-            <span className="flex items-center gap-0.5 text-[9px] text-muted-foreground">
-              <MapPin className="w-2.5 h-2.5 text-emerald-600" />
+            <span className="flex items-center gap-0.5 text-[10px] text-slate-700 dark:text-slate-300 font-bold">
+              <MapPin className="w-2.5 h-2.5 text-emerald-600 shrink-0" />
               {city.split(" ")[0]}
             </span>
           </div>

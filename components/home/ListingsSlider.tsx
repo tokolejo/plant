@@ -59,8 +59,13 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
         {/* Price & Location */}
         <div className="flex items-baseline justify-between gap-2 mb-1.5">
           <div>
-            {item.transactionType === "TRADE" ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-900 dark:text-amber-300 text-xs font-black">
+            {item.transactionType === "GIFT" || item.price === 0 || !item.price ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
+                <span>🎁</span>
+                <span>უფასო</span>
+              </span>
+            ) : item.transactionType === "TRADE" ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-900 dark:text-amber-300 text-xs font-black border border-amber-500/30">
                 🔄 გაცვლა
               </span>
             ) : (
@@ -70,7 +75,7 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
             )}
           </div>
 
-          <div className="flex items-center gap-1 text-[11px] font-bold text-muted-foreground bg-surface-container px-2 py-0.5 rounded-[6px] truncate max-w-[120px]">
+          <div className="flex items-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-200 bg-surface-container px-2 py-0.5 rounded-[6px] truncate max-w-[120px] border border-border/50">
             <MapPin className="w-3 h-3 text-primary shrink-0" />
             <span className="truncate">{item.city.split(" ")[0]}</span>
           </div>
@@ -84,14 +89,14 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
         {/* Seller Info */}
         <div className="mt-auto pt-2 border-t border-border/40 flex items-center justify-between text-[11px]">
           <div className="flex items-center gap-1.5 min-w-0">
-            <div className="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center font-bold text-primary text-[10px] shrink-0 overflow-hidden border border-border/60">
+            <div className="w-5 h-5 rounded-full bg-surface-container flex items-center justify-center font-black text-primary text-[10px] shrink-0 overflow-hidden border border-border/60">
               {item.seller.avatarUrl ? (
                 <img src={item.seller.avatarUrl} alt="" className="w-full h-full object-cover" />
               ) : (
                 item.seller.fullName.charAt(0)
               )}
             </div>
-            <span className="truncate font-semibold text-muted-foreground">
+            <span className="truncate font-bold text-slate-700 dark:text-slate-200">
               {item.seller.fullName}
             </span>
           </div>

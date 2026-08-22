@@ -96,6 +96,35 @@ export function HeroSection() {
     router.push(`/listings?${query.toString()}`);
   };
 
+  const [showAllTags, setShowAllTags] = React.useState(false);
+
+  const allTrendingTagsKa = [
+    "Monstera Albo",
+    "Philodendron",
+    "Ficus Lyrata",
+    "🎁 გაჩუქება",
+    "კერამიკული ქოთანი",
+    "სუბსტრატი",
+    "ორქიდეა",
+    "სანსევიერია",
+    "ალოკაზია",
+  ];
+
+  const allTrendingTagsEn = [
+    "Monstera Albo",
+    "Philodendron",
+    "Ficus Lyrata",
+    "🎁 Giveaway",
+    "Ceramic Pot",
+    "Soil Mix",
+    "Orchid",
+    "Sansevieria",
+    "Alocasia",
+  ];
+
+  const trendingTags = isKa ? allTrendingTagsKa : allTrendingTagsEn;
+  const visibleTags = showAllTags ? trendingTags : trendingTags.slice(0, 5);
+
   return (
     <section className="relative py-6 sm:py-8 lg:py-10 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
@@ -121,7 +150,7 @@ export function HeroSection() {
           </h1>
 
           <div className="flex items-center justify-center">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-800 dark:text-amber-300 text-xs sm:text-[13px] font-bold border border-amber-500/25 shadow-2xs">
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-900 dark:text-amber-300 text-xs sm:text-[13px] font-bold border border-amber-500/25 shadow-2xs">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
@@ -131,58 +160,109 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* 📊 1. Live Real-Time Platform Statistics (100% Real Database Data) */}
-        <div className="mb-6 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
-          {/* 1. Users */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10 text-primary shrink-0">
-              <Users className="w-5 h-5" />
+        {/* 📊 1. Live Real-Time Platform Statistics with Community Growth Micro-Copy */}
+        <div className="mb-6 space-y-2 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* 1. Users */}
+            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-primary/10 text-primary shrink-0">
+                <Users className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                    {stats.totalUsers}
+                  </p>
+                  <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    {stats.totalUsers < 100 ? (isKa ? "🚀 მზარდი" : "🚀 Rising") : "+"}
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
+                  {isKa ? "მომხმარებელი" : "Members"}
+                </p>
+                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
+                  {isKa ? "სწრაფად მზარდი კომუნიტი" : "Rapidly growing"}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalUsers}
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">{isKa ? "მომხმარებელი" : "Members"}</p>
+
+            {/* 2. Active Plant Listings */}
+            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                <Sprout className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                    {stats.totalListings}
+                  </p>
+                  <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                    {isKa ? "🌱 ცოცხალი" : "🌱 Live"}
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
+                  {isKa ? "მცენარე" : "Plant Listings"}
+                </p>
+                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
+                  {isKa ? "100% რეალური მცენარეები" : "100% authentic plants"}
+                </p>
+              </div>
+            </div>
+
+            {/* 3. Trades & Giveaways */}
+            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                <Gift className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                    {stats.totalTradesAndGifts}
+                  </p>
+                  <span className="text-[10px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                    {isKa ? "🎁 უფასო" : "🎁 Free"}
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
+                  {isKa ? "გაცვლა & გაჩუქება" : "Trades & Gifts"}
+                </p>
+                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
+                  {isKa ? "აქტიური გაცვლები" : "Active swaps"}
+                </p>
+              </div>
+            </div>
+
+            {/* 4. Verified Shops */}
+            <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
+              <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
+                <Store className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-1.5">
+                  <p className="text-base sm:text-lg font-black text-foreground leading-tight">
+                    {stats.totalShops}
+                  </p>
+                  <span className="text-[10px] font-extrabold text-primary uppercase tracking-wider">
+                    {isKa ? "⭐ ვერიფიცირებული" : "⭐ Verified"}
+                  </span>
+                </div>
+                <p className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate">
+                  {isKa ? "მაღაზია & სანერგე" : "Shops & Nurseries"}
+                </p>
+                <p className="text-[10px] text-slate-700 dark:text-slate-300 font-bold truncate">
+                  {isKa ? "ბოტანიკური პარტნიორები" : "Botanical partners"}
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* 2. Active Plant Listings */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-              <Sprout className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalListings}
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">{isKa ? "მცენარე" : "Plant Listings"}</p>
-            </div>
-          </div>
-
-          {/* 3. Trades & Giveaways */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-              <Gift className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalTradesAndGifts}
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">{isKa ? "გაცვლა & გაჩუქება" : "Trades & Gifts"}</p>
-            </div>
-          </div>
-
-          {/* 4. Verified Shops */}
-          <div className="flex items-center gap-3 p-3.5 sm:p-4 rounded-[18px] bg-card border border-border/70 shadow-2xs hover:shadow-xs transition-all text-left">
-            <div className="flex h-10 w-10 items-center justify-center rounded-[12px] bg-secondary-container text-primary shrink-0">
-              <Store className="w-5 h-5" />
-            </div>
-            <div>
-              <p className="text-base sm:text-lg font-black text-foreground leading-tight">
-                {stats.totalShops}
-              </p>
-              <p className="text-xs font-bold text-muted-foreground">{isKa ? "მაღაზია & სანერგე" : "Shops & Nurseries"}</p>
-            </div>
+          {/* Social Proof & Invitation Micro-Copy */}
+          <div className="text-center pt-1">
+            <p className="text-xs font-bold text-slate-700 dark:text-slate-300">
+              🌿 {isKa 
+                ? "იყავი პირველ ელიტურ კოლექციონერთა შორის — შემოუერთდი მცენარეების მოყვარულთა უდიდეს საზოგადოებას!" 
+                : "Be among the first elite collectors — join our rapidly growing botanical community!"}
+            </p>
           </div>
         </div>
 
@@ -211,7 +291,7 @@ export function HeroSection() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder={isKa ? "მოძებნე: Monstera, ფიკუსი, ქოთანი, სუბსტრატი..." : "Search: Monstera, Ficus, Pot, Soil..."}
-                className="w-full bg-transparent text-sm sm:text-base font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
+                className="w-full bg-transparent text-sm sm:text-base font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
             </div>
 
@@ -225,15 +305,12 @@ export function HeroSection() {
           </form>
         </div>
 
-        {/* Popular Tags */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1 font-bold text-primary dark:text-primary-fixed text-xs">
-            <TrendingUp className="w-3.5 h-3.5" /> {isKa ? "პოპულარული:" : "Popular:"}
+        {/* 🏷️ Top 5 Trending Tags with Expandable Clutter-Free Toggle */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs">
+          <span className="flex items-center gap-1 font-black text-primary dark:text-primary-fixed text-xs">
+            <TrendingUp className="w-3.5 h-3.5" /> {isKa ? "ტრენდული:" : "Trending:"}
           </span>
-          {(isKa 
-            ? ["Monstera Albo", "Philodendron", "Ficus Lyrata", "🎁 გაჩუქება", "კერამიკული ქოთანი", "სუბსტრატი"]
-            : ["Monstera Albo", "Philodendron", "Ficus Lyrata", "🎁 Giveaway", "Ceramic Pot", "Soil Mix"]
-          ).map((tag) => (
+          {visibleTags.map((tag) => (
             <button
               key={tag}
               type="button"
@@ -242,11 +319,22 @@ export function HeroSection() {
                 setSearchTerm(cleanTag);
                 router.push(`/listings?q=${encodeURIComponent(cleanTag)}`);
               }}
-              className="rounded-full bg-secondary-container/70 hover:bg-secondary-container px-3 py-1 text-xs font-bold text-foreground transition-colors border border-border/50 cursor-pointer"
+              className="rounded-full bg-secondary-container/80 hover:bg-secondary-container px-3 py-1 text-xs font-bold text-slate-800 dark:text-slate-100 transition-colors border border-border/60 cursor-pointer shadow-2xs hover:border-primary/40"
             >
               #{tag}
             </button>
           ))}
+          {trendingTags.length > 5 && (
+            <button
+              type="button"
+              onClick={() => setShowAllTags(!showAllTags)}
+              className="rounded-full bg-surface-container hover:bg-surface-container-high px-2.5 py-1 text-xs font-bold text-primary transition-colors border border-primary/20 cursor-pointer"
+            >
+              {showAllTags 
+                ? (isKa ? "ნაკლები ∧" : "Less ∧") 
+                : (isKa ? `+${trendingTags.length - 5} მეტი ∨` : `+${trendingTags.length - 5} more ∨`)}
+            </button>
+          )}
         </div>
 
       </div>

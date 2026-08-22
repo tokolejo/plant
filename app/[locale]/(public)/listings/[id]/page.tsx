@@ -1010,21 +1010,23 @@ export default function ListingDetailPage({
 
             {/* Price & Status Row */}
             <div className="rounded-[14px] bg-secondary-container/60 border border-border/50 px-3.5 py-2.5 flex items-center justify-between">
-              {listing.transactionType === "GIFT" ? (
-                <span className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400">
-                  {isKa ? "🎁 უფასო" : "🎁 Free"}
+              {listing.transactionType === "GIFT" || listing.price === 0 || !listing.price ? (
+                <span className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
+                  <span>🎁</span>
+                  <span>{isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}</span>
                 </span>
               ) : listing.transactionType === "TRADE" ? (
-                <span className="text-base sm:text-lg font-black text-amber-700 dark:text-amber-300">
-                  {isKa ? "🔄 მხოლოდ გაცვლა" : "🔄 Trade Only"}
+                <span className="text-base sm:text-lg font-black text-amber-700 dark:text-amber-300 flex items-center gap-1">
+                  <span>🔄</span>
+                  <span>{isKa ? "მხოლოდ გაცვლა" : "Trade Only"}</span>
                 </span>
               ) : (
                 <div className="flex items-baseline gap-1.5">
                   <span className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
-                    {formatPrice(listing.price)}
+                    {formatPrice(listing.price, "₾", isKa)}
                   </span>
                   {listing.transactionType === "NEGOTIABLE" && (
-                    <span className="text-xs text-muted-foreground font-semibold">
+                    <span className="text-xs text-slate-700 dark:text-slate-300 font-bold">
                       {isKa ? "(შეთანხმებით)" : "(Negotiable)"}
                     </span>
                   )}

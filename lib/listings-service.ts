@@ -92,3 +92,50 @@ export async function getMergedListings(): Promise<ExtendedListingCardProps[]> {
     return [];
   }
 }
+
+/**
+ * Fair Seller Diversity & Anti-Monopoly Rotation Algorithm:
+ * Prevents a single top seller or verified store from monopolizing the homepage grid.
+ * Interleaves listings from different sellers fairly in round-robin fashion.
+ */
+export function applyDiverseSellerRotation(
+  listings: ExtendedListingCardProps[]
+): ExtendedListingCardProps[] {
+  if (!listings || listings.length <= 2) return listings || [];
+
+  // Separate into VIP / Boosted pool and Regular pool
+  const vipPool = listings.filter((item) => item.isPremium || item.isFeatured);
+  const regularPool = listings.filter((item) => !item.isPremium && !item.isFeatured);
+
+  const rotatePool = (items: ExtendedListingCardProps[]) => {
+    const buckets = new Map<string, ExtendedListingCardProps[]>();
+    for (const item of items) {
+      const sellerId = item.seller?.id || item.seller?.fullName || "anon";
+      if (!buckets.has(sellerId)) {
+        buckets.set(sellerId, []);
+      }
+      buckets.get(sellerId)!.push(item);
+    }
+
+    const result: ExtendedListingCardProps[] = [];
+    const queues = Array.from(buckets.values());
+    let hasMore = true;
+
+    while (hasMore) {
+      hasMore = false;
+      for (const queue of queues) {
+        if (queue.length > 0) {
+          result.push(queue.shift()!);
+          hasMore = true;
+        }
+      }
+    }
+    return result;
+  };
+
+  const rotatedVip = rotatePool(vipPool);
+  const rotatedRegular = rotatePool(regularPool);
+
+  return [...rotatedVip, ...rotatedRegular];
+}
+

@@ -5,8 +5,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(price: number, currency: string = "₾") {
-  return `${price.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${currency}`;
+export function formatPrice(price: number | null | undefined, currency: string = "₾", isKa: boolean = true) {
+  if (price === 0 || price === null || price === undefined) {
+    return isKa ? "🎁 უფასო" : "🎁 Free";
+  }
+  return `${Number(price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${currency}`;
 }
 
 export function getTierColor(tier: string) {

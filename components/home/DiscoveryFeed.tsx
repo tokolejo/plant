@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ListingCard } from "@/components/listings/ListingCard";
-import { getMergedListings } from "@/lib/listings-service";
+import { getMergedListings, applyDiverseSellerRotation } from "@/lib/listings-service";
 
 interface DiscoveryFeedProps {
   listings?: ExtendedListingCardProps[];
@@ -71,7 +71,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
     };
   }, [isKa, supabase]);
 
-  // Fair Premium Boost Sorting & Tab Filtering
+  // Fair Premium Boost Sorting & Diverse Tab Filtering (Anti-Monopoly Grid)
   const filtered = React.useMemo(() => {
     // 1. Filter by Tab
     const tabFiltered = allListings.filter((item) => {
@@ -83,12 +83,15 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
     });
 
     // 2. Sort: Active Premium/VIP listings at the top, followed by regular items
-    return [...tabFiltered].sort((a, b) => {
+    const sorted = [...tabFiltered].sort((a, b) => {
       const aVip = a.isPremium || a.isFeatured ? 1 : 0;
       const bVip = b.isPremium || b.isFeatured ? 1 : 0;
       if (aVip !== bVip) return bVip - aVip;
       return (b.viewsCount || 0) - (a.viewsCount || 0);
     });
+
+    // 3. Apply Fair Seller Rotation to prevent monopoly effect in the top grid
+    return applyDiverseSellerRotation(sorted);
   }, [allListings, activeTab]);
 
   return (

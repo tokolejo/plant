@@ -169,12 +169,13 @@ export function ListingCard({
             {/* Top row: price and city */}
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex items-baseline gap-2">
-                {transactionType === "GIFT" ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
-                    {isKa ? "🎁 უფასო" : "🎁 Free"}
+                {transactionType === "GIFT" || price === 0 || !price ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
+                    <span>🎁</span>
+                    <span>{isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}</span>
                   </span>
                 ) : transactionType === "TRADE" ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30">
                     {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
                   </span>
                 ) : (
@@ -182,10 +183,10 @@ export function ListingCard({
                     <span className={`text-lg sm:text-xl font-black tracking-tight ${
                       isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-emerald-400"
                     }`}>
-                      {formatPrice(price)}
+                      {formatPrice(price, "₾", isKa)}
                     </span>
                     {transactionType === "NEGOTIABLE" && (
-                      <span className="text-[11px] font-semibold text-muted-foreground">
+                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
                         {isKa ? "(შეთანხმებით)" : "(Negotiable)"}
                       </span>
                     )}
@@ -194,11 +195,11 @@ export function ListingCard({
               </div>
 
               {/* Location & Distance */}
-              <div className="flex items-center gap-1 text-xs text-muted-foreground bg-surface-container/60 px-2 py-0.5 rounded-[6px] font-medium shrink-0">
+              <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-200 bg-surface-container px-2 py-0.5 rounded-[6px] font-bold border border-border/50 shrink-0">
                 <MapPin className="w-3 h-3 text-primary" />
                 <span>{city}</span>
                 {distLabel && (
-                  <span className="text-primary font-bold ml-1">📍 {distLabel}</span>
+                  <span className="text-primary font-black ml-1">📍 {distLabel}</span>
                 )}
               </div>
             </div>
@@ -213,17 +214,17 @@ export function ListingCard({
             {/* Delivery Methods */}
             <div className="flex flex-wrap gap-1.5 mb-2">
               {deliveryMethods?.includes("PICKUP") && (
-                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-muted-foreground font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-slate-700 dark:text-slate-200 font-semibold border border-border/40">
                   {isKa ? "📍 ადგილზე" : "📍 Pickup"}
                 </span>
               )}
               {deliveryMethods?.includes("COURIER") && (
-                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-secondary-container text-primary font-bold inline-flex items-center gap-1">
+                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-secondary-container text-primary font-black inline-flex items-center gap-1 border border-primary/20">
                   <Truck className="w-3 h-3" /> {isKa ? "კურიერი" : "Courier"}
                 </span>
               )}
               {deliveryMethods?.includes("MARSHRUTKA") && (
-                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-muted-foreground font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-slate-700 dark:text-slate-200 font-semibold border border-border/40">
                   {isKa ? "🚐 სამარშრუტო" : "🚐 Intercity"}
                 </span>
               )}
@@ -243,11 +244,11 @@ export function ListingCard({
                   seller.fullName.charAt(0).toUpperCase()
                 )}
               </div>
-              <span className="truncate text-xs font-semibold text-foreground group-hover/seller:text-primary transition-colors">
+              <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200 group-hover/seller:text-primary transition-colors">
                 {seller.fullName}
               </span>
               {seller.rating && (
-                <span className="text-[10px] text-amber-600 font-bold flex items-center gap-0.5">
+                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black flex items-center gap-0.5">
                   ★ {seller.rating.toFixed(1)}
                 </span>
               )}
@@ -329,12 +330,13 @@ export function ListingCard({
       <div className="flex flex-1 flex-col p-2.5 sm:p-3">
         {/* Price Row */}
         <div className="flex items-baseline justify-between gap-1 mb-1">
-          {transactionType === "GIFT" ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black">
-              {isKa ? "🎁 უფასო" : "🎁 Free"}
+          {transactionType === "GIFT" || price === 0 || !price ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
+              <span>🎁</span>
+              <span>{isKa ? "უფასო" : "Free"}</span>
             </span>
           ) : transactionType === "TRADE" ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30">
               {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
             </span>
           ) : (
@@ -342,18 +344,18 @@ export function ListingCard({
               <span className={`text-base sm:text-lg font-black tracking-tight ${
                 isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-emerald-400"
               }`}>
-                {formatPrice(price)}
+                {formatPrice(price, "₾", isKa)}
               </span>
               {transactionType === "NEGOTIABLE" && (
-                <span className="text-[10px] font-semibold text-muted-foreground">
+                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
                   {isKa ? "(შეთ.)" : "(Neg.)"}
                 </span>
               )}
             </div>
           )}
 
-          {/* City */}
-          <span className="text-[11px] text-muted-foreground truncate max-w-[90px] font-medium text-right">
+          {/* City with High Contrast */}
+          <span className="text-[11px] text-slate-700 dark:text-slate-300 truncate max-w-[90px] font-bold text-right">
             {city}
           </span>
         </div>
@@ -365,13 +367,13 @@ export function ListingCard({
           </h3>
         </Link>
 
-        {/* Bottom Mini-Seller Row */}
+        {/* Bottom Mini-Seller Row with High Contrast */}
         <div className="mt-auto border-t border-border/40 pt-2 flex items-center justify-between gap-1 text-[11px]">
           <Link
             href={seller.customSlug ? `/shops/${seller.customSlug}` : `/users/${seller.id}`}
-            className="flex items-center gap-1.5 truncate text-muted-foreground hover:text-primary transition-colors font-medium"
+            className="flex items-center gap-1.5 truncate text-slate-700 dark:text-slate-300 hover:text-primary transition-colors font-bold"
           >
-            <div className="relative h-4.5 w-4.5 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px]">
+            <div className="relative h-4.5 w-4.5 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[9px]">
               {seller.avatarUrl ? (
                 <Image src={seller.avatarUrl} alt={seller.fullName} fill className="rounded-full object-cover" />
               ) : (
@@ -382,7 +384,7 @@ export function ListingCard({
           </Link>
 
           {seller.rating ? (
-            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold shrink-0">
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black shrink-0">
               ★ {seller.rating.toFixed(1)}
             </span>
           ) : null}
