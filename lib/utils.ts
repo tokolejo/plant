@@ -9,7 +9,7 @@ export function formatPrice(price: number | null | undefined, currency: string =
   if (price === 0 || price === null || price === undefined) {
     return isKa ? "🎁 უფასო" : "🎁 Free";
   }
-  return `${Number(price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ${currency}`;
+  return `${Number(price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}\u00A0${currency}`;
 }
 
 export function getTierColor(tier: string) {

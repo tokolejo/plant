@@ -93,6 +93,9 @@ export function ListingCard({
   const rawTitle = isKa ? (titleKa || title || "") : (titleEn || title || "");
   const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
+  // Clean concise city name for compact badges (strips parenthesized districts e.g. "თბილისი (ჩუღურეთი)" -> "თბილისი")
+  const cleanCity = (city || (isKa ? "თბილისი" : "Tbilisi")).replace(/\s*\(.*\)/, "").split(",")[0].trim();
+
   // Wishlist toggle state
   const [isWishlisted, setIsWishlisted] = React.useState(false);
 
@@ -328,35 +331,40 @@ export function ListingCard({
 
       {/* Content Section — Compact & Tight */}
       <div className="flex flex-1 flex-col p-2.5 sm:p-3">
-        {/* Price Row */}
-        <div className="flex items-baseline justify-between gap-1 mb-1">
-          {transactionType === "GIFT" || price === 0 || !price ? (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
-              <span>🎁</span>
-              <span>{isKa ? "უფასო" : "Free"}</span>
-            </span>
-          ) : transactionType === "TRADE" ? (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30">
-              {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
-            </span>
-          ) : (
-            <div className="flex items-baseline gap-1">
-              <span className={`text-base sm:text-lg font-black tracking-tight ${
-                isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-emerald-400"
-              }`}>
-                {formatPrice(price, "₾", isKa)}
+        {/* Price & Location Row — Rock-solid No-wrap Flex Layout */}
+        <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
+          <div className="shrink-0 flex items-center gap-1 whitespace-nowrap">
+            {transactionType === "GIFT" || price === 0 || !price ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs whitespace-nowrap">
+                <span>🎁</span>
+                <span>{isKa ? "უფასო" : "Free"}</span>
               </span>
-              {transactionType === "NEGOTIABLE" && (
-                <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                  {isKa ? "(შეთ.)" : "(Neg.)"}
+            ) : transactionType === "TRADE" ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30 whitespace-nowrap">
+                {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
+              </span>
+            ) : (
+              <div className="inline-flex items-baseline gap-1 whitespace-nowrap">
+                <span className={`text-base sm:text-lg font-black tracking-tight whitespace-nowrap ${
+                  isVip ? "text-amber-600 dark:text-amber-400" : "text-primary dark:text-emerald-400"
+                }`}>
+                  {formatPrice(price, "₾", isKa)}
                 </span>
-              )}
-            </div>
-          )}
+                {transactionType === "NEGOTIABLE" && (
+                  <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                    {isKa ? "(შეთ.)" : "(Neg.)"}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
 
-          {/* City with High Contrast */}
-          <span className="text-[11px] text-slate-700 dark:text-slate-300 truncate max-w-[90px] font-bold text-right">
-            {city}
+          {/* Clean City with High Contrast */}
+          <span 
+            className="text-[11px] text-slate-700 dark:text-slate-200 font-bold truncate shrink-0 max-w-[85px] text-right"
+            title={city}
+          >
+            {cleanCity}
           </span>
         </div>
 
