@@ -10,7 +10,7 @@ export function Footer() {
   const isKa = locale !== "en";
 
   return (
-    <footer className="w-full border-t border-border/60 bg-surface-cream/70 dark:bg-card/40 mt-16 pb-24 lg:pb-10 transition-colors">
+    <footer className="w-full border-t border-border/60 bg-surface-cream/70 dark:bg-card/40 mt-0 pb-24 lg:pb-10 transition-colors">
       {/* Main Footer Links */}
       <div className="container mx-auto px-4 sm:px-6 py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">

@@ -93,11 +93,11 @@ export function IsoBoardPreview() {
   };
 
   return (
-    <section className="py-8 sm:py-12 bg-surface-cream/40 border-y border-border/60">
+    <section className="pt-6 sm:pt-8 pb-4 sm:pb-6 bg-surface-cream/40 border-y border-border/60">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         
         {/* 🌟 1. Centered Header (Matches DiscoveryFeed & User Request) */}
-        <div className="text-center max-w-2xl mx-auto space-y-2 mb-6">
+        <div className="text-center max-w-2xl mx-auto space-y-2 mb-4">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
             <Shuffle className="w-3.5 h-3.5" />
             <span>{isKa ? "მცენარეების გაცვლის დაფა" : "Plant ISO Match Board"}</span>
@@ -112,50 +112,26 @@ export function IsoBoardPreview() {
           </p>
         </div>
 
-        {/* 🌟 2. Action Buttons Above Cards (Single Line) + Desktop Slider Arrows */}
-        <div className="flex items-center justify-between gap-2 mb-4">
-          <div className="flex items-center gap-2">
-            <Link href="/iso">
-              <Button variant="outline" className="gap-1.5 rounded-[12px] sm:rounded-[14px] text-xs font-bold h-9 sm:h-10 px-3 sm:px-4 border-border/80 hover:bg-surface-container shadow-2xs cursor-pointer">
-                <span>{isKa ? "სრული დაფა" : "View All"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
-            </Link>
-            <Link href="/dashboard/iso/new">
-              <Button className="gap-1.5 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs font-black h-9 sm:h-10 px-3 sm:px-4 shadow-ambient cursor-pointer">
-                <PlusCircle className="w-3.5 h-3.5" />
-                <span>{isKa ? "+ მოთხოვნა" : "+ Post Request"}</span>
-              </Button>
-            </Link>
-          </div>
-
-          {/* Desktop Slider Navigation Arrows */}
-          <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => scrollSlider("left")}
-              disabled={!canScrollLeft}
-              className="h-8 w-8 rounded-full border border-border/70 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-all shadow-2xs active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              title={isKa ? "წინა" : "Previous"}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollSlider("right")}
-              disabled={!canScrollRight}
-              className="h-8 w-8 rounded-full border border-border/70 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-all shadow-2xs active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              title={isKa ? "შემდეგი" : "Next"}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
+        {/* 🌟 2. Centered Action Buttons Row (Above Cards) */}
+        <div className="flex items-center justify-center gap-3 mb-6">
+          <Link href="/iso">
+            <Button variant="outline" className="gap-1.5 rounded-[12px] sm:rounded-[14px] text-xs sm:text-sm font-bold h-10 px-4 border-border/80 hover:bg-surface-container shadow-2xs cursor-pointer">
+              <span>{isKa ? "სრული დაფა" : "View All"}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Button>
+          </Link>
+          <Link href="/dashboard/iso/new">
+            <Button className="gap-1.5 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-black h-10 px-4 shadow-ambient cursor-pointer">
+              <PlusCircle className="w-4 h-4" />
+              <span>{isKa ? "+ მოთხოვნა" : "+ Post Request"}</span>
+            </Button>
+          </Link>
         </div>
 
         {/* 📱 3. Horizontal Touch-Swipeable Slider (4 items on desktop, swipe on mobile) */}
         <div
           ref={sliderRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
         >
           {sampleRequests.map((iso) => (
             <div

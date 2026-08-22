@@ -4,7 +4,7 @@ import { IsoBoardPreview } from "@/components/home/IsoBoardPreview";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col space-y-6" style={{ overflow: "visible" }}>
+    <div className="flex flex-col" style={{ overflow: "visible" }}>
       {/* 1. Hero + Search */}
       <HeroSection />
 
