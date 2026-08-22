@@ -208,6 +208,36 @@ export default function BotanicalMap() {
     (userCoords ? 1 : 0) +
     (selectedCity !== "მთელი საქართველო" && !selectedCity.includes("ჩემი ლოკაცია") ? 1 : 0);
 
+  const [gpsLoading, setGpsLoading] = React.useState(false);
+
+  const handleLocateMe = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      alert(isKa ? "თქვენს ბრაუზერს არ აქვს გეოლოკაციის მხარდაჭერა." : "Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setGpsLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        setUserCoords(coords);
+        setSelectedCity("ჩემი ლოკაცია (GPS)");
+        setGpsLoading(false);
+
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo(coords, 15, { duration: 1.5 });
+        }
+      },
+      (err) => {
+        console.warn("GPS error:", err);
+        setGpsLoading(false);
+        alert(isKa ? "ვერ მოხერხდა ლოკაციის განსაზღვრა. გთხოვთ ჩართოთ GPS." : "Could not retrieve your location. Please enable GPS.");
+      },
+      { timeout: 10000, enableHighAccuracy: true }
+    );
+  };
+
   const resetAllFilters = () => {
     setSearchTerm("");
     setSelectedCity("მთელი საქართველო");
@@ -498,9 +528,10 @@ export default function BotanicalMap() {
     <div className="relative w-full h-[calc(100vh-5rem)] overflow-hidden bg-background">
       {/* Top Floating Controls Bar */}
       <div className="absolute top-4 left-4 z-[1000] flex items-center gap-2 pointer-events-auto">
+        {/* Filters Toggle Button */}
         <Button
           onClick={() => setFilterPanelOpen(!filterPanelOpen)}
-          className={`rounded-[16px] text-xs sm:text-sm font-bold shadow-ambient-lg h-10 px-4 gap-2 transition-all ${
+          className={`rounded-[16px] text-xs sm:text-sm font-bold shadow-ambient-lg h-10 px-3.5 sm:px-4 gap-2 transition-all cursor-pointer ${
             filterPanelOpen
               ? "bg-primary text-white hover:bg-primary-container"
               : "bg-card/95 backdrop-blur-xl border border-border/80 text-foreground hover:bg-card hover:border-primary/50"
@@ -515,8 +546,34 @@ export default function BotanicalMap() {
           )}
         </Button>
 
+        {/* 🎯 Locate Me GPS Button directly beside Filters */}
+        <Button
+          type="button"
+          onClick={handleLocateMe}
+          disabled={gpsLoading}
+          title={isKa ? "ჩემი ლოკაციის პოვნა (GPS)" : "Locate My Position"}
+          className={`h-10 px-3 sm:px-3.5 rounded-[16px] font-bold text-xs sm:text-sm shadow-ambient-lg transition-all gap-1.5 cursor-pointer ${
+            userCoords
+              ? "bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25 ring-2 ring-blue-400/50"
+              : "bg-card/95 backdrop-blur-xl border border-border/80 text-foreground hover:bg-card hover:border-blue-500/50 hover:text-blue-600 dark:hover:text-blue-400"
+          }`}
+        >
+          {gpsLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+          ) : (
+            <Navigation className={`w-4 h-4 ${userCoords ? "text-white fill-white" : "text-blue-600 dark:text-blue-400"}`} />
+          )}
+          <span className="hidden sm:inline">
+            {gpsLoading 
+              ? (isKa ? "ვეძებ..." : "Locating...") 
+              : userCoords 
+                ? (isKa ? "ჩემი ლოკაცია 📍" : "My Location 📍") 
+                : (isKa ? "ჩემი ლოკაცია" : "My Location")}
+          </span>
+        </Button>
+
         {/* Listings count pill */}
-        <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[14px] bg-card/95 backdrop-blur-xl border border-border/80 text-xs font-bold text-foreground shadow-ambient">
+        <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[14px] bg-card/95 backdrop-blur-xl border border-border/80 text-xs font-bold text-foreground shadow-ambient">
           <span className="text-primary font-black">{filteredListings.length}</span> / {SAMPLE_LISTINGS.length} {isKa ? "პინი" : "pins"}
         </span>
       </div>
