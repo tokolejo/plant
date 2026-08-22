@@ -45,11 +45,11 @@ function CategoryRow({
         {isSelected && <Check className="w-2.5 h-2.5 text-white stroke-[3]" />}
       </span>
 
-      <span className="text-[11px] shrink-0">{emoji}</span>
-      <span className="flex-1 truncate text-[11px]">{labelKa}</span>
+      <span className="text-xs shrink-0">{emoji}</span>
+      <span className="flex-1 truncate text-xs font-medium">{labelKa}</span>
 
       {/* Count badge */}
-      <span className={`ml-auto text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0 ${
+      <span className={`ml-auto text-[11px] font-bold px-1.5 py-0.5 rounded-md shrink-0 ${
         isSelected
           ? "bg-emerald-600 text-white"
           : "bg-muted text-muted-foreground"
@@ -88,18 +88,18 @@ function CategoryGroup({
         onClick={() => setExpanded(!expanded)}
         className="w-full flex items-center gap-2 py-2 text-left group/group"
       >
-        <span className={`text-[11px] shrink-0 ${group.colorClass}`}>
+        <span className={`text-xs shrink-0 ${group.colorClass}`}>
           {group.emoji}
         </span>
-        <span className={`flex-1 text-[11px] font-bold uppercase tracking-wider ${group.colorClass}`}>
+        <span className={`flex-1 text-xs font-bold uppercase tracking-wider ${group.colorClass}`}>
           {group.labelKa}
         </span>
         {selectedInGroup > 0 && (
-          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
+          <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-600 text-white">
             {selectedInGroup}
           </span>
         )}
-        <span className="text-[9px] text-muted-foreground ml-1 shrink-0">({groupTotal})</span>
+        <span className="text-[11px] text-muted-foreground ml-1 shrink-0">({groupTotal})</span>
         {expanded ? (
           <ChevronDown className="w-3 h-3 text-muted-foreground shrink-0" />
         ) : (

@@ -24,7 +24,9 @@ import {
   Layers,
   Sparkles,
   ArrowUpDown,
-  Search
+  Search,
+  Flame,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -80,9 +82,10 @@ export default function ShopStorefrontPage({
   const supabase = createClient();
 
   const [currentUser, setCurrentUser] = React.useState<any>(null);
-  const [activeTab, setActiveTab] = React.useState<"all" | "PLANT" | "INVENTORY">("all");
+  const [activeCategory, setActiveCategory] = React.useState<string>("all");
   const [sortBy, setSortBy] = React.useState<"newest" | "price-asc" | "price-desc" | "views">("newest");
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [visibleCount, setVisibleCount] = React.useState<number>(16);
   const [copied, setCopied] = React.useState(false);
 
   // Shop Profile State
@@ -110,7 +113,6 @@ export default function ShopStorefrontPage({
   React.useEffect(() => {
     async function loadShopData() {
       try {
-        // Query profiles by custom_slug or ID
         let { data: profile } = await supabase
           .from("profiles")
           .select("*")
@@ -145,7 +147,6 @@ export default function ShopStorefrontPage({
             isOnVacation: profile.is_on_vacation || false,
           });
 
-          // Fetch listings belonging to this seller
           const { data: dbListings } = await supabase
             .from("listings")
             .select("*")
@@ -164,12 +165,20 @@ export default function ShopStorefrontPage({
     loadShopData();
   }, [slug, supabase]);
 
-  const plantCount = React.useMemo(() => shopListings.filter((l) => l.itemType === "PLANT").length, [shopListings]);
-  const inventoryCount = React.useMemo(() => shopListings.filter((l) => l.itemType === "INVENTORY").length, [shopListings]);
-
   const filteredAndSortedListings = React.useMemo(() => {
     let result = shopListings.filter((l) => {
-      if (activeTab !== "all" && l.itemType !== activeTab) return false;
+      if (activeCategory === "trade") {
+        if (l.transactionType !== "TRADE") return false;
+      } else if (activeCategory === "plants-indoor" || activeCategory === "plants-rare" || activeCategory === "plants-cuttings") {
+        if (l.itemType !== "PLANT") return false;
+      } else if (activeCategory.startsWith("inv-")) {
+        if (l.itemType !== "INVENTORY") return false;
+      } else if (activeCategory === "PLANT" && l.itemType !== "PLANT") {
+        return false;
+      } else if (activeCategory === "INVENTORY" && l.itemType !== "INVENTORY") {
+        return false;
+      }
+
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matchTitle = (l.title || "").toLowerCase().includes(q);
@@ -183,15 +192,26 @@ export default function ShopStorefrontPage({
       if (sortBy === "price-asc") return (a.price || 0) - (b.price || 0);
       if (sortBy === "price-desc") return (b.price || 0) - (a.price || 0);
       if (sortBy === "views") return (b.viewsCount || 0) - (a.viewsCount || 0);
-      return 0; // newest / default
+      return 0;
     });
-  }, [shopListings, activeTab, searchQuery, sortBy]);
+  }, [shopListings, activeCategory, searchQuery, sortBy]);
 
   const copyShopLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const SHOP_CATEGORIES = [
+    { id: "all", labelKa: "ყველა", labelEn: "All" },
+    { id: "plants-indoor", labelKa: "ოთახის მცენარეები", labelEn: "Indoor Plants", icon: Sprout },
+    { id: "plants-rare", labelKa: "იშვიათი & აროიდები", labelEn: "Rare & Aroids", icon: Flame },
+    { id: "plants-cuttings", labelKa: "კალმები & ფესვიანები", labelEn: "Cuttings", icon: Sprout },
+    { id: "inv-pots", labelKa: "ქოთნები & დეკორი", labelEn: "Pots & Planters", icon: Layers },
+    { id: "inv-soil", labelKa: "გრუნტი & სუბსტრატები", labelEn: "Soil & Substrates", icon: Layers },
+    { id: "inv-care", labelKa: "სასუქები & მოვლა", labelEn: "Fertilizers & Care", icon: Layers },
+    { id: "trade", labelKa: "მხოლოდ გაცვლა", labelEn: "Trade Only", icon: RefreshCw },
+  ];
 
   return (
     <div className="min-h-screen pb-16">
@@ -235,8 +255,8 @@ export default function ShopStorefrontPage({
           </div>
         )}
 
-        <div className="rounded-3xl border border-border/80 bg-card p-6 sm:p-8 shadow-xl">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="rounded-[28px] border border-border/80 bg-card p-6 sm:p-8 shadow-xl">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
             {/* Left: Avatar & Bio */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="relative h-24 w-24 sm:h-28 sm:w-28 rounded-3xl overflow-hidden border-4 border-card bg-emerald-600/10 shadow-lg shrink-0">
@@ -331,8 +351,8 @@ export default function ShopStorefrontPage({
         </div>
 
         {/* 3. Shop Catalog & Inventory Feed */}
-        <div className="mt-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="mt-10 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-foreground flex items-center gap-2">
                 <Store className="w-5 h-5 text-primary" />
@@ -345,94 +365,98 @@ export default function ShopStorefrontPage({
               </p>
             </div>
 
-            {/* Toolbar: Category Filter Tabs & Sorting */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Category Filter Tabs */}
-              <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary-container/60 border border-border/60">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("all")}
-                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === "all"
-                      ? "bg-card text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {isKa ? "ყველა" : "All"} ({shopListings.length})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("PLANT")}
-                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === "PLANT"
-                      ? "bg-card text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {isKa ? "🌱 მცენარეები" : "🌱 Plants"} ({plantCount})
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("INVENTORY")}
-                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
-                    activeTab === "INVENTORY"
-                      ? "bg-card text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {isKa ? "🪴 ინვენტარი" : "🪴 Care & Pots"} ({inventoryCount})
-                </button>
-              </div>
-
-              {/* Sorting Control Pills (Strict order: უახლესი - პოპულარული - ფასი) */}
-              <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary-container/60 border border-border/60">
-                <button
-                  type="button"
-                  onClick={() => setSortBy("newest")}
-                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
-                    sortBy === "newest"
-                      ? "bg-primary text-white shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {isKa ? "უახლესი" : "Newest"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSortBy("views")}
-                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
-                    sortBy === "views"
-                      ? "bg-primary text-white shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  👁️ {isKa ? "პოპულარული" : "Popular"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSortBy(sortBy === "price-asc" ? "price-desc" : "price-asc")}
-                  className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                    sortBy.startsWith("price")
-                      ? "bg-primary text-white shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                  title={isKa ? "ფასით სორტირება (დაკლიკეთ მიმართულების შესაცვლელად)" : "Sort by price (click to toggle order)"}
-                >
-                  <span>{isKa ? "ფასი" : "Price"}</span>
-                  <ArrowUpDown className="w-3 h-3" />
-                  {sortBy === "price-asc" && <span className="text-[10px] font-black">↑</span>}
-                  {sortBy === "price-desc" && <span className="text-[10px] font-black">↓</span>}
-                </button>
-              </div>
+            {/* Sorting Control Pills */}
+            <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary-container/60 border border-border/60 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSortBy("newest")}
+                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                  sortBy === "newest"
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {isKa ? "უახლესი" : "Newest"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortBy("views")}
+                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer ${
+                  sortBy === "views"
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {isKa ? "პოპულარული" : "Popular"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortBy(sortBy === "price-asc" ? "price-desc" : "price-asc")}
+                className={`px-3 py-1.5 rounded-[8px] text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                  sortBy.startsWith("price")
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+                title={isKa ? "ფასით სორტირება (დაკლიკეთ მიმართულების შესაცვლელად)" : "Sort by price"}
+              >
+                <span>{isKa ? "ფასი" : "Price"}</span>
+                <ArrowUpDown className="w-3 h-3" />
+                {sortBy === "price-asc" && <span className="text-[10px] font-black">↑</span>}
+                {sortBy === "price-desc" && <span className="text-[10px] font-black">↓</span>}
+              </button>
             </div>
           </div>
 
-          {/* Compact Listings Grid: 6 columns on large screens (xl:grid-cols-6) */}
+          {/* Full Marketplace Category Filter Bar */}
+          <div className="w-full overflow-x-auto no-scrollbar py-1">
+            <div className="flex items-center gap-2 min-w-max">
+              {SHOP_CATEGORIES.map((cat) => {
+                const Icon = cat.icon;
+                const isSelected = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => {
+                      setActiveCategory(cat.id);
+                      setVisibleCount(16);
+                    }}
+                    className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
+                      isSelected
+                        ? "bg-primary text-white shadow-lg scale-[1.02]"
+                        : "bg-secondary-container/70 hover:bg-secondary-container text-foreground border border-border/40 hover:border-primary/30"
+                    }`}
+                  >
+                    {Icon && <Icon className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-primary"}`} />}
+                    <span>{isKa ? cat.labelKa : cat.labelEn}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 4-Column Grid: 4 columns x 4 rows = 16 items per view */}
           {filteredAndSortedListings.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 sm:gap-3.5">
-              {filteredAndSortedListings.map((listing) => (
-                <ListingCard key={listing.id} {...listing} variant="compact" />
-              ))}
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+                {filteredAndSortedListings.slice(0, visibleCount).map((listing) => (
+                  <ListingCard key={listing.id} {...listing} variant="compact" />
+                ))}
+              </div>
+
+              {/* Load More Button */}
+              {visibleCount < filteredAndSortedListings.length && (
+                <div className="flex justify-center pt-4">
+                  <Button
+                    type="button"
+                    onClick={() => setVisibleCount((prev) => prev + 16)}
+                    className="px-8 py-2.5 rounded-2xl text-xs sm:text-sm font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer shadow-ambient"
+                  >
+                    {isKa 
+                      ? `მეტის ნახვა (დარჩენილია ${filteredAndSortedListings.length - visibleCount})` 
+                      : `Load More (${filteredAndSortedListings.length - visibleCount} remaining)`}
+                  </Button>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border/80">

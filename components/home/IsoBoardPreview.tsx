@@ -178,7 +178,7 @@ export function IsoBoardPreview() {
                       </div>
                     </div>
                     <Badge className="text-[10px] px-2 py-0.5 rounded-[7px] bg-amber-500/15 text-amber-800 dark:text-amber-300 font-black shrink-0 border border-amber-500/25">
-                      {isKa ? "🔄 გაცვლა" : "Swap"}
+                      {isKa ? "გაცვლა" : "Swap"}
                     </Badge>
                   </div>
 

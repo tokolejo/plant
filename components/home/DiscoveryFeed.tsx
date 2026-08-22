@@ -12,8 +12,8 @@ import {
   ArrowRight, 
   Sparkles, 
   RefreshCw, 
-  Flame, 
   Sprout, 
+  Layers,
   Sun,
   Crown
 } from "lucide-react";
@@ -40,43 +40,17 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(true);
 
-  // Fetch live active listings and total count from Supabase + Realtime WebSockets
+  // Auto-fetch Real Listings from Database on Mount
   React.useEffect(() => {
-    async function loadLiveFeed() {
-      try {
-        const merged = await getMergedListings();
-        const localized = merged.map((item: any) => ({
-          ...item,
-          title: isKa ? (item.titleKa || item.title_ka || item.title) : (item.titleEn || item.title_en || item.title),
-        }));
-        setAllListings(localized);
-        setTotalDbCount(localized.length);
-      } catch (e) {
-        console.error("Supabase live listings fetch failed:", e);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadLiveFeed();
+    getMergedListings().then((merged) => {
+      setAllListings(merged);
+      setTotalDbCount(merged.length);
+      setLoading(false);
+    });
+  }, []);
 
-    // Supabase Realtime WebSocket subscription: updates automatically on any DB change
-    const channel = supabase
-      .channel("public:home_discovery_feed_sync")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "listings" },
-        () => {
-          loadLiveFeed();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [isKa, supabase]);
-
-  const checkScroll = () => {
+  // Update scroll navigation arrow states
+  const updateScrollState = () => {
     if (!sliderRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
     setCanScrollLeft(scrollLeft > 10);
@@ -84,18 +58,19 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   };
 
   React.useEffect(() => {
-    checkScroll();
-    const el = sliderRef.current;
-    if (el) {
-      el.addEventListener("scroll", checkScroll, { passive: true });
-      return () => el.removeEventListener("scroll", checkScroll);
+    const slider = sliderRef.current;
+    if (slider) {
+      slider.addEventListener("scroll", updateScrollState, { passive: true });
+      updateScrollState();
+      return () => slider.removeEventListener("scroll", updateScrollState);
     }
-  }, [allListings, activeTab]);
+  }, [allListings]);
 
   const scrollSlider = (direction: "left" | "right") => {
     if (!sliderRef.current) return;
-    const offset = direction === "left" ? -sliderRef.current.clientWidth * 0.85 : sliderRef.current.clientWidth * 0.85;
-    sliderRef.current.scrollBy({ left: offset, behavior: "smooth" });
+    const containerWidth = sliderRef.current.clientWidth;
+    const scrollAmount = direction === "left" ? -containerWidth * 0.75 : containerWidth * 0.75;
+    sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
   // Fair Premium Boost Sorting & Diverse Tab Filtering (Anti-Monopoly Grid)
@@ -125,10 +100,10 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
     <section className="py-8 sm:py-12">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         
-        {/* 🌟 1. Centered Header (Matches User Request & Design System) */}
+        {/* 🌟 1. Centered Header */}
         <div className="text-center max-w-2xl mx-auto space-y-2 mb-6">
           <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground text-center">
-            🔥 {isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}
+            {isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}
           </h2>
           <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
             {isKa 
@@ -136,10 +111,11 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
               : "Top featured & latest listings from verified growers"}
           </p>
 
-          {/* Centered Real Live Database Count Metric */}
+          {/* Centered Live Database Count Metric */}
           <div className="pt-1 flex items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-secondary-container text-primary dark:text-primary-fixed text-xs font-bold shadow-2xs border border-border/50">
-              🌿 <strong className="font-black">{totalDbCount}</strong> {isKa ? "აქტიური შეთავაზება ბაზაში" : "active listings in database"}
+            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-secondary-container text-foreground text-xs font-bold shadow-2xs border border-border/50">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <strong className="font-black">{totalDbCount}</strong> {isKa ? "აქტიური შეთავაზება ბაზაში" : "active listings in database"}
             </span>
           </div>
         </div>
@@ -150,22 +126,24 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
             {[
               { id: "ALL", labelKa: "ყველა", labelEn: "All" },
               { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
-              { id: "TRADE", labelKa: "გაცვლა 🔄", labelEn: "Trade 🔄" },
-              { id: "PLANTS", labelKa: "მცენარეები 🌱", labelEn: "Plants 🌱" },
-              { id: "INVENTORY", labelKa: "ინვენტარი 🪴", labelEn: "Inventory 🪴" },
+              { id: "TRADE", labelKa: "გაცვლა", labelEn: "Trade" },
+              { id: "PLANTS", labelKa: "მცენარეები", labelEn: "Plants", icon: Sprout },
+              { id: "INVENTORY", labelKa: "ინვენტარი", labelEn: "Inventory", icon: Layers },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
+              const Icon = (tab as any).icon;
               return (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
                     isActive
                       ? "bg-primary text-white shadow-ambient scale-[1.02]"
                       : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
                   }`}
                 >
-                  {isKa ? tab.labelKa : tab.labelEn}
+                  {Icon && <Icon className="w-3.5 h-3.5" />}
+                  <span>{isKa ? tab.labelKa : tab.labelEn}</span>
                 </button>
               );
             })}

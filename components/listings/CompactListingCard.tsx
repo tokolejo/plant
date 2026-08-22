@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import { MapPin, RefreshCw, Star, ShieldCheck, Sprout } from "lucide-react";
+import { MapPin, RefreshCw, Star, ShieldCheck, Sprout, Layers } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { ListingCardProps } from "./ListingCard";
 
@@ -40,7 +40,11 @@ export function CompactListingCard({
         {/* Type badge */}
         <div className="absolute top-1.5 left-1.5">
           <span className="inline-flex items-center gap-0.5 rounded-md bg-white/90 dark:bg-card/90 backdrop-blur-sm px-1.5 py-0.5 text-[9px] font-bold text-foreground shadow-sm border border-border/30">
-            {itemType === "PLANT" ? "🌱" : "🪴"}
+            {itemType === "PLANT" ? (
+              <Sprout className="w-2.5 h-2.5 text-emerald-600" />
+            ) : (
+              <Layers className="w-2.5 h-2.5 text-amber-600" />
+            )}
           </span>
         </div>
 
@@ -55,7 +59,7 @@ export function CompactListingCard({
 
         {/* Price pill */}
         <div className="absolute bottom-1.5 right-1.5 rounded-md bg-black/75 backdrop-blur-sm px-2 py-0.5 text-[11px] font-black text-white shadow-sm">
-          {transactionType === "TRADE" ? "🔄 Trade" : transactionType === "GIFT" || price === 0 || !price ? "🎁 უფასო" : formatPrice(price)}
+          {transactionType === "TRADE" ? "Trade" : transactionType === "GIFT" || price === 0 || !price ? "უფასო" : formatPrice(price)}
         </div>
       </div>
 

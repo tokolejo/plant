@@ -3051,8 +3051,8 @@ export default function AdminDashboardPage() {
                   {/* Top Header: Tier identifier + Badge editor */}
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3.5">
                     <div className="flex items-center gap-2.5">
-                      <span className="font-mono text-xs font-black text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/80 border border-purple-300 dark:border-purple-800 px-3 py-1 rounded-xl shadow-2xs shrink-0">
-                        ⚡ {p.tier || p.id}
+                      <span className="font-mono text-xs font-black text-primary dark:text-emerald-400 bg-secondary-container border border-border/70 px-3 py-1 rounded-xl shadow-2xs shrink-0">
+                        {p.tier || p.id}
                       </span>
                       <span className="text-xs text-muted-foreground font-semibold">
                         რიგითობა: #{p.sortOrder || 1}
@@ -3104,7 +3104,7 @@ export default function AdminDashboardPage() {
                       {/* Pricing Studio Card */}
                       <div className="rounded-2xl border border-border/80 bg-secondary-container/40 p-4 space-y-3">
                         <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider block">
-                          💰 ფასწარმოქმნა & ფასდაკლება
+                          ფასწარმოქმნა & ფასდაკლება
                         </span>
 
                         <div className="grid grid-cols-2 gap-2.5">
@@ -3181,7 +3181,7 @@ export default function AdminDashboardPage() {
                       {/* Quotas */}
                       <div className="rounded-2xl border border-border/80 bg-secondary-container/30 p-3.5 space-y-3">
                         <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider block">
-                          📊 ლიმიტები & VIP პრივილეგიები
+                          ლიმიტები & VIP პრივილეგიები
                         </span>
                         <div className="grid grid-cols-2 gap-3">
                           <div>
@@ -3224,7 +3224,7 @@ export default function AdminDashboardPage() {
 
                         {features.length === 0 ? (
                           <div className="text-center py-3.5 px-3 rounded-xl bg-muted/20 border border-dashed border-border/80 text-xs text-muted-foreground">
-                            მახასიათებლები ცარიელია. ჩაწერეთ ქვემოთ და დააჭირეთ „+ დამატება“-ს
+                            მახასიათებლები ცარიელია. ჩაწერეთ ქვემოთ და დააჭირეთ „+“-ს
                           </div>
                         ) : (
                           <div className="space-y-1.5 max-h-[170px] overflow-y-auto pr-1">
@@ -3254,11 +3254,11 @@ export default function AdminDashboardPage() {
                           </div>
                         )}
 
-                        {/* Add feature input with Enter key & Visible "+ დამატება" button */}
+                        {/* Add feature input with clean + button */}
                         <div className="flex items-center gap-2 pt-1">
                           <input
                             type="text"
-                            placeholder="ახალი პუნქტი (მაგ: VIP მხარდაჭერა 24/7)..."
+                            placeholder="ახალი პუნქტი..."
                             value={newFeatureText[p.id] || ""}
                             onChange={(e) => setNewFeatureText((prev) => ({ ...prev, [p.id]: e.target.value }))}
                             onKeyDown={(e) => {
@@ -3271,7 +3271,7 @@ export default function AdminDashboardPage() {
                                 }
                               }
                             }}
-                            className="flex-1 py-2 px-3 rounded-xl border border-input text-xs bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            className="flex-1 min-w-0 py-2 px-3 rounded-xl border border-input text-xs bg-background font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
                           />
                           <Button
                             type="button"
@@ -3283,9 +3283,10 @@ export default function AdminDashboardPage() {
                                 setNewFeatureText((prev) => ({ ...prev, [p.id]: "" }));
                               }
                             }}
-                            className="rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white cursor-pointer h-9 px-3.5 shrink-0 gap-1 shadow-xs"
+                            className="w-9 h-9 p-0 rounded-xl font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer shrink-0 shadow-xs flex items-center justify-center"
+                            title="დამატება"
                           >
-                            <Plus className="w-3.5 h-3.5" /> დამატება
+                            <Plus className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>

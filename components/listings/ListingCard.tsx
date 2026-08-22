@@ -16,7 +16,8 @@ import {
   Sparkles, 
   ChevronRight,
   Gift,
-  Heart
+  Heart,
+  Camera
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
@@ -162,8 +163,9 @@ export function ListingCard({
           </button>
 
           {images?.length > 1 && (
-            <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white">
-              📷 {images.length}
+            <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white flex items-center gap-1">
+              <Camera className="w-2.5 h-2.5" />
+              <span>{images.length}</span>
             </div>
           )}
         </Link>
@@ -175,13 +177,13 @@ export function ListingCard({
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex items-baseline gap-2">
                 {transactionType === "GIFT" || price === 0 || !price ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
-                    <span>🎁</span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
                     <span>{isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}</span>
                   </span>
                 ) : transactionType === "TRADE" ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30">
-                    {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30">
+                    <RefreshCw className="w-3 h-3" />
+                    <span>{isKa ? "გაცვლა" : "Trade"}</span>
                   </span>
                 ) : (
                   <div className="flex items-baseline gap-1">
@@ -204,7 +206,7 @@ export function ListingCard({
                 <MapPin className="w-3 h-3 text-primary" />
                 <span>{city}</span>
                 {distLabel && (
-                  <span className="text-primary font-black ml-1">📍 {distLabel}</span>
+                  <span className="text-primary font-black ml-1">({distLabel})</span>
                 )}
               </div>
             </div>
@@ -330,8 +332,9 @@ export function ListingCard({
 
         {/* Photo Count */}
         {images?.length > 1 && (
-          <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white">
-            📷 {images.length}
+          <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white flex items-center gap-1">
+            <Camera className="w-2.5 h-2.5" />
+            <span>{images.length}</span>
           </div>
         )}
       </Link>
@@ -342,13 +345,13 @@ export function ListingCard({
         <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
           <div className="shrink-0 flex items-center gap-1 whitespace-nowrap">
             {transactionType === "GIFT" || price === 0 || !price ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs whitespace-nowrap">
-                <span>🎁</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs whitespace-nowrap">
                 <span>{isKa ? "უფასო" : "Free"}</span>
               </span>
             ) : transactionType === "TRADE" ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30 whitespace-nowrap">
-                {isKa ? "🔄 გაცვლა" : "🔄 Trade"}
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30 whitespace-nowrap">
+                <RefreshCw className="w-2.5 h-2.5" />
+                <span>{isKa ? "გაცვლა" : "Trade"}</span>
               </span>
             ) : (
               <div className="inline-flex items-baseline gap-1 whitespace-nowrap">
@@ -397,8 +400,8 @@ export function ListingCard({
             </div>
             <span className="truncate max-w-[90px]">{seller.fullName}</span>
             {(seller.role === "VERIFIED_SELLER" || seller.role === "ADMIN" || seller.role === "SUPER_ADMIN" || seller.isVerified || seller.badges?.includes("VERIFIED")) && (
-              <span title="ვერიფიცირებული გამყიდველი" className="text-emerald-600 dark:text-emerald-400 text-[10px] shrink-0">
-                🌿
+              <span title="ვერიფიცირებული გამყიდველი" className="text-emerald-600 dark:text-emerald-400 shrink-0">
+                <ShieldCheck className="w-3 h-3" />
               </span>
             )}
           </Link>

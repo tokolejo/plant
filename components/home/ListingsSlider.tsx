@@ -3,7 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
-import { ChevronLeft, ChevronRight, MapPin, Star, RefreshCw, Eye, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Star, RefreshCw, Eye, Sparkles, Camera } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import type { ExtendedListingCardProps } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
@@ -30,27 +30,28 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
           alt={item.title}
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-105"
-          sizes="270px"
+          sizes="(max-width: 640px) 240px, 270px"
           draggable={false}
         />
 
-        {/* Floating Badges */}
-        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
-          <Badge className="backdrop-blur-md bg-background/90 text-foreground border border-border/50 font-bold text-[10px] px-2 py-0.5 rounded-[8px]">
-            {item.itemType === "PLANT" ? "🌱 მცენარე" : "🪴 ინვენტარი"}
-          </Badge>
-
-          {item.transactionType === "TRADE" && (
-            <Badge className="backdrop-blur-md bg-amber-500 text-white font-bold text-[10px] px-2 py-0.5 shadow-xs flex items-center gap-1 rounded-[8px]">
-              <RefreshCw className="w-2.5 h-2.5" />
-              გაცვლა
+        {/* Badges Overlay */}
+        <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1">
+          {(item as any).isVip && (
+            <Badge className="bg-amber-500 text-white font-black text-[10px] px-2 py-0.5 shadow-sm border-0">
+              VIP
+            </Badge>
+          )}
+          {item.isFeatured && !(item as any).isVip && (
+            <Badge className="bg-primary text-white font-bold text-[10px] px-2 py-0.5 shadow-sm border-0">
+              TOP
             </Badge>
           )}
         </div>
 
         {/* Photo Count */}
-        <div className="absolute bottom-2.5 right-2.5 z-10 rounded-[8px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white">
-          📷 {item.images?.length || 1}
+        <div className="absolute bottom-2.5 right-2.5 z-10 rounded-[8px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white flex items-center gap-1">
+          <Camera className="w-2.5 h-2.5" />
+          <span>{item.images?.length || 1}</span>
         </div>
       </div>
 
@@ -60,13 +61,13 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
         <div className="flex items-baseline justify-between gap-2 mb-1.5">
           <div>
             {item.transactionType === "GIFT" || item.price === 0 || !item.price ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
-                <span>🎁</span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
                 <span>უფასო</span>
               </span>
             ) : item.transactionType === "TRADE" ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-900 dark:text-amber-300 text-xs font-black border border-amber-500/30">
-                🔄 გაცვლა
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-900 dark:text-amber-300 text-xs font-black border border-amber-500/30">
+                <RefreshCw className="w-2.5 h-2.5" />
+                <span>გაცვლა</span>
               </span>
             ) : (
               <span className="text-lg sm:text-xl font-black tracking-tight text-primary dark:text-primary-fixed">

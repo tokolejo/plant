@@ -796,10 +796,10 @@ export default function BotanicalMap() {
             <MapFilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
               <div className="grid grid-cols-1 gap-1.5">
                 {[
-                  { id: "FIXED", label: isKa ? "💰 ფიქსირებული ფასი" : "💰 Fixed Price" },
-                  { id: "NEGOTIABLE", label: isKa ? "🤝 ფასი შეთანხმებით" : "🤝 Negotiable" },
-                  { id: "TRADE", label: isKa ? "🔄 მცენარის გაცვლა" : "🔄 Trade Only" },
-                  { id: "GIFT", label: isKa ? "🎁 გაჩუქება (უფასოდ)" : "🎁 Free Giveaway" },
+                  { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
+                  { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
+                  { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Trade Only" },
+                  { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
                 ].map((t) => {
                   const active = selectedTrans.includes(t.id);
                   const count = SAMPLE_LISTINGS.filter((l) => l.transactionType === t.id).length;
