@@ -74,47 +74,47 @@
 
 @layer base {
   :root {
-    /* 🌿 Botanical Sage & Warm Linen Light Mode (Natural & Eye-Friendly) */
-    --background: 140 20% 96.5%;        /* Soothing botanical porcelain #f3f7f4 */
-    --foreground: 155 38% 11%;         /* Deep forest pine #122419 */
+    /* 🌿 Airbnb Clean Minimal & Botanical Light Mode */
+    --background: 0 0% 100%;             /* Pure crisp white #ffffff */
+    --foreground: 0 0% 13%;              /* Deep neutral charcoal #222222 */
 
-    --card: 140 25% 99%;              /* Clean organic ivory #fbfdfb */
-    --card-foreground: 155 38% 11%;
+    --card: 0 0% 100%;                   /* Pure white #ffffff */
+    --card-foreground: 0 0% 13%;
 
-    --popover: 140 25% 99%;
-    --popover-foreground: 155 38% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 13%;
 
-    --primary: 152 78% 22%;            /* Deep emerald leaf #0c6437 */
+    --primary: 152 78% 22%;              /* Botanical deep emerald leaf #0c6437 */
     --primary-foreground: 0 0% 100%;
     --primary-container: 152 50% 20%;
     --on-primary-container: 157 27% 64%;
 
-    --secondary: 140 15% 42%;
+    --secondary: 0 0% 44%;               /* Clean Airbnb neutral slate #717171 */
     --secondary-foreground: 0 0% 100%;
-    --secondary-container: 145 28% 90%; /* Soft sage tint #e0ede3 */
-    --on-secondary-container: 152 38% 18%;
+    --secondary-container: 0 0% 96%;     /* Soft neutral grey #f5f5f5 */
+    --on-secondary-container: 0 0% 13%;
 
-    --tertiary: 180 4% 18%;
+    --tertiary: 0 0% 20%;
     --on-tertiary: 0 0% 100%;
-    --tertiary-container: 180 3% 27%;
+    --tertiary-container: 0 0% 94%;
 
-    --surface-cream: 142 28% 94%;      /* Warm botanical matcha cream #e8f3ea */
-    --surface-dim: 140 14% 86%;
-    --surface-container: 145 22% 91%;  /* Soft sage surface #ddeadf */
-    --surface-container-low: 140 22% 95%;
-    --surface-container-high: 145 18% 88%;
+    --surface-cream: 0 0% 98.5%;         /* Ultra-light neutral #fafafa */
+    --surface-dim: 0 0% 95%;
+    --surface-container: 0 0% 96.5%;     /* Clean neutral container #f6f6f6 */
+    --surface-container-low: 0 0% 98%;
+    --surface-container-high: 0 0% 93%;
 
-    --muted: 142 16% 91%;
-    --muted-foreground: 152 14% 40%;   /* Refined botanical slate */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 44%;        /* Airbnb subtext #717171 */
 
-    --accent: 145 28% 90%;
-    --accent-foreground: 152 78% 22%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 13%;
 
     --destructive: 0 75% 42%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 145 18% 85%;             /* Gentle sage contour #d1e2d4 */
-    --input: 145 18% 85%;
+    --border: 0 0% 90%;                  /* Subtle Airbnb border #e5e5e5 */
+    --input: 0 0% 90%;
     --ring: 152 78% 22%;
 
     --radius: 1.15rem;

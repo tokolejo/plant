@@ -25,7 +25,7 @@ export function CompactListingCard({
   return (
     <Link
       href={`/listings/${id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border/60 bg-card hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-200"
+      className="flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-2xs"
     >
       {/* Image — compact 1:1 square */}
       <div className="relative aspect-square w-full overflow-hidden bg-muted/30">
@@ -33,7 +33,7 @@ export function CompactListingCard({
           src={primaryImage}
           alt={title}
           fill
-          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          className="object-cover"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 20vw"
         />
 
@@ -65,7 +65,7 @@ export function CompactListingCard({
 
       {/* Info */}
       <div className="p-2.5 flex flex-col gap-1 flex-1">
-        <h3 className="line-clamp-2 text-[11px] font-bold text-foreground leading-snug group-hover:text-emerald-600 transition-colors">
+        <h3 className="line-clamp-2 text-[11px] font-bold text-foreground leading-snug">
           {title}
         </h3>
 

@@ -21,7 +21,7 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
   return (
     <Link
       href={`/listings/${item.id}`}
-      className="group relative flex flex-col overflow-hidden rounded-[20px] border border-border/70 bg-card hover:border-primary/40 shadow-ambient hover:shadow-ambient-lg transition-all duration-300 w-[240px] sm:w-[270px] shrink-0 snap-start select-none"
+      className="relative flex flex-col overflow-hidden rounded-[20px] border border-border bg-card shadow-2xs w-[240px] sm:w-[270px] shrink-0 snap-start select-none"
     >
       {/* Image Container */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-container">
@@ -29,7 +29,7 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
           src={img}
           alt={item.title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover"
           sizes="(max-width: 640px) 240px, 270px"
           draggable={false}
         />
@@ -83,7 +83,7 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
         </div>
 
         {/* Title */}
-        <h3 className="line-clamp-2 text-xs sm:text-sm font-bold text-foreground leading-snug group-hover:text-primary transition-colors mb-2">
+        <h3 className="line-clamp-2 text-xs sm:text-sm font-bold text-foreground leading-snug mb-2">
           {item.title}
         </h3>
 

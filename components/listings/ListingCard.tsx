@@ -121,10 +121,10 @@ export function ListingCard({
   // ─── LIST VIEW VARIANT ───────────────────────────────────────────────────────
   if (variant === "list") {
     return (
-      <div className={`group relative flex flex-col sm:flex-row items-stretch overflow-hidden rounded-[20px] bg-card transition-all duration-200 ${
+      <div className={`relative flex flex-col sm:flex-row items-stretch overflow-hidden rounded-[20px] bg-card border ${
         isVip 
-          ? "border-2 border-amber-500/70 dark:border-amber-400/60 shadow-md ring-2 ring-amber-500/15" 
-          : "border border-border/70 hover:border-primary/40 shadow-xs hover:shadow-ambient"
+          ? "border-amber-500/70 dark:border-amber-400/60 shadow-md ring-2 ring-amber-500/15" 
+          : "border-border shadow-2xs"
       }`}>
         {/* Left Image */}
         <Link href={`/listings/${id}`} className="relative w-full sm:w-48 md:w-56 shrink-0 aspect-[4/3] sm:aspect-auto overflow-hidden bg-surface-container block">
@@ -132,7 +132,7 @@ export function ListingCard({
             src={primaryImage}
             alt={displayTitle}
             fill
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            className="object-cover"
             sizes="(max-width: 640px) 100vw, 240px"
           />
 
@@ -152,7 +152,7 @@ export function ListingCard({
           <button
             type="button"
             onClick={handleWishlistClick}
-            className={`absolute top-2.5 right-2.5 z-20 h-7 w-7 rounded-full backdrop-blur-md flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+            className={`absolute top-2.5 right-2.5 z-20 h-7 w-7 rounded-full backdrop-blur-md flex items-center justify-center transition-colors cursor-pointer shadow-xs ${
               isWishlisted
                 ? "bg-rose-500 text-white"
                 : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
@@ -212,7 +212,7 @@ export function ListingCard({
             </div>
 
             {/* Title */}
-            <Link href={`/listings/${id}`} className="block group-hover:text-primary transition-colors">
+            <Link href={`/listings/${id}`} className="block">
               <h3 className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug mb-2">
                 {displayTitle}
               </h3>
@@ -242,7 +242,7 @@ export function ListingCard({
           <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-2 mt-auto">
             <Link
               href={seller.customSlug ? `/shops/${seller.customSlug}` : `/users/${seller.id}`}
-              className="flex items-center gap-2 group/seller overflow-hidden"
+              className="flex items-center gap-2 overflow-hidden"
             >
               <div className="relative h-6 w-6 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[10px]">
                 {seller.avatarUrl ? (
@@ -251,7 +251,7 @@ export function ListingCard({
                   seller.fullName.charAt(0).toUpperCase()
                 )}
               </div>
-              <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200 group-hover/seller:text-primary transition-colors flex items-center gap-1">
+              <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
                 {seller.fullName}
                 {(seller.role === "VERIFIED_SELLER" || seller.role === "ADMIN" || seller.role === "SUPER_ADMIN" || seller.isVerified || seller.badges?.includes("VERIFIED")) && (
                   <span title="ვერიფიცირებული გამყიდველი" className="text-emerald-600 dark:text-emerald-400 text-[11px]">
@@ -279,12 +279,12 @@ export function ListingCard({
     );
   }
 
-  // ─── COMPACT GRID VARIANT (2x sleeker & information-rich) ───────────────────
+  // ─── COMPACT GRID VARIANT ────────────────────────────────────────────────────
   return (
-    <div className={`group relative flex flex-col overflow-hidden rounded-[18px] bg-card transition-all duration-200 ${
+    <div className={`relative flex flex-col overflow-hidden rounded-[18px] bg-card border ${
       isVip 
-        ? "border-2 border-amber-500/70 dark:border-amber-400/60 shadow-md shadow-amber-500/10 ring-2 ring-amber-500/15" 
-        : "border border-border/70 hover:border-primary/40 shadow-2xs hover:shadow-ambient"
+        ? "border-amber-500/70 dark:border-amber-400/60 shadow-md shadow-amber-500/10 ring-2 ring-amber-500/15" 
+        : "border-border shadow-2xs"
     }`}>
       {/* Top Image — Compact 4:3 */}
       <Link href={`/listings/${id}`} className="relative aspect-[4/3] w-full overflow-hidden bg-surface-container block">
@@ -292,7 +292,7 @@ export function ListingCard({
           src={primaryImage}
           alt={title}
           fill
-          className="object-cover transition-transform duration-500 group-hover:scale-105"
+          className="object-cover"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
         />
 
@@ -313,7 +313,7 @@ export function ListingCard({
         <button
           type="button"
           onClick={handleWishlistClick}
-          className={`absolute top-2 right-2 z-20 h-6.5 w-6.5 rounded-full backdrop-blur-md flex items-center justify-center transition-all cursor-pointer shadow-xs ${
+          className={`absolute top-2 right-2 z-20 h-6.5 w-6.5 rounded-full backdrop-blur-md flex items-center justify-center transition-colors cursor-pointer shadow-xs ${
             isWishlisted
               ? "bg-rose-500 text-white"
               : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
@@ -379,7 +379,7 @@ export function ListingCard({
         </div>
 
         {/* Title */}
-        <Link href={`/listings/${id}`} className="group-hover:text-primary transition-colors mb-2">
+        <Link href={`/listings/${id}`} className="mb-2 block">
           <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold text-foreground leading-snug min-h-[32px]">
             {displayTitle}
           </h3>
