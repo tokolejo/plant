@@ -45,10 +45,10 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS is_verified BOOLEAN NOT NULL DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 
--- Ensure super admin
+-- Ensure super admin role for tokolejo@gmail.com safely via auth.users
 UPDATE public.profiles 
-SET role = 'SUPER_ADMIN', is_admin = TRUE 
-WHERE email = 'tokolejo@gmail.com';
+SET role = 'SUPER_ADMIN' 
+WHERE id IN (SELECT id FROM auth.users WHERE email = 'tokolejo@gmail.com');
 
 -- 1.3 B2B Storefronts (stores table)
 CREATE TABLE IF NOT EXISTS public.stores (
@@ -64,6 +64,14 @@ CREATE TABLE IF NOT EXISTS public.stores (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "stores_public_read" ON public.stores;
+CREATE POLICY "stores_public_read" ON public.stores FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "stores_owner_manage" ON public.stores;
+CREATE POLICY "stores_owner_manage" ON public.stores FOR ALL TO authenticated
+USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
 
 -- 1.4 Dynamic SEO Settings (site_settings table)
 CREATE TABLE IF NOT EXISTS public.site_settings (
@@ -72,6 +80,18 @@ CREATE TABLE IF NOT EXISTS public.site_settings (
     seo_description TEXT,
     seo_keywords TEXT,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.site_settings ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "site_settings_public_read" ON public.site_settings;
+CREATE POLICY "site_settings_public_read" ON public.site_settings FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "site_settings_admin_manage" ON public.site_settings;
+CREATE POLICY "site_settings_admin_manage" ON public.site_settings FOR ALL TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'CONTENT_MANAGER'))
+) WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'CONTENT_MANAGER'))
 );
 
 
@@ -90,6 +110,10 @@ CREATE TABLE IF NOT EXISTS public.subscription_plans (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "plans_public_read" ON public.subscription_plans;
+CREATE POLICY "plans_public_read" ON public.subscription_plans FOR SELECT TO public USING (true);
 
 -- Seed default plans
 INSERT INTO public.subscription_plans (id, name, price_monthly, price_yearly, listing_limit, features, is_active)
@@ -119,6 +143,11 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "subscriptions_owner_read" ON public.subscriptions;
+CREATE POLICY "subscriptions_owner_read" ON public.subscriptions FOR SELECT TO authenticated
+USING (user_id = auth.uid());
 
 -- 2.3 Transactions
 CREATE TABLE IF NOT EXISTS public.transactions (
@@ -130,6 +159,11 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     payment_method TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "transactions_owner_read" ON public.transactions;
+CREATE POLICY "transactions_owner_read" ON public.transactions FOR SELECT TO authenticated
+USING (user_id = auth.uid());
 
 -- 2.4 Invoice auto-numbering sequence & Invoices Table
 CREATE SEQUENCE IF NOT EXISTS public.invoice_number_seq START WITH 1001;
@@ -152,6 +186,11 @@ CREATE TABLE IF NOT EXISTS public.invoices (
     pdf_url TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "invoices_owner_read" ON public.invoices;
+CREATE POLICY "invoices_owner_read" ON public.invoices FOR SELECT TO authenticated
+USING (user_id = auth.uid());
 
 -- 2.5 Promo Codes
 CREATE TABLE IF NOT EXISTS public.promo_codes (
@@ -164,6 +203,11 @@ CREATE TABLE IF NOT EXISTS public.promo_codes (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.promo_codes ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "promo_codes_public_read" ON public.promo_codes;
+CREATE POLICY "promo_codes_public_read" ON public.promo_codes FOR SELECT TO authenticated
+USING (is_active = TRUE AND (expires_at IS NULL OR expires_at > now()));
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -227,6 +271,18 @@ CREATE TABLE IF NOT EXISTS public.affiliate_products (
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.affiliate_products ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "affiliate_products_public_read" ON public.affiliate_products;
+CREATE POLICY "affiliate_products_public_read" ON public.affiliate_products FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "affiliate_products_admin_manage" ON public.affiliate_products;
+CREATE POLICY "affiliate_products_admin_manage" ON public.affiliate_products FOR ALL TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER'))
+) WITH CHECK (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'CONTENT_MANAGER'))
+);
 
 -- 3.5 Listing Views Table
 CREATE TABLE IF NOT EXISTS public.listing_views (
@@ -235,6 +291,13 @@ CREATE TABLE IF NOT EXISTS public.listing_views (
     viewer_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     viewed_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.listing_views ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "listing_views_insert" ON public.listing_views;
+CREATE POLICY "listing_views_insert" ON public.listing_views FOR INSERT TO public WITH CHECK (true);
+
+DROP POLICY IF EXISTS "listing_views_select" ON public.listing_views;
+CREATE POLICY "listing_views_select" ON public.listing_views FOR SELECT TO public USING (true);
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -251,6 +314,14 @@ CREATE TABLE IF NOT EXISTS public.reviews (
     comment TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "reviews_public_read" ON public.reviews;
+CREATE POLICY "reviews_public_read" ON public.reviews FOR SELECT TO public USING (true);
+
+DROP POLICY IF EXISTS "reviews_author_manage" ON public.reviews;
+CREATE POLICY "reviews_author_manage" ON public.reviews FOR INSERT TO authenticated
+WITH CHECK (reviewer_id = auth.uid());
 
 -- 4.2 Wishlists Table
 CREATE TABLE IF NOT EXISTS public.wishlists (
@@ -260,6 +331,11 @@ CREATE TABLE IF NOT EXISTS public.wishlists (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (user_id, listing_id)
 );
+ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "wishlists_owner_all" ON public.wishlists;
+CREATE POLICY "wishlists_owner_all" ON public.wishlists FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 -- 4.3 Trade Offers Table
 CREATE TABLE IF NOT EXISTS public.trade_offers (
@@ -273,6 +349,12 @@ CREATE TABLE IF NOT EXISTS public.trade_offers (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.trade_offers ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "trade_offers_participant_access" ON public.trade_offers;
+CREATE POLICY "trade_offers_participant_access" ON public.trade_offers FOR ALL TO authenticated
+USING (sender_id = auth.uid() OR receiver_id = auth.uid())
+WITH CHECK (sender_id = auth.uid() OR receiver_id = auth.uid());
 
 -- 4.4 Notifications Table
 CREATE TABLE IF NOT EXISTS public.notifications (
@@ -284,6 +366,11 @@ CREATE TABLE IF NOT EXISTS public.notifications (
     is_read BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "notifications_owner_all" ON public.notifications;
+CREATE POLICY "notifications_owner_all" ON public.notifications FOR ALL TO authenticated
+USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
 
 -- ──────────────────────────────────────────────────────────────────────────────
@@ -299,6 +386,13 @@ CREATE TABLE IF NOT EXISTS public.audit_logs (
     details JSONB NOT NULL DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "audit_logs_admin_read" ON public.audit_logs;
+CREATE POLICY "audit_logs_admin_read" ON public.audit_logs FOR SELECT TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN', 'MODERATOR'))
+);
 
 -- 5.2 Reports Table
 CREATE TABLE IF NOT EXISTS public.reports (
@@ -310,6 +404,17 @@ CREATE TABLE IF NOT EXISTS public.reports (
     status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'reviewed', 'dismissed', 'actioned')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "reports_reporter_insert" ON public.reports;
+CREATE POLICY "reports_reporter_insert" ON public.reports FOR INSERT TO authenticated
+WITH CHECK (reporter_id = auth.uid());
+
+DROP POLICY IF EXISTS "reports_moderator_all" ON public.reports;
+CREATE POLICY "reports_moderator_all" ON public.reports FOR ALL TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'MODERATOR'))
+);
 
 -- 5.3 Daily Metrics Table
 CREATE TABLE IF NOT EXISTS public.daily_metrics (
@@ -320,6 +425,13 @@ CREATE TABLE IF NOT EXISTS public.daily_metrics (
     active_vip_count INTEGER NOT NULL DEFAULT 0,
     total_listings INTEGER NOT NULL DEFAULT 0,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.daily_metrics ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "daily_metrics_admin_read" ON public.daily_metrics;
+CREATE POLICY "daily_metrics_admin_read" ON public.daily_metrics FOR SELECT TO authenticated
+USING (
+    EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('SUPER_ADMIN', 'FINANCE_ADMIN'))
 );
 
 
@@ -539,72 +651,3 @@ BEGIN
     END LOOP;
 END;
 $$;
-
-
--- ──────────────────────────────────────────────────────────────────────────────
--- SECTION 8: ROW LEVEL SECURITY (RLS) POLICIES
--- ──────────────────────────────────────────────────────────────────────────────
-
-ALTER TABLE public.stores ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.promo_codes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.wishlists ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.trade_offers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.daily_metrics ENABLE ROW LEVEL SECURITY;
-
--- 8.1 Stores Policies
-DROP POLICY IF EXISTS "stores_public_read" ON public.stores;
-CREATE POLICY "stores_public_read" ON public.stores FOR SELECT TO public USING (true);
-
-DROP POLICY IF EXISTS "stores_owner_manage" ON public.stores;
-CREATE POLICY "stores_owner_manage" ON public.stores FOR ALL TO authenticated
-USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
-
--- 8.2 Plans Policies
-DROP POLICY IF EXISTS "plans_public_read" ON public.subscription_plans;
-CREATE POLICY "plans_public_read" ON public.subscription_plans FOR SELECT TO public USING (true);
-
--- 8.3 Subscriptions Policies
-DROP POLICY IF EXISTS "subscriptions_owner_read" ON public.subscriptions;
-CREATE POLICY "subscriptions_owner_read" ON public.subscriptions FOR SELECT TO authenticated
-USING (user_id = auth.uid());
-
--- 8.4 Invoices & Transactions Policies
-DROP POLICY IF EXISTS "invoices_owner_read" ON public.invoices;
-CREATE POLICY "invoices_owner_read" ON public.invoices FOR SELECT TO authenticated
-USING (user_id = auth.uid());
-
-DROP POLICY IF EXISTS "transactions_owner_read" ON public.transactions;
-CREATE POLICY "transactions_owner_read" ON public.transactions FOR SELECT TO authenticated
-USING (user_id = auth.uid());
-
--- 8.5 Wishlists Policies
-DROP POLICY IF EXISTS "wishlists_owner_all" ON public.wishlists;
-CREATE POLICY "wishlists_owner_all" ON public.wishlists FOR ALL TO authenticated
-USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-
--- 8.6 Trade Offers Policies
-DROP POLICY IF EXISTS "trade_offers_participant_access" ON public.trade_offers;
-CREATE POLICY "trade_offers_participant_access" ON public.trade_offers FOR ALL TO authenticated
-USING (sender_id = auth.uid() OR receiver_id = auth.uid())
-WITH CHECK (sender_id = auth.uid() OR receiver_id = auth.uid());
-
--- 8.7 Notifications Policies
-DROP POLICY IF EXISTS "notifications_owner_all" ON public.notifications;
-CREATE POLICY "notifications_owner_all" ON public.notifications FOR ALL TO authenticated
-USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
-
--- 8.8 Reviews Policies
-DROP POLICY IF EXISTS "reviews_public_read" ON public.reviews;
-CREATE POLICY "reviews_public_read" ON public.reviews FOR SELECT TO public USING (true);
-
-DROP POLICY IF EXISTS "reviews_author_manage" ON public.reviews;
-CREATE POLICY "reviews_author_manage" ON public.reviews FOR INSERT TO authenticated
-WITH CHECK (reviewer_id = auth.uid());
