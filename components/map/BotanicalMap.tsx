@@ -162,8 +162,8 @@ export default function BotanicalMap() {
   const markersRef = React.useRef<any[]>([]);
   const userMarkerRef = React.useRef<any>(null);
 
-  // Filter States
-  const [filterPanelOpen, setFilterPanelOpen] = React.useState(true);
+  // Filter States — Closed by default on page visit
+  const [filterPanelOpen, setFilterPanelOpen] = React.useState(false);
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCity, setSelectedCity] = React.useState("მთელი საქართველო");
   const [userCoords, setUserCoords] = React.useState<[number, number] | null>(null);
