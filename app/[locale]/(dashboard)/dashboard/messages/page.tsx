@@ -22,6 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
+import { InChatOfferCard, TradeOfferData } from "@/components/chat/InChatOfferCard";
+import { CreateOfferModal } from "@/components/chat/CreateOfferModal";
+import { Handshake, PlusCircle } from "lucide-react";
 
 interface ConversationItem {
   id: string;
@@ -104,6 +107,8 @@ function MessagesInboxContent() {
     },
   ]);
 
+  const [tradeOffers, setTradeOffers] = React.useState<TradeOfferData[]>([]);
+  const [isOfferModalOpen, setIsOfferModalOpen] = React.useState(false);
   const [newMessage, setNewMessage] = React.useState("");
 
   // 1. Initial Load & Auth Check
@@ -160,7 +165,7 @@ function MessagesInboxContent() {
     }
   };
 
-  // 3. Set Active Conversation
+  // 3. Set Active Conversation & Load Offers
   React.useEffect(() => {
     if (activeConvId) {
       const found = conversations.find((c) => c.id === activeConvId);
@@ -171,6 +176,45 @@ function MessagesInboxContent() {
       setActiveConv(conversations[0]);
     }
   }, [activeConvId, conversations]);
+
+  // Load Trade Offers for active conversation
+  React.useEffect(() => {
+    if (!activeConv?.id) return;
+
+    async function loadOffers() {
+      try {
+        const res = await fetch(`/api/offers?chatId=${activeConv?.id}`);
+        const data = await res.json();
+        if (data.success && data.offers) {
+          setTradeOffers(data.offers);
+        }
+      } catch (e) {
+        console.warn("Could not load offers:", e);
+      }
+    }
+    loadOffers();
+
+    // Listen to real-time offer updates
+    const offerChannel = supabase
+      .channel(`offers:${activeConv.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "trade_offers",
+          filter: `chat_id=eq.${activeConv.id}`,
+        },
+        () => {
+          loadOffers();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(offerChannel);
+    };
+  }, [activeConv?.id, supabase]);
 
   // 4. Supabase Realtime Subscription for incoming messages
   React.useEffect(() => {
@@ -205,7 +249,7 @@ function MessagesInboxContent() {
   // Auto-scroll on new message
   React.useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, tradeOffers]);
 
   // 5. Send Message
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -344,35 +388,63 @@ function MessagesInboxContent() {
                   </div>
                 </div>
 
-                {activeConv.listing && (
-                  <Link
-                    href={`/listings/${activeConv.listing.id}`}
-                    className="flex items-center gap-2 rounded-[14px] bg-secondary-container/70 hover:bg-secondary-container p-2 pr-3 transition-colors max-w-[220px]"
-                  >
-                    {activeConv.listing.image && (
-                      <div className="relative h-8 w-8 rounded-[8px] overflow-hidden shrink-0">
-                        <Image
-                          src={activeConv.listing.image}
-                          alt={activeConv.listing.title}
-                          fill
-                          className="object-cover"
-                        />
+                <div className="flex items-center gap-2">
+                  {activeConv.listing && (
+                    <button
+                      type="button"
+                      onClick={() => setIsOfferModalOpen(true)}
+                      className="h-9 px-3 rounded-[12px] bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 font-black text-xs flex items-center gap-1.5 transition-all shadow-2xs active:scale-95 cursor-pointer shrink-0"
+                    >
+                      <Handshake className="w-4 h-4" />
+                      <span className="hidden sm:inline">შეთავაზება / გაცვლა</span>
+                      <span className="sm:hidden">შეთავაზება</span>
+                    </button>
+                  )}
+
+                  {activeConv.listing && (
+                    <Link
+                      href={`/listings/${activeConv.listing.id}`}
+                      className="flex items-center gap-2 rounded-[14px] bg-secondary-container/70 hover:bg-secondary-container p-2 pr-3 transition-colors max-w-[200px]"
+                    >
+                      {activeConv.listing.image && (
+                        <div className="relative h-8 w-8 rounded-[8px] overflow-hidden shrink-0">
+                          <Image
+                            src={activeConv.listing.image}
+                            alt={activeConv.listing.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="truncate text-left">
+                        <p className="text-[10px] font-bold truncate text-foreground">
+                          {activeConv.listing.title}
+                        </p>
+                        <p className="text-[10px] font-bold text-primary">
+                          {formatPrice(activeConv.listing.price)}
+                        </p>
                       </div>
-                    )}
-                    <div className="truncate text-left">
-                      <p className="text-[10px] font-bold truncate text-foreground">
-                        {activeConv.listing.title}
-                      </p>
-                      <p className="text-[10px] font-bold text-primary">
-                        {formatPrice(activeConv.listing.price)}
-                      </p>
-                    </div>
-                  </Link>
-                )}
+                    </Link>
+                  )}
+                </div>
               </div>
 
-              {/* Messages Stream */}
+              {/* Messages Stream with In-Chat Offer Cards */}
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-surface-cream/30">
+                {/* Active Trade Offers in Chat */}
+                {tradeOffers.map((offer) => (
+                  <InChatOfferCard
+                    key={offer.id}
+                    offer={offer}
+                    currentUserId={currentUser?.id || "usr-demo"}
+                    onStatusUpdate={(id, status) => {
+                      setTradeOffers((prev) =>
+                        prev.map((o) => (o.id === id ? { ...o, status: status as any } : o))
+                      );
+                    }}
+                  />
+                ))}
+
                 {messages.map((m) => {
                   const isMine = m.sender_id === (currentUser?.id || "usr-demo");
 
@@ -409,6 +481,18 @@ function MessagesInboxContent() {
                 onSubmit={handleSendMessage}
                 className="p-3.5 border-t border-border/60 bg-card flex items-center gap-2"
               >
+                {activeConv.listing && (
+                  <button
+                    type="button"
+                    onClick={() => setIsOfferModalOpen(true)}
+                    className="h-11 px-3 rounded-[16px] bg-secondary-container hover:bg-secondary text-foreground border border-border/70 text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 cursor-pointer"
+                    title="ფასის ან გაცვლის შეთავაზება"
+                  >
+                    <Handshake className="w-4 h-4 text-primary" />
+                    <span className="hidden sm:inline">შეთავაზება</span>
+                  </button>
+                )}
+
                 <Input
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
@@ -418,11 +502,25 @@ function MessagesInboxContent() {
                 <Button
                   type="submit"
                   size="icon"
-                  className="h-11 w-11 rounded-[16px] bg-primary hover:bg-primary-container text-white shrink-0 shadow-ambient"
+                  className="h-11 w-11 rounded-[16px] bg-primary hover:bg-primary-container text-white shrink-0 shadow-ambient cursor-pointer"
                 >
                   <Send className="w-4 h-4 text-primary-fixed" />
                 </Button>
               </form>
+
+              {/* Modal for creating offer */}
+              {activeConv.listing && (
+                <CreateOfferModal
+                  isOpen={isOfferModalOpen}
+                  onClose={() => setIsOfferModalOpen(false)}
+                  chatId={activeConv.id}
+                  receiverId={activeConv.otherUser.id}
+                  requestedListing={activeConv.listing}
+                  onOfferCreated={(newOffer) => {
+                    setTradeOffers((prev) => [newOffer, ...prev]);
+                  }}
+                />
+              )}
             </>
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-muted-foreground">

@@ -301,8 +301,16 @@ export default function CreateListingPage() {
     }
   };
 
+  // Botanical Care & Pl@ntNet State
+  const [botanicalName, setBotanicalName] = React.useState("");
+  const [wateringSchedule, setWateringSchedule] = React.useState("Weekly (კვირაში 1-ხელ)");
+  const [lightRequirement, setLightRequirement] = React.useState("Bright Indirect (კაშკაშა გაფანტული)");
+  const [careDifficulty, setCareDifficulty] = React.useState<"Easy" | "Medium" | "Expert">("Easy");
+  const [plantnetId, setPlantnetId] = React.useState("");
+  const [confidenceScore, setConfidenceScore] = React.useState<number | null>(null);
+
   // ──────────────────────────────────────────────
-  // Pl@ntNet Botanical AI Vision (OpenAPI)
+  // Pl@ntNet Botanical AI Identification (OpenAPI)
   // ──────────────────────────────────────────────
   const [plantnetDetecting, setPlantnetDetecting] = React.useState(false);
 
@@ -318,20 +326,12 @@ export default function CreateListingPage() {
 
     try {
       const firstFile = selectedFiles[0];
-      const compressedForAi = await compressImage(firstFile, {
-        maxDimension: 1200,
-        quality: 0.85,
-        mimeType: "image/jpeg",
-      });
-      const base64 = await fileToBase64(compressedForAi);
+      const formData = new FormData();
+      formData.append("image", firstFile);
 
-      const res = await fetch("/api/ai/recognize-plantnet", {
+      const res = await fetch("/api/ai/identify-plant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: base64,
-          mimeType: "image/jpeg",
-        }),
+        body: formData,
       });
 
       const data = await res.json();
@@ -345,14 +345,20 @@ export default function CreateListingPage() {
       setActiveProvider("plantnet");
 
       // Auto-fill form fields
-      if (result.titleKa) setTitleKa(result.titleKa);
-      if (result.titleEn) setTitleEn(result.titleEn);
-      if (result.descKa) setDescKa(result.descKa);
-      if (result.descEn) setDescEn(result.descEn);
-      if (result.category) setItemType(result.category);
-      if (result.plantCategory) setPlantCategory(result.plantCategory);
+      if (result.title_ka) setTitleKa(result.title_ka);
+      if (result.title_en) setTitleEn(result.title_en);
+      if (result.category) {
+        setPlantCategory(result.category);
+        setItemType("PLANT");
+      }
+      if (result.botanical_name) setBotanicalName(result.botanical_name);
+      if (result.watering_schedule) setWateringSchedule(result.watering_schedule);
+      if (result.light_requirement) setLightRequirement(result.light_requirement);
+      if (result.care_difficulty) setCareDifficulty(result.care_difficulty);
+      if (result.plantnet_id) setPlantnetId(result.plantnet_id);
+      if (result.confidence_score) setConfidenceScore(result.confidence_score);
       if (result.tags && Array.isArray(result.tags)) {
-        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags!])));
+        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
       }
 
       setAiApplied(true);
@@ -508,6 +514,11 @@ export default function CreateListingPage() {
         city,
         address: address.trim(),
         trade_preferences: tradeTags,
+        botanical_name: botanicalName.trim() || null,
+        watering_schedule: wateringSchedule || null,
+        light_requirement: lightRequirement || null,
+        care_difficulty: careDifficulty || null,
+        plantnet_id: plantnetId || null,
       }).select().single();
 
       if (insertError) throw insertError;
@@ -809,6 +820,83 @@ export default function CreateListingPage() {
             />
           </div>
         </div>
+
+        {/* 3.1 Botanical Care & Characteristics (Auto-filled by Pl@ntNet) */}
+        {itemType === "PLANT" && (
+          <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Leaf className="w-4 h-4 text-primary" />
+                ბოტანიკური მახასიათებლები & მოვლა (Pl@ntNet)
+              </label>
+              {confidenceScore && (
+                <span className="text-[11px] font-black text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 px-2.5 py-0.5 rounded-full">
+                  🌿 {confidenceScore}% სიზუსტე
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  ლათინური ბოტანიკური სახელი
+                </label>
+                <Input
+                  value={botanicalName}
+                  onChange={(e) => setBotanicalName(e.target.value)}
+                  placeholder="მაგ: Monstera deliciosa"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  💧 მორწყვის გრაფიკი
+                </label>
+                <Input
+                  value={wateringSchedule}
+                  onChange={(e) => setWateringSchedule(e.target.value)}
+                  placeholder="მაგ: Weekly (კვირაში 1-ხელ)"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  ☀️ განათების მოთხოვნა
+                </label>
+                <Input
+                  value={lightRequirement}
+                  onChange={(e) => setLightRequirement(e.target.value)}
+                  placeholder="მაგ: Bright Indirect (კაშკაშა გაფანტული)"
+                  className="rounded-[14px] h-10 text-xs font-medium"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground mb-1 block">
+                  🌱 მოვლის სირთულე
+                </label>
+                <div className="grid grid-cols-3 gap-1.5 h-10">
+                  {(["Easy", "Medium", "Expert"] as const).map((lvl) => (
+                    <button
+                      key={lvl}
+                      type="button"
+                      onClick={() => setCareDifficulty(lvl)}
+                      className={`rounded-[10px] text-xs font-bold transition-all cursor-pointer ${
+                        careDifficulty === lvl
+                          ? "bg-primary text-white shadow-2xs"
+                          : "bg-muted/40 text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      {lvl === "Easy" ? "მარტივი" : lvl === "Medium" ? "საშუალო" : "რთული"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 4. Transaction Type & Price (Set by user) */}
         <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
