@@ -87,9 +87,9 @@ export function SubscriptionPlansCard() {
                     : "border-border/80 hover:border-emerald-500/40"
                 }`}
               >
-                {isPopular && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-0.5 text-[11px] font-bold text-white shadow-md">
-                    {isKa ? "ყველაზე პოპულარული" : "Most Popular"}
+                {(plan.badge || isPopular) && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-3.5 py-0.5 text-[11px] font-bold text-white shadow-md whitespace-nowrap">
+                    {plan.badge || (isKa ? "ყველაზე პოპულარული" : "Most Popular")}
                   </div>
                 )}
 

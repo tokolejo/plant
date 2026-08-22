@@ -5,7 +5,8 @@ import { Link, useRouter } from "@/i18n/routing";
 import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 import { formatDbListing } from "@/lib/listings-service";
-import { getStoredPlans, saveStoredPlans } from "@/lib/plans-store";
+import { getStoredPlans, saveStoredPlans, fetchAndSyncDbPlans, SubscriptionPlanItem, DEFAULT_PLANS } from "@/lib/plans-store";
+import { logAuditEvent } from "@/lib/audit-logger";
 import { 
   ShieldCheck, 
   Users, 
@@ -173,16 +174,47 @@ export default function AdminDashboardPage() {
   const [users, setUsers] = React.useState<any[]>([]);
 
   // Subscription Plans Dynamic Management State
-  const [plans, setPlans] = React.useState<any[]>([]);
+  const [plans, setPlans] = React.useState<SubscriptionPlanItem[]>(DEFAULT_PLANS);
   const [plansSaved, setPlansSaved] = React.useState(false);
+  const [showNewPlanModal, setShowNewPlanModal] = React.useState(false);
+  const [newPlanForm, setNewPlanForm] = React.useState<Partial<SubscriptionPlanItem>>({
+    tier: "TIER_4",
+    nameKa: "ახალი ტარიფი",
+    nameEn: "New Tier",
+    monthlyPrice: 49,
+    yearlyPrice: 470,
+    listingLimit: 75,
+    vipSlots: 4,
+    badge: "ახალი",
+    customSlug: true,
+    isActive: true,
+    featuresKa: ["75 აქტიური განცხადება", "4 VIP ბუსტი / თვეში", "Custom Shop URL"],
+    featuresEn: ["75 active listings", "4 VIP Boosts / month", "Custom Shop URL"],
+  });
 
   React.useEffect(() => {
     setPlans(getStoredPlans());
+    fetchAndSyncDbPlans().then((livePlans) => {
+      if (livePlans && livePlans.length > 0) {
+        setPlans(livePlans);
+      }
+    });
   }, []);
 
-  const showNotice = (msg: string) => {
-    setActionNotice(msg);
-    setTimeout(() => setActionNotice(""), 3500);
+  // Floating Glassmorphic Feedback Toast Notification
+  const [toast, setToast] = React.useState<{ id: string; type: "success" | "error" | "info"; message: string } | null>(null);
+
+  const showNotice = (msg: string, type?: "success" | "error" | "info") => {
+    const isErr = msg.startsWith("❌") || msg.startsWith("🚫") || type === "error";
+    const finalType = isErr ? "error" : (type || "success");
+    setToast({
+      id: Math.random().toString(),
+      type: finalType,
+      message: msg,
+    });
+    setTimeout(() => {
+      setToast((prev) => (prev?.message === msg ? null : prev));
+    }, 4500);
   };
 
   // ──────────────────────────────────────────────
@@ -298,6 +330,14 @@ export default function AdminDashboardPage() {
         showNotice(`❌ შეცდომა სტატუსის განახლებისას: ${error.message}`);
         return;
       }
+
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "UPDATE_LISTING_STATUS",
+        targetType: "LISTING",
+        targetId: id,
+        newData: { status: newStatus },
+      });
     }
 
     const labelMap: Record<string, string> = {
@@ -319,6 +359,14 @@ export default function AdminDashboardPage() {
         showNotice(`❌ წაშლის შეცდომა: ${error.message}`);
         return;
       }
+
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "DELETE_LISTING",
+        targetType: "LISTING",
+        targetId: id,
+        oldData: { title },
+      });
     }
     showNotice(`🗑️ განცხადება წარმატებით წაიშალა: "${title}"`);
   };
@@ -333,6 +381,13 @@ export default function AdminDashboardPage() {
         showNotice(`❌ შეცდომა: ${error.message}`);
         return;
       }
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "UPDATE_SUBSCRIPTION_TIER",
+        targetType: "USER",
+        targetId: id,
+        newData: { newTier },
+      });
     }
     showNotice(`✅ მომხმარებლის ტარიფი წარმატებით განახლდა: ${newTier}`);
   };
@@ -349,6 +404,7 @@ export default function AdminDashboardPage() {
     }
 
     const isNowAdmin = newRole === "SUPER_ADMIN" || newRole === "FINANCE_ADMIN" || newRole === "CONTENT_MANAGER" || newRole === "ADMIN";
+    const previousUser = users.find((u) => u.id === id);
 
     // Instant local state update
     setUsers((prev) =>
@@ -370,6 +426,15 @@ export default function AdminDashboardPage() {
         showNotice(`❌ შეცდომა როლის მინიჭებისას: ${error.message}`);
         return;
       }
+
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "CHANGE_USER_ROLE",
+        targetType: "USER",
+        targetId: id,
+        oldData: { role: previousUser?.role },
+        newData: { newRole, isAdmin: isNowAdmin },
+      });
     }
 
     const roleNameKa: Record<string, string> = {
@@ -387,6 +452,8 @@ export default function AdminDashboardPage() {
 
   const updateUserSlug = async (id: string, newSlug: string) => {
     const cleanSlug = newSlug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") || null;
+    const previousUser = users.find((u) => u.id === id);
+
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, customSlug: cleanSlug } : u))
     );
@@ -399,29 +466,237 @@ export default function AdminDashboardPage() {
         showNotice(`❌ შეცდომა სლაგის განახლებისას: ${error.message}`);
         return;
       }
+
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "UPDATE_CUSTOM_SLUG",
+        targetType: "USER",
+        targetId: id,
+        oldData: { customSlug: previousUser?.customSlug },
+        newData: { customSlug: cleanSlug },
+      });
     }
     showNotice(cleanSlug ? `✅ Custom Slug განახლდა: /${cleanSlug}` : `✅ Custom Slug გასუფთავდა (არ არის)`);
   };
 
-  const handlePlanChange = (planId: string, field: string, value: any) => {
+  const handlePlanChange = (planId: string, field: keyof SubscriptionPlanItem, value: any) => {
     setPlans((prev) =>
       prev.map((p) => {
         if (p.id !== planId) return p;
-        if (field === "features") {
-          const splitFeatures = typeof value === "string" ? value.split(",").map((s) => s.trim()).filter(Boolean) : value;
-          return { ...p, featuresKa: splitFeatures, [field]: value };
+        
+        const updated = { ...p, [field]: value };
+
+        // Auto-calculate yearly price when monthly price changes
+        if (field === "monthlyPrice") {
+          const mPrice = Math.max(0, parseFloat(value) || 0);
+          const discount = p.discountPercent !== undefined ? p.discountPercent : 20;
+          if (mPrice === 0) {
+            updated.yearlyPrice = 0;
+          } else {
+            updated.yearlyPrice = Math.round(mPrice * 12 * (1 - discount / 100));
+          }
         }
-        return { ...p, [field]: value };
+
+        // Auto-calculate yearly price when discount % changes
+        if (field === "discountPercent") {
+          const discount = Math.max(0, Math.min(99, parseFloat(value) || 0));
+          const mPrice = p.monthlyPrice || 0;
+          if (mPrice === 0) {
+            updated.yearlyPrice = 0;
+          } else {
+            updated.yearlyPrice = Math.round(mPrice * 12 * (1 - discount / 100));
+          }
+        }
+
+        return updated;
       })
     );
     setPlansSaved(false);
   };
 
-  const handleSavePlans = () => {
-    saveStoredPlans(plans);
-    setPlansSaved(true);
-    showNotice("💎 ტარიფების პარამეტრები წარმატებით შეინახა!");
-    setTimeout(() => setPlansSaved(false), 3000);
+  const handleDuplicatePlan = (planId: string) => {
+    const original = plans.find((p) => p.id === planId);
+    if (!original) return;
+
+    const uniqueSuffix = Date.now().toString().slice(-4);
+    const newTier = `${original.tier}_COPY_${uniqueSuffix}`;
+    const duplicatedPlan: SubscriptionPlanItem = {
+      ...original,
+      id: newTier,
+      tier: newTier,
+      nameKa: `${original.nameKa} (ასლი)`,
+      nameEn: `${original.nameEn || original.nameKa} (Copy)`,
+      sortOrder: plans.length + 1,
+      badge: original.badge ? `${original.badge} (Copy)` : undefined,
+    };
+
+    const updated = [...plans, duplicatedPlan];
+    setPlans(updated);
+    saveStoredPlans(updated);
+
+    logAuditEvent({
+      actorId: currentUser?.id,
+      action: "DUPLICATE_PLAN",
+      targetType: "PLAN",
+      newData: duplicatedPlan,
+    });
+
+    showNotice(`📋 ტარიფი "${original.nameKa}" დადუბლირდა! შეგიძლიათ შეცვალოთ და შეინახოთ.`);
+  };
+
+  const handleAddFeature = (planId: string, featureText: string) => {
+    const trimmed = featureText.trim();
+    if (!trimmed) return;
+    setPlans((prev) =>
+      prev.map((p) => {
+        if (p.id !== planId) return p;
+        return {
+          ...p,
+          featuresKa: [...p.featuresKa, trimmed],
+          featuresEn: [...(p.featuresEn || p.featuresKa), trimmed],
+        };
+      })
+    );
+    setPlansSaved(false);
+  };
+
+  const handleRemoveFeature = (planId: string, index: number) => {
+    setPlans((prev) =>
+      prev.map((p) => {
+        if (p.id !== planId) return p;
+        return {
+          ...p,
+          featuresKa: p.featuresKa.filter((_, i) => i !== index),
+          featuresEn: (p.featuresEn || p.featuresKa).filter((_, i) => i !== index),
+        };
+      })
+    );
+    setPlansSaved(false);
+  };
+
+  const handleSavePlans = async () => {
+    try {
+      saveStoredPlans(plans);
+
+      // Save/Upsert to Supabase subscription_plans table
+      const upserts = plans.map((p, idx) => ({
+        name_ka: p.nameKa,
+        name_en: p.nameEn || p.nameKa,
+        tier: p.tier || p.id,
+        price_monthly: p.monthlyPrice,
+        price_yearly: p.yearlyPrice,
+        listing_limit: p.listingLimit,
+        vip_slots: p.vipSlots || 0,
+        features: p.featuresKa,
+        is_active: p.isActive !== false,
+        sort_order: p.sortOrder || idx + 1,
+        updated_at: new Date().toISOString(),
+      }));
+
+      const { error } = await supabase
+        .from("subscription_plans")
+        .upsert(upserts, { onConflict: "tier" });
+
+      if (error) {
+        console.warn("Supabase plan upsert note:", error.message);
+      }
+
+      setPlansSaved(true);
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "UPDATE_PLAN",
+        targetType: "PLAN",
+        newData: { totalPlans: plans.length, tiers: plans.map((p) => p.tier) },
+      });
+      showNotice("💎 ტარიფების პარამეტრები წარმატებით შეინახა და აისახა საიტზე!");
+      setTimeout(() => setPlansSaved(false), 3500);
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა ტარიფების შენახვისას: ${err.message}`);
+    }
+  };
+
+  const handleDeletePlan = async (planId: string) => {
+    const planToDelete = plans.find((p) => p.id === planId);
+    if (!planToDelete) return;
+    if (!confirm(`ნამდვილად გსურთ ტარიფის "${planToDelete.nameKa}" წაშლა?`)) return;
+
+    const updated = plans.filter((p) => p.id !== planId);
+    setPlans(updated);
+    saveStoredPlans(updated);
+
+    if (planToDelete.tier) {
+      await supabase.from("subscription_plans").delete().eq("tier", planToDelete.tier);
+    }
+
+    logAuditEvent({
+      actorId: currentUser?.id,
+      action: "DELETE_PLAN",
+      targetType: "PLAN",
+      oldData: planToDelete,
+    });
+
+    showNotice(`🗑️ ტარიფი "${planToDelete.nameKa}" წაიშალა!`);
+  };
+
+  const handleCreateNewPlan = async () => {
+    if (!newPlanForm.nameKa || !newPlanForm.tier) {
+      showNotice("❌ გთხოვთ შეიყვანოთ ტარიფის ქართული სახელი და უნიკალური კოდი (Tier)!");
+      return;
+    }
+
+    const newPlan: SubscriptionPlanItem = {
+      id: newPlanForm.tier.toUpperCase(),
+      tier: newPlanForm.tier.toUpperCase(),
+      nameKa: newPlanForm.nameKa.trim(),
+      nameEn: newPlanForm.nameEn?.trim() || newPlanForm.nameKa.trim(),
+      monthlyPrice: Number(newPlanForm.monthlyPrice) || 0,
+      yearlyPrice: Number(newPlanForm.yearlyPrice) || (Number(newPlanForm.monthlyPrice) || 0) * 10,
+      listingLimit: Number(newPlanForm.listingLimit) || 10,
+      vipSlots: Number(newPlanForm.vipSlots) || 0,
+      customSlug: Boolean(newPlanForm.customSlug),
+      badge: newPlanForm.badge?.trim() || undefined,
+      isActive: true,
+      sortOrder: plans.length + 1,
+      featuresKa: newPlanForm.featuresKa && newPlanForm.featuresKa.length > 0 
+        ? newPlanForm.featuresKa 
+        : [`${newPlanForm.listingLimit || 10} აქტიური განცხადება`],
+      featuresEn: newPlanForm.featuresEn && newPlanForm.featuresEn.length > 0 
+        ? newPlanForm.featuresEn 
+        : [`${newPlanForm.listingLimit || 10} active listings`],
+    };
+
+    const updated = [...plans, newPlan];
+    setPlans(updated);
+    saveStoredPlans(updated);
+
+    try {
+      await supabase.from("subscription_plans").upsert({
+        name_ka: newPlan.nameKa,
+        name_en: newPlan.nameEn,
+        tier: newPlan.tier,
+        price_monthly: newPlan.monthlyPrice,
+        price_yearly: newPlan.yearlyPrice,
+        listing_limit: newPlan.listingLimit,
+        vip_slots: newPlan.vipSlots,
+        features: newPlan.featuresKa,
+        is_active: true,
+        sort_order: updated.length,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "tier" });
+    } catch (e) {
+      console.warn("DB save note:", e);
+    }
+
+    logAuditEvent({
+      actorId: currentUser?.id,
+      action: "CREATE_PLAN",
+      targetType: "PLAN",
+      newData: newPlan,
+    });
+
+    showNotice(`🎉 ახალი ტარიფი "${newPlan.nameKa}" წარმატებით შეიქმნა!`);
+    setShowNewPlanModal(false);
   };
 
   const handleSeedListingsToAdmin = async () => {
@@ -633,36 +908,152 @@ export default function AdminDashboardPage() {
   };
 
   // ──────────────────────────────────────────────
-  // Audit Logs State
+  // Audit Logs State, Date Filters & Sorting
   // ──────────────────────────────────────────────
   const [auditLogs, setAuditLogs] = React.useState<any[]>([]);
   const [loadingAudit, setLoadingAudit] = React.useState(false);
+  const [auditCategoryFilter, setAuditCategoryFilter] = React.useState<string>("ALL");
+  const [auditSearchQuery, setAuditSearchQuery] = React.useState<string>("");
+  const [auditDateFilter, setAuditDateFilter] = React.useState<"all" | "today" | "7days" | "30days" | "custom">("all");
+  const [auditDateFrom, setAuditDateFrom] = React.useState<string>("");
+  const [auditDateTo, setAuditDateTo] = React.useState<string>("");
+  const [auditSortField, setAuditSortField] = React.useState<"date" | "action" | "category" | "actor">("date");
+  const [auditSortOrder, setAuditSortOrder] = React.useState<"asc" | "desc">("desc");
+  const [selectedAuditLogForDiff, setSelectedAuditLogForDiff] = React.useState<any | null>(null);
+
+  const toggleAuditSort = (field: "date" | "action" | "category" | "actor") => {
+    if (auditSortField === field) {
+      setAuditSortOrder(auditSortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setAuditSortField(field);
+      setAuditSortOrder("desc");
+    }
+  };
 
   const loadAuditLogs = React.useCallback(async () => {
     setLoadingAudit(true);
     try {
+      // 1. Fetch from secure Server API route (uses admin client with full service permissions)
+      const res = await fetch("/api/admin/audit?limit=300");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setAuditLogs(json.data);
+          return;
+        }
+      }
+      // 2. Direct fallback
       const { data, error } = await supabase
         .from("audit_logs")
         .select(`
-          *,
+          id,
+          actor_id,
+          action,
+          target_type,
+          target_id,
+          old_data,
+          new_data,
+          created_at,
           actor:actor_id (
             id,
             full_name,
             avatar_url,
-            email
+            role
           )
         `)
         .order("created_at", { ascending: false })
-        .limit(100);
+        .limit(200);
       if (!error && data) {
         setAuditLogs(data);
       }
-    } catch {
-      // ignore
+    } catch (e) {
+      console.warn("Audit logs fetch notice:", e);
     } finally {
       setLoadingAudit(false);
     }
   }, [supabase]);
+
+  // Live Auto-Refresh Listener when any action adds an audit log
+  React.useEffect(() => {
+    const handleAuditAdded = () => {
+      loadAuditLogs();
+    };
+    window.addEventListener("plantsale_audit_log_added", handleAuditAdded);
+    return () => window.removeEventListener("plantsale_audit_log_added", handleAuditAdded);
+  }, [loadAuditLogs]);
+
+  const filteredAuditLogs = React.useMemo(() => {
+    const list = auditLogs.filter((log) => {
+      // 1. Category Filter
+      if (auditCategoryFilter !== "ALL") {
+        if ((log.target_type || "").toUpperCase() !== auditCategoryFilter.toUpperCase()) {
+          return false;
+        }
+      }
+
+      // 2. Date Range Filter
+      if (log.created_at) {
+        const logTime = new Date(log.created_at).getTime();
+        const now = new Date();
+
+        if (auditDateFilter === "today") {
+          const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+          if (logTime < startOfToday) return false;
+        } else if (auditDateFilter === "7days") {
+          const sevenDaysAgo = now.getTime() - 7 * 24 * 60 * 60 * 1000;
+          if (logTime < sevenDaysAgo) return false;
+        } else if (auditDateFilter === "30days") {
+          const thirtyDaysAgo = now.getTime() - 30 * 24 * 60 * 60 * 1000;
+          if (logTime < thirtyDaysAgo) return false;
+        } else if (auditDateFilter === "custom") {
+          if (auditDateFrom) {
+            const fromTime = new Date(auditDateFrom).setHours(0, 0, 0, 0);
+            if (logTime < fromTime) return false;
+          }
+          if (auditDateTo) {
+            const toTime = new Date(auditDateTo).setHours(23, 59, 59, 999);
+            if (logTime > toTime) return false;
+          }
+        }
+      }
+
+      // 3. Search Query
+      if (auditSearchQuery.trim()) {
+        const q = auditSearchQuery.toLowerCase();
+        const matchAction = (log.action || "").toLowerCase().includes(q);
+        const matchTarget = (log.target_type || "").toLowerCase().includes(q);
+        const matchActor = (log.actor?.full_name || log.actor_id || "").toLowerCase().includes(q);
+        const matchDetails = (JSON.stringify(log.new_data || {}) + JSON.stringify(log.old_data || {})).toLowerCase().includes(q);
+        if (!matchAction && !matchTarget && !matchActor && !matchDetails) return false;
+      }
+      return true;
+    });
+
+    // 4. Clickable Column Header Sorting
+    return [...list].sort((a, b) => {
+      let comparison = 0;
+      switch (auditSortField) {
+        case "action":
+          comparison = (a.action || "").localeCompare(b.action || "");
+          break;
+        case "category":
+          comparison = (a.target_type || "").localeCompare(b.target_type || "");
+          break;
+        case "actor":
+          const nameA = a.actor?.full_name || a.actor_id || "სისტემა";
+          const nameB = b.actor?.full_name || b.actor_id || "სისტემა";
+          comparison = nameA.localeCompare(nameB);
+          break;
+        case "date":
+        default:
+          const dateA = new Date(a.created_at || 0).getTime();
+          const dateB = new Date(b.created_at || 0).getTime();
+          comparison = dateA - dateB;
+          break;
+      }
+      return auditSortOrder === "asc" ? comparison : -comparison;
+    });
+  }, [auditLogs, auditCategoryFilter, auditSearchQuery, auditDateFilter, auditDateFrom, auditDateTo, auditSortField, auditSortOrder]);
 
   React.useEffect(() => {
     if (activeTab === "affiliate") loadAffiliates();
@@ -855,45 +1246,46 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8 max-w-7xl">
-      {/* Action Notice Banner */}
-      {actionNotice && (
-        <div className="mb-5 rounded-[18px] bg-primary/10 border border-primary/30 p-3.5 text-xs text-primary font-bold flex items-center justify-between gap-2 animate-in fade-in slide-in-from-top-2">
-          <span>{actionNotice}</span>
-          <button onClick={() => setActionNotice("")} className="text-primary hover:underline text-xs cursor-pointer">
-            დახურვა
-          </button>
-        </div>
-      )}
 
-      {/* Clean Top Bar: Simple Title with Current Role Badge & Dynamic Tabs */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-[12px] bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-            <ShieldCheck className="w-5 h-5" />
+
+      {/* Sleek Admin Header & Full-Width Tab Bar */}
+      <div className="space-y-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-xs">
+              <ShieldCheck className="w-5 h-5" />
+            </div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-black tracking-tight text-foreground whitespace-nowrap">
+                ადმინ პანელი
+              </h1>
+              {(() => {
+                const config = ROLES_CONFIG[currentUserRole as UserRole] || ROLES_CONFIG.SUPER_ADMIN;
+                return (
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border shadow-2xs whitespace-nowrap ${config.badgeBg} ${config.badgeText} ${config.badgeBorder}`}>
+                    <span>{config.badgeEmoji}</span>
+                    <span>{currentUserRole === "SUPER_ADMIN" ? "SUPER ADMIN" : config.nameKa.toUpperCase()}</span>
+                  </span>
+                );
+              })()}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
-              ადმინ პანელი
-            </h1>
-            <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
-              currentUserRole === "SUPER_ADMIN"
-                ? "bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800 shadow-2xs"
-                : currentUserRole === "ADMIN"
-                ? "bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border-indigo-300 dark:border-indigo-800 shadow-2xs"
-                : "bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800 shadow-2xs"
-            }`}>
-              {currentUserRole === "SUPER_ADMIN" ? "👑 SUPER ADMIN" : currentUserRole === "ADMIN" ? "⚡ ADMIN" : "🛡️ MODERATOR"}
+
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary-container text-foreground font-semibold text-[11px]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              სისტემა აქტიურია
             </span>
           </div>
         </div>
 
-        {/* Compact Single-Row Navigation Tabs Filtered by Permissions */}
-        <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar bg-surface-container/70 dark:bg-slate-900/70 p-1.5 rounded-[16px] border border-border/70">
+        {/* Full-Width, Non-Clipped Responsive Navigation Tabs Bar */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-surface-container/70 dark:bg-slate-900/70 p-1.5 rounded-2xl border border-border/70 w-full shadow-2xs">
           {[
             { id: "overview", label: "📊 მიმოხილვა", visible: true },
             { id: "listings", label: "📦 განცხადებები", count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
             { id: "users", label: "👥 მომხმარებლები", count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { id: "plans", label: "💎 ტარიფები", visible: canManagePlans(currentUserRole, currentUser?.email) },
+            { id: "plans", label: "💎 ტარიფები", count: plans.length, visible: canManagePlans(currentUserRole, currentUser?.email) },
             { id: "analytics", label: "📈 სტატისტიკა", visible: canManageUsers(currentUserRole, currentUser?.email) },
             { id: "audit", label: "📜 აუდიტი", visible: canManageUsers(currentUserRole, currentUser?.email) },
             { id: "affiliate", label: "🔗 Affiliate", count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
@@ -905,10 +1297,10 @@ export default function AdminDashboardPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3 py-1.5 rounded-[11px] text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
                     isActive
                       ? "bg-primary text-white shadow-ambient scale-[1.02]"
-                      : "text-muted-foreground hover:text-foreground hover:bg-card/70"
+                      : "text-muted-foreground hover:text-foreground hover:bg-card"
                   }`}
                 >
                   <span>{tab.label}</span>
@@ -1960,18 +2352,23 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* TAB 5: SYSTEM AUDIT LOGS                                             */}
+      {/* TAB 5: SYSTEM AUDIT LOGS & DIFF VIEWER                                */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "audit" && (
         <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
             <div>
-              <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
-                <Activity className="w-5 h-5 text-purple-600" />
-                <span>სისტემური აუდიტი & ადმინისტრაციული ლოგები</span>
-              </h2>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-purple-600" />
+                  <span>📜 სისტემური აუდიტი & დეტალური ლოგები</span>
+                </h2>
+                <Badge className="bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold border-purple-300">
+                  {filteredAuditLogs.length} / {auditLogs.length} ჩანაწერი
+                </Badge>
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
-                ადმინისტრატორებისა და სისტემის მიერ შესრულებული ყველა კრიტიკული მოქმედების ჟურნალი
+                ადმინისტრატორებისა და სისტემის მიერ შესრულებული ყველა ცვლილების, ტარიფის, როლის, შეცდომისა და განცხადების დეტალური ჟურნალი
               </p>
             </div>
 
@@ -1991,64 +2388,381 @@ export default function AdminDashboardPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={loadAuditLogs}
+                onClick={() => { loadAuditLogs(); showNotice("🔄 აუდიტის ლოგები განახლდა!"); }}
                 className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
               >
-                <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                <RefreshCw className={`w-3.5 h-3.5 text-primary ${loadingAudit ? "animate-spin" : ""}`} />
                 განახლება
               </Button>
             </div>
           </div>
 
+          {/* Structured Multi-Filter Toolbar */}
+          <div className="space-y-3 bg-secondary-container/40 p-4 rounded-[20px] border border-border/60">
+            {/* Row 1: Category Filter Pills */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0">
+                კატეგორია:
+              </span>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full">
+                {[
+                  { id: "ALL", label: "🌐 ყველა" },
+                  { id: "PLAN", label: "💎 ტარიფები" },
+                  { id: "USER", label: "👥 მომხმარებლები" },
+                  { id: "LISTING", label: "📦 განცხადებები" },
+                  { id: "SUBSCRIPTION", label: "💳 გამოწერა" },
+                  { id: "AFFILIATE", label: "🔗 Affiliate" },
+                  { id: "SECURITY", label: "🛡️ უსაფრთხოება" },
+                  { id: "ERROR", label: "⚠️ შეცდომები" },
+                ].map((cat) => {
+                  const isSelected = auditCategoryFilter === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setAuditCategoryFilter(cat.id)}
+                      className={`px-3 py-1.5 rounded-[10px] text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-purple-600 text-white shadow-xs"
+                          : "bg-background/90 text-muted-foreground hover:text-foreground hover:bg-background border border-border/60"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Row 2: Date Period Selector (პერიოდის მიხედვით) */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0 mr-1 flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-purple-600" /> პერიოდი:
+                </span>
+                {[
+                  { id: "all", label: "ყველა დრო" },
+                  { id: "today", label: "დღეს" },
+                  { id: "7days", label: "ბოლო 7 დღე" },
+                  { id: "30days", label: "ბოლო 30 დღე" },
+                  { id: "custom", label: "📅 კალენდარი" },
+                ].map((p) => {
+                  const isSelected = auditDateFilter === p.id;
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => setAuditDateFilter(p.id as any)}
+                      className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-primary text-white shadow-xs"
+                          : "bg-background/80 text-muted-foreground hover:text-foreground border border-border/50"
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Custom Date Inputs (when calendar selected) */}
+              {auditDateFilter === "custom" && (
+                <div className="flex items-center gap-2 bg-background/90 p-1.5 rounded-[10px] border border-border/70 animate-in fade-in">
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground font-bold">დან:</span>
+                    <input
+                      type="date"
+                      value={auditDateFrom}
+                      onChange={(e) => setAuditDateFrom(e.target.value)}
+                      className="text-xs bg-transparent border border-border/70 rounded px-1.5 py-0.5 font-mono"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground font-bold">მდე:</span>
+                    <input
+                      type="date"
+                      value={auditDateTo}
+                      onChange={(e) => setAuditDateTo(e.target.value)}
+                      className="text-xs bg-transparent border border-border/70 rounded px-1.5 py-0.5 font-mono"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Row 3: Dedicated Full-Width Live Search Input */}
+            <div className="pt-2 border-t border-border/40">
+              <div className="relative w-full">
+                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={auditSearchQuery}
+                  onChange={(e) => setAuditSearchQuery(e.target.value)}
+                  placeholder="ძიება მოქმედების სახელით, შემსრულებლით, ID-ით ან მონაცემებით..."
+                  className="w-full h-10 pl-10 pr-10 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-medium placeholder:text-muted-foreground shadow-2xs"
+                />
+                {auditSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setAuditSearchQuery("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer p-1"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Audit Logs Table with Clickable Sorting Headers */}
           <div className="overflow-x-auto rounded-[18px] border border-border/80">
             <table className="w-full text-left text-xs">
-              <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[10px] font-bold">
+              <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[10px] font-bold select-none">
                 <tr>
-                  <th className="py-3 px-3.5">დრო</th>
-                  <th className="py-3 px-3">მოქმედება</th>
-                  <th className="py-3 px-3">ობიექტი</th>
+                  {/* Clickable Header: Date */}
+                  <th
+                    onClick={() => toggleAuditSort("date")}
+                    className="py-3 px-3.5 w-44 cursor-pointer hover:bg-muted/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>დრო</span>
+                      {auditSortField === "date" && (
+                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
+                      )}
+                    </div>
+                  </th>
+
+                  {/* Clickable Header: Action */}
+                  <th
+                    onClick={() => toggleAuditSort("action")}
+                    className="py-3 px-3 cursor-pointer hover:bg-muted/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>მოქმედება</span>
+                      {auditSortField === "action" && (
+                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
+                      )}
+                    </div>
+                  </th>
+
+                  {/* Clickable Header: Category */}
+                  <th
+                    onClick={() => toggleAuditSort("category")}
+                    className="py-3 px-3 cursor-pointer hover:bg-muted/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>კატეგორია</span>
+                      {auditSortField === "category" && (
+                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
+                      )}
+                    </div>
+                  </th>
+
+                  {/* Clickable Header: Actor */}
+                  <th
+                    onClick={() => toggleAuditSort("actor")}
+                    className="py-3 px-3 cursor-pointer hover:bg-muted/40 transition-colors"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span>შემსრულებელი</span>
+                      {auditSortField === "actor" && (
+                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
+                      )}
+                    </div>
+                  </th>
+
                   <th className="py-3 px-3">დეტალები</th>
-                  <th className="py-3 px-3">შემსრულებელი</th>
+                  <th className="py-3 px-3 text-right">შედარება (Diff)</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/40 font-mono text-[11px]">
+              <tbody className="divide-y divide-border/40 text-[11px]">
                 {loadingAudit ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-muted-foreground text-xs font-sans">
+                    <td colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
                       ლოგები იტვირთება...
                     </td>
                   </tr>
-                ) : auditLogs.length === 0 ? (
+                ) : filteredAuditLogs.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-12 text-center text-muted-foreground text-xs font-sans">
-                      ლოგების ჩანაწერები არ მოიძებნა.
+                    <td colSpan={6} className="py-12 text-center text-muted-foreground text-xs space-y-2">
+                      <p>
+                        {auditSearchQuery || auditCategoryFilter !== "ALL" || auditDateFilter !== "all"
+                          ? "შერჩეული ფილტრით ან პერიოდით ლოგები არ მოიძებნა."
+                          : "აუდიტის ლოგების ჩანაწერები ჯერჯერობით არ არის."}
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={loadAuditLogs}
+                        className="rounded-lg text-xs"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 mr-1 text-primary" /> სიის განახლება
+                      </Button>
                     </td>
                   </tr>
                 ) : (
-                  auditLogs.map((log) => (
-                    <tr key={log.id} className="hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-3.5 whitespace-nowrap text-muted-foreground font-sans">
-                        {log.created_at ? new Date(log.created_at).toLocaleString("ka-GE") : ""}
-                      </td>
-                      <td className="py-3 px-3 font-bold text-primary">
-                        {log.action}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className="px-2 py-0.5 rounded-full bg-secondary-container text-foreground text-[10px] font-bold uppercase">
-                          {log.target_type}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 max-w-xs truncate text-muted-foreground">
-                        {JSON.stringify(log.new_data || {})}
-                      </td>
-                      <td className="py-3 px-3 text-muted-foreground truncate max-w-[120px]">
-                        {log.actor_id || "სისტემა"}
-                      </td>
-                    </tr>
-                  ))
+                  filteredAuditLogs.map((log) => {
+                    const logDate = log.created_at ? new Date(log.created_at) : new Date();
+                    const formattedDate = logDate.toLocaleDateString("ka-GE", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    });
+                    const formattedTime = logDate.toLocaleTimeString("ka-GE", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                      second: "2-digit",
+                    });
+
+                    const isPlan = log.target_type === "PLAN";
+                    const isUser = log.target_type === "USER";
+                    const isListing = log.target_type === "LISTING";
+                    const isError = log.target_type === "ERROR" || log.action?.includes("ERROR");
+
+                    return (
+                      <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                        {/* Timestamp */}
+                        <td className="py-3 px-3.5 whitespace-nowrap text-muted-foreground">
+                          <div className="font-bold text-foreground">{formattedTime}</div>
+                          <div className="text-[10px] text-muted-foreground">{formattedDate}</div>
+                        </td>
+
+                        {/* Action Badge */}
+                        <td className="py-3 px-3">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
+                            isError
+                              ? "bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800"
+                              : isPlan
+                              ? "bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800"
+                              : isUser
+                              ? "bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800"
+                              : isListing
+                              ? "bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700"
+                          }`}>
+                            {isError ? "⚠️" : isPlan ? "💎" : isUser ? "👤" : isListing ? "📦" : "⚡"} {log.action}
+                          </span>
+                        </td>
+
+                        {/* Target Category */}
+                        <td className="py-3 px-3">
+                          <Badge variant="outline" className="text-[10px] font-bold font-mono">
+                            {log.target_type}
+                          </Badge>
+                        </td>
+
+                        {/* Actor */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-1.5">
+                            {log.actor?.avatar_url ? (
+                              <img src={log.actor.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
+                            ) : (
+                              <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px]">
+                                {(log.actor?.full_name || "A").charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="font-bold text-foreground truncate max-w-[120px]">
+                              {log.actor?.full_name || "სისტემა / Admin"}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Quick Change Summary */}
+                        <td className="py-3 px-3 text-muted-foreground font-mono text-[11px] max-w-xs truncate">
+                          {log.new_data ? (
+                            <span className="text-foreground">
+                              {JSON.stringify(log.new_data)}
+                            </span>
+                          ) : log.old_data ? (
+                            <span className="text-destructive line-through">
+                              {JSON.stringify(log.old_data)}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">მოქმედება შესრულდა</span>
+                          )}
+                        </td>
+
+                        {/* Diff / JSON Modal Trigger */}
+                        <td className="py-3 px-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedAuditLogForDiff(log)}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-secondary-container hover:bg-primary/10 text-primary font-bold text-[10px] transition-colors cursor-pointer"
+                            title="დეტალური JSON შედარება"
+                          >
+                            <FileText className="w-3 h-3" />
+                            <span>Diff / JSON</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* JSON / Diff Viewer Modal */}
+      {selectedAuditLogForDiff && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-card border border-border/80 rounded-[24px] max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-purple-600" />
+                <div>
+                  <h3 className="text-sm font-black text-foreground">
+                    ლოგის დეტალური მონაცემები ({selectedAuditLogForDiff.action})
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    ობიექტი: {selectedAuditLogForDiff.target_type} | ID: {selectedAuditLogForDiff.id}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedAuditLogForDiff(null)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto flex-1 p-1">
+              {/* Old Data */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
+                  🔴 ძველი მონაცემი (Old Data)
+                </span>
+                <pre className="p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-[10px] font-mono text-destructive overflow-x-auto max-h-[260px]">
+                  {JSON.stringify(selectedAuditLogForDiff.old_data || "არ არის (NULL)", null, 2)}
+                </pre>
+              </div>
+
+              {/* New Data */}
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold uppercase text-emerald-600 flex items-center gap-1">
+                  🟢 ახალი მონაცემი (New Data)
+                </span>
+                <pre className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 overflow-x-auto max-h-[260px]">
+                  {JSON.stringify(selectedAuditLogForDiff.new_data || "არ არის (NULL)", null, 2)}
+                </pre>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-2 border-t border-border/50">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => setSelectedAuditLogForDiff(null)}
+                className="rounded-xl text-xs font-bold bg-primary text-white"
+              >
+                დახურვა
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -2122,43 +2836,463 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab Plans */}
+      {/* Tab Plans: Complete Subscription & Pricing Management Studio */}
       {activeTab === "plans" && (
         <div className="rounded-[24px] border border-border/80 bg-card p-6 shadow-ambient space-y-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-4">
             <div>
-              <h2 className="text-lg font-black text-foreground">💎 ტარიფების მართვა</h2>
-              <p className="text-xs text-muted-foreground">შეცვალეთ ტარიფის პარამეტრები და შეინახეთ</p>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-lg font-black text-foreground flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-purple-600" />
+                  <span>💎 ტარიფების & პაკეტების სრული მართვა</span>
+                </h2>
+                <Badge className="bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold border-purple-300">
+                  {plans.length} აქტიური ტარიფი
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                მართეთ ფასები, განცხადებების ლიმიტები, VIP ბუსტები და პირობები — ცვლილებები მომენტალურად აისახება /pricing გვერდზე და მთელ საიტზე.
+              </p>
             </div>
-            <Button onClick={handleSavePlans} className="rounded-xl text-xs font-bold bg-primary text-white gap-1.5">
-              <Save className="w-4 h-4" /> შენახვა
-            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  fetchAndSyncDbPlans().then((live) => {
+                    if (live && live.length > 0) setPlans(live);
+                    showNotice("🔄 ტარიფები განახლდა მონაცემთა ბაზიდან!");
+                  });
+                }}
+                className="rounded-xl text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+                title="ბაზიდან განახლება"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-primary" />
+                განახლება
+              </Button>
+
+              <Button
+                type="button"
+                onClick={() => setShowNewPlanModal(!showNewPlanModal)}
+                className="rounded-xl text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Plus className="w-4 h-4" /> ახალი ტარიფი
+              </Button>
+
+              <Button
+                type="button"
+                onClick={handleSavePlans}
+                className="rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-white gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Save className="w-4 h-4" /> შენახვა
+              </Button>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {plans.map((p) => (
-              <div key={p.id} className="rounded-[20px] border border-border/80 p-5 bg-background space-y-3">
-                <h3 className="font-bold text-sm text-foreground">{p.nameKa}</h3>
+          {/* New Plan Creator Drawer/Card */}
+          {showNewPlanModal && (
+            <div className="rounded-[20px] border-2 border-purple-500/30 bg-purple-500/5 p-5 space-y-4 animate-in fade-in slide-in-from-top-2">
+              <div className="flex items-center justify-between border-b border-purple-500/20 pb-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-purple-600" />
+                  <h3 className="text-sm font-black text-foreground">ახალი ტარიფის შექმნა</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowNewPlanModal(false)}
+                  className="p-1 text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
                 <div>
-                  <label className="text-[10px] font-bold text-muted-foreground block mb-1">ფასი (₾)</label>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">ტარიფის სახელი (KA) *</label>
                   <input
-                    type="number"
-                    value={p.priceMonthly}
-                    onChange={(e) => handlePlanChange(p.id, "priceMonthly", parseFloat(e.target.value))}
+                    type="text"
+                    placeholder="მაგ: VIP პლატინა"
+                    value={newPlanForm.nameKa || ""}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, nameKa: e.target.value })}
                     className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-muted-foreground block mb-1">ლიმიტი (განცხადება)</label>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">ტარიფის სახელი (EN)</label>
                   <input
-                    type="number"
-                    value={p.maxListings}
-                    onChange={(e) => handlePlanChange(p.id, "maxListings", parseInt(e.target.value))}
+                    type="text"
+                    placeholder="e.g. VIP Platinum"
+                    value={newPlanForm.nameEn || ""}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, nameEn: e.target.value })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">უნიკალური კოდი (Tier) *</label>
+                  <input
+                    type="text"
+                    placeholder="მაგ: TIER_4 ან VIP_SHOP"
+                    value={newPlanForm.tier || ""}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, tier: e.target.value.toUpperCase().replace(/\s+/g, "_") })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">ბეიჯის ტექსტი (Badge)</label>
+                  <input
+                    type="text"
+                    placeholder="მაგ: ექსკლუზივი"
+                    value={newPlanForm.badge || ""}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, badge: e.target.value })}
                     className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
                   />
                 </div>
               </div>
-            ))}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">თვიური ფასი (₾)</label>
+                  <input
+                    type="number"
+                    value={newPlanForm.monthlyPrice || 0}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, monthlyPrice: parseFloat(e.target.value) || 0 })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">წლიური ფასი (₾)</label>
+                  <input
+                    type="number"
+                    value={newPlanForm.yearlyPrice || 0}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, yearlyPrice: parseFloat(e.target.value) || 0 })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">განცხადებების ლიმიტი</label>
+                  <input
+                    type="number"
+                    value={newPlanForm.listingLimit || 10}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, listingLimit: parseInt(e.target.value) || 5 })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">VIP ბუსტები / თვეში</label>
+                  <input
+                    type="number"
+                    value={newPlanForm.vipSlots || 0}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, vipSlots: parseInt(e.target.value) || 0 })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3.5">
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">თვიური ფასი (₾)</label>
+                  <input
+                    type="number"
+                    value={newPlanForm.monthlyPrice || 0}
+                    onChange={(e) => {
+                      const m = parseFloat(e.target.value) || 0;
+                      const disc = newPlanForm.discountPercent !== undefined ? newPlanForm.discountPercent : 20;
+                      const y = m === 0 ? 0 : Math.round(m * 12 * (1 - disc / 100));
+                      setNewPlanForm({ ...newPlanForm, monthlyPrice: m, yearlyPrice: y });
+                    }}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">ფასდაკლება (%)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    value={newPlanForm.discountPercent !== undefined ? newPlanForm.discountPercent : 20}
+                    onChange={(e) => {
+                      const disc = Math.max(0, Math.min(99, parseFloat(e.target.value) || 0));
+                      const m = newPlanForm.monthlyPrice || 0;
+                      const y = m === 0 ? 0 : Math.round(m * 12 * (1 - disc / 100));
+                      setNewPlanForm({ ...newPlanForm, discountPercent: disc, yearlyPrice: y });
+                    }}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold text-amber-600 dark:text-amber-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">წლიური ფასი (₾)</label>
+                  <input
+                    type="number"
+                    value={newPlanForm.yearlyPrice || 0}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, yearlyPrice: parseFloat(e.target.value) || 0 })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold text-emerald-600 dark:text-emerald-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase text-muted-foreground block mb-1">განცხადებების ლიმიტი</label>
+                  <input
+                    type="number"
+                    value={newPlanForm.listingLimit || 10}
+                    onChange={(e) => setNewPlanForm({ ...newPlanForm, listingLimit: parseInt(e.target.value) || 5 })}
+                    className="w-full py-1.5 px-3 rounded-lg border border-input text-xs bg-card font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowNewPlanModal(false)}
+                  className="rounded-lg text-xs cursor-pointer"
+                >
+                  გაუქმება
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleCreateNewPlan}
+                  className="rounded-lg text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-4 h-4" /> შექმნა და დამატება
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Grid of Dynamic Plan Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+            {plans.map((p) => {
+              const features = p.featuresKa || [];
+              const isFree = p.monthlyPrice === 0;
+              const discount = p.discountPercent !== undefined ? p.discountPercent : 20;
+              const yearlySavings = Math.max(0, (p.monthlyPrice * 12) - p.yearlyPrice);
+              const effectiveMonthlyPrice = p.yearlyPrice > 0 ? Math.round(p.yearlyPrice / 12) : 0;
+
+              return (
+                <div
+                  key={p.id}
+                  className="rounded-[22px] border border-border/80 p-5 bg-background shadow-2xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 relative"
+                >
+                  {/* Top Bar: Tier Identifier & Badge */}
+                  <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-3">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-[11px] font-black text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-950/70 px-2 py-0.5 rounded-md">
+                        {p.tier || p.id}
+                      </span>
+                    </div>
+
+                    {/* Badge editor */}
+                    <input
+                      type="text"
+                      placeholder="ბეიჯი (მაგ: პოპულარული)"
+                      value={p.badge || ""}
+                      onChange={(e) => handlePlanChange(p.id, "badge", e.target.value || undefined)}
+                      className="text-[10px] font-black text-amber-800 dark:text-amber-300 bg-amber-100/70 dark:bg-amber-950/50 px-2 py-0.5 rounded-md border border-amber-300/60 max-w-[120px] text-right"
+                      title="ბეიჯის ტექსტი"
+                    />
+                  </div>
+
+                  {/* Plan Names (KA & EN) */}
+                  <div className="space-y-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">სათაური (KA)</label>
+                      <input
+                        type="text"
+                        value={p.nameKa}
+                        onChange={(e) => handlePlanChange(p.id, "nameKa", e.target.value)}
+                        className="w-full py-1.5 px-2.5 rounded-lg border border-input text-xs bg-card font-extrabold text-foreground"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">სათაური (EN)</label>
+                      <input
+                        type="text"
+                        value={p.nameEn || ""}
+                        onChange={(e) => handlePlanChange(p.id, "nameEn", e.target.value)}
+                        className="w-full py-1 px-2.5 rounded-lg border border-input text-[11px] bg-card text-muted-foreground font-medium"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pricing Inputs with Auto-Calculation & Discount */}
+                  <div className="bg-muted/30 p-2.5 rounded-xl border border-border/60 space-y-2">
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <div>
+                        <label className="text-[9px] font-bold text-muted-foreground block mb-0.5">თვიური (₾)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={p.monthlyPrice}
+                          onChange={(e) => handlePlanChange(p.id, "monthlyPrice", parseFloat(e.target.value) || 0)}
+                          className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-black text-foreground"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold text-muted-foreground block mb-0.5">ფასდაკლ. (%)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="99"
+                          value={discount}
+                          onChange={(e) => handlePlanChange(p.id, "discountPercent", parseFloat(e.target.value) || 0)}
+                          className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-black text-amber-600 dark:text-amber-400"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[9px] font-bold text-muted-foreground block mb-0.5">წლიური (₾)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={p.yearlyPrice}
+                          onChange={(e) => handlePlanChange(p.id, "yearlyPrice", parseFloat(e.target.value) || 0)}
+                          className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-black text-emerald-600 dark:text-emerald-400"
+                        />
+                      </div>
+                    </div>
+
+                    {!isFree && (
+                      <div className="text-[10px] text-muted-foreground font-medium flex items-center justify-between pt-0.5 border-t border-border/40">
+                        <span>თვეში: <strong className="text-foreground">{effectiveMonthlyPrice} ₾</strong></span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">დაზოგვა: {yearlySavings} ₾/წელში</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Limits & Perks */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">განცხადებები</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={p.listingLimit}
+                        onChange={(e) => handlePlanChange(p.id, "listingLimit", parseInt(e.target.value) || 5)}
+                        className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">VIP ბუსტები</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={p.vipSlots || 0}
+                        onChange={(e) => handlePlanChange(p.id, "vipSlots", parseInt(e.target.value) || 0)}
+                        className="w-full py-1 px-2 rounded-md border border-input text-xs bg-card font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Features Bullet Points Editor */}
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-bold text-muted-foreground block">მახასიათებლები (Features)</label>
+                    <div className="space-y-1 max-h-[160px] overflow-y-auto pr-1">
+                      {features.map((feat, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5 bg-card border border-border/70 rounded-md px-2 py-1 text-[11px]">
+                          <Check className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <input
+                            type="text"
+                            value={feat}
+                            onChange={(e) => {
+                              const updated = [...features];
+                              updated[idx] = e.target.value;
+                              handlePlanChange(p.id, "featuresKa", updated);
+                            }}
+                            className="w-full bg-transparent text-[11px] font-medium focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveFeature(p.id, idx)}
+                            className="text-muted-foreground hover:text-destructive cursor-pointer p-0.5"
+                            title="პუნქტის წაშლა"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Add Feature Item Input */}
+                    <div className="pt-1">
+                      <input
+                        type="text"
+                        placeholder="+ დაამატეთ პუნქტი (დააჭირეთ Enter)..."
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddFeature(p.id, (e.target as HTMLInputElement).value);
+                            (e.target as HTMLInputElement).value = "";
+                          }
+                        }}
+                        className="w-full py-1 px-2 rounded-md border border-dashed border-border/90 text-[10px] bg-muted/20 font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Card Bottom Actions: Duplicate, Delete, Save */}
+                  <div className="flex items-center justify-between border-t border-border/50 pt-3 gap-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => handleDeletePlan(p.id)}
+                        className="text-[11px] text-muted-foreground hover:text-destructive flex items-center gap-1 font-bold transition-colors cursor-pointer p-1 rounded hover:bg-destructive/10"
+                        title="ტარიფის წაშლა"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" /> წაშლა
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDuplicatePlan(p.id)}
+                        className="text-[11px] text-purple-600 dark:text-purple-400 hover:text-purple-700 flex items-center gap-1 font-bold transition-colors cursor-pointer p-1 rounded hover:bg-purple-500/10"
+                        title="ტარიფის დუბლირება / ასლის შექმნა"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> დუბლირება
+                      </button>
+                    </div>
+
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={handleSavePlans}
+                      className="h-7 px-2.5 rounded-lg text-[11px] font-bold bg-primary/10 text-primary hover:bg-primary hover:text-white cursor-pointer"
+                    >
+                      <Save className="w-3 h-3" /> შენახვა
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Glassmorphic Toast Notification — Always visible anywhere on screen */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-300 max-w-md w-full px-4 sm:px-0 pointer-events-auto">
+          <div className={`p-4 rounded-2xl shadow-2xl backdrop-blur-xl border flex items-center justify-between gap-3 text-xs font-bold transition-all ${
+            toast.type === "error"
+              ? "bg-rose-950/95 text-rose-100 border-rose-500/50 shadow-rose-950/60 ring-1 ring-rose-500/20"
+              : "bg-emerald-950/95 text-emerald-100 border-emerald-500/50 shadow-emerald-950/60 ring-1 ring-emerald-500/20"
+          }`}>
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
+                toast.type === "error" ? "bg-rose-500/25 text-rose-400" : "bg-emerald-500/25 text-emerald-400"
+              }`}>
+                {toast.type === "error" ? <AlertCircle className="w-5 h-5" /> : <CheckCircle className="w-5 h-5" />}
+              </div>
+              <span className="truncate leading-relaxed text-[12px]">{toast.message}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              className="p-1 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
         </div>
       )}
