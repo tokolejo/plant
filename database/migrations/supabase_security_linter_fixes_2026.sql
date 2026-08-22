@@ -4,22 +4,28 @@
 -- 1. function_search_path_mutable (Sets immutable search_path on all functions)
 -- 2. anon/authenticated_security_definer_function_executable (Protects RPC execution)
 -- 3. rls_policy_always_true (Tightens categories and listing_views INSERT policies)
--- 4. extension_in_public (Moves PostGIS extension to 'extensions' schema)
+-- 4. Revokes public PostgREST exposure from PostGIS internal helper functions
 -- ==============================================================================
 
 -- ──────────────────────────────────────────────────────────────────────────────
--- 1. EXTENSIONS FIX: Move PostGIS to 'extensions' schema
+-- 1. POSTGIS INTERNAL SECURITY DEFINER RPC PROTECTION
+-- (PostGIS is not relocatable via SET SCHEMA, so we protect internal functions directly)
 -- ──────────────────────────────────────────────────────────────────────────────
-CREATE SCHEMA IF NOT EXISTS extensions;
-
 DO $$
 BEGIN
-    IF EXISTS (
-        SELECT 1 FROM pg_extension e 
-        JOIN pg_namespace n ON e.extnamespace = n.oid 
-        WHERE e.extname = 'postgis' AND n.nspname = 'public'
-    ) THEN
-        ALTER EXTENSION postgis SET SCHEMA extensions;
+    -- Revoke PostgREST public/anon execution on PostGIS internal functions
+    IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'st_estimatedextent') THEN
+        BEGIN
+            EXECUTE 'REVOKE EXECUTE ON FUNCTION public.st_estimatedextent(text, text) FROM public, anon, authenticated';
+        EXCEPTION WHEN OTHERS THEN NULL; END;
+
+        BEGIN
+            EXECUTE 'REVOKE EXECUTE ON FUNCTION public.st_estimatedextent(text, text, text) FROM public, anon, authenticated';
+        EXCEPTION WHEN OTHERS THEN NULL; END;
+
+        BEGIN
+            EXECUTE 'REVOKE EXECUTE ON FUNCTION public.st_estimatedextent(text, text, text, boolean) FROM public, anon, authenticated';
+        EXCEPTION WHEN OTHERS THEN NULL; END;
     END IF;
 END $$;
 
@@ -167,7 +173,7 @@ BEGIN
 END $$;
 
 
--- 2.6 Protect Admin Bulk Action RPCs (Strict Admin Validation & Role Enforcement)
+-- 2.6 Protect Admin Bulk Action RPCs
 DO $$
 BEGIN
     -- bulk_delete_listings
