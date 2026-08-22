@@ -9,22 +9,21 @@
 
 -- ──────────────────────────────────────────────────────────────────────────────
 -- 1. POSTGIS INTERNAL SECURITY DEFINER RPC PROTECTION
--- (PostGIS is not relocatable via SET SCHEMA, so we protect internal functions directly)
 -- ──────────────────────────────────────────────────────────────────────────────
 DO $$
 BEGIN
-    -- Revoke PostgREST public/anon execution on PostGIS internal functions
+    -- Revoke PostgREST public/anon/authenticated execution on PostGIS internal functions
     IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'st_estimatedextent') THEN
         BEGIN
-            EXECUTE 'REVOKE EXECUTE ON FUNCTION public.st_estimatedextent(text, text) FROM public, anon, authenticated';
+            EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION public.st_estimatedextent(text, text) FROM PUBLIC, anon, authenticated';
         EXCEPTION WHEN OTHERS THEN NULL; END;
 
         BEGIN
-            EXECUTE 'REVOKE EXECUTE ON FUNCTION public.st_estimatedextent(text, text, text) FROM public, anon, authenticated';
+            EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION public.st_estimatedextent(text, text, text) FROM PUBLIC, anon, authenticated';
         EXCEPTION WHEN OTHERS THEN NULL; END;
 
         BEGIN
-            EXECUTE 'REVOKE EXECUTE ON FUNCTION public.st_estimatedextent(text, text, text, boolean) FROM public, anon, authenticated';
+            EXECUTE 'REVOKE ALL PRIVILEGES ON FUNCTION public.st_estimatedextent(text, text, text, boolean) FROM PUBLIC, anon, authenticated';
         EXCEPTION WHEN OTHERS THEN NULL; END;
     END IF;
 END $$;
@@ -33,11 +32,11 @@ END $$;
 -- 2. SEARCH_PATH & SECURITY DEFINER FIXES FOR FUNCTIONS
 -- ──────────────────────────────────────────────────────────────────────────────
 
--- 2.1 is_admin_user()
+-- 2.1 is_admin_user() — Made SECURITY INVOKER since users can read their own profile
 CREATE OR REPLACE FUNCTION public.is_admin_user()
 RETURNS boolean
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -55,8 +54,8 @@ BEGIN
 END;
 $$;
 
--- Revoke anonymous access from admin check
-REVOKE EXECUTE ON FUNCTION public.is_admin_user() FROM public, anon;
+-- Allow authenticated users to check their own admin status, revoke from anon
+REVOKE ALL ON FUNCTION public.is_admin_user() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.is_admin_user() TO authenticated, service_role;
 
 
