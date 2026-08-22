@@ -112,8 +112,24 @@ export function IsoBoardPreview() {
           </p>
         </div>
 
-        {/* Navigation Arrows for Slider */}
-        <div className="flex items-center justify-end mb-3 sm:mb-4">
+        {/* 🌟 2. Action Buttons Above Cards (Single Line) + Desktop Slider Arrows */}
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <Link href="/iso">
+              <Button variant="outline" className="gap-1.5 rounded-[12px] sm:rounded-[14px] text-xs font-bold h-9 sm:h-10 px-3 sm:px-4 border-border/80 hover:bg-surface-container shadow-2xs cursor-pointer">
+                <span>{isKa ? "სრული დაფა" : "View All"}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Button>
+            </Link>
+            <Link href="/dashboard/iso/new">
+              <Button className="gap-1.5 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs font-black h-9 sm:h-10 px-3 sm:px-4 shadow-ambient cursor-pointer">
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>{isKa ? "+ მოთხოვნა" : "+ Post Request"}</span>
+              </Button>
+            </Link>
+          </div>
+
+          {/* Desktop Slider Navigation Arrows */}
           <div className="hidden sm:flex items-center gap-1.5 shrink-0">
             <button
               type="button"
@@ -136,7 +152,7 @@ export function IsoBoardPreview() {
           </div>
         </div>
 
-        {/* 📱 2. Horizontal Touch-Swipeable Slider (4 items on desktop, swipe on mobile) */}
+        {/* 📱 3. Horizontal Touch-Swipeable Slider (4 items on desktop, swipe on mobile) */}
         <div
           ref={sliderRef}
           className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
@@ -200,22 +216,6 @@ export function IsoBoardPreview() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* 🔗 3. Centered Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-          <Link href="/iso">
-            <Button variant="outline" className="gap-2 rounded-[16px] text-xs sm:text-sm font-bold h-11 px-5 border-border/80 hover:bg-surface-container shadow-2xs cursor-pointer">
-              <span>{isKa ? "სრული გაცვლის დაფა" : "View All ISO"}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
-          </Link>
-          <Link href="/dashboard/iso/new">
-            <Button className="gap-2 rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-black h-11 px-5 shadow-ambient cursor-pointer">
-              <PlusCircle className="w-4 h-4" />
-              <span>{isKa ? "მოთხოვნის დამატება" : "Post Request"}</span>
-            </Button>
-          </Link>
         </div>
 
       </div>

@@ -127,9 +127,8 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
         
         {/* 🌟 1. Centered Header (Matches User Request & Design System) */}
         <div className="text-center max-w-2xl mx-auto space-y-2 mb-6">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground flex items-center justify-center gap-2">
-            <span>🔥</span>
-            <span>{isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}</span>
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground text-center">
+            🔥 {isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}
           </h2>
           <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
             {isKa 

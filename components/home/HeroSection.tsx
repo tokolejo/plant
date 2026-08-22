@@ -13,7 +13,8 @@ import {
   TrendingUp, 
   Users, 
   Store,
-  Gift
+  Gift,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -160,30 +161,34 @@ export function HeroSection() {
           </div>
         </div>
 
-        {/* 📊 1. Live Real-Time Platform Statistics — Ultra-Compact Single-Line Bar */}
+        {/* 📊 1. Live Real-Time Platform Statistics — Ultra-Compact Single-Line Bar with Growth Indicators */}
         <div className="mb-5 max-w-4xl mx-auto">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
             {/* 1. Users */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
               <div className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-[8px] bg-primary/10 text-primary shrink-0">
                 <Users className="w-3.5 h-3.5" />
               </div>
-              <div className="flex items-baseline gap-1.5 min-w-0 truncate">
+              <div className="flex items-baseline gap-1 min-w-0 truncate">
                 <span className="text-sm sm:text-base font-black text-foreground shrink-0">
                   {stats.totalUsers}
                 </span>
                 <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                  {isKa ? "მომხმარებელი" : "Members"}
+                  {isKa ? "წევრი" : "Users"}
                 </span>
               </div>
+              <span className="ml-auto text-[9px] sm:text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-[5px] border border-emerald-500/20 flex items-center gap-0.5 shrink-0 whitespace-nowrap">
+                <TrendingUp className="w-2.5 h-2.5" />
+                <span>{isKa ? "მზარდი" : "Up"}</span>
+              </span>
             </div>
 
             {/* 2. Active Plant Listings */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
               <div className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-[8px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
                 <Sprout className="w-3.5 h-3.5" />
               </div>
-              <div className="flex items-baseline gap-1.5 min-w-0 truncate">
+              <div className="flex items-baseline gap-1 min-w-0 truncate">
                 <span className="text-sm sm:text-base font-black text-foreground shrink-0">
                   {stats.totalListings}
                 </span>
@@ -191,36 +196,48 @@ export function HeroSection() {
                   {isKa ? "მცენარე" : "Plants"}
                 </span>
               </div>
+              <span className="ml-auto text-[9px] sm:text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded-[5px] border border-emerald-500/20 flex items-center gap-0.5 shrink-0 whitespace-nowrap">
+                <TrendingUp className="w-2.5 h-2.5" />
+                <span>{isKa ? "მზარდი" : "Up"}</span>
+              </span>
             </div>
 
             {/* 3. Trades & Giveaways */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
               <div className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-[8px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
                 <Gift className="w-3.5 h-3.5" />
               </div>
-              <div className="flex items-baseline gap-1.5 min-w-0 truncate">
+              <div className="flex items-baseline gap-1 min-w-0 truncate">
                 <span className="text-sm sm:text-base font-black text-foreground shrink-0">
                   {stats.totalTradesAndGifts}
                 </span>
                 <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                  {isKa ? "გაცვლა/ჩუქება" : "Trades"}
+                  {isKa ? "გაცვლა" : "Trades"}
                 </span>
               </div>
+              <span className="ml-auto text-[9px] sm:text-[10px] font-extrabold text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-[5px] border border-amber-500/20 flex items-center gap-0.5 shrink-0 whitespace-nowrap">
+                <TrendingUp className="w-2.5 h-2.5" />
+                <span>{isKa ? "მზარდი" : "Up"}</span>
+              </span>
             </div>
 
             {/* 4. Verified Shops */}
-            <div className="flex items-center gap-2 px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
+            <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-2 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
               <div className="flex h-6.5 w-6.5 sm:h-7 sm:w-7 items-center justify-center rounded-[8px] bg-secondary-container text-primary shrink-0">
                 <Store className="w-3.5 h-3.5" />
               </div>
-              <div className="flex items-baseline gap-1.5 min-w-0 truncate">
+              <div className="flex items-baseline gap-1 min-w-0 truncate">
                 <span className="text-sm sm:text-base font-black text-foreground shrink-0">
                   {stats.totalShops}
                 </span>
                 <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                  {isKa ? "მაღაზია" : "Shops"}
+                  {isKa ? "შოპი" : "Shops"}
                 </span>
               </div>
+              <span className="ml-auto text-[9px] sm:text-[10px] font-extrabold text-primary bg-primary/10 px-1.5 py-0.5 rounded-[5px] border border-primary/20 flex items-center gap-0.5 shrink-0 whitespace-nowrap">
+                <TrendingUp className="w-2.5 h-2.5" />
+                <span>{isKa ? "მზარდი" : "Up"}</span>
+              </span>
             </div>
           </div>
         </div>
@@ -287,11 +304,14 @@ export function HeroSection() {
             <button
               type="button"
               onClick={() => setShowAllTags(!showAllTags)}
-              className="rounded-full bg-surface-container hover:bg-surface-container-high px-2.5 py-1 text-xs font-bold text-primary transition-colors border border-primary/20 cursor-pointer"
+              className="inline-flex items-center gap-1 rounded-full bg-surface-container hover:bg-surface-container-high px-2.5 py-1 text-xs font-bold text-primary transition-all border border-primary/20 cursor-pointer shadow-2xs active:scale-95"
             >
-              {showAllTags 
-                ? (isKa ? "ნაკლები ∧" : "Less ∧") 
-                : (isKa ? `+${trendingTags.length - 5} მეტი ∨` : `+${trendingTags.length - 5} more ∨`)}
+              <span>
+                {showAllTags 
+                  ? (isKa ? "ნაკლები" : "Less") 
+                  : (isKa ? `+${trendingTags.length - 5} მეტი` : `+${trendingTags.length - 5} more`)}
+              </span>
+              <ChevronDown className={`w-3 h-3 text-primary transition-transform duration-200 ${showAllTags ? "rotate-180" : ""}`} />
             </button>
           )}
         </div>
