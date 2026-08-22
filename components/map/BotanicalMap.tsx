@@ -308,6 +308,29 @@ export default function BotanicalMap() {
     };
   }, []);
 
+  // 🎯 Auto-detect user's GPS location on initial map load
+  React.useEffect(() => {
+    if (!isMapReady || typeof window === "undefined" || !navigator.geolocation) return;
+
+    if (!userCoords) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const coords: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+          setUserCoords(coords);
+          setSelectedCity("ჩემი ლოკაცია (GPS)");
+
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo(coords, 14, { duration: 1.2 });
+          }
+        },
+        (err) => {
+          console.log("Auto-location GPS fallback:", err.message);
+        },
+        { timeout: 8000, enableHighAccuracy: true }
+      );
+    }
+  }, [isMapReady]);
+
   // Update User Marker — Only renders when userCoords is chosen
   React.useEffect(() => {
     if (!isMapReady || !mapInstanceRef.current) return;
