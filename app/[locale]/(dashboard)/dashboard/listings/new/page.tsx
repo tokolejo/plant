@@ -138,28 +138,34 @@ export default function CreateListingPage() {
   const [selectedFiles, setSelectedFiles] = React.useState<File[]>([]);
   const [previews, setPreviews] = React.useState<string[]>([]);
 
+  const [checkingAuth, setCheckingAuth] = React.useState(true);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [uploadProgress, setUploadProgress] = React.useState<string>("");
   const [errorMsg, setErrorMsg] = React.useState("");
 
-  // Pre-fill contact phone and city from user profile
+  // Check authentication and pre-fill contact phone/city from user profile
   React.useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        const { data: prof } = await supabase
-          .from("profiles")
-          .select("phone, city, location")
-          .eq("id", user.id)
-          .maybeSingle();
+      if (!user) {
+        router.replace(`/auth/login?redirect=${encodeURIComponent("/dashboard/listings/new")}`);
+        return;
+      }
 
-        if (prof) {
-          if (prof.phone) setContactPhone(prof.phone);
-          if (prof.city) setCity(prof.city);
-          if (prof.location) setAddress(prof.location);
-        }
+      setCheckingAuth(false);
+
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("phone, city, location")
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (prof) {
+        if (prof.phone) setContactPhone(prof.phone);
+        if (prof.city) setCity(prof.city);
+        if (prof.location) setAddress(prof.location);
       }
     });
-  }, [supabase]);
+  }, [supabase, router]);
 
   // Close category & tag autocomplete on outside click
   React.useEffect(() => {
@@ -528,7 +534,7 @@ export default function CreateListingPage() {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      router.push("/auth/login");
+      router.push(`/auth/login?redirect=${encodeURIComponent("/dashboard/listings/new")}`);
       return;
     }
 
@@ -621,6 +627,17 @@ export default function CreateListingPage() {
       setUploadProgress("");
     }
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="container mx-auto px-4 py-24 flex flex-col items-center justify-center text-center space-y-3 min-h-[50vh]">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <p className="text-xs text-muted-foreground font-medium">
+          {isEn ? "Checking authentication..." : "ავტორიზაციის შემოწმება..."}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
