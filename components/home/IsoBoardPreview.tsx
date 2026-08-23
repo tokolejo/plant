@@ -201,10 +201,13 @@ export function IsoBoardPreview() {
                 </div>
 
                 {/* Footer Action Button */}
-                <Link href="/iso" className="w-full mt-auto pt-1">
-                  <Button size="sm" className="w-full h-8.5 rounded-[12px] text-xs font-bold gap-1.5 bg-primary hover:bg-primary/90 text-white shadow-xs cursor-pointer">
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>{isKa ? "შეთავაზება / ჩათი" : "Make Offer"}</span>
+                <Link href="/iso" className="w-full mt-auto pt-1 block group">
+                  <Button 
+                    size="sm" 
+                    className="w-full h-8.5 rounded-[12px] text-xs font-bold gap-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/25 hover:border-primary transition-all shadow-2xs group-hover:shadow-ambient cursor-pointer"
+                  >
+                    <Shuffle className="w-3.5 h-3.5" />
+                    <span>{isKa ? "გაცვლის შეთავაზება" : "Propose Swap"}</span>
                   </Button>
                 </Link>
               </div>
