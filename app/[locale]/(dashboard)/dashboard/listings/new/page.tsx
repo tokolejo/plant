@@ -444,30 +444,21 @@ export default function CreateListingPage() {
               }
             }
 
-            // 2. Build detailed Street + House Number + District/Suburb
-            const addressParts: string[] = [];
-            if (a.road) {
-              let roadName = a.road;
+            // 2. Build Street + House Number strictly (e.g. "ჯემალ ცერცვაძის ქუჩა №7ა")
+            let streetWithNumber = "";
+            const roadName = a.road || a.pedestrian || a.street || a.avenue || a.path || "";
+            if (roadName) {
+              streetWithNumber = roadName;
               if (a.house_number) {
-                roadName += ` №${a.house_number}`;
+                streetWithNumber += ` №${a.house_number}`;
               }
-              addressParts.push(roadName);
-            }
-            if (a.neighbourhood && !addressParts.includes(a.neighbourhood)) {
-              addressParts.push(a.neighbourhood);
-            }
-            if (a.suburb && !addressParts.includes(a.suburb)) {
-              addressParts.push(a.suburb);
-            } else if (a.city_district && !addressParts.includes(a.city_district)) {
-              addressParts.push(a.city_district);
+            } else if (a.suburb || a.neighbourhood || a.city_district) {
+              streetWithNumber = a.suburb || a.neighbourhood || a.city_district || "";
+            } else {
+              streetWithNumber = data.display_name?.split(",")[0]?.trim() || "";
             }
 
-            const formattedAddress = addressParts.length > 0
-              ? addressParts.join(", ")
-              : (data.display_name?.split(",").slice(0, 3).join(", ") || "თბილისი");
-
-            setAddress(formattedAddress);
-            setDetectedLocationInfo(`${city || "თბილისი"}, ${formattedAddress}`);
+            setAddress(streetWithNumber);
           }
         } catch (err: any) {
           console.error("GPS Reverse Geocode Error:", err);
@@ -1221,14 +1212,14 @@ export default function CreateListingPage() {
 
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-foreground block">
-                {isKa ? "უბანი & ზუსტი მისამართი *" : "District & Street Address *"}
+                {isKa ? "ქუჩა & ნომერი *" : "Street & Number *"}
               </label>
               <Input
                 type="text"
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder={isKa ? "მაგ: აღმაშენებლის გამზ. №45, ჩუღურეთი" : "e.g. 45 Aghmashenebeli Ave, Chughureti"}
+                placeholder={isKa ? "მაგ: აღმაშენებლის გამზ. №45" : "e.g. 45 Aghmashenebeli Ave"}
                 className="rounded-[12px] h-10 text-xs sm:text-sm"
               />
               {latitude && longitude && (
