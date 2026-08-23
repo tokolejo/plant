@@ -28,41 +28,34 @@ export default function FAQPage() {
 
   const [openFaqIndex, setOpenFaqIndex] = React.useState<number | null>(0);
 
-  // 1. What We Offer
+  // 1. What We Offer (4 Unified Cards)
   const whatWeOffer = [
     {
       icon: Store,
-      title: isKa ? "მცენარეებისა & ინვენტარის მარკეტი" : "Plant & Supplies Marketplace",
+      title: isKa ? "მარკეტი & გაცვლა (ISO)" : "Marketplace & ISO Swap",
       desc: isKa
-        ? "ოთახისა და ეზოს მცენარეების, იშვიათი კალმების, ქოთნებისა და სასუქების ყიდვა-გაყიდვა ფიქსირებულ ფასად, შეთანხმებით ან უფასოდ გაჩუქებით."
-        : "Buy and sell indoor/outdoor plants, rare cuttings, pots, and soil with fixed price, negotiable, or free giveaway options.",
-    },
-    {
-      icon: Shuffle,
-      title: isKa ? "მცენარეების გაცვლა (ISO Swap)" : "Plant Swapping (ISO)",
-      desc: isKa
-        ? "სასურველი მცენარის მოძიება და პირდაპირი ბარტერი თანხის გარეშე. განათავსეთ რა მცენარე გაქვთ და რაში გსურთ მისი გაცვლა."
-        : "Post what plant you have and what cutting you're looking for to arrange direct, cashless swaps.",
+        ? "ოთახისა და ეზოს მცენარეების, იშვიათი კალმებისა და ინვენტარის ყიდვა, გაყიდვა, გაჩუქება ან პირდაპირი ბარტერი თანხის გარეშე."
+        : "Buy, sell, giveaway, or swap houseplants, rare cuttings, and gardening supplies with cashless barter options.",
     },
     {
       icon: MapPin,
-      title: isKa ? "ინტერაქტიული ბოტანიკური რუკა" : "Interactive Botanical Map",
+      title: isKa ? "ბოტანიკური რუკა" : "Interactive Botanical Map",
       desc: isKa
         ? "მცენარეების, ორანჟერეებისა და კოლექციონერების მოძიება ლოკაციით თქვენს უბანსა თუ ქალაქში (თბილისი, ბათუმი, ქუთაისი და სხვ.)."
         : "Discover plants, local growers, and botanical nurseries on an interactive map across Georgia.",
     },
     {
       icon: Sparkles,
-      title: isKa ? "AI ამოცნობა & მოვლის რჩევები" : "AI Plant Identification & Care",
+      title: isKa ? "AI ამოცნობა & მოვლა" : "AI Plant Identification & Care",
       desc: isKa
-        ? "ფოტოს ატვირთვით მცენარის ჯიშის მომენტალური დადგენა, მორწყვის გრაფიკი და ცხოველებისთვის უსაფრთხოების (Pet-Friendly) შემოწმება."
+        ? "ფოტოს ატვირთვით ჯიშის მომენტალური დადგენა, მორწყვის რეკომენდაციები და ცხოველებისთვის უსაფრთხოების (Pet-Friendly) შემოწმება."
         : "Snap a photo to identify plant species, get optimal watering instructions, and check pet toxicity.",
     },
     {
       icon: Building2,
-      title: isKa ? "ონლაინ მაღაზიები & Pro პაკეტები" : "Verified Stores & Pro Shop",
+      title: isKa ? "მაღაზიები & Pro პაკეტები" : "Verified Stores & Pro Shop",
       desc: isKa
-        ? "ყვავილების მაღაზიებისთვის და ორანჟერეებისთვის: საკუთარი ბრენდირებული გვერდი (plant.ge/shopname), VIP ბუსტები და ანალიტიკა."
+        ? "ყვავილების მაღაზიებისა და ორანჟერეებისთვის: საკუთარი ონლაინ ვიტრინა (plant.ge/shopname), VIP ბუსტები და გაყიდვების მართვა."
         : "For commercial shops and nurseries: branded store URLs (plant.ge/shopname), VIP boosts, and inventory tools.",
     },
   ];
@@ -174,7 +167,7 @@ export default function FAQPage() {
 
   return (
     <div className="min-h-screen bg-background py-6 sm:py-10">
-      <div className="container mx-auto px-4 sm:px-6 max-w-4xl space-y-8 sm:space-y-12">
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl space-y-8 sm:space-y-12">
 
         {/* ═══ Header ═══ */}
         <div className="text-center space-y-2 max-w-2xl mx-auto">
@@ -201,13 +194,13 @@ export default function FAQPage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {whatWeOffer.map((item, i) => {
               const Icon = item.icon;
               return (
                 <div
                   key={i}
-                  className="p-4 rounded-[16px] border border-border/80 bg-card shadow-2xs space-y-2 flex flex-col justify-between"
+                  className="p-4 rounded-[16px] border border-border/80 bg-card shadow-2xs space-y-2 flex flex-col justify-between hover:border-primary/40 transition-colors"
                 >
                   <div className="space-y-2">
                     <div className="h-9 w-9 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center">
