@@ -392,7 +392,6 @@ const ALL_GEORGIAN_CITIES = [
   // Coordinates & Detected Location State
   const [latitude, setLatitude] = React.useState<number | null>(null);
   const [longitude, setLongitude] = React.useState<number | null>(null);
-  const [detectedLocationInfo, setDetectedLocationInfo] = React.useState<string | null>(null);
 
   const handleGpsLocation = () => {
     if (!navigator.geolocation) {
@@ -410,128 +409,22 @@ const ALL_GEORGIAN_CITIES = [
           setLatitude(lat);
           setLongitude(lng);
 
-          // Request street-level accuracy (zoom 18) with full address details
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=${isKa ? "ka" : "en"}`
-          );
+          const res = await fetch("/api/geo/reverse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              latitude: lat,
+              longitude: lng,
+              locale,
+            }),
+          });
+
           const data = await res.json();
-          if (data && data.address) {
-            const a = data.address;
-
-            // 1. City / Region matching across all Georgian regions
-            const cityVal = (a.city || a.town || a.village || a.municipality || a.county || a.state || a.region || "").toLowerCase();
-            const cityMap: Record<string, string> = {
-              tbilisi: "თბილისი", თბილისი: "თბილისი",
-              batumi: "ბათუმი", ბათუმი: "ბათუმი",
-              kutaisi: "ქუთაისი", ქუთაისი: "ქუთაისი",
-              rustavi: "რუსთავი", რუსთავი: "რუსთავი",
-              gori: "გორი", გორი: "გორი",
-              zugdidi: "ზუგდიდი", ზუგდიდი: "ზუგდიდი",
-              poti: "ფოთი", ფოთი: "ფოთი",
-              telavi: "თელავი", თელავი: "თელავი",
-              mtskheta: "მცხეთა", მცხეთა: "მცხეთა",
-              borjomi: "ბორჯომი", ბორჯომი: "ბორჯომი",
-              kobuleti: "ქობულეთი", ქობულეთი: "ქობულეთი",
-              akhaltsikhe: "ახალციხე", ახალციხე: "ახალციხე",
-              samtredia: "სამტრედია", სამტრედია: "სამტრედია",
-              khashuri: "ხაშური", ხაშური: "ხაშური",
-              senaki: "სენაკი", სენაკი: "სენაკი",
-              zestafoni: "ზესტაფონი", ზესტაფონი: "ზესტაფონი",
-              marneuli: "მარნეული", მარნეული: "მარნეული",
-              kaspi: "კასპი", კასპი: "კასპი",
-              chiatura: "ჭიათურა", ჭიათურა: "ჭიათურა",
-              tskaltubo: "წყალტუბო", წყალტუბო: "წყალტუბო",
-              ozurgeti: "ოზურგეთი", ოზურგეთი: "ოზურგეთი",
-              sagarejo: "საგარეჯო", საგარეჯო: "საგარეჯო",
-              gardabani: "გარდაბანი", გარდაბანი: "გარდაბანი",
-              dusheti: "დუშეთი", დუშეთი: "დუშეთი",
-              sighnaghi: "სიღნაღი", სიღნაღი: "სიღნაღი",
-              bolnisi: "ბოლნისი", ბოლნისი: "ბოლნისი",
-              gurjaani: "გურჯაანი", გურჯაანი: "გურჯაანი",
-              akhalkalaki: "ახალქალაქი", ახალქალაქი: "ახალქალაქი",
-              stepantsminda: "სტეფანწმინდა / ყაზბეგი", kazbegi: "სტეფანწმინდა / ყაზბეგი", ყაზბეგი: "სტეფანწმინდა / ყაზბეგი",
-              mestia: "მესტია", მესტია: "მესტია",
-              ambrolauri: "ამბროლაური", ამბროლაური: "ამბროლაური",
-              oni: "ონი", ონი: "ონი",
-              lentekhi: "ლენტეხი", ლენტეხი: "ლენტეხი",
-              dedoplistskaro: "დედოფლისწყარო", დედოფლისწყარო: "დედოფლისწყარო",
-              kvareli: "ყვარელი", ყვარელი: "ყვარელი",
-              lagodekhi: "ლაგოდეხი", ლაგოდეხი: "ლაგოდეხი",
-              tsalka: "წალკა", წალკა: "წალკა",
-              dmanisi: "დმანისი", დმანისი: "დმანისი",
-              kareli: "ქარელი", ქარელი: "ქარელი",
-              sachkhere: "საჩხერე", საჩხერე: "საჩხერე",
-              kharagauli: "ხარაგაული", ხარაგაული: "ხარაგაული",
-              baghdati: "ბაღდათი", ბაღდათი: "ბაღდათი",
-              vani: "ვანი", ვანი: "ვანი",
-              khoni: "ხონი", ხონი: "ხონი",
-              terjola: "თერჯოლა", თერჯოლა: "თერჯოლა",
-              abasha: "აბაშა", აბაშა: "აბაშა",
-              martvili: "მარტვილი", მარტვილი: "მარტვილი",
-              chkhorotsku: "ჩხოროწყუ", ჩხოროწყუ: "ჩხოროწყუ",
-              tsalenjikha: "წალენჯიხა", წალენჯიხა: "წალენჯიხა",
-              khobi: "ხობი", ხობი: "ხობი",
-              lanchkhuti: "ლანჩხუთი", ლანჩხუთი: "ლანჩხუთი",
-              chokhatauri: "ჩოხატაური", ჩოხატაური: "ჩოხატაური",
-              khelvachauri: "ხელვაჩაური", ხელვაჩაური: "ხელვაჩაური",
-              keda: "ქედა", ქედა: "ქედა",
-              shuakhevi: "შუახევი", შუახევი: "შუახევი",
-              khulo: "ხულო", ხულო: "ხულო",
-              adigeni: "ადიგენი", ადიგენი: "ადიგენი",
-              aspindza: "ასპინძა", ასპინძა: "ასპინძა",
-              ninotsminda: "ნინოწმინდა", ნინოწმინდა: "ნინოწმინდა",
-              tianeti: "თიანეთი", თიანეთი: "თიანეთი",
-              akhmeta: "ახმეტა", ახმეტა: "ახმეტა",
-            };
-
-            let detectedCityName = "თბილისი";
-            for (const [k, v] of Object.entries(cityMap)) {
-              if (cityVal.includes(k)) {
-                detectedCityName = v;
-                break;
-              }
-            }
-            setCity(detectedCityName);
-
-            // 2. Build Street and House Number with building-level fallback
-            let streetPart = "";
-            let houseNumber = a.house_number || a.building || a.housenumber || "";
-            let roadName = a.road || a.pedestrian || a.street || a.avenue || a.path || "";
-
-            if (!houseNumber) {
-              try {
-                const photonRes = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
-                const photonData = await photonRes.json();
-                const photonProps = photonData.features?.[0]?.properties;
-                if (photonProps?.housenumber) {
-                  houseNumber = photonProps.housenumber;
-                }
-                if (!roadName && photonProps?.street) {
-                  roadName = photonProps.street;
-                }
-              } catch {
-                // Ignore fallback error
-              }
-            }
-
-            if (roadName) {
-              streetPart = roadName;
-              if (houseNumber) {
-                streetPart += ` №${houseNumber}`;
-              }
-            } else if (a.suburb || a.neighbourhood || a.city_district) {
-              streetPart = a.suburb || a.neighbourhood || a.city_district || "";
-            }
-
-            // 3. Format: "ქალაქი, ქუჩა სახლის ნომერი" (e.g. "თბილისი, ართვინის ქუჩა №14")
-            let fullExactAddress = "";
-            if (streetPart) {
-              fullExactAddress = `${detectedCityName}, ${streetPart}`;
-            } else {
-              fullExactAddress = data.display_name?.split(",").slice(0, 2).join(", ").trim() || detectedCityName;
-            }
-
-            setAddress(fullExactAddress);
+          if (data && data.success) {
+            if (data.city) setCity(data.city);
+            if (data.address) setAddress(data.address);
+          } else {
+            throw new Error(data?.error || "Geocoding failed");
           }
         } catch (err: any) {
           console.error("GPS Reverse Geocode Error:", err);
@@ -1296,12 +1189,9 @@ const ALL_GEORGIAN_CITIES = [
                 className="rounded-[12px] h-10 text-xs sm:text-sm"
               />
               {latitude && longitude && (
-                <p className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 pt-0.5 animate-in fade-in">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 pt-1 animate-in fade-in">
                   <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>{isKa ? "GPS დაფიქსირებულია რუკაზე" : "GPS pinned on map"}</span>
-                  <span className="text-[10px] font-mono text-muted-foreground ml-auto">
-                    {latitude.toFixed(4)}, {longitude.toFixed(4)}
-                  </span>
+                  <span>{isKa ? "ზუსტი ლოკაცია დაფიქსირებულია" : "Exact location pinned"}</span>
                 </p>
               )}
             </div>
