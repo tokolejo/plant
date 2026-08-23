@@ -7,6 +7,7 @@ import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 import { ListingCard } from "@/components/listings/ListingCard";
+import { ShareModal } from "@/components/common/ShareModal";
 import { 
   MapPin, 
   Truck, 
@@ -252,6 +253,7 @@ export default function ListingDetailPage({
   // ── Wishlist State ──
   const [inWishlist, setInWishlist] = React.useState(false);
   const [wishlistNotice, setWishlistNotice] = React.useState("");
+  const [shareModalOpen, setShareModalOpen] = React.useState(false);
 
   // ── Dynamic Affiliate Cross-Selling Offers ──
   const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>(RECOMMENDED_INVENTORY);
@@ -1185,6 +1187,16 @@ export default function ListingDetailPage({
                 </button>
 
                 <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setShareModalOpen(true)}
+                    className="h-8 px-2.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
+                    title={isKa ? "სოციალურ ქსელებში გაზიარება" : "Share on Social Media"}
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span>{isKa ? "გაზიარება" : "Share"}</span>
+                  </button>
+
                   <a
                     href={shareFbUrl}
                     target="_blank"
@@ -1203,16 +1215,6 @@ export default function ListingDetailPage({
                     className="w-8 h-8 rounded-full bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 flex items-center justify-center transition-all cursor-pointer"
                   >
                     <WhatsAppIcon className="w-3.5 h-3.5" />
-                  </a>
-
-                  <a
-                    href={shareTgUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={isKa ? "Telegram-ში გაზიარება" : "Share on Telegram"}
-                    className="w-8 h-8 rounded-full bg-[#229ED9]/10 hover:bg-[#229ED9] text-[#229ED9] hover:text-white border border-[#229ED9]/20 flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    <TelegramIcon className="w-3.5 h-3.5" />
                   </a>
 
                   <button
@@ -1545,6 +1547,14 @@ export default function ListingDetailPage({
           </div>
         </div>
       )}
+
+      {/* Viral Share Modal */}
+      <ShareModal
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        title={displayTitle}
+        price={listing.price}
+      />
     </div>
   );
 }

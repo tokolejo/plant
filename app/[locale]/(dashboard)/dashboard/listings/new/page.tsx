@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { STRUCTURED_CATEGORIES, type TaxonomyCategory } from "@/lib/categories-data";
+import { validateListingContent } from "@/lib/moderation";
 
 export interface GeminiPlantRecognitionResult {
   latinName?: string;
@@ -480,6 +481,13 @@ const ALL_GEORGIAN_CITIES = [
     }
     if (!contactPhone.trim()) {
       setErrorMsg(isKa ? "გთხოვთ შეიყვანოთ საკონტაქტო ნომერი." : "Please provide a contact phone number.");
+      return;
+    }
+
+    // Botanical spam & safety filter
+    const modResult = validateListingContent(titleKa || titleEn, descKa || descEn);
+    if (!modResult.isValid) {
+      setErrorMsg(isKa ? modResult.errorKa! : modResult.errorEn!);
       return;
     }
 
