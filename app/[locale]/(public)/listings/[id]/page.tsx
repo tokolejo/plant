@@ -241,9 +241,8 @@ export default function ListingDetailPage({
   const isKa = locale !== "en";
   const router = useRouter();
   const supabase = createClient();
-  const [listing, setListing] = React.useState<any>(() => {
-    return SAMPLE_LISTINGS.find((l) => l.id === id) || SAMPLE_LISTINGS[0];
-  });
+  const [listing, setListing] = React.useState<any>(null);
+  const [loadingListing, setLoadingListing] = React.useState(true);
 
   const [activeImageIdx, setActiveImageIdx] = React.useState(0);
   const [showPhone, setShowPhone] = React.useState(false);
@@ -293,7 +292,9 @@ export default function ListingDetailPage({
           }).catch(() => {});
         }
       } catch (err) {
-        console.warn("Could not load listing from Supabase, using mock fallback:", err);
+        console.warn("Could not load listing from Supabase:", err);
+      } finally {
+        setLoadingListing(false);
       }
     }
     loadRealListing();
@@ -547,6 +548,32 @@ export default function ListingDetailPage({
     setReviewSubmitted(true);
     setTimeout(() => setReviewSubmitted(false), 4000);
   };
+
+  if (loadingListing) {
+    return (
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center space-y-3 min-h-[50vh]">
+        <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-bold text-muted-foreground">{isKa ? "განცხადება იტვირთება..." : "Loading listing..."}</p>
+      </div>
+    );
+  }
+
+  if (!listing) {
+    return (
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center space-y-4 min-h-[50vh]">
+        <Sprout className="w-12 h-12 text-muted-foreground/50" />
+        <h2 className="text-xl font-bold text-foreground">{isKa ? "განცხადება ვერ მოიძებნა" : "Listing not found"}</h2>
+        <p className="text-xs text-muted-foreground max-w-sm">
+          {isKa ? "შესაძლოა განცხადება წაიშალა ან ვადა გაუვიდა." : "This listing may have been removed or expired."}
+        </p>
+        <Link href="/listings">
+          <Button className="rounded-[14px] bg-primary text-white text-xs font-bold h-10 px-5">
+            {isKa ? "კატალოგში დაბრუნება" : "Back to Catalog"}
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   const images: string[] = Array.isArray(listing.images) && listing.images.length > 0 ? listing.images : [
     "https://images.unsplash.com/photo-1545241047-6083a3684587?w=800&auto=format&fit=crop&q=80"

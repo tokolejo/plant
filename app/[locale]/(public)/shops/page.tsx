@@ -97,7 +97,8 @@ export default function ShopsDirectoryPage() {
   const isKa = locale !== "en";
   const supabase = createClient();
 
-  const [shops, setShops] = React.useState<ShopProfile[]>(FEATURED_SHOPS);
+  const [shops, setShops] = React.useState<ShopProfile[]>([]);
+  const [loading, setLoading] = React.useState(true);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [selectedCity, setSelectedCity] = React.useState("ALL");
 
@@ -123,17 +124,18 @@ export default function ShopsDirectoryPage() {
             tier: p.subscription_tier || "TIER_2",
             descriptionKa: p.bio || "ოფიციალური ბოტანიკური მაღაზია Plant.ge-ზე",
             descriptionEn: p.bio || "Official botanical nursery on Plant.ge",
-            plantsCount: 5,
+            plantsCount: 0,
             tags: ["Plants", "Verified Shop"]
           }));
 
-          // Merge with sample shops
-          const existingSlugs = new Set(formatted.map(s => s.slug));
-          const nonDupSamples = FEATURED_SHOPS.filter(s => !existingSlugs.has(s.slug));
-          setShops([...formatted, ...nonDupSamples]);
+          setShops(formatted);
+        } else {
+          setShops([]);
         }
       } catch (e) {
         console.error("Error loading shops:", e);
+      } finally {
+        setLoading(false);
       }
     }
 
