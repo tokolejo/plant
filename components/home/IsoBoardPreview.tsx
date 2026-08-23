@@ -8,11 +8,10 @@ import {
   Shuffle, 
   MapPin, 
   ArrowRight, 
-  MessageSquare,
   ChevronLeft,
   ChevronRight,
   PlusCircle,
-  Sparkles
+  Sprout
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -151,7 +150,7 @@ export function IsoBoardPreview() {
           )}
         </div>
 
-        {/* 📱 3. Real Supabase Listings Grid */}
+        {/* 📱 3. Modern Botanical Plant Swap Cards */}
         {tradeListings.length > 0 ? (
           <div
             ref={sliderRef}
@@ -159,78 +158,103 @@ export function IsoBoardPreview() {
           >
             {tradeListings.map((iso) => {
               const userName = iso.profiles?.full_name || (isKa ? "მებაღე" : "Grower");
-              const userAvatar = iso.profiles?.avatar_url;
+              const offeringTitle = isKa ? (iso.title_ka || iso.title) : (iso.title_en || iso.title);
+              
+              // Plant image
+              const plantImage = Array.isArray(iso.images) && iso.images.length > 0
+                ? iso.images[0]
+                : typeof iso.image === "string" && iso.image
+                ? iso.image
+                : null;
+
+              // Trade wishlist tags
               const wantedTags = Array.isArray(iso.trade_preferences) && iso.trade_preferences.length > 0
                 ? iso.trade_preferences.join(", ")
-                : (isKa ? "მცენარის გაცვლა / შეთანხმებით" : "Plant swap / negotiable");
-
-              const offeringTitle = isKa ? (iso.title_ka || iso.title) : (iso.title_en || iso.title);
+                : (isKa ? "მცენარეში გაცვლა / შეთანხმებით" : "Plant swap / negotiable");
 
               return (
-                <div
+                <Link
                   key={iso.id}
-                  className="w-[270px] sm:w-[285px] md:w-[300px] lg:w-full shrink-0 lg:shrink snap-start flex flex-col justify-between rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient hover:border-primary/40 hover:shadow-ambient-lg transition-all select-none"
+                  href={`/listings/${iso.id}`}
+                  className="w-[250px] sm:w-[270px] md:w-[285px] lg:w-full shrink-0 lg:shrink snap-start flex flex-col justify-between rounded-[20px] border border-border/80 bg-card overflow-hidden shadow-ambient hover:border-primary/50 hover:shadow-ambient-lg transition-all group select-none cursor-pointer"
                 >
-                  <div>
-                    {/* Header: User & City */}
-                    <div className="flex items-center justify-between gap-1.5 mb-2.5 pb-2 border-b border-border/50">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <div className="h-6.5 w-6.5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
-                          {userAvatar ? (
-                            <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
-                          ) : (
-                            userName.charAt(0)
-                          )}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-xs font-bold text-foreground truncate">{userName}</span>
-                          <span className="text-[10px] text-muted-foreground">
-                            {iso.transaction_type === "GIFT" ? (isKa ? "🎁 საჩუქარი" : "🎁 Giveaway") : (isKa ? "🔄 გაცვლა" : "🔄 Swap")}
-                          </span>
-                        </div>
+                  {/* 🌿 1. Plant Image Hero */}
+                  <div className="relative aspect-[4/3] w-full bg-surface-container overflow-hidden">
+                    {plantImage ? (
+                      <img
+                        src={plantImage}
+                        alt={offeringTitle}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-emerald-900/10 via-emerald-800/5 to-teal-900/10 flex flex-col items-center justify-center text-primary/40">
+                        <Sprout className="w-10 h-10 mb-1" />
+                        <span className="text-[11px] font-bold">{isKa ? "მცენარე" : "Plant"}</span>
                       </div>
+                    )}
 
-                      <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-semibold shrink-0">
-                        <MapPin className="w-3 h-3 text-primary shrink-0" />
-                        <span>{iso.city || (isKa ? "თბილისი" : "Tbilisi")}</span>
-                      </div>
+                    {/* Floating Status Badge */}
+                    <div className="absolute top-2.5 left-2.5">
+                      <Badge className="bg-black/60 backdrop-blur-md text-white border-0 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                        {iso.transaction_type === "GIFT" ? (
+                          <>
+                            <span className="text-amber-300">🎁</span>
+                            <span>{isKa ? "საჩუქარი" : "Giveaway"}</span>
+                          </>
+                        ) : (
+                          <>
+                            <Shuffle className="w-3 h-3 text-emerald-400" />
+                            <span>{isKa ? "გაცვლა" : "Swap"}</span>
+                          </>
+                        )}
+                      </Badge>
                     </div>
 
-                    {/* 🔍 Wanted & 🌿 Offered Blocks */}
-                    <div className="space-y-2 mb-3">
-                      {/* Offered */}
-                      <div className="rounded-[12px] bg-emerald-500/10 dark:bg-emerald-500/15 p-2.5 border border-emerald-500/20">
-                        <div className="text-[10px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center gap-1 mb-0.5">
-                          <span>🌿 {isKa ? "გასაცვლელად აქვს:" : "Offering:"}</span>
-                        </div>
-                        <p className="text-xs font-bold text-foreground leading-snug line-clamp-2">
-                          {offeringTitle}
-                        </p>
-                      </div>
-
-                      {/* Wanted */}
-                      <div className="rounded-[12px] bg-amber-500/10 dark:bg-amber-500/15 p-2.5 border border-amber-500/20">
-                        <div className="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1 mb-0.5">
-                          <span>🔍 {isKa ? "სანაცვლოდ ეძებს:" : "Looking for in return:"}</span>
-                        </div>
-                        <p className="text-xs font-medium text-foreground leading-snug line-clamp-2">
-                          {wantedTags}
-                        </p>
+                    {/* Floating City Badge */}
+                    <div className="absolute top-2.5 right-2.5">
+                      <div className="bg-black/60 backdrop-blur-md text-white text-[10.5px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                        <MapPin className="w-2.5 h-2.5 text-emerald-400" />
+                        <span>{iso.city || (isKa ? "თბილისი" : "Tbilisi")}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Footer Action Button */}
-                  <Link href={`/listings/${iso.id}`} className="w-full mt-auto pt-1 block group">
-                    <Button 
-                      size="sm" 
-                      className="w-full h-8.5 rounded-[12px] text-xs font-bold gap-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/25 hover:border-primary transition-all shadow-2xs group-hover:shadow-ambient cursor-pointer"
-                    >
-                      <Shuffle className="w-3.5 h-3.5" />
-                      <span>{isKa ? "გაცვლის შეთავაზება" : "Propose Swap"}</span>
-                    </Button>
-                  </Link>
-                </div>
+                  {/* 📝 2. Card Content */}
+                  <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5">
+                    <div>
+                      {/* Plant Title */}
+                      <h3 className="font-extrabold text-xs sm:text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                        {offeringTitle}
+                      </h3>
+
+                      {/* Trade Wishlist Box */}
+                      <div className="mt-2 rounded-[12px] bg-secondary-container/70 dark:bg-card/90 p-2 border border-border/40">
+                        <div className="text-[9.5px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1 mb-0.5">
+                          <Shuffle className="w-2.5 h-2.5 text-amber-700 dark:text-amber-400" />
+                          <span>{isKa ? "სანაცვლოდ ეძებს:" : "Trading for:"}</span>
+                        </div>
+                        <p className="text-[11.5px] text-foreground font-semibold line-clamp-2 leading-snug">
+                          {wantedTags}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Footer: Subtle Seller Info & CTA Button */}
+                    <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-1.5">
+                      <span className="text-[10.5px] font-medium text-muted-foreground truncate max-w-[110px]">
+                        {userName}
+                      </span>
+
+                      <Button
+                        size="sm"
+                        className="h-7.5 rounded-[10px] text-[11px] font-bold gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary transition-all cursor-pointer shadow-2xs"
+                      >
+                        <span>{isKa ? "შეთავაზება" : "Offer"}</span>
+                        <ArrowRight className="w-2.5 h-2.5" />
+                      </Button>
+                    </div>
+                  </div>
+                </Link>
               );
             })}
           </div>
