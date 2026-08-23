@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
     // Construct clean address string: "ქალაქი, ქუჩა [№ნომერი]"
     let formattedAddress = "";
     if (detectedStreet) {
-      const streetWithNum = houseNumber ? `${detectedStreet} №${houseNumber}` : detectedStreet;
+      const streetWithNum = houseNumber ? `${detectedStreet} №${houseNumber}` : `${detectedStreet} №`;
       formattedAddress = `${detectedCity}, ${streetWithNum}`;
     } else {
       formattedAddress = detectedCity;
