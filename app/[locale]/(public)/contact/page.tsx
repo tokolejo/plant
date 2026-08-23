@@ -39,9 +39,6 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
-  // FAQ Accordion State
-  const [openFaq, setOpenFaq] = React.useState<number | null>(0);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !email.trim() || !message.trim()) {
@@ -107,33 +104,6 @@ export default function ContactPage() {
       title: isKa ? "პარტნიორობა / B2B" : "Partnership / B2B",
       subtitle: isKa ? "მაღაზიები & ბიზნესი" : "Shops & Collaboration",
       icon: Building2,
-    },
-  ];
-
-  const faqs = [
-    {
-      q: isKa ? "როგორ დავამატო მცენარის განცხადება?" : "How do I list a plant?",
-      a: isKa
-        ? "განცხადების დასამატებლად გაიარეთ ავტორიზაცია და დააჭირეთ „+ დამატება“ ღილაკს. ატვირთეთ ფოტოები, მიუთითეთ ფასი, მდებარეობა და მიწოდების მეთოდები."
-        : "Sign in and click '+ Post Listing'. Upload photos, set your price, location, and preferred delivery terms.",
-    },
-    {
-      q: isKa ? "რა ღირს Plant-ზე განცხადების განთავსება?" : "How much does it cost to list?",
-      a: isKa
-        ? "ძირითადი განცხადებების განთავსება სრულიად უფასოა. აქტიური გამყიდველებისა და მაღაზიებისთვის გვაქვს სპეციალური Pro და Shop ტარიფები გაფართოებული შესაძლებლობებით."
-        : "Standard listings are free. For high-volume sellers and verified stores, we offer Pro and Shop subscription packages.",
-    },
-    {
-      q: isKa ? "როგორ მუშაობს მცენარეების გაცვლა (ISO Swap)?" : "How does the plant swap work?",
-      a: isKa
-        ? "ISO განყოფილებაში შეგიძლიათ განათავსოთ მცენარე, რომელსაც ეძებთ, და მიუთითოთ რა მცენარეში ან აქსესუარში გსურთ მისი გაცვლა."
-        : "In the ISO section, you can post the plant you are searching for and define what you want to trade for it.",
-    },
-    {
-      q: isKa ? "როგორ ხდება ანგარიშსწორება და მიწოდება?" : "How do delivery and payments work?",
-      a: isKa
-        ? "გამყიდველსა და მყიდველს შორის ანგარიშსწორება ხდება უშუალოდ (ადგილზე გატანით, საკურიერო მიწოდებით ან რეგიონული სამარშრუტო გზავნილით)."
-        : "Buyers and sellers arrange delivery and settlement directly via pickup, courier, or regional transport.",
     },
   ];
 
@@ -402,42 +372,25 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* FAQs Accordion */}
-            <div className="p-5 sm:p-6 rounded-[22px] border border-border/80 bg-card shadow-xs space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <HelpCircle className="w-3.5 h-3.5 text-primary" />
-                <span>{isKa ? "ხშირად დასმული კითხვები" : "Frequently Asked Questions"}</span>
-              </h3>
-
-              <div className="space-y-2">
-                {faqs.map((faq, index) => {
-                  const isOpen = openFaq === index;
-                  return (
-                    <div
-                      key={index}
-                      className="rounded-[12px] border border-border/70 overflow-hidden bg-surface-container/30 transition-all"
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setOpenFaq(isOpen ? null : index)}
-                        className="w-full flex items-center justify-between p-3 text-left text-xs font-bold text-foreground hover:bg-surface-container transition-colors cursor-pointer"
-                      >
-                        <span>{faq.q}</span>
-                        <ChevronDown
-                          className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 shrink-0 ml-2 ${
-                            isOpen ? "rotate-180" : ""
-                          }`}
-                        />
-                      </button>
-                      {isOpen && (
-                        <div className="px-3 pb-3 pt-1 text-[11px] text-muted-foreground leading-relaxed border-t border-border/40 bg-card">
-                          {faq.a}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+            {/* Platform Guide & Features Card */}
+            <div className="p-5 sm:p-6 rounded-[22px] border border-primary/20 bg-primary/5 shadow-xs space-y-3">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-primary" />
+                <h3 className="text-xs font-bold text-foreground">
+                  {isKa ? "საიტის ფუნქციონალის გზამკვლევი" : "Platform Guide & Features"}
+                </h3>
               </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                {isKa
+                  ? "გაინტერესებთ როგორ მუშაობს მცენარეების ყიდვა-გაყიდვა, გაცვლა (ISO), რუკა და მაღაზიების სისტემა? იხილეთ დეტალური გზამკვლევი."
+                  : "Curious how plant trading, ISO swaps, botanical map, and verified stores work? Explore our comprehensive platform guide."}
+              </p>
+              <a
+                href={`/${locale}/how-it-works`}
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline pt-1"
+              >
+                <span>{isKa ? "გაიგეთ მეტი პლატფორმის შესახებ →" : "Learn more about the platform →"}</span>
+              </a>
             </div>
 
           </div>

@@ -42,13 +42,13 @@ export function Footer() {
 
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3">
-              {isKa ? "გამყიდველებისთვის" : "For Sellers"}
+              {isKa ? "პლატფორმა & გზამკვლევი" : "Platform & Guide"}
             </h4>
             <ul className="space-y-2 text-xs text-muted-foreground">
+              <li><Link href="/how-it-works" className="hover:text-primary transition-colors">{isKa ? "როგორ მუშაობს (ფუნქციონალი)" : "How It Works & Guide"}</Link></li>
               <li><Link href="/pricing" className="hover:text-primary transition-colors">{isKa ? "ტარიფები და პაკეტები" : "Pricing & Plans"}</Link></li>
               <li><Link href="/dashboard/listings/new" className="hover:text-primary transition-colors">{isKa ? "განცხადების დამატება" : "Add Listing"}</Link></li>
               <li><Link href="/contact" className="hover:text-primary transition-colors">{isKa ? "კონტაქტი & ფიდბექი" : "Contact & Feedback"}</Link></li>
-              <li><Link href="/rules" className="hover:text-primary transition-colors">{isKa ? "წესები და პირობები" : "Terms & Guidelines"}</Link></li>
             </ul>
           </div>
 

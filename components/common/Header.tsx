@@ -20,7 +20,8 @@ import {
   Bell,
   Settings,
   Crown,
-  MapPin
+  MapPin,
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -60,22 +61,26 @@ export function Header() {
       }
     });
 
-    return () => { authListener.subscription.unsubscribe(); };
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [supabase]);
 
-  // Close dropdown on outside click
+  // Close dropdown on click outside
   React.useEffect(() => {
-    const handleClick = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setProfile(null);
     setDropdownOpen(false);
     router.push("/");
     router.refresh();
@@ -87,6 +92,7 @@ export function Header() {
     { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/iso", label: navT("iso"), icon: Shuffle },
+    { href: "/how-it-works", label: isKa ? "როგორ მუშაობს" : "How It Works", icon: HelpCircle },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles },
     { href: "/contact", label: navT("contact"), icon: MessageSquare },
   ];

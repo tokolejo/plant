@@ -15,6 +15,7 @@ import {
   Sprout,
   Plus,
   ChevronRight,
+  HelpCircle,
 } from "lucide-react";
 
 interface MobileMenuDrawerProps {
@@ -58,6 +59,7 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
     { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/iso", label: navT("iso"), icon: Shuffle, match: "/iso" },
+    { href: "/how-it-works", label: isKa ? "როგორ მუშაობს & გზამკვლევი" : "How It Works & Guide", icon: HelpCircle, match: "/how-it-works" },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles, match: "/pricing" },
     { href: "/contact", label: navT("contact"), icon: MessageSquare, match: "/contact" },
   ];
