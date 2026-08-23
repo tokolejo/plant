@@ -14,7 +14,6 @@ import {
   Sprout
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 
 export function IsoBoardPreview() {
   const locale = useLocale();
@@ -172,13 +171,15 @@ export function IsoBoardPreview() {
                 ? iso.trade_preferences.join(", ")
                 : (isKa ? "მცენარეში გაცვლა / შეთანხმებით" : "Plant swap / negotiable");
 
+              const isGift = iso.transaction_type === "GIFT";
+
               return (
                 <Link
                   key={iso.id}
                   href={`/listings/${iso.id}`}
                   className="w-[250px] sm:w-[270px] md:w-[285px] lg:w-full shrink-0 lg:shrink snap-start flex flex-col justify-between rounded-[20px] border border-border/80 bg-card overflow-hidden shadow-ambient hover:border-primary/50 hover:shadow-ambient-lg transition-all group select-none cursor-pointer"
                 >
-                  {/* 🌿 1. Plant Image Hero */}
+                  {/* 🌿 1. Clean, 100% Unobstructed Plant Image */}
                   <div className="relative aspect-[4/3] w-full bg-surface-container overflow-hidden">
                     {plantImage ? (
                       <img
@@ -192,44 +193,39 @@ export function IsoBoardPreview() {
                         <span className="text-[11px] font-bold">{isKa ? "მცენარე" : "Plant"}</span>
                       </div>
                     )}
-
-                    {/* Floating Status Badge */}
-                    <div className="absolute top-2.5 left-2.5">
-                      <Badge className="bg-black/60 backdrop-blur-md text-white border-0 text-[10.5px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                        {iso.transaction_type === "GIFT" ? (
-                          <>
-                            <span className="text-amber-300">🎁</span>
-                            <span>{isKa ? "საჩუქარი" : "Giveaway"}</span>
-                          </>
-                        ) : (
-                          <>
-                            <Shuffle className="w-3 h-3 text-emerald-400" />
-                            <span>{isKa ? "გაცვლა" : "Swap"}</span>
-                          </>
-                        )}
-                      </Badge>
-                    </div>
-
-                    {/* Floating City Badge */}
-                    <div className="absolute top-2.5 right-2.5">
-                      <div className="bg-black/60 backdrop-blur-md text-white text-[10.5px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
-                        <MapPin className="w-2.5 h-2.5 text-emerald-400" />
-                        <span>{iso.city || (isKa ? "თბილისი" : "Tbilisi")}</span>
-                      </div>
-                    </div>
                   </div>
 
-                  {/* 📝 2. Card Content */}
-                  <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5">
-                    <div>
+                  {/* 📝 2. Card Body — All Details Clearly Below Image */}
+                  <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between gap-3">
+                    <div className="space-y-2">
+                      {/* Status & City Badges Row (Crystal-Clear & Readable) */}
+                      <div className="flex items-center justify-between gap-1.5 flex-wrap">
+                        {isGift ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-extrabold shadow-2xs">
+                            <span>🎁</span>
+                            <span>{isKa ? "საჩუქარი" : "Giveaway"}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-extrabold shadow-2xs">
+                            <Shuffle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                            <span>{isKa ? "გაცვლა" : "Swap"}</span>
+                          </span>
+                        )}
+
+                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container/90 text-slate-700 dark:text-slate-200 border border-border/50 px-2 py-0.5 text-[10.5px] font-bold">
+                          <MapPin className="w-2.5 h-2.5 text-primary shrink-0" />
+                          <span className="truncate max-w-[120px]">{iso.city || (isKa ? "თბილისი" : "Tbilisi")}</span>
+                        </span>
+                      </div>
+
                       {/* Plant Title */}
-                      <h3 className="font-extrabold text-xs sm:text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                      <h3 className="font-extrabold text-xs sm:text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors pt-0.5">
                         {offeringTitle}
                       </h3>
 
                       {/* Trade Wishlist Box */}
-                      <div className="mt-2 rounded-[12px] bg-secondary-container/70 dark:bg-card/90 p-2 border border-border/40">
-                        <div className="text-[9.5px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1 mb-0.5">
+                      <div className="rounded-[12px] bg-surface-container/60 dark:bg-card/90 p-2.5 border border-border/50">
+                        <div className="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1 mb-0.5">
                           <Shuffle className="w-2.5 h-2.5 text-amber-700 dark:text-amber-400" />
                           <span>{isKa ? "სანაცვლოდ ეძებს:" : "Trading for:"}</span>
                         </div>
@@ -240,17 +236,17 @@ export function IsoBoardPreview() {
                     </div>
 
                     {/* Footer: Subtle Seller Info & CTA Button */}
-                    <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-1.5">
-                      <span className="text-[10.5px] font-medium text-muted-foreground truncate max-w-[110px]">
+                    <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-1.5 mt-auto">
+                      <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[110px]">
                         {userName}
                       </span>
 
                       <Button
                         size="sm"
-                        className="h-7.5 rounded-[10px] text-[11px] font-bold gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary transition-all cursor-pointer shadow-2xs"
+                        className="h-8 rounded-[11px] text-xs font-bold gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary transition-all cursor-pointer shadow-2xs"
                       >
                         <span>{isKa ? "შეთავაზება" : "Offer"}</span>
-                        <ArrowRight className="w-2.5 h-2.5" />
+                        <ArrowRight className="w-3 h-3" />
                       </Button>
                     </div>
                   </div>
