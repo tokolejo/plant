@@ -650,7 +650,7 @@ export default function BotanicalMap() {
           {/* Filter Body */}
           <div className="flex-1 overflow-y-auto p-4 space-y-1">
             {/* Search */}
-            <MapFilterSection title={isKa ? "საძიებო სიტყვა" : "Keyword Search"}>
+            <MapFilterSection title={isKa ? "ძებნა" : "Search"} defaultOpen={true}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <input

@@ -464,7 +464,7 @@ export default function ShopStorefrontPage({
       </div>
 
       {/* 🔍 Search Keyword */}
-      <FilterSection title={isKa ? "საძიებო სიტყვა" : "Keyword Search"}>
+      <FilterSection title={isKa ? "ძებნა" : "Search"} defaultOpen={true}>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input

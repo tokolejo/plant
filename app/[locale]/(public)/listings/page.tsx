@@ -208,9 +208,9 @@ function ListingsCatalogContent() {
   const [visibleCount, setVisibleCount] = React.useState<number>(20);
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
 
-  // Accordion state for filter sections — ALL COLLAPSED BY DEFAULT
+  // Accordion state for filter sections — Search open by default, other sections collapsed
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
-    search: false,
+    search: true,
     location: false,
     price: false,
     transaction: false,
@@ -452,7 +452,7 @@ function ListingsCatalogContent() {
     setSortBy("nearest");
     setItemTypeFilter("ALL");
     setOpenSections({
-      search: false,
+      search: true,
       location: false,
       price: false,
       transaction: false,
@@ -637,7 +637,7 @@ function ListingsCatalogContent() {
 
       {/* Search */}
       <FilterSection
-        title={isKa ? "საძიებო სიტყვა" : "Keyword Search"}
+        title={isKa ? "ძებნა" : "Search"}
         isOpen={openSections.search}
         onToggle={() => toggleSection("search")}
         badgeCount={searchQ ? 1 : 0}

@@ -1614,7 +1614,7 @@ export default function AdminDashboardPage() {
             {/* Text Search */}
             <div className="relative">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
-                საძიებო სიტყვა
+                ძებნა
               </label>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
