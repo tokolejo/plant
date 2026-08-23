@@ -510,8 +510,10 @@ export default function ListingDetailPage({
   )}`;
 
   const fullAddressString = `${listing.city || "თბილისი"}${listing.address ? `, ${listing.address}` : ""}`;
-  const googleMapsUrl = listing.lat && listing.lng
-    ? `https://www.google.com/maps/dir/?api=1&destination=${listing.lat},${listing.lng}`
+  const targetLat = listing.latitude ?? (listing as any).lat;
+  const targetLng = listing.longitude ?? (listing as any).lng;
+  const googleMapsUrl = targetLat && targetLng
+    ? `https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}`
     : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddressString)}`;
 
   const handleChatClick = () => {

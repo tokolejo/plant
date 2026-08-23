@@ -38,6 +38,8 @@ export interface ListingCardProps {
   address?: string;
   lat?: number;
   lng?: number;
+  latitude?: number;
+  longitude?: number;
   distanceKm?: number;
   isFeatured?: boolean;
   isPremium?: boolean;

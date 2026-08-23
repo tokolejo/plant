@@ -493,19 +493,37 @@ const ALL_GEORGIAN_CITIES = [
             }
             setCity(detectedCityName);
 
-            // 2. Build Street and House Number strictly
+            // 2. Build Street and House Number with building-level fallback
             let streetPart = "";
-            const roadName = a.road || a.pedestrian || a.street || a.avenue || a.path || "";
+            let houseNumber = a.house_number || a.building || a.housenumber || "";
+            let roadName = a.road || a.pedestrian || a.street || a.avenue || a.path || "";
+
+            if (!houseNumber) {
+              try {
+                const photonRes = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
+                const photonData = await photonRes.json();
+                const photonProps = photonData.features?.[0]?.properties;
+                if (photonProps?.housenumber) {
+                  houseNumber = photonProps.housenumber;
+                }
+                if (!roadName && photonProps?.street) {
+                  roadName = photonProps.street;
+                }
+              } catch {
+                // Ignore fallback error
+              }
+            }
+
             if (roadName) {
               streetPart = roadName;
-              if (a.house_number) {
-                streetPart += ` №${a.house_number}`;
+              if (houseNumber) {
+                streetPart += ` №${houseNumber}`;
               }
             } else if (a.suburb || a.neighbourhood || a.city_district) {
               streetPart = a.suburb || a.neighbourhood || a.city_district || "";
             }
 
-            // 3. Format: "ქალაქი, ქუჩა სახლის ნომერი" (e.g. "თბილისი, ჯემალ ცერცვაძის ქუჩა №7ა")
+            // 3. Format: "ქალაქი, ქუჩა სახლის ნომერი" (e.g. "თბილისი, ართვინის ქუჩა №14")
             let fullExactAddress = "";
             if (streetPart) {
               fullExactAddress = `${detectedCityName}, ${streetPart}`;
