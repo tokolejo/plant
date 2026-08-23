@@ -24,6 +24,7 @@
     "iso": "Find Plants",
     "shops": "Shops",
     "pricing": "Pricing",
+    "faq": "FAQ",
     "contact": "Contact"
   },
   "Listing": {
@@ -40,6 +41,7 @@
     "courier": "Courier Delivery",
     "marshrutka": "Marshrutka Delivery",
     "imagesHint": "Upload between 2 and 5 photos",
-    "tradeLookingFor": "Looking to trade for"
+    "tradeLookingFor": "Looking to trade for",
+    "submit": "Post Listing"
   }
 }
