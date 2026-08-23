@@ -522,7 +522,7 @@ export default function CreateListingPage() {
               }`}
             >
               <Sprout className="w-4 h-4" />
-              <span>{isKa ? "მცენარე / ნერგი" : "Plant / Cutting"}</span>
+              <span>{isKa ? "მცენარე" : "Plant"}</span>
             </button>
             <button
               type="button"
@@ -538,7 +538,7 @@ export default function CreateListingPage() {
               }`}
             >
               <Layers className="w-4 h-4" />
-              <span>{isKa ? "ინვენტარი / ქოთანი" : "Pots & Supplies"}</span>
+              <span>{isKa ? "ინვენტარი" : "Inventory"}</span>
             </button>
           </div>
 
