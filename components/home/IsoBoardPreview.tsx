@@ -155,15 +155,15 @@ export function IsoBoardPreview() {
           </div>
         </div>
 
-        {/* 📱 3. Horizontal Touch-Swipeable Slider */}
+        {/* 📱 3. Horizontal Touch-Swipeable Slider on Mobile, 4-Column Grid on Desktop */}
         <div
           ref={sliderRef}
-          className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+          className="flex lg:grid lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto lg:overflow-visible scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
         >
             {sampleRequests.map((iso) => (
               <div
                 key={iso.id}
-                className="w-[260px] sm:w-[280px] md:w-[300px] lg:w-[calc(25%-12px)] shrink-0 snap-start flex flex-col justify-between rounded-[18px] border border-border/70 bg-card p-4 shadow-ambient hover:border-primary/40 hover:shadow-ambient-lg transition-all select-none"
+                className="w-[260px] sm:w-[280px] md:w-[300px] lg:w-full shrink-0 lg:shrink snap-start flex flex-col justify-between rounded-[18px] border border-border/70 bg-card p-4 shadow-ambient hover:border-primary/40 hover:shadow-ambient-lg transition-all select-none"
               >
                 <div>
                   {/* Header */}
@@ -210,7 +210,7 @@ export function IsoBoardPreview() {
                     <span className="truncate max-w-[100px]">{iso.city}</span>
                   </div>
 
-                  <Link href={`/iso/${iso.id}`}>
+                  <Link href="/iso">
                     <Button size="sm" variant="ghost" className="h-7 text-xs font-bold gap-1 text-primary hover:bg-secondary-container rounded-[8px] px-2.5 cursor-pointer">
                       <MessageSquare className="w-3 h-3" />
                       <span>{isKa ? "შეთავაზება" : "Offer"}</span>
