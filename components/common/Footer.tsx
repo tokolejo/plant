@@ -47,7 +47,7 @@ export function Footer() {
             <ul className="space-y-2 text-xs text-muted-foreground">
               <li><Link href="/pricing" className="hover:text-primary transition-colors">{isKa ? "ტარიფები და პაკეტები" : "Pricing & Plans"}</Link></li>
               <li><Link href="/dashboard/listings/new" className="hover:text-primary transition-colors">{isKa ? "განცხადების დამატება" : "Add Listing"}</Link></li>
-              <li><Link href="/dashboard/affiliate" className="hover:text-primary transition-colors">{isKa ? "აფილიეიტ პროგრამა" : "Affiliate Program"}</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors">{isKa ? "კონტაქტი & ფიდბექი" : "Contact & Feedback"}</Link></li>
               <li><Link href="/rules" className="hover:text-primary transition-colors">{isKa ? "წესები და პირობები" : "Terms & Guidelines"}</Link></li>
             </ul>
           </div>

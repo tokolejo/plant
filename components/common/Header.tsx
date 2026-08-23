@@ -88,6 +88,7 @@ export function Header() {
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/iso", label: navT("iso"), icon: Shuffle },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles },
+    { href: "/contact", label: navT("contact"), icon: MessageSquare },
   ];
 
   const tierColors: Record<string, string> = {

@@ -23,7 +23,8 @@
     "inventory": "Inventory",
     "iso": "Find Plants",
     "shops": "Shops",
-    "pricing": "Pricing"
+    "pricing": "Pricing",
+    "contact": "Contact"
   },
   "Listing": {
     "type": "Type",
