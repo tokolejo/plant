@@ -7,10 +7,7 @@ import { LocationSearchCombobox } from "@/components/common/LocationSearchCombob
 import { 
   Search, 
   Sprout, 
-  Sparkles, 
   TrendingUp, 
-  Gift,
-  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -44,17 +41,12 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="relative py-10 sm:py-14 lg:py-16 border-b border-border/60 bg-gradient-to-b from-surface-cream/70 via-surface-cream/30 to-background" style={{ overflow: 'visible' }}>
-      <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
+    <section className="relative py-6 sm:py-8 border-b border-border/60 bg-surface-cream/30" style={{ overflow: 'visible' }}>
+      <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
 
-        {/* 🌟 1. Confident, Clean & Modern Headline */}
-        <div className="text-center mb-8 sm:mb-10 space-y-3">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20 shadow-2xs">
-            <Sprout className="w-3.5 h-3.5" />
-            <span>{isKa ? "საქართველოს პირველი ბოტანიკური ჰაბი" : "Georgia's First Botanical Hub"}</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.15]">
+        {/* 🌟 1. Compact Airbnb-Style Header */}
+        <div className="text-center mb-5 sm:mb-6 space-y-1.5">
+          <h1 className="text-xl sm:text-2xl lg:text-[26px] font-black tracking-tight text-foreground leading-snug">
             {isKa ? (
               <>
                 აღმოაჩინეთ, შეიძინეთ და{" "}
@@ -64,7 +56,7 @@ export function HeroSection() {
               </>
             ) : (
               <>
-                Discover, Buy, and{" "}
+                Discover, Buy &{" "}
                 <span className="text-primary dark:text-emerald-400">
                   Swap Plants
                 </span>
@@ -72,22 +64,22 @@ export function HeroSection() {
             )}
           </h1>
 
-          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium">
             {isKa
-              ? "ოთახისა და ეზოს მცენარეები, იშვიათი კალმები, ქოთნები და მოვლის აქსესუარები პირდაპირ მებაღეებისგან."
-              : "Houseplants, rare cuttings, pots, and botanical care supplies directly from local growers."}
+              ? "საქართველოს პირველი სპეციალიზებული ბოტანიკური მარკეტპლეისი"
+              : "Georgia's First Dedicated Botanical Marketplace"}
           </p>
         </div>
 
-        {/* 🔍 2. Modern, Spacious Search Box */}
-        <div className="relative max-w-3xl mx-auto z-20" style={{ overflow: 'visible' }}>
+        {/* 🔍 2. Airbnb Floating Capsule Search Bar */}
+        <div className="relative max-w-2xl mx-auto z-20" style={{ overflow: 'visible' }}>
           <form
             onSubmit={handleSearch}
-            className="w-full rounded-[24px] border border-border/80 bg-card p-2 sm:p-2.5 shadow-ambient flex flex-col sm:flex-row gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"
+            className="w-full rounded-full border border-border/80 bg-card p-1.5 sm:p-2 shadow-ambient hover:shadow-ambient-lg flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"
             style={{ overflow: 'visible' }}
           >
-            {/* Location Combobox */}
-            <div className="border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[220px] sm:max-w-[260px] overflow-visible">
+            {/* Location Selector */}
+            <div className="w-full sm:w-auto border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[200px] sm:max-w-[230px] overflow-visible pl-1">
               <LocationSearchCombobox
                 selectedCity={selectedCity}
                 onCityChange={(city) => {
@@ -97,32 +89,32 @@ export function HeroSection() {
             </div>
 
             {/* Keyword Input */}
-            <div className="flex flex-1 items-center gap-2.5 px-3 py-2">
+            <div className="flex flex-1 w-full items-center gap-2 px-3 py-1">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <input
                 type="text"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={isKa ? "მოძებნე: Monstera, ფიკუსი, ქოთანი, სუბსტრატი..." : "Search: Monstera, Ficus, Pot, Soil..."}
-                className="w-full bg-transparent text-sm sm:text-base font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none"
+                placeholder={isKa ? "მოძებნე: Monstera, ფიკუსი, ქოთანი..." : "Search: Monstera, Ficus, Pot..."}
+                className="w-full bg-transparent text-xs sm:text-sm font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
             </div>
 
-            {/* Search Button */}
+            {/* Airbnb-Style Rounded Search Button */}
             <Button
               type="submit"
-              className="rounded-[18px] bg-primary hover:bg-primary/90 text-white font-bold text-sm h-11 sm:h-12 px-7 shadow-xs shrink-0 cursor-pointer transition-all hover:scale-[1.02]"
+              className="w-full sm:w-auto rounded-full bg-primary hover:bg-primary/90 text-white font-bold text-xs sm:text-sm h-10 px-5 shadow-xs shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
             >
-              <Search className="w-4 h-4 mr-1.5" />
+              <Search className="w-3.5 h-3.5 mr-1" />
               <span>{isKa ? "ძიება" : "Search"}</span>
             </Button>
           </form>
         </div>
 
-        {/* 🏷️ 3. Quick-Access Category / Tag Shortcuts */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-5 text-xs">
-          <span className="flex items-center gap-1 font-bold text-muted-foreground mr-1 text-xs">
-            <TrendingUp className="w-3.5 h-3.5 text-primary" />
+        {/* 🏷️ 3. Clean Category / Filter Shortcuts */}
+        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-4 text-xs">
+          <span className="flex items-center gap-1 font-bold text-muted-foreground text-[11px] mr-0.5">
+            <TrendingUp className="w-3 h-3 text-primary" />
             <span>{isKa ? "პოპულარული:" : "Popular:"}</span>
           </span>
           {trendingTags.map((item, idx) => (
@@ -137,7 +129,7 @@ export function HeroSection() {
                   router.push(`/listings?q=${encodeURIComponent(item.query)}`);
                 }
               }}
-              className="rounded-full bg-card hover:bg-surface-container px-3 py-1.5 text-xs font-semibold text-foreground transition-all border border-border/70 cursor-pointer shadow-2xs hover:border-primary/40 hover:text-primary active:scale-95"
+              className="rounded-full bg-card hover:bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-foreground transition-all border border-border/70 cursor-pointer shadow-2xs hover:border-primary/40 hover:text-primary active:scale-95"
             >
               #{item.label}
             </button>
