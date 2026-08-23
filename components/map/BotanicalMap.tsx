@@ -125,7 +125,7 @@ const LISTING_COORDINATES: Record<string, [number, number]> = {
 function MapFilterSection({
   title,
   children,
-  defaultOpen = true,
+  defaultOpen = false,
 }: {
   title: string;
   children: React.ReactNode;
@@ -693,7 +693,7 @@ export default function BotanicalMap() {
             </MapFilterSection>
 
             {/* 💰 Price Range — Moved directly below Location */}
-            <MapFilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true}>
+            <MapFilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"}>
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <input
@@ -766,12 +766,12 @@ export default function BotanicalMap() {
             </MapFilterSection>
 
             {/* Delivery Methods — Right below Transaction Type */}
-            <MapFilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={true}>
+            <MapFilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"}>
               <div className="space-y-1.5">
                 {[
-                  { id: "PICKUP", label: isKa ? "📍 ადგილიდან გატანა" : "📍 Local Pickup" },
-                  { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier" },
-                  { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო" : "🚐 Intercity" },
+                  { id: "PICKUP", label: isKa ? "ადგილიდან გატანა" : "Local Pickup" },
+                  { id: "COURIER", label: isKa ? "საკურიერო მიწოდება" : "Courier Delivery" },
+                  { id: "MARSHRUTKA", label: isKa ? "სამარშრუტო ტრანსპორტი" : "Regional Transit" },
                 ].map((d) => {
                   const active = selectedDelivery.includes(d.id);
                   return (

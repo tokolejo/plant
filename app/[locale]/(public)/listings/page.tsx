@@ -123,32 +123,42 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
 function FilterSection({
   title,
   children,
-  defaultOpen = true,
+  isOpen,
+  onToggle,
+  badgeCount = 0,
   className = "",
 }: {
   title: string;
   children: React.ReactNode;
-  defaultOpen?: boolean;
+  isOpen: boolean;
+  onToggle: () => void;
+  badgeCount?: number;
   className?: string;
 }) {
-  const [open, setOpen] = React.useState(defaultOpen);
   return (
-    <div className={`border-b border-border/60 py-3.5 last:border-b-0 ${className}`}>
+    <div className={`border-b border-border/60 py-3 last:border-b-0 ${className}`}>
       <button
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={onToggle}
         className="w-full flex items-center justify-between py-1 text-left group cursor-pointer"
       >
-        <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-          {title}
-        </span>
-        {open ? (
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors">
+            {title}
+          </span>
+          {badgeCount > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-primary text-white text-[10px] font-black">
+              {badgeCount}
+            </span>
+          )}
+        </div>
+        {isOpen ? (
           <ChevronUp className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
         ) : (
           <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
         )}
       </button>
-      {open && <div className="pt-2 pb-1">{children}</div>}
+      {isOpen && <div className="pt-2 pb-1 animate-in fade-in duration-150">{children}</div>}
     </div>
   );
 }
@@ -178,38 +188,6 @@ function ListingsCatalogContent() {
     rawType === "PLANT" || rawType === "INVENTORY" ? (rawType as any) : "ALL"
   );
 
-  React.useEffect(() => {
-    if (rawType === "PLANT" || rawType === "INVENTORY") {
-      setItemTypeFilter(rawType as any);
-    } else if (!searchParams.get("type")) {
-      setItemTypeFilter("ALL");
-    }
-  }, [rawType, searchParams]);
-
-  React.useEffect(() => {
-    if (categoryParam) {
-      setSelectedCategories([categoryParam as any]);
-    }
-  }, [categoryParam]);
-
-  React.useEffect(() => {
-    if (transParam) {
-      setSelectedTrans([transParam]);
-    }
-  }, [transParam]);
-
-  React.useEffect(() => {
-    if (cityParam && cityParam !== "მთელი საქართველო") {
-      setSelectedCity(cityParam);
-    }
-  }, [cityParam]);
-
-  React.useEffect(() => {
-    if (queryParam) {
-      setSearchQ(queryParam);
-    }
-  }, [queryParam]);
-
   // User GPS / Pinpoint Coordinates
   const [userCoords, setUserCoords] = React.useState<[number, number] | null>([41.7116, 44.7554]);
   const [gpsActive, setGpsActive] = React.useState(false);
@@ -230,7 +208,21 @@ function ListingsCatalogContent() {
   const [visibleCount, setVisibleCount] = React.useState<number>(20);
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
 
-  // Accordion state for category groups — all groups collapsed by default
+  // Accordion state for filter sections — ALL COLLAPSED BY DEFAULT
+  const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
+    search: false,
+    location: false,
+    price: false,
+    transaction: false,
+    delivery: false,
+    categories: false,
+  });
+
+  const toggleSection = (key: string) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Accordion state for category sub-groups — ALL COLLAPSED BY DEFAULT
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
     aroid: false,
     flowering: false,
@@ -242,6 +234,35 @@ function ListingsCatalogContent() {
   const toggleGroup = (groupId: string) => {
     setOpenGroups((prev) => ({ ...prev, [groupId]: !prev[groupId] }));
   };
+
+  React.useEffect(() => {
+    if (rawType === "PLANT" || rawType === "INVENTORY") {
+      setItemTypeFilter(rawType as any);
+    } else if (!searchParams.get("type")) {
+      setItemTypeFilter("ALL");
+    }
+  }, [rawType, searchParams]);
+
+  React.useEffect(() => {
+    if (transParam) {
+      setSelectedTrans([transParam]);
+      setOpenSections((prev) => ({ ...prev, transaction: true }));
+    }
+  }, [transParam]);
+
+  React.useEffect(() => {
+    if (cityParam && cityParam !== "მთელი საქართველო") {
+      setSelectedCity(cityParam);
+      setOpenSections((prev) => ({ ...prev, location: true }));
+    }
+  }, [cityParam]);
+
+  React.useEffect(() => {
+    if (queryParam) {
+      setSearchQ(queryParam);
+      setOpenSections((prev) => ({ ...prev, search: true }));
+    }
+  }, [queryParam]);
 
   const handleSortClick = (optId: string) => {
     if (optId === "nearest") {
@@ -389,6 +410,30 @@ function ListingsCatalogContent() {
     return groups;
   }, [allListings, dbCategories]);
 
+  // Smart auto-expansion: when arriving from homepage / link with a categoryParam
+  React.useEffect(() => {
+    if (categoryParam) {
+      setSelectedCategories([categoryParam as any]);
+      // Open ONLY categories section
+      setOpenSections((prev) => ({ ...prev, categories: true }));
+      // Open ONLY the specific group that contains this plant category
+      const targetGroup = dynamicCategoryGroups.find((g) =>
+        g.children.some((c) => c.id === categoryParam)
+      );
+      if (targetGroup) {
+        setOpenGroups({
+          aroid: false,
+          flowering: false,
+          "tree-ficus": false,
+          "cactus-etc": false,
+          inventory: false,
+          "custom-categories": false,
+          [targetGroup.id]: true,
+        });
+      }
+    }
+  }, [categoryParam, dynamicCategoryGroups]);
+
   // Derived active filter count
   const activeFilterCount =
     selectedCategories.length +
@@ -406,6 +451,21 @@ function ListingsCatalogContent() {
     setPriceRange([0, 500]);
     setSortBy("nearest");
     setItemTypeFilter("ALL");
+    setOpenSections({
+      search: false,
+      location: false,
+      price: false,
+      transaction: false,
+      delivery: false,
+      categories: false,
+    });
+    setOpenGroups({
+      aroid: false,
+      flowering: false,
+      "tree-ficus": false,
+      "cactus-etc": false,
+      inventory: false,
+    });
   };
 
   const plantsCount = React.useMemo(() => allListings.filter((l) => l.itemType === "PLANT").length, [allListings]);
@@ -415,6 +475,7 @@ function ListingsCatalogContent() {
     setSelectedCategories((prev) =>
       prev.includes(cat as any) ? prev.filter((c) => c !== cat) : [...prev, cat as any]
     );
+    setOpenSections((prev) => ({ ...prev, categories: true }));
   };
 
   const toggleTrans = (t: string) => {
@@ -575,13 +636,21 @@ function ListingsCatalogContent() {
       </div>
 
       {/* Search */}
-      <FilterSection title={isKa ? "საძიებო სიტყვა" : "Keyword Search"}>
+      <FilterSection
+        title={isKa ? "საძიებო სიტყვა" : "Keyword Search"}
+        isOpen={openSections.search}
+        onToggle={() => toggleSection("search")}
+        badgeCount={searchQ ? 1 : 0}
+      >
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
             value={searchQ}
-            onChange={(e) => setSearchQ(e.target.value)}
+            onChange={(e) => {
+              setSearchQ(e.target.value);
+              setOpenSections((prev) => ({ ...prev, search: true }));
+            }}
             placeholder={isKa ? "Monstera, ფიკუსი, ქოთანი..." : "Monstera, Ficus, Pot..."}
             className="w-full pl-9 pr-4 py-2.5 rounded-[12px] border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
           />
@@ -594,13 +663,20 @@ function ListingsCatalogContent() {
       </FilterSection>
 
       {/* Location */}
-      <FilterSection title={isKa ? "ლოკაცია" : "Location"} className="relative z-40 overflow-visible">
+      <FilterSection
+        title={isKa ? "ლოკაცია" : "Location"}
+        isOpen={openSections.location}
+        onToggle={() => toggleSection("location")}
+        badgeCount={selectedCity && selectedCity !== "მთელი საქართველო" ? 1 : 0}
+        className="relative z-40 overflow-visible"
+      >
         <div className="rounded-[14px] border border-border/80 bg-background overflow-visible relative">
           <LocationSearchCombobox
             selectedCity={selectedCity}
             onCityChange={(cityName, coords) => {
               setSelectedCity(cityName);
               if (coords) setUserCoords(coords);
+              setOpenSections((prev) => ({ ...prev, location: true }));
             }}
           />
         </div>
@@ -612,15 +688,24 @@ function ListingsCatalogContent() {
         )}
       </FilterSection>
 
-      {/* 💰 Price Range — Moved to Top under Search & Location */}
-      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true} className="relative z-10">
+      {/* 💰 Price Range */}
+      <FilterSection
+        title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"}
+        isOpen={openSections.price}
+        onToggle={() => toggleSection("price")}
+        badgeCount={priceRange[0] > 0 || priceRange[1] < 500 ? 1 : 0}
+        className="relative z-10"
+      >
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2.5">
             <div className="relative flex-1">
               <input
                 type="number"
                 value={priceRange[0]}
-                onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                onChange={(e) => {
+                  setPriceRange([Number(e.target.value), priceRange[1]]);
+                  setOpenSections((prev) => ({ ...prev, price: true }));
+                }}
                 className="w-full pl-7 pr-2 py-2 rounded-[10px] border border-input bg-background text-xs sm:text-sm font-bold text-center"
                 min={0}
                 max={priceRange[1]}
@@ -634,7 +719,10 @@ function ListingsCatalogContent() {
               <input
                 type="number"
                 value={priceRange[1]}
-                onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                onChange={(e) => {
+                  setPriceRange([priceRange[0], Number(e.target.value)]);
+                  setOpenSections((prev) => ({ ...prev, price: true }));
+                }}
                 className="w-full pl-7 pr-2 py-2 rounded-[10px] border border-input bg-background text-xs sm:text-sm font-bold text-center"
                 min={priceRange[0]}
                 max={1000}
@@ -651,7 +739,10 @@ function ListingsCatalogContent() {
             {[[0, 30], [0, 100], [0, 200], [0, 500]].map(([min, max]) => (
               <button
                 key={`${min}-${max}`}
-                onClick={() => setPriceRange([min, max])}
+                onClick={() => {
+                  setPriceRange([min, max]);
+                  setOpenSections((prev) => ({ ...prev, price: true }));
+                }}
                 className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-all ${
                   priceRange[0] === min && priceRange[1] === max
                     ? "bg-primary text-white shadow-2xs"
@@ -666,7 +757,12 @@ function ListingsCatalogContent() {
       </FilterSection>
 
       {/* Transaction Type */}
-      <FilterSection title={isKa ? "გარიგების ტიპი" : "Transaction Type"}>
+      <FilterSection
+        title={isKa ? "გარიგების ტიპი" : "Transaction Type"}
+        isOpen={openSections.transaction}
+        onToggle={() => toggleSection("transaction")}
+        badgeCount={selectedTrans.length}
+      >
         <div className="grid grid-cols-1 gap-2">
           {[
             { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
@@ -698,13 +794,18 @@ function ListingsCatalogContent() {
         </div>
       </FilterSection>
 
-      {/* Delivery Methods — Placed Right After Transaction Type */}
-      <FilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={true}>
+      {/* Delivery Methods */}
+      <FilterSection
+        title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"}
+        isOpen={openSections.delivery}
+        onToggle={() => toggleSection("delivery")}
+        badgeCount={selectedDelivery.length}
+      >
         <div className="space-y-1.5">
           {[
-            { id: "PICKUP", label: isKa ? "📍 ადგილზე გატანა" : "📍 Local Pickup" },
-            { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier Delivery" },
-            { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო ტრანსპორტი" : "🚐 Intercity Transport" },
+            { id: "PICKUP", label: isKa ? "ადგილზე გატანა" : "Local Pickup" },
+            { id: "COURIER", label: isKa ? "საკურიერო მიწოდება" : "Courier Delivery" },
+            { id: "MARSHRUTKA", label: isKa ? "სამარშრუტო ტრანსპორტი" : "Regional Transit" },
           ].map((d) => {
             const active = selectedDelivery.includes(d.id);
             return (
@@ -730,7 +831,12 @@ function ListingsCatalogContent() {
       </FilterSection>
 
       {/* Categories */}
-      <FilterSection title={isKa ? "კატეგორიები" : "Categories"}>
+      <FilterSection
+        title={isKa ? "კატეგორიები" : "Categories"}
+        isOpen={openSections.categories}
+        onToggle={() => toggleSection("categories")}
+        badgeCount={selectedCategories.length}
+      >
         <div className="space-y-2">
           {dynamicCategoryGroups.map((group) => {
             const Icon = group.icon;

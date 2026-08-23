@@ -124,7 +124,7 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
 function FilterSection({
   title,
   children,
-  defaultOpen = true,
+  defaultOpen = false,
   className = "",
 }: {
   title: string;
@@ -486,7 +486,7 @@ export default function ShopStorefrontPage({
       </FilterSection>
 
       {/* 💰 Price Range */}
-      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"} defaultOpen={true}>
+      <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"}>
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2.5">
             <div className="relative flex-1">
@@ -570,13 +570,13 @@ export default function ShopStorefrontPage({
         </div>
       </FilterSection>
 
-      {/* Delivery Methods — Placed Right After Transaction Type */}
-      <FilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"} defaultOpen={true}>
+      {/* Delivery Methods */}
+      <FilterSection title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"}>
         <div className="space-y-1.5">
           {[
-            { id: "PICKUP", label: isKa ? "📍 ადგილზე გატანა" : "📍 Local Pickup" },
-            { id: "COURIER", label: isKa ? "🚚 საკურიერო მიწოდება" : "🚚 Courier Delivery" },
-            { id: "MARSHRUTKA", label: isKa ? "🚐 სამარშრუტო ტრანსპორტი" : "🚐 Intercity Transport" },
+            { id: "PICKUP", label: isKa ? "ადგილზე გატანა" : "Local Pickup" },
+            { id: "COURIER", label: isKa ? "საკურიერო მიწოდება" : "Courier Delivery" },
+            { id: "MARSHRUTKA", label: isKa ? "სამარშრუტო ტრანსპორტი" : "Intercity Transport" },
           ].map((d) => {
             const active = selectedDelivery.includes(d.id);
             return (
