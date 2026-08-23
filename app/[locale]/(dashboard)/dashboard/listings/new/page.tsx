@@ -243,71 +243,139 @@ export default function CreateListingPage() {
     }
   };
 
-  // Google Gemini AI Instant Auto-Fill
-  const handleAiAutoFill = async () => {
+  // ──────────────────────────────────────────────
+  // 1. Pl@ntNet Botanical AI Identification
+  // ──────────────────────────────────────────────
+  const [plantNetDetecting, setPlantNetDetecting] = React.useState(false);
+
+  const handlePlantNetAutoFill = async () => {
     if (selectedFiles.length === 0) {
-      setErrorMsg(isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო AI ამოცნობისთვის!" : "Please upload at least 1 photo for AI detection!");
-      setTimeout(() => setErrorMsg(""), 3000);
+      setErrorMsg(isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Pl@ntNet ამოცნობისთვის!" : "Please upload at least 1 photo for Pl@ntNet!");
+      setTimeout(() => setErrorMsg(""), 3500);
       return;
     }
 
-    setAiDetecting(true);
+    setPlantNetDetecting(true);
     setErrorMsg("");
 
     try {
       const firstFile = selectedFiles[0];
-      const compressedForAi = await compressImage(firstFile, {
-        maxDimension: 1000,
-        quality: 0.82,
-        mimeType: "image/jpeg",
-      });
-      const base64 = await fileToBase64(compressedForAi);
+      const formData = new FormData();
+      formData.append("image", firstFile);
 
-      const res = await fetch("/api/ai/recognize-plant", {
+      const res = await fetch("/api/ai/identify-plant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: base64,
-          mimeType: "image/jpeg",
-        }),
+        body: formData,
       });
 
       const data = await res.json();
       if (!res.ok || !data.success) {
-        throw new Error(data.error || (isKa ? "მცენარის ამოცნობა ვერ მოხერხდა" : "Identification failed"));
+        throw new Error(data.error || (isKa ? "Pl@ntNet-ით ამოცნობა ვერ მოხერხდა" : "Pl@ntNet identification failed"));
       }
 
-      const result: GeminiPlantRecognitionResult = data.data;
+      const result = data.data;
 
-      if (result.titleKa) setTitleKa(result.titleKa);
-      if (result.titleEn) setTitleEn(result.titleEn);
-      if (result.descKa) setDescKa(result.descKa);
-      if (result.descEn) setDescEn(result.descEn);
-      if (result.category) setItemType(result.category);
-      if (result.latinName) setBotanicalName(result.latinName);
-      if (result.watering) setWateringSchedule(result.watering);
-      if (result.light) setLightRequirement(result.light);
-      if (result.careLevel) {
-        if (result.careLevel.toLowerCase().includes("easy") || result.careLevel.includes("მარტივი")) {
-          setCareDifficulty("Easy");
-        } else if (result.careLevel.toLowerCase().includes("medium") || result.careLevel.includes("საშუალო")) {
-          setCareDifficulty("Medium");
-        } else {
-          setCareDifficulty("Expert");
-        }
+      if (result.title_ka || result.titleKa) setTitleKa(result.title_ka || result.titleKa);
+      if (result.title_en || result.titleEn) setTitleEn(result.title_en || result.titleEn);
+      if (result.description_ka || result.descKa) setDescKa(result.description_ka || result.descKa);
+      if (result.description_en || result.descEn) setDescEn(result.description_en || result.descEn);
+      if (result.botanical_name || result.latinName) setBotanicalName(result.botanical_name || result.latinName);
+      if (result.watering_schedule || result.watering) setWateringSchedule(result.watering_schedule || result.watering);
+      if (result.light_requirement || result.light) setLightRequirement(result.light_requirement || result.light);
+      if (result.care_difficulty || result.careLevel) {
+        const diff = (result.care_difficulty || result.careLevel || "").toLowerCase();
+        if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
+        else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
+        else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
       }
+      if (result.toxicity) setToxicity(result.toxicity);
       if (result.tags && Array.isArray(result.tags)) {
-        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags!])));
+        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
+      }
+      if (result.category) {
+        const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
+        if (matched) {
+          setPlantCategory(matched.id);
+          setItemType(matched.itemType);
+        }
       }
 
       setAiApplied(true);
       setShowBotanicalCare(true);
     } catch (err: any) {
-      console.error("AI Plant Recognition Error:", err);
-      setErrorMsg(isKa ? `AI ამოცნობა: ${err.message || "სცადეთ ხელახლა"}` : `AI Error: ${err.message || "Try again"}`);
+      console.error("Pl@ntNet Recognition Error:", err);
+      setErrorMsg(isKa ? `Pl@ntNet: ${err.message || "სცადეთ ხელახლა"}` : `Pl@ntNet: ${err.message || "Try again"}`);
       setTimeout(() => setErrorMsg(""), 5000);
     } finally {
-      setAiDetecting(false);
+      setPlantNetDetecting(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // 2. Plant.id v3 Botanical AI Identification
+  // ──────────────────────────────────────────────
+  const [plantIdDetecting, setPlantIdDetecting] = React.useState(false);
+
+  const handlePlantIdAutoFill = async () => {
+    if (selectedFiles.length === 0) {
+      setErrorMsg(isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Plant.id ამოცნობისთვის!" : "Please upload at least 1 photo for Plant.id!");
+      setTimeout(() => setErrorMsg(""), 3500);
+      return;
+    }
+
+    setPlantIdDetecting(true);
+    setErrorMsg("");
+
+    try {
+      const firstFile = selectedFiles[0];
+      const formData = new FormData();
+      formData.append("image", firstFile);
+
+      const res = await fetch("/api/ai/recognize-plantid", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || (isKa ? "Plant.id-ით ამოცნობა ვერ მოხერხდა" : "Plant.id identification failed"));
+      }
+
+      const result = data.data;
+
+      if (result.title_ka || result.titleKa) setTitleKa(result.title_ka || result.titleKa);
+      if (result.title_en || result.titleEn) setTitleEn(result.title_en || result.titleEn);
+      if (result.description_ka || result.descKa) setDescKa(result.description_ka || result.descKa);
+      if (result.description_en || result.descEn) setDescEn(result.description_en || result.descEn);
+      if (result.botanical_name || result.latinName) setBotanicalName(result.botanical_name || result.latinName);
+      if (result.watering_schedule || result.watering) setWateringSchedule(result.watering_schedule || result.watering);
+      if (result.light_requirement || result.light) setLightRequirement(result.light_requirement || result.light);
+      if (result.care_difficulty || result.careLevel) {
+        const diff = (result.care_difficulty || result.careLevel || "").toLowerCase();
+        if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
+        else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
+        else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
+      }
+      if (result.toxicity) setToxicity(result.toxicity);
+      if (result.tags && Array.isArray(result.tags)) {
+        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
+      }
+      if (result.category) {
+        const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
+        if (matched) {
+          setPlantCategory(matched.id);
+          setItemType(matched.itemType);
+        }
+      }
+
+      setAiApplied(true);
+      setShowBotanicalCare(true);
+    } catch (err: any) {
+      console.error("Plant.id Recognition Error:", err);
+      setErrorMsg(isKa ? `Plant.id: ${err.message || "სცადეთ ხელახლა"}` : `Plant.id: ${err.message || "Try again"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setPlantIdDetecting(false);
     }
   };
 
@@ -643,36 +711,60 @@ export default function CreateListingPage() {
               {isKa ? "2. ფოტოები (2 - 5 ფოტო) *" : "2. Photos (2 - 5 photos) *"}
             </label>
 
-            {/* AI Auto-Fill Trigger */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={selectedFiles.length === 0 || aiDetecting}
-              onClick={handleAiAutoFill}
-              className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
-                selectedFiles.length > 0 && !aiApplied
-                  ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
-                  : "hover:bg-surface-container"
-              }`}
-            >
-              {aiDetecting ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                  <span>{isKa ? "AI ამოცნობა..." : "Identifying..."}</span>
-                </>
-              ) : aiApplied ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>{isKa ? "AI შევსებულია" : "AI Filled"}</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" />
-                  <span>{isKa ? "AI ავტო-შევსება" : "AI Auto-Fill"}</span>
-                </>
-              )}
-            </Button>
+            {/* Pl@ntNet and Plant.id AI Recognition Buttons */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Plant.id Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={selectedFiles.length === 0 || plantIdDetecting || plantNetDetecting}
+                onClick={handlePlantIdAutoFill}
+                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                  selectedFiles.length > 0 && !plantIdDetecting
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
+                    : "hover:bg-surface-container"
+                }`}
+              >
+                {plantIdDetecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    <span>Plant.id...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Plant.id</span>
+                  </>
+                )}
+              </Button>
+
+              {/* Pl@ntNet Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={selectedFiles.length === 0 || plantNetDetecting || plantIdDetecting}
+                onClick={handlePlantNetAutoFill}
+                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                  selectedFiles.length > 0 && !plantNetDetecting
+                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
+                    : "hover:bg-surface-container"
+                }`}
+              >
+                {plantNetDetecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    <span>Pl@ntNet...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sprout className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Pl@ntNet</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           <input
