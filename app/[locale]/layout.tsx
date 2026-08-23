@@ -145,7 +145,7 @@ export default async function LocaleLayout({
             disableTransitionOnChange
           >
             <Header />
-            <main className="flex-1 pb-16 lg:pb-0" style={{ overflow: 'visible' }}>{children}</main>
+            <main className="flex-1" style={{ overflow: 'visible' }}>{children}</main>
             <Footer />
             <MobileBottomNav />
           </ThemeProvider>

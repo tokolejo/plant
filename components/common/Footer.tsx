@@ -15,7 +15,7 @@ export function Footer() {
   const isKa = locale !== "en";
 
   return (
-    <footer className="w-full border-t border-border/70 bg-surface-container-lowest/80 dark:bg-card/40 mt-4 sm:mt-8 lg:mt-12 pb-20 lg:pb-8 transition-colors">
+    <footer className="w-full border-t border-border/70 bg-surface-container-lowest/80 dark:bg-card/40 mt-0 sm:mt-6 lg:mt-10 pb-20 lg:pb-8 transition-colors">
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-10 max-w-7xl">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 sm:gap-8 lg:gap-10">
           
