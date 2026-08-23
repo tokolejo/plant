@@ -24,7 +24,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { ThemeToggle } from "./ThemeToggle";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Heart, BarChart3 } from "lucide-react";
 
@@ -154,7 +153,6 @@ export function Header() {
         {/* ═══ Right: Actions ═══ */}
         <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 shrink-0">
           <LanguageSwitcher />
-          <ThemeToggle />
 
           {user ? (
             <>
@@ -297,9 +295,10 @@ export function Header() {
               </div>
             </>
           ) : (
-            <Link href="/auth/login" className="hidden sm:inline-flex">
-              <Button size="sm" className="rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-9 px-4 shadow-ambient transition-all">
-                {isKa ? "შესვლა" : "Sign In"}
+            <Link href="/auth/login" className="inline-flex">
+              <Button size="sm" className="rounded-[12px] sm:rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-8 sm:h-9 px-2.5 sm:px-4 shadow-ambient transition-all flex items-center gap-1.5 cursor-pointer">
+                <User className="w-3.5 h-3.5" />
+                <span>{isKa ? "შესვლა" : "Sign In"}</span>
               </Button>
             </Link>
           )}
