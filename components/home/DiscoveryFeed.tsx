@@ -100,24 +100,16 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
     <section className="py-8 sm:py-12">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         
-        {/* 🌟 1. Centered Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-2 mb-6">
-          <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-foreground text-center">
-            {isKa ? "ახალი პრემიუმ შეთავაზებები" : "New Premium Listings"}
+        {/* 🌟 1. Clean, Modern Header */}
+        <div className="text-center max-w-2xl mx-auto space-y-1.5 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground text-center">
+            {isKa ? "ახალი შეთავაზებები" : "Fresh Listings"}
           </h2>
-          <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-medium">
+          <p className="text-xs sm:text-sm text-muted-foreground font-medium">
             {isKa 
-              ? "საუკეთესო და დაწინაურებული შეთავაზებები მცენარეების მოყვარულებისგან" 
-              : "Top featured & latest listings from verified growers"}
+              ? "რჩეული და უახლესი მცენარეები სანდო მებაღეებისგან" 
+              : "Featured & latest plants from trusted growers"}
           </p>
-
-          {/* Centered Live Database Count Metric */}
-          <div className="pt-1 flex items-center justify-center">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-secondary-container text-foreground text-xs font-bold shadow-2xs border border-border/50">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <strong className="font-black">{totalDbCount}</strong> {isKa ? "აქტიური შეთავაზება ბაზაში" : "active listings in database"}
-            </span>
-          </div>
         </div>
 
         {/* 🏷️ 2. Tabs Row + High-Visibility Desktop Slider Navigation Arrows */}
@@ -147,7 +139,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
             })}
           </div>
 
-          {/* Desktop Prominent Slider Navigation Arrows (In tabs row, not covering cards) */}
+          {/* Desktop Prominent Slider Navigation Arrows */}
           <div className="hidden sm:flex items-center gap-2 shrink-0 ml-2">
             <button
               type="button"

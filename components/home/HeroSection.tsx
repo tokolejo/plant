@@ -4,17 +4,13 @@ import * as React from "react";
 import { useRouter } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { LocationSearchCombobox } from "@/components/common/LocationSearchCombobox";
-import { createClient } from "@/utils/supabase/client";
-import { getMergedListings } from "@/lib/listings-service";
 import { 
   Search, 
   Sprout, 
   Sparkles, 
   TrendingUp, 
-  Users, 
-  Store,
   Gift,
-  ChevronDown
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -22,70 +18,9 @@ export function HeroSection() {
   const router = useRouter();
   const locale = useLocale();
   const isKa = locale !== "en";
-  const supabase = createClient();
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCity, setSelectedCity] = React.useState("მთელი საქართველო");
-
-  // Real Database Live Counts Synced with Supabase ONLY
-  const [stats, setStats] = React.useState({
-    totalUsers: 0,
-    totalListings: 0,
-    totalShops: 0,
-    totalTradesAndGifts: 0,
-  });
-
-  const fetchLiveStats = React.useCallback(async () => {
-    try {
-      const [
-        { count: usersCount },
-        { count: listingsCount },
-        { count: tradesGiftsCount },
-        { count: shopsCount }
-      ] = await Promise.all([
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "ACTIVE"),
-        supabase.from("listings").select("*", { count: "exact", head: true }).eq("status", "ACTIVE").in("transaction_type", ["TRADE", "GIFT"]),
-        supabase.from("profiles").select("*", { count: "exact", head: true }).not("custom_slug", "is", null),
-      ]);
-
-      setStats({
-        totalUsers: usersCount || 0,
-        totalListings: listingsCount || 0,
-        totalShops: shopsCount || 0,
-        totalTradesAndGifts: tradesGiftsCount || 0,
-      });
-    } catch (e) {
-      console.error("Failed to load real stats from Supabase:", e);
-    }
-  }, [supabase]);
-
-  React.useEffect(() => {
-    fetchLiveStats();
-
-    // Supabase Realtime Listener: Auto-updates stats on user register, listing add/delete/update
-    const statsChannel = supabase
-      .channel("realtime-stats-sync")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "listings" },
-        () => {
-          fetchLiveStats();
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "profiles" },
-        () => {
-          fetchLiveStats();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(statsChannel);
-    };
-  }, [fetchLiveStats, supabase]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,148 +32,62 @@ export function HeroSection() {
     router.push(`/listings?${query.toString()}`);
   };
 
-  const [showAllTags, setShowAllTags] = React.useState(false);
-
-  const allTrendingTagsKa = [
-    "Monstera Albo",
-    "Philodendron",
-    "Ficus Lyrata",
-    "🎁 გაჩუქება",
-    "კერამიკული ქოთანი",
-    "სუბსტრატი",
-    "ორქიდეა",
-    "სანსევიერია",
-    "ალოკაზია",
+  const trendingTags = [
+    { label: "Monstera Albo", query: "Monstera Albo" },
+    { label: "Philodendron", query: "Philodendron" },
+    { label: "Ficus Lyrata", query: "Ficus Lyrata" },
+    { label: isKa ? "🎁 გაჩუქება" : "🎁 Giveaway", query: "GIFT", isFilter: true },
+    { label: isKa ? "🔄 გაცვლა" : "🔄 Swap", query: "TRADE", isFilter: true },
+    { label: isKa ? "კერამიკული ქოთანი" : "Ceramic Pot", query: "ქოთანი" },
+    { label: isKa ? "სუკულენტები" : "Succulents", query: "სუქულენტი" },
+    { label: isKa ? "ორქიდეა" : "Orchid", query: "ორქიდეა" },
   ];
-
-  const allTrendingTagsEn = [
-    "Monstera Albo",
-    "Philodendron",
-    "Ficus Lyrata",
-    "🎁 Giveaway",
-    "Ceramic Pot",
-    "Soil Mix",
-    "Orchid",
-    "Sansevieria",
-    "Alocasia",
-  ];
-
-  const trendingTags = isKa ? allTrendingTagsKa : allTrendingTagsEn;
-  const visibleTags = showAllTags ? trendingTags : trendingTags.slice(0, 5);
 
   return (
-    <section className="relative py-6 sm:py-8 lg:py-10 border-b border-border/60 bg-surface-cream/40" style={{ overflow: 'visible' }}>
-      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+    <section className="relative py-10 sm:py-14 lg:py-16 border-b border-border/60 bg-gradient-to-b from-surface-cream/70 via-surface-cream/30 to-background" style={{ overflow: 'visible' }}>
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl">
 
-        {/* Hero Title & Beta / Test Mode Notice */}
-        <div className="text-center mb-6 max-w-3xl mx-auto space-y-2.5">
-          <h1 className="text-2xl sm:text-3xl lg:text-[34px] font-black tracking-tight text-foreground leading-tight">
+        {/* 🌟 1. Confident, Clean & Modern Headline */}
+        <div className="text-center mb-8 sm:mb-10 space-y-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20 shadow-2xs">
+            <Sprout className="w-3.5 h-3.5" />
+            <span>{isKa ? "საქართველოს პირველი ბოტანიკური ჰაბი" : "Georgia's First Botanical Hub"}</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-foreground leading-[1.15]">
             {isKa ? (
               <>
-                პირველი ქართული მცენარეების მარკეტფლეისი{" "}
+                აღმოაჩინეთ, შეიძინეთ და{" "}
                 <span className="text-primary dark:text-emerald-400">
-                  საქართველოში
+                  გაცვალეთ მცენარეები
                 </span>
               </>
             ) : (
               <>
-                The First Plant Marketplace in{" "}
+                Discover, Buy, and{" "}
                 <span className="text-primary dark:text-emerald-400">
-                  Georgia
+                  Swap Plants
                 </span>
               </>
             )}
           </h1>
 
-          <div className="flex items-center justify-center">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-900 dark:text-amber-300 text-xs sm:text-[13px] font-bold border border-amber-500/25 shadow-2xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
-              </span>
-              <span>{isKa ? "საიტი მუშაობს სატესტო რეჟიმში" : "Platform operates in Beta / Test Mode"}</span>
-            </span>
-          </div>
+          <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed">
+            {isKa
+              ? "ოთახისა და ეზოს მცენარეები, იშვიათი კალმები, ქოთნები და მოვლის აქსესუარები პირდაპირ მებაღეებისგან."
+              : "Houseplants, rare cuttings, pots, and botanical care supplies directly from local growers."}
+          </p>
         </div>
 
-        {/* 📊 1. Live Real-Time Platform Statistics — Ultra-Compact & Uniform Sizing */}
-        <div className="mb-5 max-w-4xl mx-auto">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
-            {/* 1. Users */}
-            <div className="flex items-center justify-center gap-1.5 px-2 sm:px-3 h-10 sm:h-11 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
-              <div className="flex h-6 w-6 items-center justify-center rounded-[7px] bg-primary/10 text-primary shrink-0">
-                <Users className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-sm sm:text-base font-black text-foreground shrink-0">
-                  {stats.totalUsers}
-                </span>
-                <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                  {isKa ? "წევრი" : "Users"}
-                </span>
-              </div>
-              <TrendingUp className="w-3 h-3 text-emerald-500 shrink-0 ml-0.5" />
-            </div>
-
-            {/* 2. Active Plant Listings */}
-            <div className="flex items-center justify-center gap-1.5 px-2 sm:px-3 h-10 sm:h-11 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
-              <div className="flex h-6 w-6 items-center justify-center rounded-[7px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
-                <Sprout className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-sm sm:text-base font-black text-foreground shrink-0">
-                  {stats.totalListings}
-                </span>
-                <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                  {isKa ? "მცენარე" : "Plants"}
-                </span>
-              </div>
-              <TrendingUp className="w-3 h-3 text-emerald-500 shrink-0 ml-0.5" />
-            </div>
-
-            {/* 3. Trades & Giveaways */}
-            <div className="flex items-center justify-center gap-1.5 px-2 sm:px-3 h-10 sm:h-11 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
-              <div className="flex h-6 w-6 items-center justify-center rounded-[7px] bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
-                <Gift className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-sm sm:text-base font-black text-foreground shrink-0">
-                  {stats.totalTradesAndGifts}
-                </span>
-                <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                  {isKa ? "გაცვლა" : "Trades"}
-                </span>
-              </div>
-              <TrendingUp className="w-3 h-3 text-emerald-500 shrink-0 ml-0.5" />
-            </div>
-
-            {/* 4. Verified Shops */}
-            <div className="flex items-center justify-center gap-1.5 px-2 sm:px-3 h-10 sm:h-11 rounded-[12px] sm:rounded-[14px] bg-card border border-border/70 shadow-2xs">
-              <div className="flex h-6 w-6 items-center justify-center rounded-[7px] bg-secondary-container text-primary shrink-0">
-                <Store className="w-3.5 h-3.5" />
-              </div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-sm sm:text-base font-black text-foreground shrink-0">
-                  {stats.totalShops}
-                </span>
-                <span className="text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">
-                  {isKa ? "მაღაზია" : "Shops"}
-                </span>
-              </div>
-              <TrendingUp className="w-3 h-3 text-emerald-500 shrink-0 ml-0.5" />
-            </div>
-          </div>
-        </div>
-
-        {/* 🔍 2. Search Box — Spacious, Full-Container & Touch Friendly */}
-        <div className="relative max-w-4xl mx-auto z-20" style={{ overflow: 'visible' }}>
+        {/* 🔍 2. Modern, Spacious Search Box */}
+        <div className="relative max-w-3xl mx-auto z-20" style={{ overflow: 'visible' }}>
           <form
             onSubmit={handleSearch}
-            className="w-full rounded-[22px] border border-border/80 bg-card p-2 sm:p-2.5 shadow-ambient flex flex-col sm:flex-row gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"
+            className="w-full rounded-[24px] border border-border/80 bg-card p-2 sm:p-2.5 shadow-ambient flex flex-col sm:flex-row gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"
             style={{ overflow: 'visible' }}
           >
             {/* Location Combobox */}
-            <div className="border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[240px] sm:max-w-[280px] overflow-visible">
+            <div className="border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[220px] sm:max-w-[260px] overflow-visible">
               <LocationSearchCombobox
                 selectedCity={selectedCity}
                 onCityChange={(city) => {
@@ -248,7 +97,7 @@ export function HeroSection() {
             </div>
 
             {/* Keyword Input */}
-            <div className="flex flex-1 items-center gap-2.5 px-3 py-1.5">
+            <div className="flex flex-1 items-center gap-2.5 px-3 py-2">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <input
                 type="text"
@@ -259,49 +108,40 @@ export function HeroSection() {
               />
             </div>
 
-            {/* Submit Button */}
+            {/* Search Button */}
             <Button
               type="submit"
-              className="rounded-[16px] bg-primary hover:bg-primary-container text-white font-black text-sm h-11 sm:h-12 px-8 shadow-xs shrink-0 cursor-pointer"
+              className="rounded-[18px] bg-primary hover:bg-primary/90 text-white font-bold text-sm h-11 sm:h-12 px-7 shadow-xs shrink-0 cursor-pointer transition-all hover:scale-[1.02]"
             >
-              {isKa ? "ძიება" : "Search"}
+              <Search className="w-4 h-4 mr-1.5" />
+              <span>{isKa ? "ძიება" : "Search"}</span>
             </Button>
           </form>
         </div>
 
-        {/* 🏷️ Top 5 Trending Tags with Expandable Clutter-Free Toggle */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs">
-          <span className="flex items-center gap-1 font-black text-primary dark:text-primary-fixed text-xs">
-            <TrendingUp className="w-3.5 h-3.5" /> {isKa ? "ტრენდული:" : "Trending:"}
+        {/* 🏷️ 3. Quick-Access Category / Tag Shortcuts */}
+        <div className="flex flex-wrap items-center justify-center gap-2 mt-5 text-xs">
+          <span className="flex items-center gap-1 font-bold text-muted-foreground mr-1 text-xs">
+            <TrendingUp className="w-3.5 h-3.5 text-primary" />
+            <span>{isKa ? "პოპულარული:" : "Popular:"}</span>
           </span>
-          {visibleTags.map((tag) => (
+          {trendingTags.map((item, idx) => (
             <button
-              key={tag}
+              key={idx}
               type="button"
               onClick={() => {
-                const cleanTag = tag.replace(/🎁\s*/, "");
-                setSearchTerm(cleanTag);
-                router.push(`/listings?q=${encodeURIComponent(cleanTag)}`);
+                if (item.isFilter) {
+                  router.push(item.query === "TRADE" ? "/iso" : `/listings?trans=${item.query}`);
+                } else {
+                  setSearchTerm(item.query);
+                  router.push(`/listings?q=${encodeURIComponent(item.query)}`);
+                }
               }}
-              className="rounded-full bg-secondary-container/80 hover:bg-secondary-container px-3 py-1 text-xs font-bold text-slate-800 dark:text-slate-100 transition-colors border border-border/60 cursor-pointer shadow-2xs hover:border-primary/40"
+              className="rounded-full bg-card hover:bg-surface-container px-3 py-1.5 text-xs font-semibold text-foreground transition-all border border-border/70 cursor-pointer shadow-2xs hover:border-primary/40 hover:text-primary active:scale-95"
             >
-              #{tag}
+              #{item.label}
             </button>
           ))}
-          {trendingTags.length > 5 && (
-            <button
-              type="button"
-              onClick={() => setShowAllTags(!showAllTags)}
-              className="inline-flex items-center gap-1 rounded-full bg-surface-container hover:bg-surface-container-high px-2.5 py-1 text-xs font-bold text-primary transition-all border border-primary/20 cursor-pointer shadow-2xs active:scale-95"
-            >
-              <span>
-                {showAllTags 
-                  ? (isKa ? "ნაკლები" : "Less") 
-                  : (isKa ? `+${trendingTags.length - 5} მეტი` : `+${trendingTags.length - 5} more`)}
-              </span>
-              <ChevronDown className={`w-3 h-3 text-primary transition-transform duration-200 ${showAllTags ? "rotate-180" : ""}`} />
-            </button>
-          )}
         </div>
 
       </div>
