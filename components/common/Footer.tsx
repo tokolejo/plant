@@ -8,16 +8,6 @@ import {
   Heart,
   MapPin,
   Mail,
-  ShieldCheck,
-  Sparkles,
-  Navigation,
-  Compass,
-  Store,
-  Layers,
-  HelpCircle,
-  FileText,
-  Lock,
-  ArrowUpRight,
 } from "lucide-react";
 
 export function Footer() {
@@ -25,74 +15,10 @@ export function Footer() {
   const isKa = locale !== "en";
 
   return (
-    <footer className="w-full border-t border-border/70 bg-surface-container-lowest/90 dark:bg-card/40 mt-12 pb-24 lg:pb-8 transition-colors">
-      {/* 🌟 1. Top Value Props Banner */}
-      <div className="border-b border-border/50 bg-primary/5 py-5">
-        <div className="container mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Sprout className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-foreground">
-                  {isKa ? "ბოტანიკური ჰაბი" : "Botanical Hub"}
-                </h4>
-                <p className="text-[11px] text-muted-foreground line-clamp-1">
-                  {isKa ? "მცენარეები & ინვენტარი" : "Plants & Garden Supplies"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-foreground">
-                  {isKa ? "AI ამოცნობა" : "AI Plant ID"}
-                </h4>
-                <p className="text-[11px] text-muted-foreground line-clamp-1">
-                  {isKa ? "Pl@ntNet & Plant.id ინტეგრაცია" : "Smart Botanical Recognition"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Navigation className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-foreground">
-                  {isKa ? "ზუსტი GPS რუკა" : "Precise GPS Map"}
-                </h4>
-                <p className="text-[11px] text-muted-foreground line-clamp-1">
-                  {isKa ? "ნავიგაცია კარიდან კარამდე" : "Door-to-door Navigation"}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-foreground">
-                  {isKa ? "დაცული პლატფორმა" : "Secure Platform"}
-                </h4>
-                <p className="text-[11px] text-muted-foreground line-clamp-1">
-                  {isKa ? "ვერიფიცირებული მომხმარებლები" : "Verified Community"}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 🌿 2. Main Footer Grid */}
+    <footer className="w-full border-t border-border/70 bg-surface-container-lowest/80 dark:bg-card/40 mt-12 pb-24 lg:pb-8 transition-colors">
       <div className="container mx-auto px-4 sm:px-6 py-10 sm:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
-          {/* Column 1: Brand & Bio */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
+          {/* Column 1: Brand & Contact */}
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-flex items-center gap-2.5 group">
               <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white shadow-ambient group-hover:scale-105 transition-transform">
@@ -103,13 +29,7 @@ export function Footer() {
               </span>
             </Link>
 
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-sm">
-              {isKa
-                ? "საქართველოს პირველი სპეციალიზებული ბოტანიკური პლატფორმა. აღმოაჩინეთ, შეიძინეთ, გაყიდეთ და გაცვალეთ მცენარეები მარტივად და უსაფრთხოდ."
-                : "Georgia's premier botanical marketplace. Discover, buy, sell, and swap plants easily and safely."}
-            </p>
-
-            <div className="space-y-2 pt-1 text-xs text-muted-foreground">
+            <div className="space-y-2 text-xs text-muted-foreground">
               <div className="flex items-center gap-2">
                 <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>{isKa ? "თბილისი, საქართველო" : "Tbilisi, Georgia"}</span>
@@ -123,7 +43,7 @@ export function Footer() {
             </div>
 
             {/* Social Links */}
-            <div className="flex items-center gap-2 pt-2">
+            <div className="flex items-center gap-2 pt-1">
               <a
                 href="https://facebook.com"
                 target="_blank"
@@ -164,32 +84,32 @@ export function Footer() {
 
           {/* Column 2: მარკეტპლეისი */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3">
               {isKa ? "მარკეტპლეისი" : "Marketplace"}
             </h4>
             <ul className="space-y-2.5 text-xs text-muted-foreground font-medium">
               <li>
-                <Link href="/listings?type=PLANT" className="hover:text-primary transition-colors flex items-center gap-1">
-                  {isKa ? "მცენარეები & ყვავილები" : "Plants & Flowers"}
+                <Link href="/listings?type=PLANT" className="hover:text-primary transition-colors">
+                  {isKa ? "მცენარეები" : "Plants"}
                 </Link>
               </li>
               <li>
-                <Link href="/listings?type=INVENTORY" className="hover:text-primary transition-colors flex items-center gap-1">
-                  {isKa ? "ქოთნები, გრუნტი & ინვენტარი" : "Pots, Soil & Tools"}
+                <Link href="/listings?type=INVENTORY" className="hover:text-primary transition-colors">
+                  {isKa ? "ინვენტარი & ქოთნები" : "Pots & Care"}
                 </Link>
               </li>
               <li>
-                <Link href="/map" className="hover:text-primary transition-colors flex items-center gap-1">
-                  {isKa ? "ბოტანიკური რუკა" : "Interactive Map"}
+                <Link href="/map" className="hover:text-primary transition-colors">
+                  {isKa ? "ბოტანიკური რუკა" : "Botanical Map"}
                 </Link>
               </li>
               <li>
-                <Link href="/shops" className="hover:text-primary transition-colors flex items-center gap-1">
-                  {isKa ? "სანერგეები & მაღაზიები" : "Verified Nurseries"}
+                <Link href="/shops" className="hover:text-primary transition-colors">
+                  {isKa ? "მაღაზიები & სანერგეები" : "Shops & Nurseries"}
                 </Link>
               </li>
               <li>
-                <Link href="/iso" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Link href="/iso" className="hover:text-primary transition-colors">
                   {isKa ? "მცენარის გაცვლა (ISO)" : "Plant Swaps (ISO)"}
                 </Link>
               </li>
@@ -198,23 +118,23 @@ export function Footer() {
 
           {/* Column 3: გამყიდველებისთვის */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3">
               {isKa ? "გამყიდველებისთვის" : "For Sellers"}
             </h4>
             <ul className="space-y-2.5 text-xs text-muted-foreground font-medium">
               <li>
-                <Link href="/dashboard/listings/new" className="text-primary font-bold hover:underline transition-all flex items-center gap-1">
-                  {isKa ? "+ განცხადების განთავსება" : "+ Add New Listing"}
+                <Link href="/dashboard/listings/new" className="text-primary font-bold hover:underline transition-all">
+                  {isKa ? "+ განცხადების განთავსება" : "+ Add Listing"}
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Link href="/pricing" className="hover:text-primary transition-colors">
                   {isKa ? "ტარიფები & VIP პაკეტები" : "Pricing & VIP Plans"}
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-primary transition-colors flex items-center gap-1">
-                  {isKa ? "ვერიფიკაციის წესები" : "Verification Guidelines"}
+                <Link href="/faq" className="hover:text-primary transition-colors">
+                  {isKa ? "ვერიფიკაცია" : "Verification"}
                 </Link>
               </li>
               <li className="flex items-center gap-1.5 text-muted-foreground/80">
@@ -226,29 +146,29 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: დახმარება & იურიდიული */}
+          {/* Column 4: დახმარება & წესები */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3 flex items-center gap-1.5">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground mb-3">
               {isKa ? "დახმარება & წესები" : "Support & Legal"}
             </h4>
             <ul className="space-y-2.5 text-xs text-muted-foreground font-medium">
               <li>
-                <Link href="/faq" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Link href="/faq" className="hover:text-primary transition-colors">
                   {isKa ? "როგორ მუშაობს & FAQ" : "How It Works & FAQ"}
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Link href="/contact" className="hover:text-primary transition-colors">
                   {isKa ? "კონტაქტი & ფიდბექი" : "Contact & Feedback"}
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Link href="/terms" className="hover:text-primary transition-colors">
                   {isKa ? "წესები და პირობები" : "Terms & Conditions"}
                 </Link>
               </li>
               <li>
-                <Link href="/privacy" className="hover:text-primary transition-colors flex items-center gap-1">
+                <Link href="/privacy" className="hover:text-primary transition-colors">
                   {isKa ? "კონფიდენციალურობა" : "Privacy Policy"}
                 </Link>
               </li>
@@ -256,7 +176,7 @@ export function Footer() {
           </div>
         </div>
 
-        {/* 🌿 3. Bottom Bar */}
+        {/* Bottom Bar */}
         <div className="border-t border-border/60 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground font-medium">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <p>© {new Date().getFullYear()} Plant.ge. {isKa ? "ყველა უფლება დაცულია." : "All rights reserved."}</p>
@@ -266,7 +186,7 @@ export function Footer() {
 
           <div className="flex items-center gap-1.5 text-muted-foreground">
             <span>{isKa ? "შექმნილია" : "Built with"}</span>
-            <Heart className="h-3.5 w-3.5 text-emerald-600 fill-emerald-600 inline animate-pulse" />
+            <Heart className="h-3.5 w-3.5 text-emerald-600 fill-emerald-600 inline" />
             <span>{isKa ? "ქართველი მცენარეთა მოყვარულებისთვის" : "for Georgian Plant Lovers"}</span>
           </div>
         </div>
