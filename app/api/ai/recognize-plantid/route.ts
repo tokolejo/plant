@@ -53,34 +53,34 @@ function getGeorgianNameAndCare(scientificName: string, commonNames: string[]) {
 
 function translateWatering(watering: any, bestWatering?: string): string {
   if (bestWatering) return bestWatering;
-  if (!watering) return "Weekly (კვირაში 1-ხელ, ნიადაგის შეშრობისას)";
+  if (!watering) return "კვირაში 1-ხელ (ნიადაგის შეშრობისას)";
   if (typeof watering === "string") return watering;
 
   if (watering.max !== undefined && watering.min !== undefined) {
-    if (watering.min === 1 && watering.max === 1) return "Weekly (კვირაში 1-ხელ)";
-    if (watering.min >= 2) return `Every ${watering.min}-${watering.max} weeks (2-3 კვირაში 1-ხელ)`;
-    return `${watering.min}-${watering.max} times per week (კვირაში ${watering.min}-${watering.max}-ჯერ)`;
+    if (watering.min === 1 && watering.max === 1) return "კვირაში 1-ხელ";
+    if (watering.min >= 2) return `${watering.min}-${watering.max} კვირაში 1-ხელ`;
+    return `კვირაში ${watering.min}-${watering.max}-ჯერ`;
   }
-  return "Weekly (კვირაში 1-ხელ)";
+  return "კვირაში 1-ხელ";
 }
 
 function translateLight(bestLight?: string): string {
-  if (!bestLight) return "Bright Indirect (კაშკაშა გაფანტული)";
+  if (!bestLight) return "კაშკაშა გაფანტული";
   const l = bestLight.toLowerCase();
-  if (l.includes("direct") && l.includes("sun")) return "Direct Sun / Bright (კაშკაშა მზის სინათლე)";
-  if (l.includes("low") || l.includes("shade")) return "Low Light / Semi-shade (ნახევრად ჩრდილი / ჩრდილის ამტანი)";
-  if (l.includes("filtered")) return "Filtered / Diffused (ფილტრირებული გაფანტული)";
-  return `${bestLight} (კაშკაშა გაფანტული)`;
+  if (l.includes("direct") && l.includes("sun")) return "კაშკაშა მზის სინათლე";
+  if (l.includes("low") || l.includes("shade")) return "ნახევრად ჩრდილი";
+  if (l.includes("filtered")) return "ფილტრირებული გაფანტული";
+  return "კაშკაშა გაფანტული";
 }
 
 function translateToxicity(toxicity?: string): string {
-  if (!toxicity) return "ინდივიდუალური / გადაამოწმეთ";
+  if (!toxicity) return "გადაამოწმეთ";
   const t = toxicity.toLowerCase();
   if (t.includes("non-toxic") || t.includes("not toxic") || t.includes("safe")) {
-    return "✅ არატოქსიკურია (Pet Friendly - უსაფრთხოა შინაური ცხოველებისთვის)";
+    return "უსაფრთხოა ცხოველებისთვის (Pet Friendly)";
   }
   if (t.includes("toxic") || t.includes("poisonous")) {
-    return "⚠️ ტოქსიკურია კატებისთვის/ძაღლებისთვის (უმი ფოთლები/წვენი)";
+    return "ტოქსიკურია კატებისთვის და ძაღლებისთვის";
   }
   return toxicity;
 }

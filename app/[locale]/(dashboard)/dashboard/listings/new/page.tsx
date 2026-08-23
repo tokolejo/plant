@@ -1174,14 +1174,14 @@ export default function CreateListingPage() {
 
         {/* ═══ 5. Location, Delivery & Contact ═══ */}
         <div className="rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs space-y-3.5">
-          {/* Section Header with Clear Location Finder Button */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          {/* Header & GPS Trigger */}
+          <div className="flex items-center justify-between gap-2">
             <div>
               <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
                 {isKa ? "4. მდებარეობა & კონტაქტი" : "4. Location & Contact"}
               </label>
               <p className="text-[10px] text-muted-foreground">
-                {isKa ? "მიუთითეთ ზუსტი მისამართი რუკაზე სწორად დასატანად" : "Specify accurate address for botanical map"}
+                {isKa ? "მიუთითეთ ზუსტი მისამართი რუკისთვის" : "Specify accurate location for map"}
               </p>
             </div>
 
@@ -1191,38 +1191,16 @@ export default function CreateListingPage() {
               size="sm"
               onClick={handleGpsLocation}
               disabled={gpsLoading}
-              className="h-8 px-3 rounded-[10px] text-xs font-bold gap-1.5 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-all cursor-pointer self-start sm:self-auto"
+              className="h-8 px-3 rounded-[10px] text-xs font-bold gap-1.5 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-all cursor-pointer shrink-0"
             >
               <Navigation className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin" : ""}`} />
               <span>
                 {gpsLoading
-                  ? (isKa ? "ზუსტი ლოკაციის ძიება..." : "Locating...")
-                  : (isKa ? "ჩემი ზუსტი ლოკაციის პოვნა" : "Detect My Exact Location")}
+                  ? (isKa ? "ძიება..." : "Locating...")
+                  : (isKa ? "ჩემი ლოკაცია" : "My Location")}
               </span>
             </Button>
           </div>
-
-          {/* Confirmed Location Badge */}
-          {detectedLocationInfo && (
-            <div className="p-2.5 rounded-[12px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between gap-2 animate-in fade-in">
-              <div className="flex items-center gap-2 min-w-0">
-                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                <div className="min-w-0">
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold block leading-none">
-                    {isKa ? "დაფიქსირდა ზუსტი ლოკაცია:" : "Exact Location Verified:"}
-                  </span>
-                  <span className="font-bold text-foreground text-xs truncate block mt-0.5">
-                    {detectedLocationInfo}
-                  </span>
-                </div>
-              </div>
-              {latitude && longitude && (
-                <span className="text-[10px] font-mono text-muted-foreground shrink-0 bg-background/80 px-2 py-0.5 rounded-md border border-border/60">
-                  {latitude.toFixed(4)}, {longitude.toFixed(4)}
-                </span>
-              )}
-            </div>
-          )}
 
           {/* City & Address Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1253,6 +1231,15 @@ export default function CreateListingPage() {
                 placeholder={isKa ? "მაგ: აღმაშენებლის გამზ. №45, ჩუღურეთი" : "e.g. 45 Aghmashenebeli Ave, Chughureti"}
                 className="rounded-[12px] h-10 text-xs sm:text-sm"
               />
+              {latitude && longitude && (
+                <p className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 pt-0.5 animate-in fade-in">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{isKa ? "GPS დაფიქსირებულია რუკაზე" : "GPS pinned on map"}</span>
+                  <span className="text-[10px] font-mono text-muted-foreground ml-auto">
+                    {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                  </span>
+                </p>
+              )}
             </div>
           </div>
 
