@@ -151,8 +151,6 @@ export default function CreateListingPage() {
 
       if (prof) {
         if (prof.phone) setContactPhone(prof.phone);
-        if (prof.city) setCity(prof.city);
-        if (prof.location) setAddress(prof.location);
       }
     });
   }, [supabase, router]);
@@ -379,6 +377,18 @@ export default function CreateListingPage() {
     }
   };
 
+const ALL_GEORGIAN_CITIES = [
+  "თბილისი", "ბათუმი", "ქუთაისი", "რუსთავი", "გორი", "ზუგდიდი", "ფოთი", "თელავი",
+  "მცხეთა", "ბორჯომი", "ქობულეთი", "ახალციხე", "სამტრედია", "ხაშური", "სენაკი",
+  "ზესტაფონი", "მარნეული", "კასპი", "ჭიათურა", "წყალტუბო", "ოზურგეთი", "საგარეჯო",
+  "გარდაბანი", "დუშეთი", "სიღნაღი", "ბოლნისი", "გურჯაანი", "ახალქალაქი",
+  "სტეფანწმინდა / ყაზბეგი", "მესტია", "ამბროლაური", "ონი", "ლენტეხი", "დედოფლისწყარო",
+  "ყვარელი", "ლაგოდეხი", "წალკა", "დმანისი", "ქარელი", "საჩხერე", "ხარაგაული",
+  "ბაღდათი", "ვანი", "ხონი", "თერჯოლა", "აბაშა", "მარტვილი", "ჩხოროწყუ",
+  "წალენჯიხა", "ხობი", "ლანჩხუთი", "ჩოხატაური", "ხელვაჩაური", "ქედა", "შუახევი",
+  "ხულო", "ადიგენი", "ასპინძა", "ნინოწმინდა", "თიანეთი", "ახმეტა"
+];
+
   // Coordinates & Detected Location State
   const [latitude, setLatitude] = React.useState<number | null>(null);
   const [longitude, setLongitude] = React.useState<number | null>(null);
@@ -408,57 +418,102 @@ export default function CreateListingPage() {
           if (data && data.address) {
             const a = data.address;
 
-            // 1. City / Region matching
-            const cityVal = a.city || a.town || a.municipality || a.county || a.state || "";
+            // 1. City / Region matching across all Georgian regions
+            const cityVal = (a.city || a.town || a.village || a.municipality || a.county || a.state || a.region || "").toLowerCase();
             const cityMap: Record<string, string> = {
-              tbilisi: "თბილისი",
-              თბილისი: "თბილისი",
-              batumi: "ბათუმი",
-              ბათუმი: "ბათუმი",
-              kutaisi: "ქუთაისი",
-              ქუთაისი: "ქუთაისი",
-              rustavi: "რუსთავი",
-              რუსთავი: "რუსთავი",
-              gori: "გორი",
-              გორი: "გორი",
-              zugdidi: "ზუგდიდი",
-              ზუგდიდი: "ზუგდიდი",
-              telavi: "თელავი",
-              თელავი: "თელავი",
-              borjomi: "ბორჯომი",
-              ბორჯომი: "ბორჯომი",
-              mtskheta: "მცხეთა",
-              მცხეთა: "მცხეთა",
-              poti: "ფოთი",
-              ფოთი: "ფოთი",
-              kobuleti: "ქობულეთი",
-              ქობულეთი: "ქობულეთი",
-              akhaltsikhe: "ახალციხე",
-              ახალციხე: "ახალციხე",
+              tbilisi: "თბილისი", თბილისი: "თბილისი",
+              batumi: "ბათუმი", ბათუმი: "ბათუმი",
+              kutaisi: "ქუთაისი", ქუთაისი: "ქუთაისი",
+              rustavi: "რუსთავი", რუსთავი: "რუსთავი",
+              gori: "გორი", გორი: "გორი",
+              zugdidi: "ზუგდიდი", ზუგდიდი: "ზუგდიდი",
+              poti: "ფოთი", ფოთი: "ფოთი",
+              telavi: "თელავი", თელავი: "თელავი",
+              mtskheta: "მცხეთა", მცხეთა: "მცხეთა",
+              borjomi: "ბორჯომი", ბორჯომი: "ბორჯომი",
+              kobuleti: "ქობულეთი", ქობულეთი: "ქობულეთი",
+              akhaltsikhe: "ახალციხე", ახალციხე: "ახალციხე",
+              samtredia: "სამტრედია", სამტრედია: "სამტრედია",
+              khashuri: "ხაშური", ხაშური: "ხაშური",
+              senaki: "სენაკი", სენაკი: "სენაკი",
+              zestafoni: "ზესტაფონი", ზესტაფონი: "ზესტაფონი",
+              marneuli: "მარნეული", მარნეული: "მარნეული",
+              kaspi: "კასპი", კასპი: "კასპი",
+              chiatura: "ჭიათურა", ჭიათურა: "ჭიათურა",
+              tskaltubo: "წყალტუბო", წყალტუბო: "წყალტუბო",
+              ozurgeti: "ოზურგეთი", ოზურგეთი: "ოზურგეთი",
+              sagarejo: "საგარეჯო", საგარეჯო: "საგარეჯო",
+              gardabani: "გარდაბანი", გარდაბანი: "გარდაბანი",
+              dusheti: "დუშეთი", დუშეთი: "დუშეთი",
+              sighnaghi: "სიღნაღი", სიღნაღი: "სიღნაღი",
+              bolnisi: "ბოლნისი", ბოლნისი: "ბოლნისი",
+              gurjaani: "გურჯაანი", გურჯაანი: "გურჯაანი",
+              akhalkalaki: "ახალქალაქი", ახალქალაქი: "ახალქალაქი",
+              stepantsminda: "სტეფანწმინდა / ყაზბეგი", kazbegi: "სტეფანწმინდა / ყაზბეგი", ყაზბეგი: "სტეფანწმინდა / ყაზბეგი",
+              mestia: "მესტია", მესტია: "მესტია",
+              ambrolauri: "ამბროლაური", ამბროლაური: "ამბროლაური",
+              oni: "ონი", ონი: "ონი",
+              lentekhi: "ლენტეხი", ლენტეხი: "ლენტეხი",
+              dedoplistskaro: "დედოფლისწყარო", დედოფლისწყარო: "დედოფლისწყარო",
+              kvareli: "ყვარელი", ყვარელი: "ყვარელი",
+              lagodekhi: "ლაგოდეხი", ლაგოდეხი: "ლაგოდეხი",
+              tsalka: "წალკა", წალკა: "წალკა",
+              dmanisi: "დმანისი", დმანისი: "დმანისი",
+              kareli: "ქარელი", ქარელი: "ქარელი",
+              sachkhere: "საჩხერე", საჩხერე: "საჩხერე",
+              kharagauli: "ხარაგაული", ხარაგაული: "ხარაგაული",
+              baghdati: "ბაღდათი", ბაღდათი: "ბაღდათი",
+              vani: "ვანი", ვანი: "ვანი",
+              khoni: "ხონი", ხონი: "ხონი",
+              terjola: "თერჯოლა", თერჯოლა: "თერჯოლა",
+              abasha: "აბაშა", აბაშა: "აბაშა",
+              martvili: "მარტვილი", მარტვილი: "მარტვილი",
+              chkhorotsku: "ჩხოროწყუ", ჩხოროწყუ: "ჩხოროწყუ",
+              tsalenjikha: "წალენჯიხა", წალენჯიხა: "წალენჯიხა",
+              khobi: "ხობი", ხობი: "ხობი",
+              lanchkhuti: "ლანჩხუთი", ლანჩხუთი: "ლანჩხუთი",
+              chokhatauri: "ჩოხატაური", ჩოხატაური: "ჩოხატაური",
+              khelvachauri: "ხელვაჩაური", ხელვაჩაური: "ხელვაჩაური",
+              keda: "ქედა", ქედა: "ქედა",
+              shuakhevi: "შუახევი", შუახევი: "შუახევი",
+              khulo: "ხულო", ხულო: "ხულო",
+              adigeni: "ადიგენი", ადიგენი: "ადიგენი",
+              aspindza: "ასპინძა", ასპინძა: "ასპინძა",
+              ninotsminda: "ნინოწმინდა", ნინოწმინდა: "ნინოწმინდა",
+              tianeti: "თიანეთი", თიანეთი: "თიანეთი",
+              akhmeta: "ახმეტა", ახმეტა: "ახმეტა",
             };
-            const lowerCity = cityVal.toLowerCase();
+
+            let detectedCityName = "თბილისი";
             for (const [k, v] of Object.entries(cityMap)) {
-              if (lowerCity.includes(k)) {
-                setCity(v);
+              if (cityVal.includes(k)) {
+                detectedCityName = v;
                 break;
               }
             }
+            setCity(detectedCityName);
 
-            // 2. Build Street + House Number strictly (e.g. "ჯემალ ცერცვაძის ქუჩა №7ა")
-            let streetWithNumber = "";
+            // 2. Build Street and House Number strictly
+            let streetPart = "";
             const roadName = a.road || a.pedestrian || a.street || a.avenue || a.path || "";
             if (roadName) {
-              streetWithNumber = roadName;
+              streetPart = roadName;
               if (a.house_number) {
-                streetWithNumber += ` №${a.house_number}`;
+                streetPart += ` №${a.house_number}`;
               }
             } else if (a.suburb || a.neighbourhood || a.city_district) {
-              streetWithNumber = a.suburb || a.neighbourhood || a.city_district || "";
-            } else {
-              streetWithNumber = data.display_name?.split(",")[0]?.trim() || "";
+              streetPart = a.suburb || a.neighbourhood || a.city_district || "";
             }
 
-            setAddress(streetWithNumber);
+            // 3. Format: "ქალაქი, ქუჩა სახლის ნომერი" (e.g. "თბილისი, ჯემალ ცერცვაძის ქუჩა №7ა")
+            let fullExactAddress = "";
+            if (streetPart) {
+              fullExactAddress = `${detectedCityName}, ${streetPart}`;
+            } else {
+              fullExactAddress = data.display_name?.split(",").slice(0, 2).join(", ").trim() || detectedCityName;
+            }
+
+            setAddress(fullExactAddress);
           }
         } catch (err: any) {
           console.error("GPS Reverse Geocode Error:", err);
@@ -1197,14 +1252,14 @@ export default function CreateListingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-foreground block">
-                {isKa ? "ქალაქი *" : "City *"}
+                {isKa ? "ქალაქი / რეგიონი *" : "City / Region *"}
               </label>
               <select
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
                 className="w-full h-10 rounded-[12px] border border-border/80 bg-background px-3 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                {["თბილისი", "ბათუმი", "ქუთაისი", "რუსთავი", "გორი", "ზუგდიდი", "თელავი", "ბორჯომი", "მცხეთა", "ფოთი", "ქობულეთი", "ახალციხე"].map((c) => (
+                {ALL_GEORGIAN_CITIES.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
@@ -1212,14 +1267,14 @@ export default function CreateListingPage() {
 
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-foreground block">
-                {isKa ? "ქუჩა & ნომერი *" : "Street & Number *"}
+                {isKa ? "ზუსტი მისამართი (ქალაქი, ქუჩა, ნომერი) *" : "Exact Address (City, Street, Number) *"}
               </label>
               <Input
                 type="text"
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder={isKa ? "მაგ: აღმაშენებლის გამზ. №45" : "e.g. 45 Aghmashenebeli Ave"}
+                placeholder={isKa ? "მაგ: თბილისი, აღმაშენებლის გამზ. №45" : "e.g. Tbilisi, 45 Aghmashenebeli Ave"}
                 className="rounded-[12px] h-10 text-xs sm:text-sm"
               />
               {latitude && longitude && (
