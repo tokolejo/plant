@@ -41,12 +41,12 @@ export function HeroSection() {
   ];
 
   return (
-    <section className="relative py-6 sm:py-8 border-b border-border/60 bg-surface-cream/30" style={{ overflow: 'visible' }}>
+    <section className="relative py-5 sm:py-8 border-b border-border/60 bg-surface-cream/30" style={{ overflow: 'visible' }}>
       <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
 
-        {/* 🌟 1. Compact Airbnb-Style Header */}
-        <div className="text-center mb-5 sm:mb-6 space-y-1.5">
-          <h1 className="text-xl sm:text-2xl lg:text-[26px] font-black tracking-tight text-foreground leading-snug">
+        {/* 🌟 1. Compact Header */}
+        <div className="text-center mb-4 sm:mb-6 space-y-1">
+          <h1 className="text-lg sm:text-2xl lg:text-[26px] font-black tracking-tight text-foreground leading-snug">
             {isKa ? (
               <>
                 აღმოაჩინეთ, შეიძინეთ და{" "}
@@ -64,22 +64,22 @@ export function HeroSection() {
             )}
           </h1>
 
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium">
+          <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">
             {isKa
               ? "საქართველოს პირველი სპეციალიზებული ბოტანიკური მარკეტპლეისი"
               : "Georgia's First Dedicated Botanical Marketplace"}
           </p>
         </div>
 
-        {/* 🔍 2. Airbnb Floating Capsule Search Bar */}
+        {/* 🔍 2. Sleek Search Box — Clean Modern Card on Mobile, Pill Capsule on Desktop */}
         <div className="relative max-w-2xl mx-auto z-20" style={{ overflow: 'visible' }}>
           <form
             onSubmit={handleSearch}
-            className="w-full rounded-full border border-border/80 bg-card p-1.5 sm:p-2 shadow-ambient hover:shadow-ambient-lg flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"
+            className="w-full rounded-[16px] sm:rounded-full border border-border/80 bg-card p-2 sm:p-2 shadow-ambient hover:shadow-ambient-lg flex flex-col sm:flex-row items-center gap-2 sm:gap-2 transition-all focus-within:border-primary focus-within:ring-4 focus-within:ring-primary/15"
             style={{ overflow: 'visible' }}
           >
             {/* Location Selector */}
-            <div className="w-full sm:w-auto border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[200px] sm:max-w-[230px] overflow-visible pl-1">
+            <div className="w-full sm:w-auto border-b sm:border-b-0 sm:border-r border-border/60 shrink-0 sm:min-w-[200px] sm:max-w-[230px] overflow-visible pb-1 sm:pb-0 sm:pl-1">
               <LocationSearchCombobox
                 selectedCity={selectedCity}
                 onCityChange={(city) => {
@@ -89,7 +89,7 @@ export function HeroSection() {
             </div>
 
             {/* Keyword Input */}
-            <div className="flex flex-1 w-full items-center gap-2 px-3 py-1">
+            <div className="flex flex-1 w-full items-center gap-2 px-2 sm:px-3 py-1">
               <Search className="w-4 h-4 text-muted-foreground shrink-0" />
               <input
                 type="text"
@@ -100,10 +100,10 @@ export function HeroSection() {
               />
             </div>
 
-            {/* Airbnb-Style Rounded Search Button */}
+            {/* Search Button */}
             <Button
               type="submit"
-              className="w-full sm:w-auto rounded-full bg-primary hover:bg-primary/90 text-white font-bold text-xs sm:text-sm h-10 px-5 shadow-xs shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
+              className="w-full sm:w-auto rounded-[12px] sm:rounded-full bg-primary hover:bg-primary/90 text-white font-bold text-xs sm:text-sm h-10 sm:h-10 px-5 shadow-xs shrink-0 cursor-pointer transition-all hover:scale-105 active:scale-95"
             >
               <Search className="w-3.5 h-3.5 mr-1" />
               <span>{isKa ? "ძიება" : "Search"}</span>
@@ -111,9 +111,9 @@ export function HeroSection() {
           </form>
         </div>
 
-        {/* 🏷️ 3. Clean Category / Filter Shortcuts */}
-        <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 mt-4 text-xs">
-          <span className="flex items-center gap-1 font-bold text-muted-foreground text-[11px] mr-0.5">
+        {/* 🏷️ 3. Clean Category / Filter Shortcuts — Single Row Swipe on Mobile */}
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-3.5 text-xs overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center">
+          <span className="flex items-center gap-1 font-bold text-muted-foreground text-[11px] shrink-0 mr-0.5">
             <TrendingUp className="w-3 h-3 text-primary" />
             <span>{isKa ? "პოპულარული:" : "Popular:"}</span>
           </span>
@@ -129,7 +129,7 @@ export function HeroSection() {
                   router.push(`/listings?q=${encodeURIComponent(item.query)}`);
                 }
               }}
-              className="rounded-full bg-card hover:bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-foreground transition-all border border-border/70 cursor-pointer shadow-2xs hover:border-primary/40 hover:text-primary active:scale-95"
+              className="rounded-full bg-card hover:bg-surface-container px-2.5 py-1 text-[11px] font-semibold text-foreground transition-all border border-border/70 cursor-pointer shadow-2xs hover:border-primary/40 hover:text-primary active:scale-95 shrink-0 whitespace-nowrap"
             >
               #{item.label}
             </button>
