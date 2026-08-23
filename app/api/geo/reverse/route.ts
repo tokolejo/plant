@@ -218,11 +218,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Construct clean address string: "ქალაქი, ქუჩა [№ნომერი]"
-    let formattedAddress = "";
+    // Construct clean street and full address string
+    let streetAddress = "";
     if (detectedStreet) {
-      const streetWithNum = houseNumber ? `${detectedStreet} №${houseNumber}` : `${detectedStreet} №`;
-      formattedAddress = `${detectedCity}, ${streetWithNum}`;
+      streetAddress = houseNumber ? `${detectedStreet} №${houseNumber}` : `${detectedStreet} №`;
+    }
+
+    let formattedAddress = "";
+    if (streetAddress) {
+      formattedAddress = `${detectedCity}, ${streetAddress}`;
     } else {
       formattedAddress = detectedCity;
     }
@@ -230,7 +234,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       city: detectedCity,
-      address: formattedAddress,
+      street: streetAddress,
+      address: streetAddress || formattedAddress,
+      fullAddress: formattedAddress,
       latitude: lat,
       longitude: lng,
     });

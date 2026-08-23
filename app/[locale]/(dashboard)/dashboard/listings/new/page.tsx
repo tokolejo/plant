@@ -422,7 +422,7 @@ const ALL_GEORGIAN_CITIES = [
           const data = await res.json();
           if (data && data.success) {
             if (data.city) setCity(data.city);
-            if (data.address) setAddress(data.address);
+            if (data.street || data.address) setAddress(data.street || data.address);
           } else {
             throw new Error(data?.error || "Geocoding failed");
           }
@@ -1178,14 +1178,14 @@ const ALL_GEORGIAN_CITIES = [
 
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-foreground block">
-                {isKa ? "ზუსტი მისამართი (ქალაქი, ქუჩა, ნომერი) *" : "Exact Address (City, Street, Number) *"}
+                {isKa ? "ქუჩა & სახლის ნომერი *" : "Street & House Number *"}
               </label>
               <Input
                 type="text"
                 required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder={isKa ? "მაგ: თბილისი, აღმაშენებლის გამზ. №45" : "e.g. Tbilisi, 45 Aghmashenebeli Ave"}
+                placeholder={isKa ? "მაგ: აღმაშენებლის გამზ. №45" : "e.g. 45 Aghmashenebeli Ave"}
                 className="rounded-[12px] h-10 text-xs sm:text-sm"
               />
               {latitude && longitude && (
