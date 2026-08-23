@@ -379,6 +379,11 @@ export default function CreateListingPage() {
     }
   };
 
+  // Coordinates & Detected Location State
+  const [latitude, setLatitude] = React.useState<number | null>(null);
+  const [longitude, setLongitude] = React.useState<number | null>(null);
+  const [detectedLocationInfo, setDetectedLocationInfo] = React.useState<string | null>(null);
+
   const handleGpsLocation = () => {
     if (!navigator.geolocation) {
       setErrorMsg(isKa ? "თქვენს ბრაუზერს არ აქვს GPS მხარდაჭერა." : "GPS not supported.");
@@ -392,34 +397,91 @@ export default function CreateListingPage() {
         try {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
+          setLatitude(lat);
+          setLongitude(lng);
+
+          // Request street-level accuracy (zoom 18) with full address details
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=${isKa ? "ka" : "en"}`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=${isKa ? "ka" : "en"}`
           );
           const data = await res.json();
           if (data && data.address) {
-            const detectedCity = data.address.city || data.address.town || data.address.village || "";
-            const detectedSub = data.address.suburb || data.address.neighbourhood || data.address.road || "";
-            if (detectedCity) {
-              const matchedCity = [
-                "თბილისი", "ბათუმი", "ქუთაისი", "რუსთავი", "გორი", "ზუგდიდი",
-                "თელავი", "ბორჯომი", "მცხეთა", "ფოთი", "ქობულეთი", "ახალციხე"
-              ].find((c) => c.toLowerCase() === detectedCity.toLowerCase());
-              if (matchedCity) setCity(matchedCity);
+            const a = data.address;
+
+            // 1. City / Region matching
+            const cityVal = a.city || a.town || a.municipality || a.county || a.state || "";
+            const cityMap: Record<string, string> = {
+              tbilisi: "თბილისი",
+              თბილისი: "თბილისი",
+              batumi: "ბათუმი",
+              ბათუმი: "ბათუმი",
+              kutaisi: "ქუთაისი",
+              ქუთაისი: "ქუთაისი",
+              rustavi: "რუსთავი",
+              რუსთავი: "რუსთავი",
+              gori: "გორი",
+              გორი: "გორი",
+              zugdidi: "ზუგდიდი",
+              ზუგდიდი: "ზუგდიდი",
+              telavi: "თელავი",
+              თელავი: "თელავი",
+              borjomi: "ბორჯომი",
+              ბორჯომი: "ბორჯომი",
+              mtskheta: "მცხეთა",
+              მცხეთა: "მცხეთა",
+              poti: "ფოთი",
+              ფოთი: "ფოთი",
+              kobuleti: "ქობულეთი",
+              ქობულეთი: "ქობულეთი",
+              akhaltsikhe: "ახალციხე",
+              ახალციხე: "ახალციხე",
+            };
+            const lowerCity = cityVal.toLowerCase();
+            for (const [k, v] of Object.entries(cityMap)) {
+              if (lowerCity.includes(k)) {
+                setCity(v);
+                break;
+              }
             }
-            if (detectedSub) setAddress(detectedSub);
+
+            // 2. Build detailed Street + House Number + District/Suburb
+            const addressParts: string[] = [];
+            if (a.road) {
+              let roadName = a.road;
+              if (a.house_number) {
+                roadName += ` №${a.house_number}`;
+              }
+              addressParts.push(roadName);
+            }
+            if (a.neighbourhood && !addressParts.includes(a.neighbourhood)) {
+              addressParts.push(a.neighbourhood);
+            }
+            if (a.suburb && !addressParts.includes(a.suburb)) {
+              addressParts.push(a.suburb);
+            } else if (a.city_district && !addressParts.includes(a.city_district)) {
+              addressParts.push(a.city_district);
+            }
+
+            const formattedAddress = addressParts.length > 0
+              ? addressParts.join(", ")
+              : (data.display_name?.split(",").slice(0, 3).join(", ") || "თბილისი");
+
+            setAddress(formattedAddress);
+            setDetectedLocationInfo(`${city || "თბილისი"}, ${formattedAddress}`);
           }
-        } catch {
-          // Keep current city
+        } catch (err: any) {
+          console.error("GPS Reverse Geocode Error:", err);
+          setErrorMsg(isKa ? "მისამართის ამოცნობა ვერ მოხერხდა, გთხოვთ შეიყვანოთ ხელით." : "Could not determine street address.");
         } finally {
           setGpsLoading(false);
         }
       },
       (err) => {
         setGpsLoading(false);
-        setErrorMsg(isKa ? "GPS წვდომა უარყოფილია." : "GPS permission denied.");
-        setTimeout(() => setErrorMsg(""), 3500);
+        setErrorMsg(isKa ? "GPS წვდომა უარყოფილია. გთხოვთ ბრაუზერში დაუშვათ ლოკაცია." : "GPS access denied. Please allow location access.");
+        setTimeout(() => setErrorMsg(""), 4000);
       },
-      { timeout: 8000, maximumAge: 60000, enableHighAccuracy: true }
+      { timeout: 10000, maximumAge: 30000, enableHighAccuracy: true }
     );
   };
 
@@ -504,6 +566,8 @@ export default function CreateListingPage() {
         images: uploadedUrls,
         city,
         address: address.trim(),
+        latitude: latitude || null,
+        longitude: longitude || null,
         contact_phone: contactPhone.trim() || null,
         trade_preferences: tradeTags,
         botanical_name: botanicalName.trim() || null,
@@ -1110,27 +1174,62 @@ export default function CreateListingPage() {
 
         {/* ═══ 5. Location, Delivery & Contact ═══ */}
         <div className="rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs space-y-3.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-            {isKa ? "4. მდებარეობა & კონტაქტი" : "4. Location & Contact"}
-          </label>
+          {/* Section Header with Clear Location Finder Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                {isKa ? "4. მდებარეობა & კონტაქტი" : "4. Location & Contact"}
+              </label>
+              <p className="text-[10px] text-muted-foreground">
+                {isKa ? "მიუთითეთ ზუსტი მისამართი რუკაზე სწორად დასატანად" : "Specify accurate address for botanical map"}
+              </p>
+            </div>
 
-          {/* City & Address */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGpsLocation}
+              disabled={gpsLoading}
+              className="h-8 px-3 rounded-[10px] text-xs font-bold gap-1.5 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-all cursor-pointer self-start sm:self-auto"
+            >
+              <Navigation className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin" : ""}`} />
+              <span>
+                {gpsLoading
+                  ? (isKa ? "ზუსტი ლოკაციის ძიება..." : "Locating...")
+                  : (isKa ? "ჩემი ზუსტი ლოკაციის პოვნა" : "Detect My Exact Location")}
+              </span>
+            </Button>
+          </div>
+
+          {/* Confirmed Location Badge */}
+          {detectedLocationInfo && (
+            <div className="p-2.5 rounded-[12px] bg-emerald-500/10 border border-emerald-500/25 text-emerald-800 dark:text-emerald-300 text-xs flex items-center justify-between gap-2 animate-in fade-in">
+              <div className="flex items-center gap-2 min-w-0">
+                <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-bold block leading-none">
+                    {isKa ? "დაფიქსირდა ზუსტი ლოკაცია:" : "Exact Location Verified:"}
+                  </span>
+                  <span className="font-bold text-foreground text-xs truncate block mt-0.5">
+                    {detectedLocationInfo}
+                  </span>
+                </div>
+              </div>
+              {latitude && longitude && (
+                <span className="text-[10px] font-mono text-muted-foreground shrink-0 bg-background/80 px-2 py-0.5 rounded-md border border-border/60">
+                  {latitude.toFixed(4)}, {longitude.toFixed(4)}
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* City & Address Inputs */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div className="space-y-1">
-              <div className="flex items-center justify-between">
-                <label className="text-[11px] font-bold text-foreground block">
-                  {isKa ? "ქალაქი *" : "City *"}
-                </label>
-                <button
-                  type="button"
-                  onClick={handleGpsLocation}
-                  disabled={gpsLoading}
-                  className="inline-flex items-center gap-1 text-[10px] text-primary font-bold hover:underline cursor-pointer"
-                >
-                  <Navigation className={`w-3 h-3 ${gpsLoading ? "animate-spin" : ""}`} />
-                  <span>{gpsLoading ? (isKa ? "GPS..." : "Locating...") : "GPS"}</span>
-                </button>
-              </div>
+              <label className="text-[11px] font-bold text-foreground block">
+                {isKa ? "ქალაქი *" : "City *"}
+              </label>
               <select
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
@@ -1144,13 +1243,14 @@ export default function CreateListingPage() {
 
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-foreground block">
-                {isKa ? "უბანი / მისამართი" : "District / Street"}
+                {isKa ? "უბანი & ზუსტი მისამართი *" : "District & Street Address *"}
               </label>
               <Input
                 type="text"
+                required
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                placeholder={isKa ? "მაგ: ვაკე, ჭავჭავაძის გამზ." : "e.g. Vake"}
+                placeholder={isKa ? "მაგ: აღმაშენებლის გამზ. №45, ჩუღურეთი" : "e.g. 45 Aghmashenebeli Ave, Chughureti"}
                 className="rounded-[12px] h-10 text-xs sm:text-sm"
               />
             </div>
