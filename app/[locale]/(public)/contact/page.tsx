@@ -1,10 +1,10 @@
 "use client";
 
 import * as React from "react";
+import { Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import {
   Mail,
-  Send,
   CheckCircle2,
   Phone,
   MapPin,
@@ -14,7 +14,6 @@ import {
   HelpCircle,
   Building2,
   Lightbulb,
-  ChevronDown,
   Loader2,
   ShieldCheck,
   SendHorizontal
@@ -80,114 +79,96 @@ export default function ContactPage() {
     }
   };
 
-  const categories: { id: InquiryType; title: string; subtitle: string; icon: any }[] = [
-    {
-      id: "general",
-      title: isKa ? "ზოგადი კითხვა" : "General Inquiry",
-      subtitle: isKa ? "კითხვები პლატფორმის შესახებ" : "Platform questions",
-      icon: MessageSquare,
-    },
-    {
-      id: "suggestion",
-      title: isKa ? "იდეა & წინადადება" : "Idea & Suggestion",
-      subtitle: isKa ? "ფუნქციონალის გაუმჯობესება" : "Feature requests",
-      icon: Lightbulb,
-    },
-    {
-      id: "bug",
-      title: isKa ? "ხარვეზის რეპორტი" : "Bug Report",
-      subtitle: isKa ? "ტექნიკური პრობლემა" : "Technical issue",
-      icon: AlertCircle,
-    },
-    {
-      id: "partnership",
-      title: isKa ? "პარტნიორობა / B2B" : "Partnership / B2B",
-      subtitle: isKa ? "მაღაზიები & ბიზნესი" : "Shops & Collaboration",
-      icon: Building2,
-    },
+  const categories: { id: InquiryType; label: string; icon: any }[] = [
+    { id: "general", label: isKa ? "ზოგადი" : "General", icon: MessageSquare },
+    { id: "suggestion", label: isKa ? "იდეა & წინადადება" : "Suggestion", icon: Lightbulb },
+    { id: "bug", label: isKa ? "ხარვეზი" : "Bug", icon: AlertCircle },
+    { id: "partnership", label: isKa ? "პარტნიორობა / B2B" : "Partnership", icon: Building2 },
   ];
 
   return (
-    <div className="min-h-screen bg-background py-6 sm:py-10 lg:py-14">
-      <div className="container mx-auto px-4 sm:px-6 max-w-6xl">
+    <div className="bg-background py-4 sm:py-6 lg:py-8">
+      <div className="container mx-auto px-4 sm:px-6 max-w-5xl space-y-4">
         
-        {/* Page Header */}
-        <div className="max-w-3xl mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary-container text-foreground text-xs font-bold mb-3 border border-border/60">
-            <span className="w-2 h-2 rounded-full bg-primary" />
-            <span>{isKa ? "კონტაქტი & მხარდაჭერა" : "Contact & Support"}</span>
+        {/* Compact Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-foreground flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              <span>{isKa ? "კონტაქტი & უკუკავშირი" : "Contact & Feedback"}</span>
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              {isKa
+                ? "დაგვიკავშირდით ნებისმიერი შეკითხვის, იდეის ან თანამშრომლობისთვის."
+                : "Reach out for inquiries, feedback, feature suggestions, or B2B collaboration."}
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-foreground">
-            {isKa ? "დაგვიკავშირდით" : "Get in Touch"}
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
-            {isKa
-              ? "გაქვთ შეკითხვა, იდეა ან გსურთ თანამშრომლობა? გამოგვიგზავნეთ შეტყობინება და ჩვენი გუნდი მალე გიპასუხებთ."
-              : "Have a question, feedback, or a business proposal? Fill out the form and our team will get back to you shortly."}
-          </p>
+
+          <Link
+            href="/faq"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline self-start sm:self-auto bg-primary/5 px-3 py-1.5 rounded-[10px] border border-primary/20"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>{isKa ? "კითხვები & ინსტრუქციები →" : "FAQ & Guide →"}</span>
+          </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+        {/* Compact Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
           
-          {/* Main Form (7 cols on desktop) */}
-          <div className="lg:col-span-7 rounded-[22px] border border-border/80 bg-card p-5 sm:p-7 shadow-xs">
+          {/* Main Form (8 cols on desktop) */}
+          <div className="lg:col-span-8 rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-xs">
             {submitted ? (
-              <div className="py-12 sm:py-16 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
-                <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-8 h-8" />
+              <div className="py-8 sm:py-12 text-center space-y-3 animate-in fade-in zoom-in-95 duration-200">
+                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-lg sm:text-xl font-black text-foreground">
+                <h3 className="text-base sm:text-lg font-black text-foreground">
                   {isKa ? "შეტყობინება წარმატებით გაიგზავნა" : "Message Sent Successfully"}
                 </h3>
-                <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto leading-relaxed">
                   {isKa
-                    ? "გმადლობთ უკუკავშირისთვის. ჩვენი გუნდი უმოკლეს ვადაში განიხილავს თქვენს წერილს."
-                    : "Thank you for reaching out. We will review your message and reply as soon as possible."}
+                    ? "გმადლობთ უკუკავშირისთვის. ჩვენი გუნდი მალე განიხილავს თქვენს წერილს."
+                    : "Thank you. Our team will review your inquiry and reply as soon as possible."}
                 </p>
                 <div className="pt-2">
                   <Button
+                    size="sm"
                     onClick={() => {
                       setSubmitted(false);
                       setMessage("");
                       setSubject("");
                     }}
-                    className="rounded-[12px] bg-primary hover:bg-primary-container text-white text-xs font-bold px-6 h-10 shadow-xs transition-all cursor-pointer"
+                    className="rounded-[10px] bg-primary hover:bg-primary-container text-white text-xs font-bold px-4 h-9 shadow-xs cursor-pointer"
                   >
-                    {isKa ? "ახალი შეტყობინების გაგზავნა" : "Send Another Message"}
+                    {isKa ? "ახალი შეტყობინება" : "Send Another"}
                   </Button>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-3.5">
                 
-                {/* 1. Category Selector */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-foreground block">
-                    {isKa ? "შეტყობინების კატეგორია" : "Topic"}
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 gap-2">
-                    {categories.map(({ id, title, subtitle, icon: Icon }) => {
+                {/* 1. Category Selector (Compact Inline Pills) */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-foreground block">
+                    {isKa ? "კატეგორია" : "Topic"}
+                  </span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                    {categories.map(({ id, label, icon: Icon }) => {
                       const active = inquiryType === id;
                       return (
                         <button
                           key={id}
                           type="button"
                           onClick={() => setInquiryType(id)}
-                          className={`p-3 rounded-[14px] text-left border transition-all cursor-pointer flex flex-col gap-1 ${
+                          className={`px-2.5 py-2 rounded-[10px] text-left border transition-all cursor-pointer flex items-center gap-1.5 ${
                             active
-                              ? "border-primary bg-primary/5 ring-1 ring-primary shadow-2xs"
-                              : "border-border/80 bg-background hover:bg-surface-container"
+                              ? "border-primary bg-primary/5 text-primary font-bold shadow-2xs"
+                              : "border-border/80 bg-background text-muted-foreground hover:text-foreground hover:bg-surface-container"
                           }`}
                         >
-                          <div className="flex items-center gap-2">
-                            <Icon className={`w-4 h-4 ${active ? "text-primary" : "text-muted-foreground"}`} />
-                            <span className={`text-xs font-bold ${active ? "text-foreground" : "text-foreground/90"}`}>
-                              {title}
-                            </span>
-                          </div>
-                          <span className="text-[10px] text-muted-foreground hidden sm:block">
-                            {subtitle}
-                          </span>
+                          <Icon className="w-3.5 h-3.5 shrink-0" />
+                          <span className="text-xs truncate">{label}</span>
                         </button>
                       );
                     })}
@@ -195,9 +176,9 @@ export default function ContactPage() {
                 </div>
 
                 {/* 2. Name & Email */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground block">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-foreground block">
                       {isKa ? "სახელი და გვარი *" : "Full Name *"}
                     </label>
                     <Input
@@ -206,11 +187,11 @@ export default function ContactPage() {
                       placeholder={isKa ? "გიორგი ბერიძე" : "John Doe"}
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="rounded-[12px] border-border/80 h-10 text-xs sm:text-sm bg-background font-medium"
+                      className="rounded-[10px] border-border/80 h-9 text-xs bg-background font-medium"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground block">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-foreground block">
                       {isKa ? "ელ-ფოსტა *" : "Email Address *"}
                     </label>
                     <Input
@@ -219,43 +200,43 @@ export default function ContactPage() {
                       placeholder="name@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="rounded-[12px] border-border/80 h-10 text-xs sm:text-sm bg-background font-medium"
+                      className="rounded-[10px] border-border/80 h-9 text-xs bg-background font-medium"
                     />
                   </div>
                 </div>
 
                 {/* 3. Phone & Subject */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground block">
-                      {isKa ? "ტელეფონის ნომერი" : "Phone Number"} <span className="text-muted-foreground font-normal">({isKa ? "არასავალდებულო" : "Optional"})</span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-foreground block">
+                      {isKa ? "ტელეფონი" : "Phone"} <span className="text-muted-foreground font-normal">({isKa ? "არასავალდებულო" : "Optional"})</span>
                     </label>
                     <Input
                       type="tel"
                       placeholder="+995 5XX XX XX XX"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="rounded-[12px] border-border/80 h-10 text-xs sm:text-sm bg-background font-medium"
+                      className="rounded-[10px] border-border/80 h-9 text-xs bg-background font-medium"
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-foreground block">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-foreground block">
                       {isKa ? "თემა" : "Subject"}
                     </label>
                     <Input
                       type="text"
-                      placeholder={isKa ? "მოკლე სათაური..." : "Brief subject..."}
+                      placeholder={isKa ? "მოკლე სათაური..." : "Subject..."}
                       value={subject}
                       onChange={(e) => setSubject(e.target.value)}
-                      className="rounded-[12px] border-border/80 h-10 text-xs sm:text-sm bg-background font-medium"
+                      className="rounded-[10px] border-border/80 h-9 text-xs bg-background font-medium"
                     />
                   </div>
                 </div>
 
-                {/* 4. Message Textarea */}
-                <div className="space-y-1.5">
+                {/* 4. Message Textarea (Compact 3 rows) */}
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-foreground block">
+                    <label className="text-[11px] font-bold text-foreground block">
                       {isKa ? "შეტყობინება *" : "Message *"}
                     </label>
                     <span className="text-[10px] text-muted-foreground">
@@ -264,23 +245,23 @@ export default function ContactPage() {
                   </div>
                   <textarea
                     required
-                    rows={5}
+                    rows={3}
                     maxLength={2000}
                     placeholder={
                       isKa
-                        ? "აღწერეთ თქვენი შეკითხვა, იდეა ან წინადადება დეტალურად..."
-                        : "Describe your question, feedback, or inquiry in detail..."
+                        ? "აღწერეთ თქვენი შეკითხვა, იდეა ან წინადადება..."
+                        : "Describe your question or feedback..."
                     }
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    className="w-full rounded-[14px] border border-border/80 p-3 text-xs sm:text-sm text-foreground bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-y min-h-[120px]"
+                    className="w-full rounded-[10px] border border-border/80 p-2.5 text-xs text-foreground bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary transition-all resize-y min-h-[85px]"
                   />
                 </div>
 
                 {/* Error Banner */}
                 {errorMsg && (
-                  <div className="p-3 rounded-[12px] bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
+                  <div className="p-2.5 rounded-[10px] bg-destructive/10 border border-destructive/20 text-destructive text-xs flex items-center gap-2">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                     <span>{errorMsg}</span>
                   </div>
                 )}
@@ -289,16 +270,16 @@ export default function ContactPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-bold h-11 shadow-ambient transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full rounded-[10px] bg-primary hover:bg-primary-container text-white text-xs font-bold h-9 shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
                       <span>{isKa ? "იგზავნება..." : "Sending..."}</span>
                     </>
                   ) : (
                     <>
-                      <SendHorizontal className="w-4 h-4" />
+                      <SendHorizontal className="w-3.5 h-3.5" />
                       <span>{isKa ? "შეტყობინების გაგზავნა" : "Send Message"}</span>
                     </>
                   )}
@@ -308,91 +289,61 @@ export default function ContactPage() {
             )}
           </div>
 
-          {/* Right Column: Contact Channels & FAQs (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Contact Information Card */}
-            <div className="p-5 sm:p-6 rounded-[22px] border border-border/80 bg-card shadow-xs space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                {isKa ? "საკონტაქტო არხები" : "Contact Channels"}
-              </h3>
+          {/* Right Column: Direct Contact Info (4 cols on desktop) */}
+          <div className="lg:col-span-4 rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-xs space-y-3.5">
+            <h3 className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+              {isKa ? "საკონტაქტო არხები" : "Contact Channels"}
+            </h3>
 
-              <div className="space-y-2.5 text-xs">
-                <div className="flex items-center gap-3 p-3 rounded-[12px] bg-surface-container/60 border border-border/60">
-                  <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <Mail className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold">{isKa ? "ელ-ფოსტა" : "Email"}</p>
-                    <a
-                      href="mailto:support@plantsale.ge"
-                      className="font-bold text-foreground hover:text-primary transition-colors truncate block"
-                    >
-                      support@plantsale.ge
-                    </a>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-[12px] bg-surface-container/60 border border-border/60">
-                  <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <MessageSquare className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold">Telegram Community</p>
-                    <span className="font-bold text-foreground">
-                      @PlantGeorgia
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-[12px] bg-surface-container/60 border border-border/60">
-                  <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold">{isKa ? "სამუშაო საათები" : "Operating Hours"}</p>
-                    <p className="font-bold text-foreground">10:00 - 20:00 (ორშ - კვ)</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 p-3 rounded-[12px] bg-surface-container/60 border border-border/60">
-                  <div className="h-8 w-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                    <MapPin className="w-4 h-4" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] text-muted-foreground font-semibold">{isKa ? "მდებარეობა" : "Location"}</p>
-                    <p className="font-bold text-foreground">{isKa ? "თბილისი, საქართველო" : "Tbilisi, Georgia"}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-border/50 text-[11px] text-muted-foreground flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>{isKa ? "საშუალო პასუხის დრო: 2-4 საათი" : "Average response time: 2-4 hours"}</span>
-              </div>
-            </div>
-
-            {/* Platform Guide & Features Card */}
-            <div className="p-5 sm:p-6 rounded-[22px] border border-primary/20 bg-primary/5 shadow-xs space-y-3">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-primary" />
-                <h3 className="text-xs font-bold text-foreground">
-                  {isKa ? "საიტის ფუნქციონალის გზამკვლევი" : "Platform Guide & Features"}
-                </h3>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {isKa
-                  ? "გაინტერესებთ როგორ მუშაობს მცენარეების ყიდვა-გაყიდვა, გაცვლა (ISO), რუკა და მაღაზიების სისტემა? იხილეთ დეტალური გზამკვლევი."
-                  : "Curious how plant trading, ISO swaps, botanical map, and verified stores work? Explore our comprehensive platform guide."}
-              </p>
+            <div className="space-y-2 text-xs">
               <a
-                href={`/${locale}/how-it-works`}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline pt-1"
+                href="mailto:support@plantsale.ge"
+                className="flex items-center gap-2.5 p-2.5 rounded-[10px] bg-surface-container/50 border border-border/60 hover:bg-primary/5 hover:border-primary/30 transition-colors block"
               >
-                <span>{isKa ? "გაიგეთ მეტი პლატფორმის შესახებ →" : "Learn more about the platform →"}</span>
+                <div className="h-7 w-7 rounded-[8px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Mail className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground font-semibold">{isKa ? "ელ-ფოსტა" : "Email"}</p>
+                  <p className="font-bold text-foreground truncate">support@plantsale.ge</p>
+                </div>
               </a>
+
+              <div className="flex items-center gap-2.5 p-2.5 rounded-[10px] bg-surface-container/50 border border-border/60">
+                <div className="h-7 w-7 rounded-[8px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground font-semibold">Telegram Community</p>
+                  <p className="font-bold text-foreground">@PlantGeorgia</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 p-2.5 rounded-[10px] bg-surface-container/50 border border-border/60">
+                <div className="h-7 w-7 rounded-[8px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Clock className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground font-semibold">{isKa ? "სამუშაო საათები" : "Hours"}</p>
+                  <p className="font-bold text-foreground">10:00 - 20:00 (ორშ - კვ)</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5 p-2.5 rounded-[10px] bg-surface-container/50 border border-border/60">
+                <div className="h-7 w-7 rounded-[8px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <MapPin className="w-3.5 h-3.5" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] text-muted-foreground font-semibold">{isKa ? "მდებარეობა" : "Location"}</p>
+                  <p className="font-bold text-foreground">{isKa ? "თბილისი, საქართველო" : "Tbilisi, Georgia"}</p>
+                </div>
+              </div>
             </div>
 
+            <div className="pt-2 border-t border-border/50 text-[10px] text-muted-foreground flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>{isKa ? "საშუალო პასუხის დრო: 2-4 საათი" : "Avg. response: 2-4 hours"}</span>
+            </div>
           </div>
 
         </div>

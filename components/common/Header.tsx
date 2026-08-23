@@ -92,7 +92,7 @@ export function Header() {
     { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/iso", label: navT("iso"), icon: Shuffle },
-    { href: "/how-it-works", label: isKa ? "როგორ მუშაობს" : "How It Works", icon: HelpCircle },
+    { href: "/faq", label: isKa ? "კითხვები" : "FAQ", icon: HelpCircle },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles },
     { href: "/contact", label: navT("contact"), icon: MessageSquare },
   ];
