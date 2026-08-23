@@ -8,6 +8,7 @@ import {
   Search, 
   Sprout, 
   TrendingUp, 
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -18,6 +19,7 @@ export function HeroSection() {
 
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCity, setSelectedCity] = React.useState("მთელი საქართველო");
+  const [expandedTags, setExpandedTags] = React.useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ export function HeroSection() {
     router.push(`/listings?${query.toString()}`);
   };
 
-  const trendingTags = [
+  const allTrendingTags = [
     { label: "Monstera Albo", query: "Monstera Albo" },
     { label: "Philodendron", query: "Philodendron" },
     { label: "Ficus Lyrata", query: "Ficus Lyrata" },
@@ -38,7 +40,13 @@ export function HeroSection() {
     { label: isKa ? "კერამიკული ქოთანი" : "Ceramic Pot", query: "ქოთანი" },
     { label: isKa ? "სუკულენტები" : "Succulents", query: "სუქულენტი" },
     { label: isKa ? "ორქიდეა" : "Orchid", query: "ორქიდეა" },
+    { label: isKa ? "ალოკაზია" : "Alocasia", query: "ალოკაზია" },
+    { label: isKa ? "სანსევიერია" : "Sansevieria", query: "სანსევიერია" },
+    { label: isKa ? "ბონსაი" : "Bonsai", query: "ბონსაი" },
+    { label: isKa ? "სუბსტრატი" : "Soil Mix", query: "სუბსტრატი" },
   ];
+
+  const visibleTags = expandedTags ? allTrendingTags : allTrendingTags.slice(0, 5);
 
   return (
     <section className="relative py-5 sm:py-8 border-b border-border/60 bg-surface-cream/30" style={{ overflow: 'visible' }}>
@@ -111,13 +119,14 @@ export function HeroSection() {
           </form>
         </div>
 
-        {/* 🏷️ 3. Clean Category / Filter Shortcuts — Single Row Swipe on Mobile */}
-        <div className="flex items-center gap-1.5 sm:gap-2 mt-3.5 text-xs overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center">
+        {/* 🏷️ 3. Clean Category / Filter Shortcuts with Icon-Only Expand/Collapse */}
+        <div className="flex items-center gap-1.5 sm:gap-2 mt-3.5 text-xs overflow-x-auto sm:overflow-visible no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center">
           <span className="flex items-center gap-1 font-bold text-muted-foreground text-[11px] shrink-0 mr-0.5">
             <TrendingUp className="w-3 h-3 text-primary" />
             <span>{isKa ? "პოპულარული:" : "Popular:"}</span>
           </span>
-          {trendingTags.map((item, idx) => (
+
+          {visibleTags.map((item, idx) => (
             <button
               key={idx}
               type="button"
@@ -134,6 +143,17 @@ export function HeroSection() {
               #{item.label}
             </button>
           ))}
+
+          {/* 🌟 Icon-Only Expand / Collapse Button */}
+          <button
+            type="button"
+            onClick={() => setExpandedTags(!expandedTags)}
+            aria-label={expandedTags ? (isKa ? "აკეცვა" : "Collapse") : (isKa ? "ჩამოშლა" : "Expand")}
+            title={expandedTags ? (isKa ? "აკეცვა" : "Collapse") : (isKa ? "ჩამოშლა" : "Expand")}
+            className="w-6.5 h-6.5 rounded-full bg-card hover:bg-surface-container border border-border/80 hover:border-primary/40 text-muted-foreground hover:text-primary flex items-center justify-center transition-all shadow-2xs shrink-0 cursor-pointer active:scale-95"
+          >
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${expandedTags ? "rotate-180 text-primary" : ""}`} />
+          </button>
         </div>
 
       </div>
