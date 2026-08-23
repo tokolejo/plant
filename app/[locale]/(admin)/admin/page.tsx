@@ -49,6 +49,13 @@ import {
   UserX,
   CalendarPlus,
   Loader2,
+  MessageSquare,
+  Mail,
+  Phone,
+  Reply,
+  Inbox,
+  CheckCheck,
+  CheckSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -74,7 +81,7 @@ export default function AdminDashboardPage() {
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [currentUserRole, setCurrentUserRole] = React.useState<UserRole>("USER");
   const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "affiliate" | "audit" | "plans" | "analytics">("overview");
+  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "feedback" | "affiliate" | "audit" | "plans" | "analytics">("overview");
 
   // Admin Listings State
   const [listings, setListings] = React.useState<any[]>(SAMPLE_LISTINGS);
@@ -314,6 +321,11 @@ export default function AdminDashboardPage() {
   // Status Moderation & Actions
   // ──────────────────────────────────────────────
   const updateListingStatus = async (id: string, newStatus: string) => {
+    const targetListing = listings.find((l) => l.id === id);
+    const oldStatus = targetListing?.status || "ACTIVE";
+    const listingTitle = targetListing?.title || "მცენარე";
+    const sellerName = targetListing?.seller?.fullName || "უცნობი";
+
     // Instant local update
     setListings((prev) =>
       prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
@@ -337,7 +349,18 @@ export default function AdminDashboardPage() {
         action: "UPDATE_LISTING_STATUS",
         targetType: "LISTING",
         targetId: id,
-        newData: { status: newStatus },
+        oldData: {
+          listingTitle,
+          sellerName,
+          status: oldStatus,
+          changeSummary: `სტატუსი: ${oldStatus} → ${newStatus}`,
+        },
+        newData: {
+          listingTitle,
+          sellerName,
+          status: newStatus,
+          changeSummary: `სტატუსი: ${oldStatus} → ${newStatus}`,
+        },
       });
     }
 
@@ -346,11 +369,14 @@ export default function AdminDashboardPage() {
       HIDDEN: "🟡 დამალული (საიტზე არ ჩანს)",
       REJECTED: "🔴 დაბლოკილი",
     };
-    showNotice(`✅ განცხადების სტატუსი შეიცვალა: ${labelMap[newStatus] || newStatus}`);
+    showNotice(`✅ განცხადების (${listingTitle}) სტატუსი შეიცვალა: ${labelMap[newStatus] || newStatus}`);
   };
 
   const deleteListing = async (id: string, title: string) => {
     if (!confirm(`ნამდვილად გსურთ განცხადების წაშლა: "${title}"?`)) return;
+
+    const targetListing = listings.find((l) => l.id === id);
+    const sellerName = targetListing?.seller?.fullName || "";
 
     setListings((prev) => prev.filter((l) => l.id !== id));
 
@@ -366,16 +392,26 @@ export default function AdminDashboardPage() {
         action: "DELETE_LISTING",
         targetType: "LISTING",
         targetId: id,
-        oldData: { title },
+        oldData: {
+          listingTitle: title,
+          sellerName,
+          changeSummary: `განცხადების წაშლა: "${title}" (გამყიდველი: ${sellerName})`,
+        },
       });
     }
     showNotice(`🗑️ განცხადება წარმატებით წაიშალა: "${title}"`);
   };
 
   const updateUserTier = async (id: string, newTier: string) => {
+    const targetUser = users.find((u) => u.id === id);
+    const oldTier = targetUser?.tier || "FREE";
+    const userName = targetUser?.fullName || "მომხმარებელი";
+    const userEmail = targetUser?.email || "";
+
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, tier: newTier } : u))
     );
+
     if (!id.startsWith("usr-")) {
       const { error } = await supabase.from("profiles").update({ subscription_tier: newTier }).eq("id", id);
       if (error) {
@@ -387,10 +423,23 @@ export default function AdminDashboardPage() {
         action: "UPDATE_SUBSCRIPTION_TIER",
         targetType: "USER",
         targetId: id,
-        newData: { newTier },
+        oldData: {
+          targetName: userName,
+          targetEmail: userEmail,
+          targetId: id,
+          tier: oldTier,
+          changeSummary: `ტარიფი: ${oldTier} → ${newTier}`,
+        },
+        newData: {
+          targetName: userName,
+          targetEmail: userEmail,
+          targetId: id,
+          tier: newTier,
+          changeSummary: `ტარიფი: ${oldTier} → ${newTier}`,
+        },
       });
     }
-    showNotice(`✅ მომხმარებლის ტარიფი წარმატებით განახლდა: ${newTier}`);
+    showNotice(`✅ ${userName}-ს (${userEmail}) ტარიფი განახლდა: ${oldTier} → ${newTier}`);
   };
 
   const updateUserRole = async (id: string, newRole: string) => {
@@ -405,7 +454,10 @@ export default function AdminDashboardPage() {
     }
 
     const isNowAdmin = newRole === "SUPER_ADMIN" || newRole === "FINANCE_ADMIN" || newRole === "CONTENT_MANAGER" || newRole === "ADMIN";
-    const previousUser = users.find((u) => u.id === id);
+    const targetUser = users.find((u) => u.id === id);
+    const oldRole = targetUser?.role || "USER";
+    const userName = targetUser?.fullName || "მომხმარებელი";
+    const userEmail = targetUser?.email || "";
 
     // Instant local state update
     setUsers((prev) =>
@@ -433,8 +485,21 @@ export default function AdminDashboardPage() {
         action: "CHANGE_USER_ROLE",
         targetType: "USER",
         targetId: id,
-        oldData: { role: previousUser?.role },
-        newData: { newRole, isAdmin: isNowAdmin },
+        oldData: {
+          targetName: userName,
+          targetEmail: userEmail,
+          targetId: id,
+          role: oldRole,
+          changeSummary: `როლი: ${oldRole} → ${newRole}`,
+        },
+        newData: {
+          targetName: userName,
+          targetEmail: userEmail,
+          targetId: id,
+          role: newRole,
+          isAdmin: isNowAdmin,
+          changeSummary: `როლი: ${oldRole} → ${newRole}`,
+        },
       });
     }
 
@@ -448,12 +513,15 @@ export default function AdminDashboardPage() {
       USER: "USER (მომხმარებელი)",
     };
 
-    showNotice(`როლი წარმატებით განახლდა: ${roleNameKa[newRole] || newRole}`);
+    showNotice(`✅ ${userName}-ს (${userEmail}) როლი განახლდა: ${oldRole} → ${roleNameKa[newRole] || newRole}`);
   };
 
   const updateUserSlug = async (id: string, newSlug: string) => {
     const cleanSlug = newSlug.trim().toLowerCase().replace(/[^a-z0-9_-]/g, "") || null;
-    const previousUser = users.find((u) => u.id === id);
+    const targetUser = users.find((u) => u.id === id);
+    const oldSlug = targetUser?.customSlug || "არ არის";
+    const userName = targetUser?.fullName || "მომხმარებელი";
+    const userEmail = targetUser?.email || "";
 
     setUsers((prev) =>
       prev.map((u) => (u.id === id ? { ...u, customSlug: cleanSlug } : u))
@@ -473,11 +541,21 @@ export default function AdminDashboardPage() {
         action: "UPDATE_CUSTOM_SLUG",
         targetType: "USER",
         targetId: id,
-        oldData: { customSlug: previousUser?.customSlug },
-        newData: { customSlug: cleanSlug },
+        oldData: {
+          targetName: userName,
+          targetEmail: userEmail,
+          customSlug: oldSlug,
+          changeSummary: `Slug: /${oldSlug} → /${cleanSlug || "none"}`,
+        },
+        newData: {
+          targetName: userName,
+          targetEmail: userEmail,
+          customSlug: cleanSlug,
+          changeSummary: `Slug: /${oldSlug} → /${cleanSlug || "none"}`,
+        },
       });
     }
-    showNotice(cleanSlug ? `✅ Custom Slug განახლდა: /${cleanSlug}` : `✅ Custom Slug გასუფთავდა (არ არის)`);
+    showNotice(cleanSlug ? `✅ ${userName}-ს Custom Slug განახლდა: /${cleanSlug}` : `✅ ${userName}-ს Custom Slug გასუფთავდა`);
   };
 
   const handlePlanChange = (planId: string, field: keyof SubscriptionPlanItem, value: any) => {
@@ -771,6 +849,9 @@ export default function AdminDashboardPage() {
     if (selectedUserIds.size === 0) return;
     if (!confirm(`ნამდვილად გსურთ ${selectedUserIds.size} მომხმარებლის დაბლოკვა/გაყინვა?`)) return;
     const ids = Array.from(selectedUserIds).filter((id) => !id.startsWith("usr-"));
+    const affectedUsers = users.filter((u) => selectedUserIds.has(u.id));
+    const userNames = affectedUsers.map((u) => `${u.fullName} (${u.email})`).join(", ");
+
     setBulkUserLoading(true);
     try {
       if (ids.length > 0) {
@@ -780,6 +861,18 @@ export default function AdminDashboardPage() {
         });
         if (error) throw error;
       }
+
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "SUSPEND_USER",
+        targetType: "USER",
+        newData: {
+          totalUsers: affectedUsers.length,
+          affectedUsers: affectedUsers.map((u) => ({ id: u.id, name: u.fullName, email: u.email })),
+          changeSummary: `დაიბლოკა ${affectedUsers.length} მომხმარებელი: ${userNames}`,
+        },
+      });
+
       showNotice(`🚫 ${selectedUserIds.size} მომხმარებელი გაიყინა!`);
       setSelectedUserIds(new Set());
       loadAdminData();
@@ -793,6 +886,9 @@ export default function AdminDashboardPage() {
   const bulkExtendUsers = async (extraDays: number = 30) => {
     if (selectedUserIds.size === 0) return;
     const ids = Array.from(selectedUserIds).filter((id) => !id.startsWith("usr-"));
+    const affectedUsers = users.filter((u) => selectedUserIds.has(u.id));
+    const userNames = affectedUsers.map((u) => `${u.fullName} (${u.email})`).join(", ");
+
     setBulkUserLoading(true);
     try {
       if (ids.length > 0) {
@@ -802,6 +898,19 @@ export default function AdminDashboardPage() {
         });
         if (error) throw error;
       }
+
+      logAuditEvent({
+        actorId: currentUser?.id,
+        action: "EXTEND_SUBSCRIPTION",
+        targetType: "USER",
+        newData: {
+          extraDays,
+          totalUsers: affectedUsers.length,
+          affectedUsers: affectedUsers.map((u) => ({ id: u.id, name: u.fullName, email: u.email })),
+          changeSummary: `გაუგრძელდა გამოწერა +${extraDays} დღით (${affectedUsers.length} მომხმარებელი): ${userNames}`,
+        },
+      });
+
       showNotice(`💎 ${selectedUserIds.size} მომხმარებელს გაუგრძელდა ტარიფი +${extraDays} დღით!`);
       setSelectedUserIds(new Set());
       loadAdminData();
@@ -1060,13 +1169,130 @@ export default function AdminDashboardPage() {
     });
   }, [auditLogs, auditCategoryFilter, auditSearchQuery, auditDateFilter, auditDateFrom, auditDateTo, auditSortField, auditSortOrder]);
 
+  // ──────────────────────────────────────────────
+  // Feedback & Contact Messages State & Handlers
+  // ──────────────────────────────────────────────
+  const [feedbackList, setFeedbackList] = React.useState<any[]>([]);
+  const [loadingFeedback, setLoadingFeedback] = React.useState(false);
+  const [feedbackStatusFilter, setFeedbackStatusFilter] = React.useState<string>("ALL");
+  const [feedbackTypeFilter, setFeedbackTypeFilter] = React.useState<string>("ALL");
+  const [feedbackSearchQuery, setFeedbackSearchQuery] = React.useState<string>("");
+  const [selectedFeedbackModal, setSelectedFeedbackModal] = React.useState<any | null>(null);
+  const [feedbackAdminNotesInput, setFeedbackAdminNotesInput] = React.useState<string>("");
+
+  const loadFeedback = React.useCallback(async () => {
+    setLoadingFeedback(true);
+    try {
+      const res = await fetch("/api/admin/feedback");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setFeedbackList(json.data);
+        }
+      }
+    } catch (e) {
+      console.warn("Feedback load error:", e);
+    } finally {
+      setLoadingFeedback(false);
+    }
+  }, []);
+
+  const updateFeedbackStatus = async (id: string, newStatus: string, notes?: string) => {
+    setFeedbackList((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              status: newStatus,
+              admin_notes: notes !== undefined ? notes : item.admin_notes,
+            }
+          : item
+      )
+    );
+    if (selectedFeedbackModal?.id === id) {
+      setSelectedFeedbackModal((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              status: newStatus,
+              admin_notes: notes !== undefined ? notes : prev.admin_notes,
+            }
+          : null
+      );
+    }
+    try {
+      await fetch("/api/admin/feedback", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, status: newStatus, adminNotes: notes }),
+      });
+      showNotice(`✅ შეტყობინების სტატუსი განახლდა: ${newStatus}`);
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა: ${err.message}`);
+    }
+  };
+
+  const deleteFeedback = async (id: string, senderName: string) => {
+    if (!confirm(`ნამდვილად გსურთ შეტყობინების წაშლა (${senderName})?`)) return;
+    setFeedbackList((prev) => prev.filter((item) => item.id !== id));
+    if (selectedFeedbackModal?.id === id) setSelectedFeedbackModal(null);
+    try {
+      await fetch(`/api/admin/feedback?id=${id}`, { method: "DELETE" });
+      showNotice(`🗑️ შეტყობინება წაიშალა`);
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა წაშლისას: ${err.message}`);
+    }
+  };
+
+  const unreadFeedbackCount = React.useMemo(() => {
+    return feedbackList.filter((f) => f.status === "NEW").length;
+  }, [feedbackList]);
+
+  const filteredFeedbackList = React.useMemo(() => {
+    return feedbackList.filter((item) => {
+      if (feedbackStatusFilter !== "ALL" && item.status !== feedbackStatusFilter) return false;
+      if (feedbackTypeFilter !== "ALL" && item.type !== feedbackTypeFilter) return false;
+      if (feedbackSearchQuery.trim()) {
+        const q = feedbackSearchQuery.toLowerCase().trim();
+        const matchName = (item.name || "").toLowerCase().includes(q);
+        const matchEmail = (item.email || "").toLowerCase().includes(q);
+        const matchPhone = (item.phone || "").toLowerCase().includes(q);
+        const matchSubject = (item.subject || "").toLowerCase().includes(q);
+        const matchMessage = (item.message || "").toLowerCase().includes(q);
+        if (!matchName && !matchEmail && !matchPhone && !matchSubject && !matchMessage) return false;
+      }
+      return true;
+    });
+  }, [feedbackList, feedbackStatusFilter, feedbackTypeFilter, feedbackSearchQuery]);
+
+  React.useEffect(() => {
+    loadFeedback();
+  }, [loadFeedback]);
+
   React.useEffect(() => {
     if (activeTab === "affiliate") loadAffiliates();
     if (activeTab === "audit") loadAuditLogs();
-  }, [activeTab, loadAffiliates, loadAuditLogs]);
+    if (activeTab === "feedback") loadFeedback();
+  }, [activeTab, loadAffiliates, loadAuditLogs, loadFeedback]);
 
   // CSV Export helper
-  const handleExport = (type: "listings" | "users" | "audit") => {
+  const handleExport = (type: "listings" | "users" | "audit" | "feedback") => {
+    if (type === "feedback") {
+      // Direct CSV generation for feedback
+      const headers = ["ID,Name,Email,Phone,Type,Subject,Message,Status,Created At"];
+      const rows = feedbackList.map((f) =>
+        `"${f.id}","${(f.name || "").replace(/"/g, '""')}","${f.email || ""}","${f.phone || ""}","${f.type || ""}","${(f.subject || "").replace(/"/g, '""')}","${(f.message || "").replace(/"/g, '""')}","${f.status || ""}","${f.created_at || ""}"`
+      );
+      const csvContent = "\uFEFF" + [headers, ...rows].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `plantsale_feedback_${new Date().toISOString().split("T")[0]}.csv`;
+      a.click();
+      showNotice("📥 ფიდბექის CSV ექსპორტი ჩამოიტვირთა!");
+      return;
+    }
     window.open(`/api/admin/export?type=${type}`, "_blank");
     showNotice(`📥 ${type} ექსპორტის ფაილის გადმოწერა დაიწყო...`);
   };
@@ -1290,9 +1516,16 @@ export default function AdminDashboardPage() {
             { id: "overview", label: "მიმოხილვა", visible: true },
             { id: "listings", label: "განცხადებები", count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
             { id: "users", label: "მომხმარებლები", count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { 
+              id: "feedback", 
+              label: "ფიდბექი & მესიჯები", 
+              count: unreadFeedbackCount > 0 ? `${unreadFeedbackCount} ახალი` : feedbackList.length,
+              isHighlight: unreadFeedbackCount > 0,
+              visible: true 
+            },
             { id: "plans", label: "ტარიფები", count: plans.length, visible: canManagePlans(currentUserRole, currentUser?.email) },
             { id: "analytics", label: "სტატისტიკა", visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { id: "audit", label: "აუდიტი", visible: canManageUsers(currentUserRole, currentUser?.email) },
+            { id: "audit", label: "აუდიტი", count: auditLogs.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
             { id: "affiliate", label: "Affiliate", count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
           ]
             .filter((tab) => tab.visible)
@@ -1311,7 +1544,11 @@ export default function AdminDashboardPage() {
                   <span>{tab.label}</span>
                   {tab.count !== undefined && (
                     <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                      isActive ? "bg-white/20 text-white" : "bg-secondary-container text-foreground"
+                      isActive 
+                        ? "bg-white/20 text-white" 
+                        : tab.isHighlight
+                        ? "bg-amber-500 text-white animate-pulse"
+                        : "bg-secondary-container text-foreground"
                     }`}>
                       {tab.count}
                     </span>
@@ -2177,6 +2414,426 @@ export default function AdminDashboardPage() {
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB: FEEDBACK & INQUIRIES MANAGEMENT                                 */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === "feedback" && (
+        <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5 text-amber-600" />
+                  <span>შეტყობინებები & მომხმარებელთა ფიდბექი</span>
+                </h2>
+                {unreadFeedbackCount > 0 && (
+                  <Badge className="bg-amber-500 text-white text-xs font-black border-none animate-pulse">
+                    {unreadFeedbackCount} ახალი შეტყობინება
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                მომხმარებლების მიერ საკონტაქტო ფორმიდან გამოგზავნილი კითხვები, იდეები, ხარვეზების რეპორტები და B2B შეთავაზებები
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleExport("feedback")}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+                title="CSV ექსპორტი"
+              >
+                <Download className="w-3.5 h-3.5 text-amber-600" />
+                CSV ექსპორტი
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => { loadFeedback(); showNotice("🔄 შეტყობინებები განახლდა!"); }}
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 text-primary ${loadingFeedback ? "animate-spin" : ""}`} />
+                განახლება
+              </Button>
+            </div>
+          </div>
+
+          {/* Filter Toolbar */}
+          <div className="space-y-3 bg-secondary-container/40 p-4 rounded-[20px] border border-border/60">
+            {/* Category Filter */}
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0">
+                კატეგორია:
+              </span>
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full">
+                {[
+                  { id: "ALL", label: "ყველა" },
+                  { id: "general", label: "💬 ზოგადი" },
+                  { id: "suggestion", label: "💡 იდეა & წინადადება" },
+                  { id: "bug", label: "⚠️ ხარვეზის რეპორტი" },
+                  { id: "partnership", label: "🤝 პარტნიორობა / B2B" },
+                ].map((cat) => {
+                  const isSelected = feedbackTypeFilter === cat.id;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => setFeedbackTypeFilter(cat.id)}
+                      className={`px-3 py-1.5 rounded-[10px] text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-amber-600 text-white shadow-xs"
+                          : "bg-background/90 text-muted-foreground hover:text-foreground hover:bg-background border border-border/60"
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Status Filter & Search */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-border/40">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0 mr-1">
+                  სტატუსი:
+                </span>
+                {[
+                  { id: "ALL", label: "ყველა" },
+                  { id: "NEW", label: "🟡 ახალი" },
+                  { id: "READ", label: "🔵 წაკითხული" },
+                  { id: "REPLIED", label: "🟢 პასუხგაცემული" },
+                ].map((st) => {
+                  const isSelected = feedbackStatusFilter === st.id;
+                  return (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => setFeedbackStatusFilter(st.id)}
+                      className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? "bg-primary text-white shadow-xs"
+                          : "bg-background/80 text-muted-foreground hover:text-foreground border border-border/50"
+                      }`}
+                    >
+                      {st.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="relative w-full sm:w-72">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={feedbackSearchQuery}
+                  onChange={(e) => setFeedbackSearchQuery(e.target.value)}
+                  placeholder="ძიება სახელით, მეილით, ტექსტით..."
+                  className="w-full h-8 pl-8 pr-7 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
+                />
+                {feedbackSearchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setFeedbackSearchQuery("")}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Feedback Messages List */}
+          <div className="space-y-3">
+            {loadingFeedback ? (
+              <div className="py-16 text-center text-muted-foreground text-xs">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
+                შეტყობინებები იტვირთება...
+              </div>
+            ) : filteredFeedbackList.length === 0 ? (
+              <div className="py-16 text-center text-muted-foreground text-xs space-y-2 border border-dashed border-border/80 rounded-[20px]">
+                <Inbox className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
+                <p className="font-bold">შეტყობინებები არ მოიძებნა</p>
+                <p className="text-[11px]">
+                  {feedbackSearchQuery || feedbackStatusFilter !== "ALL" || feedbackTypeFilter !== "ALL"
+                    ? "შერჩეული ფილტრებით შედეგი ცარიელია."
+                    : "საკონტაქტო ფორმიდან ჯერჯერობით არცერთი შეტყობინება არ შემოსულა."}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3">
+                {filteredFeedbackList.map((item) => {
+                  const dateObj = item.created_at ? new Date(item.created_at) : new Date();
+                  const dateFormatted = dateObj.toLocaleDateString("ka-GE", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  });
+                  const timeFormatted = dateObj.toLocaleTimeString("ka-GE", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+
+                  const isNew = item.status === "NEW";
+                  const isRead = item.status === "READ";
+                  const isReplied = item.status === "REPLIED";
+
+                  const typeLabelMap: Record<string, { label: string; color: string }> = {
+                    general: { label: "ზოგადი კითხვა", color: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200 border-blue-200" },
+                    suggestion: { label: "იდეა / წინადადება", color: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200 border-purple-200" },
+                    bug: { label: "ხარვეზის რეპორტი", color: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border-rose-200" },
+                    partnership: { label: "პარტნიორობა / B2B", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 border-emerald-200" },
+                  };
+
+                  const typeInfo = typeLabelMap[item.type] || { label: item.type || "შეტყობინება", color: "bg-slate-100 text-slate-800 border-slate-200" };
+
+                  return (
+                    <div
+                      key={item.id}
+                      className={`p-4 sm:p-5 rounded-[18px] border transition-all duration-200 ${
+                        isNew
+                          ? "bg-amber-500/5 border-amber-500/30 shadow-2xs"
+                          : "bg-card border-border/80 hover:border-border"
+                      }`}
+                    >
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-border/40">
+                        {/* Sender Info */}
+                        <div className="flex items-start gap-3 min-w-0">
+                          <div className="h-9 w-9 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-500/20">
+                            {(item.name || "U").charAt(0).toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="text-xs sm:text-sm font-black text-foreground truncate">
+                                {item.name}
+                              </h4>
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${typeInfo.color}`}>
+                                {typeInfo.label}
+                              </span>
+                              {isNew && (
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white">
+                                  NEW
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5 flex-wrap">
+                              <a
+                                href={`mailto:${item.email}`}
+                                className="flex items-center gap-1 hover:text-primary transition-colors font-medium"
+                              >
+                                <Mail className="w-3 h-3 text-muted-foreground" />
+                                <span>{item.email}</span>
+                              </a>
+                              {item.phone && (
+                                <a
+                                  href={`tel:${item.phone}`}
+                                  className="flex items-center gap-1 hover:text-primary transition-colors font-medium"
+                                >
+                                  <Phone className="w-3 h-3 text-muted-foreground" />
+                                  <span>{item.phone}</span>
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Date & Quick Action Dropdown */}
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                          <div className="text-right text-[10px] text-muted-foreground mr-1">
+                            <div>{timeFormatted}</div>
+                            <div>{dateFormatted}</div>
+                          </div>
+
+                          <select
+                            value={item.status || "NEW"}
+                            onChange={(e) => updateFeedbackStatus(item.id, e.target.value)}
+                            className="py-1 px-2 rounded-[8px] border border-border/80 bg-background text-foreground text-[10px] font-bold focus:outline-none cursor-pointer"
+                          >
+                            <option value="NEW">🟡 ახალი</option>
+                            <option value="READ">🔵 წაკითხული</option>
+                            <option value="REPLIED">🟢 პასუხგაცემული</option>
+                          </select>
+
+                          <a
+                            href={`mailto:${item.email}?subject=Re: ${encodeURIComponent(item.subject || "Plant.ge")}&body=${encodeURIComponent(`\n\n--- თქვენი წერილი ---\n${item.message}`)}`}
+                            className="p-1.5 rounded-[8px] bg-primary/10 hover:bg-primary text-primary hover:text-white transition-colors cursor-pointer"
+                            title="მეილით პასუხის გაცემა"
+                          >
+                            <Reply className="w-3.5 h-3.5" />
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedFeedbackModal(item);
+                              setFeedbackAdminNotesInput(item.admin_notes || "");
+                            }}
+                            className="p-1.5 rounded-[8px] bg-surface-container hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                            title="სრული დეტალები"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => deleteFeedback(item.id, item.name)}
+                            className="p-1.5 rounded-[8px] hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+                            title="წაშლა"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Subject & Message Body */}
+                      <div className="pt-3 space-y-1.5">
+                        {item.subject && (
+                          <h5 className="text-xs font-bold text-foreground">
+                            თემა: {item.subject}
+                          </h5>
+                        )}
+                        <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                          {item.message}
+                        </p>
+                      </div>
+
+                      {/* Admin Notes Preview if available */}
+                      {item.admin_notes && (
+                        <div className="mt-3 pt-2 border-t border-border/40 text-[11px] text-amber-800 dark:text-amber-300 bg-amber-500/10 p-2 rounded-[10px] flex items-start gap-1.5">
+                          <span className="font-bold shrink-0">📝 ადმინის ჩანაწერი:</span>
+                          <span>{item.admin_notes}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Details & Notes Modal */}
+      {selectedFeedbackModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-card border border-border/80 rounded-[24px] max-w-xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-amber-600" />
+                <div>
+                  <h3 className="text-sm font-black text-foreground">
+                    შეტყობინების დეტალები
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    გამომგზავნი: {selectedFeedbackModal.name} ({selectedFeedbackModal.email})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedFeedbackModal(null)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 overflow-y-auto flex-1 p-1 text-xs">
+              <div className="grid grid-cols-2 gap-2 bg-surface-container/40 p-3 rounded-[12px] border border-border/60">
+                <div>
+                  <span className="text-[10px] text-muted-foreground font-bold block">კატეგორია</span>
+                  <span className="font-bold text-foreground capitalize">{selectedFeedbackModal.type}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground font-bold block">სტატუსი</span>
+                  <span className="font-bold text-foreground">{selectedFeedbackModal.status}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground font-bold block">ტელეფონი</span>
+                  <span className="font-bold text-foreground">{selectedFeedbackModal.phone || "არ არის"}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground font-bold block">გაგზავნის დრო</span>
+                  <span className="font-bold text-foreground">
+                    {new Date(selectedFeedbackModal.created_at).toLocaleString("ka-GE")}
+                  </span>
+                </div>
+              </div>
+
+              {selectedFeedbackModal.subject && (
+                <div className="space-y-1">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">სათაური / თემა</span>
+                  <p className="font-bold text-foreground p-2.5 rounded-[10px] bg-secondary-container/30 border border-border/50">
+                    {selectedFeedbackModal.subject}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase">შეტყობინების ტექსტი</span>
+                <p className="text-foreground p-3 rounded-[12px] bg-secondary-container/30 border border-border/50 leading-relaxed whitespace-pre-wrap">
+                  {selectedFeedbackModal.message}
+                </p>
+              </div>
+
+              {/* Admin Internal Notes Input */}
+              <div className="space-y-1.5 pt-2">
+                <span className="text-[10px] font-bold text-foreground uppercase flex items-center gap-1">
+                  <span>📝 შიდა ადმინ ჩანაწერი</span>
+                  <span className="text-muted-foreground font-normal">(მხოლოდ ადმინებისთვის)</span>
+                </span>
+                <textarea
+                  rows={3}
+                  value={feedbackAdminNotesInput}
+                  onChange={(e) => setFeedbackAdminNotesInput(e.target.value)}
+                  placeholder="მაგ: დავუკავშირდით ტელეფონით, შევთავაზეთ Pro Shop პაკეტი..."
+                  className="w-full p-2.5 rounded-[12px] border border-border/80 bg-background text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/60">
+              <a
+                href={`mailto:${selectedFeedbackModal.email}?subject=Re: ${encodeURIComponent(selectedFeedbackModal.subject || "Plant.ge")}&body=${encodeURIComponent(`\n\n--- თქვენი წერილი ---\n${selectedFeedbackModal.message}`)}`}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
+              >
+                <Reply className="w-3.5 h-3.5" />
+                <span>მეილით პასუხი</span>
+              </a>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedFeedbackModal(null)}
+                  className="rounded-[10px] text-xs"
+                >
+                  დახურვა
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    updateFeedbackStatus(selectedFeedbackModal.id, selectedFeedbackModal.status, feedbackAdminNotesInput);
+                    setSelectedFeedbackModal(null);
+                  }}
+                  className="rounded-[10px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold"
+                >
+                  შენახვა
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* TAB 4: AFFILIATE CROSS-SELLING & LIVE URL SCRAPER                    */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "affiliate" && (
@@ -2674,19 +3331,109 @@ export default function AdminDashboardPage() {
                           </div>
                         </td>
 
-                        {/* Quick Change Summary */}
-                        <td className="py-3 px-3 text-muted-foreground font-mono text-[11px] max-w-xs truncate">
-                          {log.new_data ? (
-                            <span className="text-foreground">
-                              {JSON.stringify(log.new_data)}
-                            </span>
-                          ) : log.old_data ? (
-                            <span className="text-destructive line-through">
-                              {JSON.stringify(log.old_data)}
-                            </span>
-                          ) : (
-                            <span className="text-muted-foreground">მოქმედება შესრულდა</span>
-                          )}
+                        {/* Enhanced Human-Readable Change Summary & Target Object */}
+                        <td className="py-3 px-3">
+                          <div className="space-y-1">
+                            {/* Target User / Item Header */}
+                            {(() => {
+                              const targetName = log.new_data?.targetName || log.old_data?.targetName || log.new_data?.userName || log.old_data?.userName;
+                              const targetEmail = log.new_data?.targetEmail || log.old_data?.targetEmail || log.new_data?.userEmail || log.old_data?.userEmail;
+                              const targetTitle = log.new_data?.listingTitle || log.old_data?.listingTitle || log.old_data?.title;
+                              const sellerName = log.new_data?.sellerName || log.old_data?.sellerName;
+
+                              if (targetName || targetEmail) {
+                                return (
+                                  <div className="flex items-center gap-1.5 font-bold text-foreground">
+                                    <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                                    <span className="truncate max-w-[180px]">{targetName || "მომხმარებელი"}</span>
+                                    {targetEmail && (
+                                      <span className="text-[10px] text-muted-foreground font-normal truncate max-w-[140px]">({targetEmail})</span>
+                                    )}
+                                  </div>
+                                );
+                              } else if (targetTitle) {
+                                return (
+                                  <div className="flex items-center gap-1.5 font-bold text-foreground">
+                                    <Sprout className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                                    <span className="truncate max-w-[180px]">„{targetTitle}“</span>
+                                    {sellerName && (
+                                      <span className="text-[10px] text-muted-foreground font-normal">({sellerName})</span>
+                                    )}
+                                  </div>
+                                );
+                              } else if (log.target_type === "PLAN") {
+                                return (
+                                  <div className="flex items-center gap-1.5 font-bold text-foreground">
+                                    <Crown className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                                    <span>{log.new_data?.nameKa || log.old_data?.nameKa || log.new_data?.tier || "ტარიფი"}</span>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
+
+                            {/* Human-Readable Change Summary Pill */}
+                            <div>
+                              {(() => {
+                                if (log.new_data?.changeSummary) {
+                                  return (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-container text-foreground font-bold text-[10px]">
+                                      {log.new_data.changeSummary}
+                                    </span>
+                                  );
+                                }
+                                if (log.old_data?.changeSummary) {
+                                  return (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-container text-foreground font-bold text-[10px]">
+                                      {log.old_data.changeSummary}
+                                    </span>
+                                  );
+                                }
+                                if (log.action === "UPDATE_SUBSCRIPTION_TIER") {
+                                  const oldT = log.old_data?.tier || "FREE";
+                                  const newT = log.new_data?.tier || log.new_data?.newTier || "TIER";
+                                  return (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200 font-bold text-[10px]">
+                                      ტარიფი: {oldT} → {newT}
+                                    </span>
+                                  );
+                                }
+                                if (log.action === "CHANGE_USER_ROLE") {
+                                  const oldR = log.old_data?.role || "USER";
+                                  const newR = log.new_data?.role || log.new_data?.newRole || "ROLE";
+                                  return (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200 font-bold text-[10px]">
+                                      როლი: {oldR} → {newR}
+                                    </span>
+                                  );
+                                }
+                                if (log.action === "UPDATE_LISTING_STATUS") {
+                                  const st = log.new_data?.status || "STATUS";
+                                  return (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 font-bold text-[10px]">
+                                      სტატუსი: {st}
+                                    </span>
+                                  );
+                                }
+                                if (log.action === "UPDATE_CUSTOM_SLUG") {
+                                  const sl = log.new_data?.customSlug || "არ არის";
+                                  return (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 font-bold text-[10px]">
+                                      Slug: /{sl}
+                                    </span>
+                                  );
+                                }
+                                if (log.new_data) {
+                                  return (
+                                    <span className="text-muted-foreground font-mono text-[10px] truncate max-w-xs block">
+                                      {JSON.stringify(log.new_data)}
+                                    </span>
+                                  );
+                                }
+                                return <span className="text-muted-foreground text-[10px]">მოქმედება შესრულდა</span>;
+                              })()}
+                            </div>
+                          </div>
                         </td>
 
                         {/* Diff / JSON Modal Trigger */}
