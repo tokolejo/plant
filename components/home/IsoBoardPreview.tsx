@@ -122,7 +122,7 @@ export function IsoBoardPreview() {
                 <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </Link>
-            <Link href="/dashboard/iso/new">
+            <Link href="/dashboard/listings/new?trans=TRADE">
               <Button className="gap-1.5 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-black h-9 sm:h-10 px-4 shadow-ambient cursor-pointer">
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>{isKa ? "+ მოთხოვნა" : "+ Post Request"}</span>
