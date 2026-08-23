@@ -152,7 +152,28 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 4. Google Maps Geocoding API (if Google Key is provided)
+    // 4. Yandex Maps Geocoder API (1,000 free requests/day)
+    const yandexKey = process.env.YANDEX_MAPS_API_KEY || process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
+    if (yandexKey && (!detectedStreet || !houseNumber)) {
+      try {
+        const yRes = await fetch(
+          `https://geocode-maps.yandex.ru/1.x/?apikey=${yandexKey}&geocode=${lng},${lat}&format=json&lang=ka_GE`
+        );
+        const yData = await yRes.json();
+        const member = yData.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
+        if (member) {
+          const meta = member.metaDataProperty?.GeocoderMetaData?.AddressDetails?.Country;
+          const locality = meta?.AdministrativeArea?.Locality;
+          const thoroughfare = locality?.Thoroughfare;
+          if (thoroughfare?.ThoroughfareName) detectedStreet = thoroughfare.ThoroughfareName;
+          if (thoroughfare?.Premise?.PremiseNumber) houseNumber = thoroughfare.Premise.PremiseNumber;
+        }
+      } catch (err) {
+        console.error("Yandex Geocode error:", err);
+      }
+    }
+
+    // 5. Google Maps Geocoding API (if Google Key is provided)
     const googleKey = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
     if (googleKey && (!detectedStreet || !houseNumber)) {
       try {
@@ -173,7 +194,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 5. OpenStreetMap / Nominatim (Free, no key required)
+    // 6. OpenStreetMap / Nominatim (Free, no key required)
     if (!detectedStreet) {
       try {
         const osmRes = await fetch(
@@ -201,7 +222,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Photon Reverse Geocoding for nearest building number
+    // 7. Photon Reverse Geocoding for nearest building number
     if (!houseNumber) {
       try {
         const photonRes = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
@@ -221,7 +242,7 @@ export async function POST(req: NextRequest) {
     // Construct clean street and full address string
     let streetAddress = "";
     if (detectedStreet) {
-      streetAddress = houseNumber ? `${detectedStreet} №${houseNumber}` : `${detectedStreet} №`;
+      streetAddress = houseNumber ? `${detectedStreet} №${houseNumber}` : detectedStreet;
     }
 
     let formattedAddress = "";
