@@ -97,24 +97,12 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   }, [allListings, activeTab]);
 
   return (
-    <section className="py-8 sm:py-12">
+    <section className="pt-4 sm:pt-6 pb-8 sm:pb-10">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
-        
-        {/* 🌟 1. Clean, Modern Header */}
-        <div className="text-center max-w-2xl mx-auto space-y-1.5 mb-6">
-          <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-foreground text-center">
-            {isKa ? "ახალი შეთავაზებები" : "Fresh Listings"}
-          </h2>
-          <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-            {isKa 
-              ? "რჩეული და უახლესი მცენარეები სანდო მებაღეებისგან" 
-              : "Featured & latest plants from trusted growers"}
-          </p>
-        </div>
 
-        {/* 🏷️ 2. Tabs Row + High-Visibility Desktop Slider Navigation Arrows */}
-        <div className="flex items-center justify-between gap-2 mb-5">
-          <div className="flex-1 flex items-center justify-start sm:justify-center gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+        {/* 🏷️ 1. Tabs Row + High-Visibility Desktop Slider Navigation Arrows */}
+        <div className="flex items-center justify-between gap-2 mb-4 sm:mb-5">
+          <div className="flex-1 flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
             {[
               { id: "ALL", labelKa: "ყველა", labelEn: "All" },
               { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
@@ -127,7 +115,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  className={`px-3.5 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                     isActive
                       ? "bg-primary text-white shadow-ambient scale-[1.02]"
                       : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
@@ -146,25 +134,25 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
               onClick={() => scrollSlider("left")}
               disabled={!canScrollLeft}
               aria-label={isKa ? "წინა" : "Previous"}
-              className="h-10 w-10 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               title={isKa ? "წინა" : "Previous"}
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               type="button"
               onClick={() => scrollSlider("right")}
               disabled={!canScrollRight}
               aria-label={isKa ? "შემდეგი" : "Next"}
-              className="h-10 w-10 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
               title={isKa ? "შემდეგი" : "Next"}
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
 
-        {/* 📱 3. Horizontal Touch-Swipeable Slider */}
+        {/* 📱 2. Horizontal Touch-Swipeable Slider */}
         {filtered.length > 0 ? (
           <div
             ref={sliderRef}
@@ -187,8 +175,8 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
           </div>
         )}
 
-        {/* 🔗 4. Compact & Refined View All Button */}
-        <div className="flex justify-center items-center mt-6">
+        {/* 🔗 3. Compact & Refined View All Button */}
+        <div className="flex justify-center items-center mt-5">
           <Link href="/listings">
             <Button
               className="rounded-[14px] sm:rounded-[18px] px-5 sm:px-6 h-9 sm:h-10 text-xs sm:text-sm font-bold bg-primary hover:bg-primary-container text-white shadow-ambient gap-1.5 hover:scale-[1.02] transition-all cursor-pointer"
