@@ -142,11 +142,18 @@ export function ListingCard({
           <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 z-10">
             {isVip && (
               <span className="backdrop-blur-md bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[8px] shadow-sm">
-                ⭐ VIP
+                VIP
               </span>
             )}
-            <span className="backdrop-blur-md bg-background/90 text-foreground text-[10px] font-bold px-2 py-0.5 rounded-[8px] border border-border/40">
-              {itemType === "PLANT" ? (isKa ? "🌱 მცენარე" : "🌱 Plant") : (isKa ? "🪴 ინვენტარი" : "🪴 Care & Pot")}
+            <span className="backdrop-blur-md bg-background/90 text-foreground text-[10px] font-bold px-2 py-0.5 rounded-[8px] border border-border/40 flex items-center gap-1">
+              {itemType === "PLANT" ? (
+                <>
+                  <Sprout className="w-3 h-3 text-primary" />
+                  <span>{isKa ? "მცენარე" : "Plant"}</span>
+                </>
+              ) : (
+                <span>{isKa ? "ინვენტარი" : "Care & Pot"}</span>
+              )}
             </span>
           </div>
 
@@ -224,7 +231,7 @@ export function ListingCard({
             <div className="flex flex-wrap gap-1.5 mb-2">
               {deliveryMethods?.includes("PICKUP") && (
                 <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-slate-700 dark:text-slate-200 font-semibold border border-border/40">
-                  {isKa ? "📍 ადგილზე" : "📍 Pickup"}
+                  {isKa ? "ადგილზე" : "Pickup"}
                 </span>
               )}
               {deliveryMethods?.includes("COURIER") && (
@@ -234,7 +241,7 @@ export function ListingCard({
               )}
               {deliveryMethods?.includes("MARSHRUTKA") && (
                 <span className="text-[11px] px-2 py-0.5 rounded-[6px] bg-surface-container text-slate-700 dark:text-slate-200 font-semibold border border-border/40">
-                  {isKa ? "🚐 სამარშრუტო" : "🚐 Intercity"}
+                  {isKa ? "სამარშრუტო" : "Intercity"}
                 </span>
               )}
             </div>
@@ -256,14 +263,15 @@ export function ListingCard({
               <span className="truncate text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
                 {seller.fullName}
                 {(seller.role === "VERIFIED_SELLER" || seller.role === "ADMIN" || seller.role === "SUPER_ADMIN" || seller.isVerified || seller.badges?.includes("VERIFIED")) && (
-                  <span title="ვერიფიცირებული გამყიდველი" className="text-emerald-600 dark:text-emerald-400 text-[11px]">
-                    🌿
+                  <span title="ვერიფიცირებული გამყიდველი" className="text-emerald-600 dark:text-emerald-400">
+                    <ShieldCheck className="w-3.5 h-3.5" />
                   </span>
                 )}
               </span>
               {seller.rating && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black flex items-center gap-0.5">
-                  ★ {seller.rating.toFixed(1)}
+                  <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                  <span>{seller.rating.toFixed(1)}</span>
                 </span>
               )}
             </Link>
@@ -302,13 +310,15 @@ export function ListingCard({
         <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
           {isVip && (
             <span className="backdrop-blur-md bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-[10px] px-2 py-0.5 rounded-[7px] shadow-sm flex items-center gap-0.5">
-              ⭐ VIP
+              VIP
             </span>
           )}
 
-          <span className="backdrop-blur-md bg-background/90 text-foreground border border-border/40 text-[10px] font-bold px-1.5 py-0.5 rounded-[7px]">
-            {itemType === "PLANT" ? "🌱" : "🪴"}
-          </span>
+          {itemType === "PLANT" && (
+            <span className="backdrop-blur-md bg-background/90 text-primary border border-border/40 text-[10px] font-bold p-1 rounded-[7px] flex items-center justify-center">
+              <Sprout className="w-3 h-3" />
+            </span>
+          )}
         </div>
 
         {/* Wishlist Heart Button Top Right */}
@@ -327,8 +337,9 @@ export function ListingCard({
 
         {/* Distance Badge on bottom left of photo */}
         {distLabel && (
-          <div className="absolute bottom-2 left-2 z-10 rounded-[6px] bg-black/70 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white flex items-center gap-0.5">
-            📍 {distLabel}
+          <div className="absolute bottom-2 left-2 z-10 rounded-[6px] bg-black/70 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white flex items-center gap-1">
+            <MapPin className="w-2.5 h-2.5 text-primary" />
+            <span>{distLabel}</span>
           </div>
         )}
 
@@ -409,8 +420,9 @@ export function ListingCard({
           </Link>
 
           {seller.rating ? (
-            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black shrink-0">
-              ★ {seller.rating.toFixed(1)}
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black shrink-0 flex items-center gap-0.5">
+              <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+              <span>{seller.rating.toFixed(1)}</span>
             </span>
           ) : null}
         </div>

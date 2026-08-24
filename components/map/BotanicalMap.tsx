@@ -50,12 +50,12 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Leaf,
     color: "text-emerald-700 dark:text-emerald-400",
     children: [
-      { id: "monstera", labelKa: "მონსტერა", labelEn: "Monstera", emoji: "🌿" },
-      { id: "philodendron", labelKa: "ფილოდენდრონი", labelEn: "Philodendron", emoji: "🌱" },
-      { id: "anthurium", labelKa: "ანთურიუმი", labelEn: "Anthurium", emoji: "🌺" },
-      { id: "alocasia", labelKa: "ალოკაზია", labelEn: "Alocasia", emoji: "🍃" },
-      { id: "calathea", labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta", emoji: "🌿" },
-      { id: "pothos-scindapsus", labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus", emoji: "🌾" },
+      { id: "monstera", labelKa: "მონსტერა", labelEn: "Monstera", emoji: "" },
+      { id: "philodendron", labelKa: "ფილოდენდრონი", labelEn: "Philodendron", emoji: "" },
+      { id: "anthurium", labelKa: "ანთურიუმი", labelEn: "Anthurium", emoji: "" },
+      { id: "alocasia", labelKa: "ალოკაზია", labelEn: "Alocasia", emoji: "" },
+      { id: "calathea", labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta", emoji: "" },
+      { id: "pothos-scindapsus", labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus", emoji: "" },
     ],
   },
   {
@@ -65,8 +65,8 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Flower2,
     color: "text-rose-700 dark:text-rose-400",
     children: [
-      { id: "orchid", labelKa: "ორქიდეა", labelEn: "Orchid", emoji: "🌸" },
-      { id: "bromeliad", labelKa: "ბრომელია", labelEn: "Bromeliad", emoji: "🌺" },
+      { id: "orchid", labelKa: "ორქიდეა", labelEn: "Orchid", emoji: "" },
+      { id: "bromeliad", labelKa: "ბრომელია", labelEn: "Bromeliad", emoji: "" },
     ],
   },
   {
@@ -76,10 +76,10 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: TreeDeciduous,
     color: "text-teal-700 dark:text-teal-400",
     children: [
-      { id: "ficus", labelKa: "ფიკუსი", labelEn: "Ficus", emoji: "🌳" },
-      { id: "palm", labelKa: "პალმა", labelEn: "Palm", emoji: "🌴" },
-      { id: "fern", labelKa: "გვიმრა", labelEn: "Fern", emoji: "🌿" },
-      { id: "outdoor-garden", labelKa: "ბაღის & ეზოს მცენარეები", labelEn: "Outdoor & Garden", emoji: "🌻" },
+      { id: "ficus", labelKa: "ფიკუსი", labelEn: "Ficus", emoji: "" },
+      { id: "palm", labelKa: "პალმა", labelEn: "Palm", emoji: "" },
+      { id: "fern", labelKa: "გვიმრა", labelEn: "Fern", emoji: "" },
+      { id: "outdoor-garden", labelKa: "ბაღის & ეზოს მცენარეები", labelEn: "Outdoor & Garden", emoji: "" },
     ],
   },
   {
@@ -89,9 +89,9 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Sprout,
     color: "text-amber-700 dark:text-amber-400",
     children: [
-      { id: "cactus-succulent", labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulent", emoji: "🌵" },
-      { id: "rare-variegated", labelKa: "იშვიათი & ვარიეგატული", labelEn: "Rare & Variegated", emoji: "✨" },
-      { id: "cutting", labelKa: "კალმები & ფესვიანები", labelEn: "Cuttings & Rooted", emoji: "✂️" },
+      { id: "cactus-succulent", labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulent", emoji: "" },
+      { id: "rare-variegated", labelKa: "იშვიათი & ვარიეგატული", labelEn: "Rare & Variegated", emoji: "" },
+      { id: "cutting", labelKa: "კალმები & ფესვიანები", labelEn: "Cuttings & Rooted", emoji: "" },
     ],
   },
   {
@@ -101,12 +101,12 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Layers,
     color: "text-slate-800 dark:text-slate-200",
     children: [
-      { id: "pots-ceramic", labelKa: "კერამიკული ქოთნები", labelEn: "Ceramic Pots", emoji: "🏺" },
-      { id: "pots-plastic", labelKa: "პლასტიკური ქოთნები", labelEn: "Plastic Pots", emoji: "🪣" },
-      { id: "substrate-soil", labelKa: "სუბსტრატი & გრუნტი", labelEn: "Substrate & Soil", emoji: "🌍" },
-      { id: "fertilizer", labelKa: "სასუქები & ვიტამინები", labelEn: "Fertilizer & Care", emoji: "🧪" },
-      { id: "tools-care", labelKa: "მოვლის ხელსაწყოები", labelEn: "Care Tools", emoji: "🔧" },
-      { id: "lighting-grow", labelKa: "განათება (Grow Light)", labelEn: "Grow Light", emoji: "💡" },
+      { id: "pots-ceramic", labelKa: "კერამიკული ქოთნები", labelEn: "Ceramic Pots", emoji: "" },
+      { id: "pots-plastic", labelKa: "პლასტიკური ქოთნები", labelEn: "Plastic Pots", emoji: "" },
+      { id: "substrate-soil", labelKa: "სუბსტრატი & გრუნტი", labelEn: "Substrate & Soil", emoji: "" },
+      { id: "fertilizer", labelKa: "სასუქები & ვიტამინები", labelEn: "Fertilizer & Care", emoji: "" },
+      { id: "tools-care", labelKa: "მოვლის ხელსაწყოები", labelEn: "Care Tools", emoji: "" },
+      { id: "lighting-grow", labelKa: "განათება (Grow Light)", labelEn: "Grow Light", emoji: "" },
     ],
   },
 ];
@@ -600,7 +600,7 @@ export default function BotanicalMap() {
             {gpsLoading 
               ? (isKa ? "ვეძებ..." : "Locating...") 
               : userCoords 
-                ? (isKa ? "ჩემი ლოკაცია 📍" : "My Location 📍") 
+                ? (isKa ? "ჩემი ლოკაცია" : "My Location") 
                 : (isKa ? "ჩემი ლოკაცია" : "My Location")}
           </span>
         </Button>
@@ -847,7 +847,6 @@ export default function BotanicalMap() {
                                 }`}
                               >
                                 <span className="flex items-center gap-1.5 pr-2">
-                                  <span className="text-sm shrink-0">{cat.emoji}</span>
                                   <span className="break-words">{catLabel}</span>
                                 </span>
                                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ml-auto ${

@@ -12,7 +12,8 @@ import {
   XCircle, 
   RotateCcw,
   Sparkles,
-  ShieldCheck
+  ShieldCheck,
+  Sprout
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
@@ -156,7 +157,9 @@ export function InChatOfferCard({
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">🌱</div>
+                  <div className="w-full h-full flex items-center justify-center text-primary/60">
+                    <Sprout className="w-4 h-4" />
+                  </div>
                 )}
               </div>
               <p className="text-xs font-bold text-foreground truncate">
@@ -181,7 +184,9 @@ export function InChatOfferCard({
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">🌿</div>
+                  <div className="w-full h-full flex items-center justify-center text-primary/60">
+                    <Sprout className="w-4 h-4" />
+                  </div>
                 )}
               </div>
               <p className="text-xs font-bold text-foreground truncate">
@@ -204,7 +209,9 @@ export function InChatOfferCard({
                     className="object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-xs">🌿</div>
+                  <div className="w-full h-full flex items-center justify-center text-primary/60">
+                    <Sprout className="w-4 h-4" />
+                  </div>
                 )}
               </div>
               <div>
@@ -229,7 +236,7 @@ export function InChatOfferCard({
         {/* Cash difference info if any */}
         {offer.cash_difference && offer.cash_difference !== 0 ? (
           <div className="rounded-[10px] bg-secondary-container/60 px-3 py-1.5 text-center text-xs font-bold text-foreground">
-            💰 თანხის დამატება: <strong className="text-primary">{formatPrice(offer.cash_difference)}</strong>
+            თანხის დამატება: <strong className="text-primary">{formatPrice(offer.cash_difference)}</strong>
           </div>
         ) : null}
 

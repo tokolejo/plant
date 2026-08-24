@@ -74,22 +74,22 @@ export function ServiceBookingModal({
         : isKa ? "ნებისმიერი დრო" : "Any time";
 
     const msg = isKa
-      ? `👋 გამარჯობა! მსურს სერვისის დაჯავშნა Plant.ge-დან:
-📌 *სერვისი:* ${service.title}
-👤 *დამკვეთი:* ${name}
-📞 *ტელეფონი:* ${phone}
-📍 *მისამართი:* ${address}
-📅 *სასურველი თარიღი:* ${preferredDate || "უახლოეს დღეებში"} (${timeSlotLabel})
-📐 *მოცულობა / რაოდენობა:* ${quantity} ${service.price_unit}
-💰 *სავარაუდო ჯამი:* ~${estimatedTotal} ₾
-📝 *კომენტარი:* ${comment || "არ არის"}`
-      : `👋 Hello! I would like to book a service from Plant.ge:
-📌 Service: ${service.title}
-👤 Client: ${name}
-📞 Phone: ${phone}
-📍 Address: ${address}
-📅 Preferred Date: ${preferredDate || "Soonest"} (${timeSlotLabel})
-💰 Estimated Total: ~${estimatedTotal} GEL`;
+      ? `გამარჯობა! მსურს სერვისის დაჯავშნა Plant.ge-დან:
+*სერვისი:* ${service.title}
+*დამკვეთი:* ${name}
+*ტელეფონი:* ${phone}
+*მისამართი:* ${address}
+*სასურველი თარიღი:* ${preferredDate || "უახლოეს დღეებში"} (${timeSlotLabel})
+*მოცულობა / რაოდენობა:* ${quantity} ${service.price_unit}
+*სავარაუდო ჯამი:* ~${estimatedTotal} ₾
+*კომენტარი:* ${comment || "არ არის"}`
+      : `Hello! I would like to book a service from Plant.ge:
+*Service:* ${service.title}
+*Client:* ${name}
+*Phone:* ${phone}
+*Address:* ${address}
+*Preferred Date:* ${preferredDate || "Soonest"} (${timeSlotLabel})
+*Estimated Total:* ~${estimatedTotal} GEL`;
 
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
   };

@@ -218,7 +218,7 @@ export function Header() {
                       {profile?.full_name || user.email?.split("@")[0]}
                     </span>
                     <span className={`text-[9px] font-bold ${isAdmin ? "text-purple-500" : tierColors[userTier]}`}>
-                      {isAdmin ? "⭐ ADMIN" : tierLabels[userTier] || "Free"}
+                      {isAdmin ? "ADMIN" : tierLabels[userTier] || "Free"}
                     </span>
                   </div>
                   <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 text-muted-foreground transition-transform duration-200 hidden sm:block ${dropdownOpen ? "rotate-180" : ""}`} />

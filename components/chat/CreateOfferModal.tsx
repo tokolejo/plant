@@ -229,7 +229,9 @@ export function CreateOfferModal({
                           {l.images?.[0] ? (
                             <Image src={l.images[0]} alt="plant" fill className="object-cover" />
                           ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xs">🌱</div>
+                            <div className="w-full h-full flex items-center justify-center text-primary/60">
+                              <Sprout className="w-4 h-4" />
+                            </div>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">

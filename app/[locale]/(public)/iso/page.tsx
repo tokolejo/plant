@@ -679,7 +679,6 @@ function IsoCatalogContent() {
                           }`}
                         >
                           <span className="flex items-center gap-2 pr-2">
-                            <span className="text-base shrink-0">{cat.emoji}</span>
                             <span className="break-words">{catLabel}</span>
                           </span>
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-auto ${

@@ -11,7 +11,8 @@ import {
   ChevronLeft,
   ChevronRight,
   PlusCircle,
-  Sprout
+  Sprout,
+  Gift
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -202,7 +203,7 @@ export function IsoBoardPreview() {
                       <div className="flex items-center justify-between gap-1.5 flex-wrap">
                         {isGift ? (
                           <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-extrabold shadow-2xs">
-                            <span>🎁</span>
+                            <Gift className="w-3 h-3 text-amber-700 dark:text-amber-400" />
                             <span>{isKa ? "საჩუქარი" : "Giveaway"}</span>
                           </span>
                         ) : (

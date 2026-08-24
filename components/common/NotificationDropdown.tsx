@@ -135,8 +135,9 @@ export function NotificationDropdown() {
           {/* List */}
           <div className="max-h-80 overflow-y-auto divide-y divide-border/40 p-1">
             {notifications.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-xs font-medium">
-                📭 შეტყობინებები არ არის
+              <div className="py-8 text-center text-muted-foreground text-xs font-medium flex flex-col items-center justify-center gap-1.5">
+                <Bell className="w-5 h-5 text-muted-foreground/50 mb-1" />
+                <span>შეტყობინებები არ არის</span>
               </div>
             ) : (
               notifications.map((n) => (

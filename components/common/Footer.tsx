@@ -106,17 +106,17 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/listings?trans=TRADE" className="hover:text-primary transition-colors font-semibold text-emerald-600 dark:text-emerald-400">
-                  {isKa ? "🔄 მცენარის გაცვლა" : "🔄 Plant Swap"}
+                  {isKa ? "მცენარის გაცვლა" : "Plant Swap"}
                 </Link>
               </li>
               <li>
                 <Link href="/iso" className="hover:text-primary transition-colors">
-                  {isKa ? "🔍 ეძებ მცენარეს (ISO)" : "🔍 In Search Of"}
+                  {isKa ? "ვეძებ მცენარეს (ISO)" : "In Search Of"}
                 </Link>
               </li>
               <li>
                 <Link href="/map" className="hover:text-primary transition-colors">
-                  {isKa ? "📍 ბოტანიკური რუკა" : "📍 Botanical Map"}
+                  {isKa ? "ბოტანიკური რუკა" : "Botanical Map"}
                 </Link>
               </li>
             </ul>
@@ -130,27 +130,27 @@ export function Footer() {
             <ul className="space-y-1.5 sm:space-y-2 text-xs text-muted-foreground font-medium">
               <li>
                 <Link href="/services" className="hover:text-primary transition-colors font-semibold text-primary">
-                  {isKa ? "🛠️ ყველა სერვისი" : "🛠️ All Services"}
+                  {isKa ? "ყველა სერვისი" : "All Services"}
                 </Link>
               </li>
               <li>
                 <Link href="/plant-doctor" className="hover:text-primary transition-colors">
-                  {isKa ? "🩺 AI მცენარეთა ექიმი" : "🩺 AI Plant Doctor"}
+                  {isKa ? "AI მცენარეთა ექიმი" : "AI Plant Doctor"}
                 </Link>
               </li>
               <li>
                 <Link href="/dashboard/greenhouse" className="hover:text-primary transition-colors">
-                  {isKa ? "🌿 ჩემი ორანჟერეა" : "🌿 My Greenhouse"}
+                  {isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}
                 </Link>
               </li>
               <li>
                 <Link href="/community" className="hover:text-primary transition-colors">
-                  {isKa ? "👥 მწვანე კომუნა" : "👥 Community"}
+                  {isKa ? "მწვანე კომუნა" : "Community"}
                 </Link>
               </li>
               <li>
                 <Link href="/services?category=LANDSCAPE" className="hover:text-primary transition-colors">
-                  {isKa ? "🏡 ლანდშაფტის დიზაინი" : "🏡 Landscape Design"}
+                  {isKa ? "ლანდშაფტის დიზაინი" : "Landscape Design"}
                 </Link>
               </li>
             </ul>
@@ -220,7 +220,7 @@ export function Footer() {
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1">
             <p>© {new Date().getFullYear()} Plant.ge. {isKa ? "ყველა უფლება დაცულია." : "All rights reserved."}</p>
             <span className="hidden sm:inline text-border">•</span>
-            <span className="text-foreground/80 font-semibold">🇬🇪 {isKa ? "საქართველო (GEL ₾)" : "Georgia (GEL ₾)"}</span>
+            <span className="text-foreground/80 font-semibold">{isKa ? "საქართველო (GEL ₾)" : "Georgia (GEL ₾)"}</span>
           </div>
 
           <div className="flex items-center justify-center gap-1 text-muted-foreground text-[11px] sm:text-xs">

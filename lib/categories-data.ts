@@ -13,7 +13,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "monstera", 
     nameKa: "მონსტერა (Monstera)", 
     nameEn: "Monstera", 
-    emoji: "🌿", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["მონსტერა", "monstera", "ალბო", "ტაი", "დელიციოზა", "ადონსონი", "დუბია", "სილტეპეკანა", "monstera deliciosa", "thai constellation", "albo", "adansonii", "dubia", "standleyana"] 
   },
@@ -21,7 +21,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "philodendron", 
     nameKa: "ფილოდენდრონი (Philodendron)", 
     nameEn: "Philodendron", 
-    emoji: "🌱", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ფილოდენდრონი", "philodendron", "პრინცესა", "რაინდი", "ბიროკინი", "გლორიოზუმი", "ვერუკოზუმი", "მიკანსი", "pink princess", "white knight", "birkin", "gloriosum", "verrucosum", "melanochrysum", "micans", "xanadu"] 
   },
@@ -29,7 +29,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "anthurium", 
     nameKa: "ანთურიუმი (Anthurium)", 
     nameEn: "Anthurium", 
-    emoji: "🌺", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ანთურიუმი", "anthurium", "კლარინერვიუმი", "ანდრეანუმი", "კრისტალინუმი", "ვაროკვეანუმი", "clarinervium", "andreanum", "crystallinum", "warocqueanum", "luxurians", "regale"] 
   },
@@ -37,7 +37,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "alocasia", 
     nameKa: "ალოკაზია (Alocasia)", 
     nameEn: "Alocasia", 
-    emoji: "🍃", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ალოკაზია", "alocasia", "პოლი", "ფრაიდეკი", "ამაზონიკა", "დრაგონ სკეილი", "ბლექ ველვეტი", "ზებრინა", "polly", "frydek", "amazonica", "dragon scale", "black velvet", "zebrina", "silver dragon"] 
   },
@@ -45,7 +45,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "syngonium", 
     nameKa: "სინგონიუმი (Syngonium)", 
     nameEn: "Syngonium", 
-    emoji: "🌱", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["სინგონიუმი", "syngonium", "ნეონი", "ალბო", "რედ სპოტი", "მოხიტო", "arrowhead", "neon robusta", "albo variegata", "red spot", "mojito", "wendlandii"] 
   },
@@ -53,7 +53,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "pothos-scindapsus", 
     nameKa: "პოთოსი & სცინდაპსუსი (Epipremnum)", 
     nameEn: "Pothos & Scindapsus", 
-    emoji: "🌾", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["პოთოსი", "სცინდაპსუსი", "ეპიპრემნუმი", "pothos", "scindapsus", "epipremnum", "golden pothos", "marble queen", "neon pothos", "pictus", "trebie", "moonlight"] 
   },
@@ -61,7 +61,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "aglaonema", 
     nameKa: "აგლაონემა (Aglaonema)", 
     nameEn: "Aglaonema", 
-    emoji: "🌿", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["აგლაონემა", "aglaonema", "chinese evergreen", "silver bay", "pink dalmatian", "crete", "lady valentine", "წითელი აგლაონემა"] 
   },
@@ -69,7 +69,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "spathiphyllum", 
     nameKa: "სპატიფილუმი (ქალური ბედნიერება)", 
     nameEn: "Peace Lily (Spathiphyllum)", 
-    emoji: "🤍", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["სპატიფილუმი", "ქალური ბედნიერება", "spathiphyllum", "peace lily", "დომინო", "domino", "sensation", "თეთრი ყვავილი"] 
   },
@@ -77,7 +77,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "dieffenbachia", 
     nameKa: "დიფენბახია (Dieffenbachia)", 
     nameEn: "Dieffenbachia", 
-    emoji: "🍃", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["დიფენბახია", "dieffenbachia", "dumb cane", "camilla", "tropic snow", "reflector"] 
   },
@@ -87,7 +87,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "cactus-succulent", 
     nameKa: "კაქტუსი & სუქულენტი", 
     nameEn: "Cactus & Succulent", 
-    emoji: "🌵", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["კაქტუსი", "სუქულენტი", "სუკულენტი", "cactus", "succulent", "ეჩევერია", "ჰავორტია", "კრასულა", "ალოე", "სედუმი", "კალანჰოე", "ბარაქის ხე", "echeveria", "haworthia", "crassula", "aloe", "sedum", "kalanchoe", "jade plant"] 
   },
@@ -95,7 +95,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "sansevieria", 
     nameKa: "სანსევიერია / ხანჯალა (Snake Plant)", 
     nameEn: "Sansevieria (Snake Plant)", 
-    emoji: "🪴", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["სანსევიერია", "ხანჯალა", "sansevieria", "გველის მცენარე", "ლაურენტი", "მუნშაინი", "ვეილ ფინი", "snake plant", "laurentii", "moonshine", "cylindrica", "whale fin"] 
   },
@@ -103,7 +103,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "zz-plant", 
     nameKa: "ზამიოკულკასი / დოლარის ხე (ZZ Plant)", 
     nameEn: "ZZ Plant (Zamioculcas)", 
-    emoji: "🌿", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ზამიოკულკასი", "ზზ", "zz", "დოლარის ხე", "zamioculcas", "რავენი", "ზენზი", "raven", "zenzi", "chameleon"] 
   },
@@ -111,7 +111,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "euphorbia", 
     nameKa: "ეუფორბია / რძიანა (Euphorbia)", 
     nameEn: "Euphorbia", 
-    emoji: "🌵", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ეუფორბია", "რძიანა", "euphorbia", "trigona", "crown of thorns", "pencil cactus", "აფრიკული რძიანა"] 
   },
@@ -121,7 +121,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "ficus", 
     nameKa: "ფიკუსი (Ficus)", 
     nameEn: "Ficus", 
-    emoji: "🌳", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ფიკუსი", "ficus", "ლირატა", "ბენჯამინა", "ელასტიკა", "რობუსტა", "მიკროკარპა", "ოდრი", "lyrata", "benjamina", "elastica", "robusta", "audrey", "ginseng", "rubber tree"] 
   },
@@ -129,7 +129,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "dracaena-cordyline", 
     nameKa: "დრაცენა & კორდილინა (Dracaena)", 
     nameEn: "Dracaena & Cordyline", 
-    emoji: "🌴", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["დრაცენა", "კორდილინა", "dracaena", "cordyline", "მარგინატა", "ფრაგრონსი", "ლაქი ბამბუკი", "marginata", "fragrans", "lucky bamboo"] 
   },
@@ -137,7 +137,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "schefflera", 
     nameKa: "შეფლერა / ქოლგის ხე (Schefflera)", 
     nameEn: "Schefflera", 
-    emoji: "🌿", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["შეფლერა", "ქოლგის ხე", "schefflera", "umbrella tree", "arboricola", "ჭრელი შეფლერა"] 
   },
@@ -145,7 +145,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "citrus-fruit", 
     nameKa: "ციტრუსი & ყავის ხე (Citrus & Fruit)", 
     nameEn: "Citrus & Fruiting Plants", 
-    emoji: "🍋", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ლიმონი", "ციტრუსი", "კალამონდინი", "ყავა", "ყავის ხე", "კუმკვატი", "citrus", "lemon", "calamondin", "coffee arabica", "kumquat"] 
   },
@@ -155,7 +155,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "orchid", 
     nameKa: "ორქიდეა (Orchid)", 
     nameEn: "Orchid", 
-    emoji: "🌸", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ორქიდეა", "orchid", "ფალენოპსისი", "დენდრობიუმი", "ვანდა", "ონციდიუმი", "კატლეია", "ციმბიდიუმი", "phalaenopsis", "dendrobium", "vanda", "cattleya", "oncidium", "cymbidium"] 
   },
@@ -163,7 +163,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "hoya", 
     nameKa: "ხოია / ცვილისებრი ყვავილი (Hoya)", 
     nameEn: "Hoya (Wax Plant)", 
-    emoji: "🌸", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ხოია", "ცვილისებრი", "hoya", "carnosa", "kerrii", "pubicalyx", "australis", "krimson queen", "გულის ფორმის ხოია"] 
   },
@@ -171,7 +171,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "begonia", 
     nameKa: "ბეგონია (Begonia)", 
     nameEn: "Begonia", 
-    emoji: "🌺", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ბეგონია", "begonia", "რექსი", "მაკულატა", "rex", "maculata", "polka dot", "ჭრელი ბეგონია"] 
   },
@@ -179,7 +179,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "bromeliad-tillandsia", 
     nameKa: "ბრომელია & ტილანდსია (Air Plants)", 
     nameEn: "Bromeliad & Air Plants", 
-    emoji: "🪻", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ბრომელია", "ტილანდსია", "გუზმანია", "ვრიეზია", "tillandsia", "air plants", "guzmania", "vriesea", "bromeliad", "ჰაერის მცენარე"] 
   },
@@ -187,7 +187,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "carnivorous", 
     nameKa: "მწერიჭამია მცენარეები (Carnivorous)", 
     nameEn: "Carnivorous Plants", 
-    emoji: "🪤", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["მწერიჭამია", "დიონეა", "ნეპენტესი", "დროზერა", "venus flytrap", "nepenthes", "drosera", "sarracenia", "carnivorous"] 
   },
@@ -197,7 +197,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "calathea", 
     nameKa: "კალათეა / მარანტა (Prayer Plant)", 
     nameEn: "Calathea & Maranta", 
-    emoji: "🌿", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["კალათეა", "მარანტა", "calathea", "maranta", "ორბიფოლია", "ზებრინა", "სტრომანტე", "ქტენანტე", "orbifolia", "zebrina", "stromanthe", "ctenanthe", "rattlesnake", "medallion"] 
   },
@@ -205,7 +205,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "fern", 
     nameKa: "გვიმრა (Fern)", 
     nameEn: "Fern", 
-    emoji: "🌿", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["გვიმრა", "fern", "ნეფროლეპისი", "ასპლენიუმი", "პლატიცერიუმი", "ადიანტუმი", "nephrolepis", "asplenium", "staghorn", "maidenhair"] 
   },
@@ -213,7 +213,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "palm", 
     nameKa: "პალმა & ციკასი (Palm & Cycad)", 
     nameEn: "Palm & Cycad", 
-    emoji: "🌴", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["პალმა", "palm", "არეკა", "ხამედორეა", "კენტია", "ციკასი", "როიალ პალმა", "areca", "chamaedorea", "kentia", "cycas"] 
   },
@@ -221,7 +221,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "peperomia", 
     nameKa: "პეპერომია (Peperomia)", 
     nameEn: "Peperomia", 
-    emoji: "🍃", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["პეპერომია", "peperomia", "საზამთროსებრი", "watermelon", "hope", "prostrata", "string of turtles", "polybotrya"] 
   },
@@ -231,7 +231,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "bonsai", 
     nameKa: "ბონსაი (Bonsai)", 
     nameEn: "Bonsai", 
-    emoji: "🎋", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ბონსაი", "bonsai", "მინიატურული ხე", "ღვია", "იაპონური ნეკერჩხალი", "ulmus", "juniper", "carmona"] 
   },
@@ -239,7 +239,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "rare-variegated", 
     nameKa: "იშვიათი & ვარიეგატული კოლექცია", 
     nameEn: "Rare & Variegated Collection", 
-    emoji: "✨", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["იშვიათი", "ვარიეგატული", "rare", "variegated", "ჭრელი", "მუტაცია", "tissue culture", "საკოლექციო"] 
   },
@@ -247,7 +247,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "cutting", 
     nameKa: "კალმები & დასაფესვიანებელი ნერგები", 
     nameEn: "Cuttings & Rooted Starters", 
-    emoji: "✂️", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["კალამი", "კალმები", "ნერგი", "ნერგები", "დაფესვიანებული", "cutting", "rooted", "კალამი წყალში"] 
   },
@@ -255,7 +255,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "outdoor-garden", 
     nameKa: "ბაღის, ეზოს & მარადმწვანე მცენარეები", 
     nameEn: "Outdoor, Garden & Conifers", 
-    emoji: "🌻", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["ბაღის", "ეზოს", "გარე", "outdoor", "garden", "ხე", "ბუჩქი", "ვარდი", "ჰორტენზია", "წიწვოვანი", "ტუია", "ლავანდა", "rose", "hydrangea", "conifer", "lavender"] 
   },
@@ -263,7 +263,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "herbs-spices", 
     nameKa: "სამკურნალო მცენარეები & სანელებლები", 
     nameEn: "Herbs & Edible Greens", 
-    emoji: "🌿", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["მწვანილი", "სანელებელი", "ბაზილიკი", "როზმარინი", "პიტნა", "თიმიანი", "herbs", "basil", "rosemary", "mint", "thyme"] 
   },
@@ -271,7 +271,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "other-plant", 
     nameKa: "სხვა ოთახის & ბოტანიკური მცენარე", 
     nameEn: "Other Botanical Plant", 
-    emoji: "🌱", 
+    emoji: "", 
     itemType: "PLANT", 
     keywords: ["სხვა", "მცენარე", "ოთახის", "other", "botanical", "houseplant"] 
   },
@@ -281,7 +281,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "pots-ceramic", 
     nameKa: "კერამიკული, თიხის & ტერაკოტა ქოთნები", 
     nameEn: "Ceramic & Terracotta Pots", 
-    emoji: "🏺", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["ქოთანი", "ქოთნები", "კერამიკა", "თიხა", "ტერაკოტა", "სადგამი", "თეფში", "pots", "ceramic", "clay", "terracotta"] 
   },
@@ -289,7 +289,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "pots-plastic", 
     nameKa: "პლასტიკური & საწარმოო გამჭვირვალე ქოთნები", 
     nameEn: "Plastic & Clear Nursery Pots", 
-    emoji: "🪣", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["პლასტიკი", "პლასტმასი", "საწარმოო", "გამჭვირვალე", "ტორფიანი", "კაშპო", "plastic", "nursery", "clear pot"] 
   },
@@ -297,7 +297,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "pots-hanging", 
     nameKa: "ჩამოსაკიდი ქოთნები & მაკრამე", 
     nameEn: "Hanging Pots & Macrame", 
-    emoji: "🧺", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["ჩამოსაკიდი", "მაკრამე", "კედლის", "hanging pot", "macrame", "planter"] 
   },
@@ -305,7 +305,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "pots-selfwatering", 
     nameKa: "თვითმორწყვადი ქოთნები (Self-Watering)", 
     nameEn: "Self-Watering Pots", 
-    emoji: "🪴", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["თვითმორწყვადი", "ლეჩუზა", "ავტომატური", "self watering", "lechuza"] 
   },
@@ -315,7 +315,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "substrate-aroid", 
     nameKa: "აროიდების სუბსტრატი & ფიჭვის ქერქი", 
     nameEn: "Chunky Aroid Mix & Pine Bark", 
-    emoji: "🪵", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["აროიდული", "სუბსტრატი", "ქერქი", "ფიჭვი", "ნახშირი", "aroid mix", "bark", "chunky soil", "charcoal"] 
   },
@@ -323,7 +323,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "substrate-soil", 
     nameKa: "უნივერსალური გრუნტი, ნიადაგი & ტორფი", 
     nameEn: "All-Purpose Potting Soil & Peat", 
-    emoji: "🌍", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["გრუნტი", "მიწა", "ნიადაგი", "ტორფი", "შავმიწა", "soil", "potting mix", "peat moss"] 
   },
@@ -331,7 +331,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "substrate-grit", 
     nameKa: "პერლიტი, ვერმიკულიტი, ლავა & კერამზიტი", 
     nameEn: "Perlite, Vermiculite & Pumice", 
-    emoji: "⚪", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["პერლიტი", "ვერმიკულიტი", "კერამზიტი", "ლავა", "პემზა", "დრენაჟი", "perlite", "vermiculite", "pumice", "leca"] 
   },
@@ -339,7 +339,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "substrate-moss", 
     nameKa: "სფაგნუმის ხავსი & ქოქოსის ჩიფსი", 
     nameEn: "Sphagnum Moss & Coco Chips", 
-    emoji: "🌾", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["სფაგნუმი", "ხავსი", "ქოქოსი", "კოირა", "sphagnum moss", "coco coir", "coco chips"] 
   },
@@ -347,7 +347,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "fertilizer", 
     nameKa: "სასუქები, ვიტამინები & საკვები ელემენტები", 
     nameEn: "Fertilizers & Plant Nutrients", 
-    emoji: "🧪", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["სასუქი", "ვიტამინი", "სასუქები", "კვება", "აზოტი", "ფოსფორი", "კალიუმი", "ორგანული", "npk", "fertilizer", "nutrients"] 
   },
@@ -355,7 +355,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "pest-control", 
     nameKa: "მავნებლებისგან დაცვა, ფუნგიციდი & ინსექტიციდი", 
     nameEn: "Pest Control & Fungicides", 
-    emoji: "🛡️", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["ინსექტიციდი", "ფუნგიციდი", "აკარიციდი", "მავნებელი", "ნემსის ზეთი", "ტკიპა", "pest control", "fungicide", "insecticide", "neem oil"] 
   },
@@ -363,7 +363,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "tools-care", 
     nameKa: "მცენარის მაკრატლები & მოვლის ხელსაწყოები", 
     nameEn: "Plant Care Tools & Pruners", 
-    emoji: "✂️", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["ხელსაწყო", "მაკრატელი", "სასხლავი", "საპკურებელი", "პულვერიზატორი", "ტენიანობის საზომი", "tools", "shears", "sprayer", "moisture meter"] 
   },
@@ -371,7 +371,7 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "lighting-grow", 
     nameKa: "ფიტო-განათება & LED Grow Lights", 
     nameEn: "Grow Lights & Phytolamps", 
-    emoji: "💡", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["ფიტო", "განათება", "ნათურა", "ლამპა", "ფიტონათურა", "ტაიმერი", "grow light", "lighting", "led grow light"] 
   },
@@ -379,8 +379,9 @@ export const STRUCTURED_CATEGORIES: TaxonomyCategory[] = [
     id: "trellis-poles", 
     nameKa: "ხავსის ბოძები (Moss Pole) & საყრდენები", 
     nameEn: "Moss Poles & Plant Supports", 
-    emoji: "🪵", 
+    emoji: "", 
     itemType: "INVENTORY", 
     keywords: ["ხავსის ბოძი", "საყრდენი", "ბადე", "კლიპსი", "moss pole", "trellis", "plant support"] 
   },
 ];
+

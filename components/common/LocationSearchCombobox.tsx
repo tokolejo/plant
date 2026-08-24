@@ -102,7 +102,7 @@ export function LocationSearchCombobox({
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
-        onCityChange("📍 ჩემი ლოკაცია", [latitude, longitude]);
+        onCityChange("ჩემი ლოკაცია", [latitude, longitude]);
         setGpsLoading(false);
         setIsOpen(false);
       },
@@ -181,7 +181,7 @@ export function LocationSearchCombobox({
               ) : (
                 <Navigation className="w-3.5 h-3.5 text-primary shrink-0" />
               )}
-              <span>{gpsLoading ? "ლოკაციის ძებნა..." : "📍 ჩემი ლოკაცია (GPS)"}</span>
+              <span>{gpsLoading ? "ლოკაციის ძებნა..." : "ჩემი ლოკაცია (GPS)"}</span>
             </button>
           </div>
 

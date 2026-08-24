@@ -121,7 +121,7 @@ const RECOMMENDED_INVENTORY = [
     image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80",
     shopName: "დომინო",
     shopBadge: "დომინო",
-    shopLogo: "🏢",
+    shopLogo: "",
     shopColor: "bg-[#0055a5] text-white border border-white/20",
     link: "https://domino.com.ge",
     isExternal: true,
@@ -136,7 +136,7 @@ const RECOMMENDED_INVENTORY = [
     image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&auto=format&fit=crop&q=80",
     shopName: "გორგია",
     shopBadge: "გორგია",
-    shopLogo: "🟠",
+    shopLogo: "",
     shopColor: "bg-[#e35205] text-white border border-white/20",
     link: "https://gorgia.ge",
     isExternal: true,
@@ -151,7 +151,7 @@ const RECOMMENDED_INVENTORY = [
     image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
     shopName: "აგროჰაბი",
     shopBadge: "აგროჰაბი",
-    shopLogo: "🌿",
+    shopLogo: "",
     shopColor: "bg-[#0b8043] text-white border border-white/20",
     link: "https://agrohub.ge",
     isExternal: true,
@@ -166,7 +166,7 @@ const RECOMMENDED_INVENTORY = [
     image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&auto=format&fit=crop&q=80",
     shopName: "ბრიკორამა",
     shopBadge: "ბრიკორამა",
-    shopLogo: "🔴",
+    shopLogo: "",
     shopColor: "bg-[#c8102e] text-white border border-white/20",
     link: "https://bricorama.ge",
     isExternal: true,
@@ -181,7 +181,7 @@ const RECOMMENDED_INVENTORY = [
     image: "https://images.unsplash.com/photo-1592150621744-aca64f48394a?w=600&auto=format&fit=crop&q=80",
     shopName: "აგრო სექტორი",
     shopBadge: "აგრო სექტორი",
-    shopLogo: "🌱",
+    shopLogo: "",
     shopColor: "bg-[#0284c7] text-white border border-white/20",
     link: "/listings?type=INVENTORY",
     isExternal: false,
@@ -196,38 +196,38 @@ const RECOMMENDED_INVENTORY = [
     image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600&auto=format&fit=crop&q=80",
     shopName: "დომინო",
     shopBadge: "დომინო",
-    shopLogo: "🏢",
+    shopLogo: "",
     shopColor: "bg-[#0055a5] text-white border border-white/20",
     link: "https://domino.com.ge",
     isExternal: true,
   },
 ];
 
-const CATEGORIES_DATA: Record<string, { labelKa: string; labelEn: string; emoji: string }> = {
-  monstera: { labelKa: "მონსტერა", labelEn: "Monstera", emoji: "🌿" },
-  philodendron: { labelKa: "ფილოდენდრონი", labelEn: "Philodendron", emoji: "🌱" },
-  anthurium: { labelKa: "ანთურიუმი", labelEn: "Anthurium", emoji: "🌺" },
-  alocasia: { labelKa: "ალოკაზია", labelEn: "Alocasia", emoji: "🍃" },
-  calathea: { labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta", emoji: "🌿" },
-  "pothos-scindapsus": { labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus", emoji: "🌾" },
-  orchid: { labelKa: "ორქიდეა", labelEn: "Orchid", emoji: "🌸" },
-  bromeliad: { labelKa: "ბრომელია", labelEn: "Bromeliad", emoji: "🌺" },
-  ficus: { labelKa: "ფიკუსი", labelEn: "Ficus", emoji: "🌳" },
-  palm: { labelKa: "პალმა", labelEn: "Palm", emoji: "🌴" },
-  fern: { labelKa: "გვიმრა", labelEn: "Fern", emoji: "🌿" },
-  "outdoor-garden": { labelKa: "ბაღის & ეზოს", labelEn: "Garden & Outdoor", emoji: "🌻" },
-  "cactus-succulent": { labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulents", emoji: "🌵" },
-  "rare-variegated": { labelKa: "იშვიათი & ვარიეგატული", labelEn: "Rare & Variegated", emoji: "✨" },
-  cutting: { labelKa: "კალმები & ნერგები", labelEn: "Cuttings & Seedlings", emoji: "✂️" },
-  bonsai: { labelKa: "ბონსაი", labelEn: "Bonsai", emoji: "🎋" },
-  sansevieria: { labelKa: "სანსევიერია", labelEn: "Sansevieria", emoji: "🪴" },
-  "zz-plant": { labelKa: "ზამიოკულკასი", labelEn: "ZZ Plant", emoji: "🌿" },
-  "pots-ceramic": { labelKa: "კერამიკული ქოთნები", labelEn: "Ceramic Pots", emoji: "🏺" },
-  "pots-plastic": { labelKa: "პლასტიკური ქოთნები", labelEn: "Plastic Pots", emoji: "🪣" },
-  "substrate-soil": { labelKa: "სუბსტრატი & გრუნტი", labelEn: "Soil & Substrates", emoji: "🌍" },
-  fertilizer: { labelKa: "სასუქები & მოვლა", labelEn: "Fertilizers & Care", emoji: "🧪" },
-  "tools-care": { labelKa: "მოვლის ხელსაწყოები", labelEn: "Care Tools", emoji: "🔧" },
-  "lighting-grow": { labelKa: "ფიტო-განათება", labelEn: "Grow Lighting", emoji: "💡" },
+const CATEGORIES_DATA: Record<string, { labelKa: string; labelEn: string }> = {
+  monstera: { labelKa: "მონსტერა", labelEn: "Monstera" },
+  philodendron: { labelKa: "ფილოდენდრონი", labelEn: "Philodendron" },
+  anthurium: { labelKa: "ანთურიუმი", labelEn: "Anthurium" },
+  alocasia: { labelKa: "ალოკაზია", labelEn: "Alocasia" },
+  calathea: { labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta" },
+  "pothos-scindapsus": { labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus" },
+  orchid: { labelKa: "ორქიდეა", labelEn: "Orchid" },
+  bromeliad: { labelKa: "ბრომელია", labelEn: "Bromeliad" },
+  ficus: { labelKa: "ფიკუსი", labelEn: "Ficus" },
+  palm: { labelKa: "პალმა", labelEn: "Palm" },
+  fern: { labelKa: "გვიმრა", labelEn: "Fern" },
+  "outdoor-garden": { labelKa: "ბაღის & ეზოს", labelEn: "Garden & Outdoor" },
+  "cactus-succulent": { labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulents" },
+  "rare-variegated": { labelKa: "იშვიათი & ვარიეგატული", labelEn: "Rare & Variegated" },
+  cutting: { labelKa: "კალმები & ნერგები", labelEn: "Cuttings & Seedlings" },
+  bonsai: { labelKa: "ბონსაი", labelEn: "Bonsai" },
+  sansevieria: { labelKa: "სანსევიერია", labelEn: "Sansevieria" },
+  "zz-plant": { labelKa: "ზამიოკულკასი", labelEn: "ZZ Plant" },
+  "pots-ceramic": { labelKa: "კერამიკული ქოთნები", labelEn: "Ceramic Pots" },
+  "pots-plastic": { labelKa: "პლასტიკური ქოთნები", labelEn: "Plastic Pots" },
+  "substrate-soil": { labelKa: "სუბსტრატი & გრუნტი", labelEn: "Soil & Substrates" },
+  fertilizer: { labelKa: "სასუქები & მოვლა", labelEn: "Fertilizers & Care" },
+  "tools-care": { labelKa: "მოვლის ხელსაწყოები", labelEn: "Care Tools" },
+  "lighting-grow": { labelKa: "ფიტო-განათება", labelEn: "Grow Lighting" },
 };
 
 import { formatDbListing } from "@/lib/listings-service";
@@ -390,10 +390,9 @@ export default function ListingDetailPage({
   const categoryInfo = rawCat && CATEGORIES_DATA[rawCat]
     ? {
         label: isKa ? CATEGORIES_DATA[rawCat].labelKa : CATEGORIES_DATA[rawCat].labelEn,
-        emoji: CATEGORIES_DATA[rawCat].emoji,
       }
     : rawCat
-    ? { label: rawCat, emoji: listing?.itemType === "INVENTORY" ? "📦" : "🌿" }
+    ? { label: rawCat }
     : null;
 
   const rawTitle = isKa ? (listing?.titleKa || listing?.title || "") : (listing?.titleEn || listing?.title || "");
@@ -697,7 +696,7 @@ export default function ListingDetailPage({
               <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
                 {(listing.isFeatured || listing.isPremium) && (
                   <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px]">
-                    ⭐ VIP TOP
+                    VIP TOP
                   </Badge>
                 )}
                 {listing.transactionType === "GIFT" && (
@@ -1076,8 +1075,15 @@ export default function ListingDetailPage({
               <div className="flex flex-wrap items-center gap-2 mb-2.5">
                 {/* 1. Item Type Tag (Clickable) */}
                 <Link href={`/listings?type=${listing.itemType}`}>
-                  <Badge className="rounded-[8px] bg-secondary-container text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-border/50 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5">
-                    {listing.itemType === "PLANT" ? (isKa ? "🌱 მცენარე" : "🌱 Plant") : (isKa ? "🪴 ინვენტარი" : "🪴 Care & Pots")}
+                  <Badge className="rounded-[8px] bg-secondary-container text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-border/50 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5 flex items-center">
+                    {listing.itemType === "PLANT" ? (
+                      <>
+                        <Sprout className="w-3 h-3 text-primary" />
+                        <span>{isKa ? "მცენარე" : "Plant"}</span>
+                      </>
+                    ) : (
+                      <span>{isKa ? "ინვენტარი" : "Care & Pots"}</span>
+                    )}
                   </Badge>
                 </Link>
 
@@ -1085,7 +1091,6 @@ export default function ListingDetailPage({
                 {categoryInfo && (
                   <Link href={`/listings?category=${encodeURIComponent(rawCat || "")}`}>
                     <Badge className="rounded-[8px] bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-primary/30 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5">
-                      <span>{categoryInfo.emoji}</span>
                       <span>{categoryInfo.label}</span>
                     </Badge>
                   </Link>

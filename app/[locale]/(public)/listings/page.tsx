@@ -402,8 +402,8 @@ function ListingsCatalogContent() {
     if (customCatsMap.size > 0) {
       groups.push({
         id: "custom-categories",
-        labelKa: "✨ ახალი & დამატებითი კატეგორიები",
-        labelEn: "✨ Custom & New Categories",
+        labelKa: "ახალი & დამატებითი კატეგორიები",
+        labelEn: "Custom & New Categories",
         icon: Sparkles,
         color: "text-purple-700 dark:text-purple-400",
         children: Array.from(customCatsMap.values()),
@@ -784,7 +784,6 @@ function ListingsCatalogContent() {
                           }`}
                         >
                           <span className="flex items-center gap-2 pr-2">
-                            <span className="text-base shrink-0">{cat.emoji}</span>
                             <span className="break-words">{catLabel}</span>
                           </span>
                           <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-auto ${
@@ -1102,8 +1101,8 @@ function ListingsCatalogContent() {
             const cat = PLANT_CATEGORY_GROUPS.flatMap((g) => g.children).find((c) => c.id === catId);
             return cat ? (
               <span key={catId} className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] bg-primary/10 text-primary text-xs sm:text-sm font-bold border border-primary/20">
-                {cat.emoji} {isKa ? cat.labelKa : cat.labelEn}
-                <button onClick={() => toggleCategory(catId)} className="hover:opacity-75"><X className="w-3.5 h-3.5" /></button>
+                {isKa ? cat.labelKa : cat.labelEn}
+                <button onClick={() => toggleCategory(catId)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
               </span>
             ) : null;
           })}
@@ -1116,15 +1115,15 @@ function ListingsCatalogContent() {
                 : "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/30";
             return (
               <span key={t} className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] text-xs sm:text-sm font-bold border ${chipClass}`}>
-                {t === "FIXED" ? (isKa ? "💰 ფიქსირებული" : "💰 Fixed") : t === "NEGOTIABLE" ? (isKa ? "🤝 შეთანხმებით" : "🤝 Negotiable") : (isKa ? "🔄 გაცვლა" : "🔄 Trade")}
-                <button onClick={() => toggleTrans(t)} className="hover:opacity-75"><X className="w-3.5 h-3.5" /></button>
+                {t === "FIXED" ? (isKa ? "ფიქსირებული" : "Fixed") : t === "NEGOTIABLE" ? (isKa ? "შეთანხმებით" : "Negotiable") : (isKa ? "გაცვლა" : "Trade")}
+                <button onClick={() => toggleTrans(t)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
               </span>
             );
           })}
           {selectedDelivery.map((d) => (
             <span key={d} className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] bg-teal-500/15 text-teal-900 dark:text-teal-200 text-xs sm:text-sm font-bold border border-teal-500/30">
-              {d === "COURIER" ? (isKa ? "🚚 კურიერი" : "🚚 Courier") : d === "MARSHRUTKA" ? (isKa ? "🚐 სამარშრუტო" : "🚐 Intercity") : (isKa ? "📍 ადგილზე" : "📍 Pickup")}
-              <button onClick={() => toggleDelivery(d)} className="hover:opacity-75"><X className="w-3.5 h-3.5" /></button>
+              {d === "COURIER" ? (isKa ? "კურიერი" : "Courier") : d === "MARSHRUTKA" ? (isKa ? "სამარშრუტო" : "Intercity") : (isKa ? "ადგილზე გატანა" : "Pickup")}
+              <button onClick={() => toggleDelivery(d)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
             </span>
           ))}
         </div>
