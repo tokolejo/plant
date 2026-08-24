@@ -139,32 +139,24 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
             </p>
           </div>
 
-          {/* Bottom Pricing & Actions */}
-          <div className="pt-2 border-t border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div>
-                <span className="text-[10px] font-bold text-muted-foreground uppercase block">
-                  {isKa ? "საწყისი ფასი" : "Price From"}
+          {/* Bottom Pricing */}
+          <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-3">
+            <div>
+              <span className="text-[10px] font-bold text-muted-foreground uppercase block">
+                {isKa ? "საწყისი ფასი" : "Price From"}
+              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg font-black text-emerald-700 dark:text-emerald-300">
+                  {service.price_from} ₾
                 </span>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-lg font-black text-emerald-700 dark:text-emerald-300">
-                    {service.price_from} ₾
-                  </span>
-                  <span className="text-xs text-muted-foreground">/ {service.price_unit}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-bold">
-                <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span>{service.city}</span>
+                <span className="text-xs text-muted-foreground">/ {service.price_unit}</span>
               </div>
             </div>
 
-            <Link href={`/services/${service.id}`}>
-              <Button size="sm" className="h-9 px-4 rounded-[12px] text-xs font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer shadow-ambient">
-                {isKa ? "დეტალები & დაკავშირება" : "Details & Contact"}
-              </Button>
-            </Link>
+            <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-bold bg-secondary-container/50 px-2.5 py-1 rounded-[8px]">
+              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+              <span>{service.city}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -264,8 +256,8 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
         </div>
       </div>
 
-      {/* Bottom: Pricing & Direct Actions */}
-      <div className="p-4 sm:p-5 pt-0 space-y-3">
+      {/* Bottom: Pricing */}
+      <div className="p-4 sm:p-5 pt-0">
         <div className="pt-3 border-t border-border/50 flex items-baseline justify-between">
           <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             {isKa ? "საწყისი ფასი" : "Starting Price"}
@@ -277,13 +269,6 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
             <span className="text-xs text-muted-foreground ml-1">/ {service.price_unit}</span>
           </div>
         </div>
-
-        {/* Action Button */}
-        <Link href={`/services/${service.id}`} className="block">
-          <Button className="w-full h-9.5 rounded-[14px] bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-ambient cursor-pointer">
-            <span>{isKa ? "დეტალები & დაკავშირება" : "Details & Contact"}</span>
-          </Button>
-        </Link>
       </div>
     </div>
   );
