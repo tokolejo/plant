@@ -21,6 +21,8 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Search,
   Check,
   RotateCcw,
@@ -208,6 +210,15 @@ function ListingsCatalogContent() {
   const [pageSize, setPageSize] = React.useState<number>(20);
   const [visibleCount, setVisibleCount] = React.useState<number>(20);
   const [mobileFilterOpen, setMobileFilterOpen] = React.useState(false);
+
+  // Horizontal Category Slider Ref & Handler
+  const categoryScrollRef = React.useRef<HTMLDivElement>(null);
+  const scrollCategories = (direction: "left" | "right") => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = direction === "left" ? -280 : 280;
+      categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   // Accordion state for filter sections — Search open by default, other sections collapsed
   const [openSections, setOpenSections] = React.useState<Record<string, boolean>>({
@@ -985,6 +996,90 @@ function ListingsCatalogContent() {
               <Layers className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
               <span>{isKa ? "ინვენტარი" : "Supplies"}</span>
               <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Category Slider with Nav Arrows (Identical to Services layout) */}
+        <div className="relative group/cats pt-1">
+          <div className="flex items-center justify-between gap-2">
+            {/* Left Scroll Arrow */}
+            <button
+              type="button"
+              onClick={() => scrollCategories("left")}
+              className="hidden sm:flex h-9 w-9 rounded-full border border-border/80 bg-card hover:bg-surface-container items-center justify-center text-foreground transition-all shadow-2xs hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+              title={isKa ? "მარცხნივ" : "Scroll Left"}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+
+            {/* Scrollable Track */}
+            <div
+              ref={categoryScrollRef}
+              className="flex items-center gap-2 overflow-x-auto scroll-smooth no-scrollbar py-1 flex-1 px-0.5"
+            >
+              {/* 1. All Items Pill */}
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategories([]);
+                  setVisibleCount(20);
+                }}
+                className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                  selectedCategories.length === 0
+                    ? "bg-primary text-white border-primary shadow-xs scale-102"
+                    : "bg-card hover:bg-surface-container text-foreground border-border/80"
+                }`}
+              >
+                <Sprout className={`w-3.5 h-3.5 ${selectedCategories.length === 0 ? "text-white" : "text-primary"}`} />
+                <span>{isKa ? "ყველა კატეგორია" : "All Categories"}</span>
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    selectedCategories.length === 0 ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                  }`}
+                >
+                  {allListings.length}
+                </span>
+              </button>
+
+              {/* Main Category Groups & Children */}
+              {PLANT_CATEGORY_GROUPS.flatMap((g) => g.children).map((cat) => {
+                const isSelected = selectedCategories.includes(cat.id);
+                const count = countByCategory(cat.id);
+
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleCategory(cat.id)}
+                    className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                      isSelected
+                        ? "bg-primary text-white border-primary shadow-xs scale-102"
+                        : "bg-card hover:bg-surface-container text-foreground border-border/80"
+                    }`}
+                  >
+                    <span>{cat.emoji}</span>
+                    <span>{isKa ? cat.labelKa : cat.labelEn}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                        isSelected ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Right Scroll Arrow */}
+            <button
+              type="button"
+              onClick={() => scrollCategories("right")}
+              className="hidden sm:flex h-9 w-9 rounded-full border border-border/80 bg-card hover:bg-surface-container items-center justify-center text-foreground transition-all shadow-2xs hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+              title={isKa ? "მარჯვნივ" : "Scroll Right"}
+            >
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>

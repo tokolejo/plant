@@ -26,6 +26,8 @@ import {
   Stethoscope,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Search,
   Check,
   RotateCcw,
@@ -121,6 +123,15 @@ function GardeningServicesCatalogContent() {
   const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid");
   const [pageSize, setPageSize] = React.useState<number>(20);
   const [visibleCount, setVisibleCount] = React.useState<number>(20);
+
+  // Horizontal Category Slider Ref & Handler
+  const categoryScrollRef = React.useRef<HTMLDivElement>(null);
+  const scrollCategories = (direction: "left" | "right") => {
+    if (categoryScrollRef.current) {
+      const scrollAmount = direction === "left" ? -280 : 280;
+      categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+    }
+  };
 
   // Accordion Section States (Search, Location, Price, Category, Verified)
   const [openSections, setOpenSections] = React.useState({
@@ -561,35 +572,85 @@ function GardeningServicesCatalogContent() {
         </Link>
       </div>
 
-      {/* 2. Horizontal Scroll Category Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-        {SERVICE_CATEGORIES.map((cat) => {
-          const IconComp = CATEGORY_ICON_MAP[cat.iconName] || Wrench;
-          const isSelected = selectedCategory === cat.id;
+      {/* 2. Horizontal Scroll Category Slider with Nav Arrows & "ყველა" Button */}
+      <div className="relative group/cats">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left Scroll Arrow */}
+          <button
+            type="button"
+            onClick={() => scrollCategories("left")}
+            className="hidden sm:flex h-9 w-9 rounded-full border border-border/80 bg-card hover:bg-surface-container items-center justify-center text-foreground transition-all shadow-2xs hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+            title={isKa ? "მარცხნივ" : "Scroll Left"}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
 
-          return (
+          {/* Scrollable Track */}
+          <div
+            ref={categoryScrollRef}
+            className="flex items-center gap-2 overflow-x-auto scroll-smooth no-scrollbar py-1 flex-1 px-0.5"
+          >
+            {/* 1. All Services Pill */}
             <button
-              key={cat.id}
               type="button"
-              onClick={() => handleCategorySelect(cat.id)}
-              className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border ${
-                isSelected
+              onClick={() => handleCategorySelect("ALL")}
+              className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                selectedCategory === "ALL"
                   ? "bg-primary text-white border-primary shadow-xs scale-102"
                   : "bg-card hover:bg-surface-container text-foreground border-border/80"
               }`}
             >
-              <IconComp className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-emerald-600"}`} />
-              <span>{isKa ? cat.labelKa : cat.labelEn}</span>
+              <Wrench className={`w-3.5 h-3.5 ${selectedCategory === "ALL" ? "text-white" : "text-primary"}`} />
+              <span>{isKa ? "ყველა სერვისი" : "All Services"}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  isSelected ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                  selectedCategory === "ALL" ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
                 }`}
               >
-                {getCategoryCount(cat.id)}
+                {services.length}
               </span>
             </button>
-          );
-        })}
+
+            {/* Categories */}
+            {SERVICE_CATEGORIES.map((cat) => {
+              const IconComp = CATEGORY_ICON_MAP[cat.iconName] || Wrench;
+              const isSelected = selectedCategory === cat.id;
+
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleCategorySelect(cat.id)}
+                  className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                    isSelected
+                      ? "bg-primary text-white border-primary shadow-xs scale-102"
+                      : "bg-card hover:bg-surface-container text-foreground border-border/80"
+                  }`}
+                >
+                  <IconComp className={`w-3.5 h-3.5 ${isSelected ? "text-white" : "text-emerald-600"}`} />
+                  <span>{isKa ? cat.labelKa : cat.labelEn}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      isSelected ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                    }`}
+                  >
+                    {getCategoryCount(cat.id)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right Scroll Arrow */}
+          <button
+            type="button"
+            onClick={() => scrollCategories("right")}
+            className="hidden sm:flex h-9 w-9 rounded-full border border-border/80 bg-card hover:bg-surface-container items-center justify-center text-foreground transition-all shadow-2xs hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+            title={isKa ? "მარჯვნივ" : "Scroll Right"}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       {/* 3. Main Catalog Grid (Sidebar + Results) */}
