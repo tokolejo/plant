@@ -17,10 +17,10 @@ export function Footer() {
   return (
     <footer className="w-full border-t border-border/70 bg-surface-container-lowest/80 dark:bg-card/40 mt-0 sm:mt-6 lg:mt-10 pb-20 lg:pb-8 transition-colors">
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 lg:py-10 max-w-7xl">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-5 sm:gap-8 lg:gap-10">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6 sm:gap-8 lg:gap-8">
           
-          {/* Column 1: Brand & Contact (Spans 2 columns on wide screens) */}
-          <div className="col-span-2 md:col-span-1 lg:col-span-2 space-y-2.5">
+          {/* Column 1: Brand & Contact (Spans 2 columns) */}
+          <div className="col-span-2 sm:col-span-3 lg:col-span-2 space-y-2.5">
             <Link href="/" className="inline-flex items-center gap-2 group">
               <div className="flex h-7.5 w-7.5 items-center justify-center rounded-xl bg-primary text-white shadow-ambient group-hover:scale-105 transition-transform">
                 <Sprout className="h-4.5 w-4.5" />
@@ -90,6 +90,11 @@ export function Footer() {
             </h4>
             <ul className="space-y-1.5 sm:space-y-2 text-xs text-muted-foreground font-medium">
               <li>
+                <Link href="/listings" className="hover:text-primary transition-colors">
+                  {isKa ? "ყველა განცხადება" : "All Listings"}
+                </Link>
+              </li>
+              <li>
                 <Link href="/listings?type=PLANT" className="hover:text-primary transition-colors">
                   {isKa ? "მცენარეები" : "Plants"}
                 </Link>
@@ -100,24 +105,58 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/map" className="hover:text-primary transition-colors">
-                  {isKa ? "ბოტანიკური რუკა" : "Botanical Map"}
-                </Link>
-              </li>
-              <li>
-                <Link href="/shops" className="hover:text-primary transition-colors">
-                  {isKa ? "მაღაზიები & სანერგეები" : "Shops & Nurseries"}
+                <Link href="/listings?trans=TRADE" className="hover:text-primary transition-colors font-semibold text-emerald-600 dark:text-emerald-400">
+                  {isKa ? "🔄 მცენარის გაცვლა" : "🔄 Plant Swap"}
                 </Link>
               </li>
               <li>
                 <Link href="/iso" className="hover:text-primary transition-colors">
-                  {isKa ? "მცენარის გაცვლა" : "Plant Swaps"}
+                  {isKa ? "🔍 ეძებ მცენარეს (ISO)" : "🔍 In Search Of"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/map" className="hover:text-primary transition-colors">
+                  {isKa ? "📍 ბოტანიკური რუკა" : "📍 Botanical Map"}
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: გამყიდველებისთვის */}
+          {/* Column 3: სერვისები & ექიმი */}
+          <div className="col-span-1 space-y-2">
+            <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground">
+              {isKa ? "სერვისები & ექიმი" : "Services & Doctor"}
+            </h4>
+            <ul className="space-y-1.5 sm:space-y-2 text-xs text-muted-foreground font-medium">
+              <li>
+                <Link href="/services" className="hover:text-primary transition-colors font-semibold text-primary">
+                  {isKa ? "🛠️ ყველა სერვისი" : "🛠️ All Services"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/plant-doctor" className="hover:text-primary transition-colors">
+                  {isKa ? "🩺 AI მცენარეთა ექიმი" : "🩺 AI Plant Doctor"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/dashboard/greenhouse" className="hover:text-primary transition-colors">
+                  {isKa ? "🌿 ჩემი ორანჟერეა" : "🌿 My Greenhouse"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/community" className="hover:text-primary transition-colors">
+                  {isKa ? "👥 მწვანე კომუნა" : "👥 Community"}
+                </Link>
+              </li>
+              <li>
+                <Link href="/services?category=LANDSCAPE" className="hover:text-primary transition-colors">
+                  {isKa ? "🏡 ლანდშაფტის დიზაინი" : "🏡 Landscape Design"}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Column 4: გამყიდველებისთვის */}
           <div className="col-span-1 space-y-2">
             <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground">
               {isKa ? "გამყიდველებისთვის" : "For Sellers"}
@@ -125,7 +164,7 @@ export function Footer() {
             <ul className="space-y-1.5 sm:space-y-2 text-xs text-muted-foreground font-medium">
               <li>
                 <Link href="/dashboard/listings/new" className="text-primary font-bold hover:underline transition-all">
-                  {isKa ? "+ განცხადება" : "+ Add Listing"}
+                  {isKa ? "+ განცხადების დამატება" : "+ Add Listing"}
                 </Link>
               </li>
               <li>
@@ -134,20 +173,19 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-primary transition-colors">
-                  {isKa ? "ვერიფიკაცია" : "Verification"}
+                <Link href="/shops" className="hover:text-primary transition-colors">
+                  {isKa ? "მაღაზიების კატალოგი" : "Shops Directory"}
                 </Link>
               </li>
-              <li className="flex items-center gap-1.5 text-muted-foreground/80">
-                <span>{isKa ? "მებაღეები" : "Gardeners"}</span>
-                <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-primary/10 text-primary">
-                  {isKa ? "მალე" : "Soon"}
-                </span>
+              <li>
+                <Link href="/dashboard" className="hover:text-primary transition-colors">
+                  {isKa ? "სამართავი პანელი" : "Dashboard"}
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Column 4: დახმარება & წესები */}
+          {/* Column 5: დახმარება & წესები */}
           <div className="col-span-2 sm:col-span-1 space-y-2">
             <h4 className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-foreground">
               {isKa ? "დახმარება & წესები" : "Support & Legal"}
@@ -160,7 +198,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href="/contact" className="hover:text-primary transition-colors">
-                  {isKa ? "კონტაქტი & ფიდბექი" : "Contact & Feedback"}
+                  {isKa ? "კონტაქტი & მხარდაჭერა" : "Contact & Support"}
                 </Link>
               </li>
               <li>

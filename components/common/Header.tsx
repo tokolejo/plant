@@ -25,7 +25,8 @@ import {
   Stethoscope,
   Wrench,
   Droplets,
-  Users
+  Users,
+  RefreshCw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -95,11 +96,13 @@ export function Header() {
   const navLinks = [
     { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
     { href: "/services", label: isKa ? "სერვისები" : "Services", icon: Wrench, match: "/services" },
+    { href: "/listings?trans=TRADE", label: isKa ? "მცენარის გაცვლა" : "Plant Swap", icon: RefreshCw, match: "/listings?trans=TRADE" },
+    { href: "/iso", label: isKa ? "ეძებ მცენარეს" : "In Search Of", icon: Shuffle, match: "/iso" },
     { href: "/plant-doctor", label: isKa ? "AI ექიმი" : "AI Doctor", icon: Stethoscope, match: "/plant-doctor" },
+    { href: "/dashboard/greenhouse", label: isKa ? "ორანჟერეა" : "Greenhouse", icon: Sprout, match: "/dashboard/greenhouse" },
     { href: "/community", label: isKa ? "კომუნა" : "Community", icon: Users, match: "/community" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
-    { href: "/iso", label: navT("iso"), icon: Shuffle },
-    { href: "/pricing", label: navT("pricing"), icon: Sparkles },
+    { href: "/pricing", label: navT("pricing"), icon: Sparkles, match: "/pricing" },
   ];
 
   const tierColors: Record<string, string> = {
