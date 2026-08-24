@@ -29,6 +29,7 @@ import {
   List,
   Shuffle,
   Gift,
+  Plus,
   PlusCircle,
   ArrowRight
 } from "lucide-react";
@@ -516,10 +517,10 @@ function IsoCatalogContent() {
       {/* Header */}
       <div className="flex items-center justify-between pb-3.5 border-b border-border/60">
         <h2 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
-          <SlidersHorizontal className="w-4 h-4 text-amber-600" />
+          <SlidersHorizontal className="w-4 h-4 text-primary" />
           {isKa ? "გაცვლის ფილტრები" : "Swap Filters"}
           {activeFilterCount > 0 && (
-            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-600 text-white text-[11px] font-black">
+            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-white text-[11px] font-black">
               {activeFilterCount}
             </span>
           )}
@@ -527,7 +528,7 @@ function IsoCatalogContent() {
         {activeFilterCount > 0 && (
           <button
             onClick={resetAll}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-amber-600 transition-colors font-semibold"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors font-semibold cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" /> {isKa ? "გასუფთავება" : "Clear"}
           </button>
@@ -551,10 +552,10 @@ function IsoCatalogContent() {
               setOpenSections((prev) => ({ ...prev, search: true }));
             }}
             placeholder={isKa ? "Monstera, ფიკუსი, სუკულენტი..." : "Monstera, Ficus, Succulent..."}
-            className="w-full pl-9 pr-4 py-2.5 rounded-[12px] border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+            className="w-full pl-9 pr-4 py-2.5 rounded-[12px] border border-input bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
           {searchQ && (
-            <button onClick={() => setSearchQ("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+            <button onClick={() => setSearchQ("")} className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer">
               <X className="w-4 h-4 text-muted-foreground" />
             </button>
           )}
@@ -581,7 +582,7 @@ function IsoCatalogContent() {
         </div>
         {userCoords && (
           <p className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1 font-medium">
-            <Navigation className="w-3 h-3 text-indigo-600 animate-pulse" />
+            <Navigation className="w-3 h-3 text-primary animate-pulse" />
             {isKa ? "მანძილი გამოითვლება თქვენი ლოკაციიდან" : "Distance calculated from your location"}
           </p>
         )}
@@ -600,23 +601,23 @@ function IsoCatalogContent() {
             { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
-            const count = allListings.filter((l) => l.transactionType === t.id).length;
             return (
               <button
                 key={t.id}
-                onClick={() => toggleTrans(t.id)}
-                className={`flex items-center justify-between px-3.5 py-2.5 rounded-[12px] border text-left transition-all cursor-pointer ${
+                type="button"
+                onClick={() => {
+                  setSelectedTrans((prev) =>
+                    prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id]
+                  );
+                }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer border ${
                   active
-                    ? "border-indigo-600 bg-indigo-600 text-white font-bold shadow-sm"
-                    : "border-border/70 bg-card hover:bg-surface-container/60 text-foreground font-semibold"
+                    ? "bg-primary text-white border-primary shadow-xs"
+                    : "bg-background border-border/70 text-foreground hover:bg-surface-container"
                 }`}
               >
-                <span className="text-xs sm:text-sm">{t.label}</span>
-                <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 ${
-                  active ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
-                }`}>
-                  {count}
-                </span>
+                <span>{t.label}</span>
+                {active && <Check className="w-3.5 h-3.5 text-white" />}
               </button>
             );
           })}
@@ -667,7 +668,7 @@ function IsoCatalogContent() {
         badgeCount={selectedCategories.length}
       >
         <div className="space-y-2">
-          {dynamicCategoryGroups.map((group) => {
+          {PLANT_CATEGORY_GROUPS.map((group) => {
             const Icon = group.icon;
             const groupTotal = group.children.reduce(
               (sum, c) => sum + countByCategory(c.id),
@@ -710,7 +711,7 @@ function IsoCatalogContent() {
                           onClick={() => toggleCategory(cat.id)}
                           className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
                             isActive
-                              ? "bg-indigo-600 text-white font-bold shadow-sm"
+                              ? "bg-primary text-white font-bold shadow-sm"
                               : "text-foreground hover:bg-surface-container font-medium"
                           }`}
                         >
@@ -737,32 +738,29 @@ function IsoCatalogContent() {
   );
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl">
-      {/* 🌟 1. Top Hero Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mb-8 pb-6 border-b border-border/60">
-        <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-900 dark:text-indigo-300 text-xs font-bold border border-indigo-500/20 mb-2.5">
-            <Shuffle className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>{isKa ? "ბოტანიკური გაცვლა & ISO დაფა" : "Plant Swaps & ISO Match Board"}</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-foreground">
-            {isKa ? "მცენარეების გაცვლისა და ძიების დაფა" : "Plant Swap & Match Board"}
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8">
+      {/* 1. Header Hero Banner (Identical layout to Marketplace and Services) */}
+      <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
+            {isKa ? "მცენარეების გაცვლა & ძიება (ISO)" : "Plant Swaps & In Search Of"}
           </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
             {isKa
               ? "განათავსეთ თქვენი გასაცვლელი მცენარე, მოძებნეთ სასურველი ჯიშები და შესთავაზეთ გაცვლა სხვა წევრებს."
               : "Post your plants for swap, search desired varieties, and propose trades directly to community members."}
           </p>
         </div>
 
-        <div className="shrink-0 flex items-center gap-3">
-          <Link href="/dashboard/listings/new?trans=TRADE">
-            <Button className="h-11 px-5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-ambient gap-2 cursor-pointer transition-all hover:scale-[1.02]">
-              <PlusCircle className="w-4 h-4" />
-              <span>{isKa ? "+ გასაცვლელი მცენარის დამატება" : "+ Post Plant for Swap"}</span>
-            </Button>
-          </Link>
-        </div>
+        <Link href="/dashboard/listings/new?trans=TRADE">
+          <Button
+            type="button"
+            className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-6 gap-2 shadow-ambient cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{isKa ? "განცხადების დამატება" : "Post Swap Listing"}</span>
+          </Button>
+        </Link>
       </div>
 
       {/* 🌟 2. Main Grid Layout (Sidebar + Results) */}
@@ -779,12 +777,12 @@ function IsoCatalogContent() {
               <div>
                 <div className="flex items-center justify-between pb-4 border-b border-border/80 mb-4">
                   <h3 className="font-bold text-base text-foreground flex items-center gap-2">
-                    <SlidersHorizontal className="w-4 h-4 text-indigo-600" />
+                    <SlidersHorizontal className="w-4 h-4 text-primary" />
                     {isKa ? "ფილტრები" : "Filters"}
                   </h3>
                   <button
                     onClick={() => setMobileFilterOpen(false)}
-                    className="p-1.5 rounded-full hover:bg-surface-container text-muted-foreground hover:text-foreground"
+                    className="p-1.5 rounded-full hover:bg-surface-container text-muted-foreground hover:text-foreground cursor-pointer"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -793,7 +791,7 @@ function IsoCatalogContent() {
               </div>
               <div className="pt-6 border-t border-border/80 mt-6">
                 <Button
-                  className="w-full h-11 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold"
+                  className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold cursor-pointer"
                   onClick={() => setMobileFilterOpen(false)}
                 >
                   {isKa ? `შედეგების ნახვა (${filtered.length})` : `Show Results (${filtered.length})`}
@@ -850,12 +848,12 @@ function IsoCatalogContent() {
             <button
               type="button"
               onClick={() => setMobileFilterOpen(true)}
-              className="lg:hidden flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-indigo-500/10 text-indigo-900 dark:text-indigo-300 border border-indigo-500/20 text-xs font-bold cursor-pointer"
+              className="lg:hidden flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-primary/10 text-primary border border-primary/20 text-xs font-bold cursor-pointer"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-600" />
+              <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
               <span>{isKa ? "ფილტრები" : "Filters"}</span>
               {activeFilterCount > 0 && (
-                <span className="w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] flex items-center justify-center">
+                <span className="w-4 h-4 rounded-full bg-primary text-white text-[10px] flex items-center justify-center">
                   {activeFilterCount}
                 </span>
               )}

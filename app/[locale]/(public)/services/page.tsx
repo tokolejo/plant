@@ -547,10 +547,6 @@ function GardeningServicesCatalogContent() {
       {/* 1. Header Hero Banner (Identical to Marketplace) */}
       <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs font-black">
-            <Wrench className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{isKa ? "პროფესიონალური მებაღეობა & გამწვანება" : "Professional Gardening Services"}</span>
-          </div>
           <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
             {isKa ? "მებაღეობის & გამწვანების სერვისები" : "Gardening & Greening Services"}
           </h1>

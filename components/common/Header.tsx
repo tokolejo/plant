@@ -96,9 +96,7 @@ export function Header() {
   const navLinks = [
     { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
     { href: "/services", label: isKa ? "სერვისები" : "Services", icon: Wrench, match: "/services" },
-    { href: "/listings?trans=TRADE", label: isKa ? "მცენარის გაცვლა" : "Plant Swap", icon: RefreshCw, match: "/listings?trans=TRADE" },
-    { href: "/iso", label: isKa ? "ეძებ მცენარეს" : "In Search Of", icon: Shuffle, match: "/iso" },
-    { href: "/plant-doctor", label: isKa ? "AI ექიმი" : "AI Doctor", icon: Stethoscope, match: "/plant-doctor" },
+    { href: "/iso", label: isKa ? "ვეძებ მცენარეს" : "In Search Of", icon: Shuffle, match: "/iso" },
     { href: "/dashboard/greenhouse", label: isKa ? "ორანჟერეა" : "Greenhouse", icon: Sprout, match: "/dashboard/greenhouse" },
     { href: "/community", label: isKa ? "კომუნა" : "Community", icon: Users, match: "/community" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
