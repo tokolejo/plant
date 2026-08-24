@@ -27,7 +27,9 @@ import {
   Gift,
   Search,
   X,
-  User
+  User,
+  Phone,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
