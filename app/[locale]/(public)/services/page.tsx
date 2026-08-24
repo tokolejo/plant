@@ -232,6 +232,27 @@ function GardeningServicesCatalogContent() {
     router.replace(pathname, { scroll: false });
   };
 
+  const handleSortClick = (type: string) => {
+    if (type === "newest") {
+      setSortBy("newest");
+      updateQueryParams({ sort: "newest" });
+    } else if (type === "rating") {
+      setSortBy("rating");
+      updateQueryParams({ sort: "rating" });
+    } else if (type === "price") {
+      if (sortBy === "price-asc") {
+        setSortBy("price-desc");
+        updateQueryParams({ sort: "price-desc" });
+      } else if (sortBy === "price-desc") {
+        setSortBy("newest");
+        updateQueryParams({ sort: "newest" });
+      } else {
+        setSortBy("price-asc");
+        updateQueryParams({ sort: "price-asc" });
+      }
+    }
+  };
+
   // Active filters count calculation
   const activeFilterCount =
     (searchQ.trim() ? 1 : 0) +
@@ -543,7 +564,7 @@ function GardeningServicesCatalogContent() {
   );
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8 pb-28 sm:pb-12">
       {/* 1. Header Hero Banner (Identical to Marketplace) */}
       <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
@@ -713,14 +734,15 @@ function GardeningServicesCatalogContent() {
           )}
 
           {/* Sort & View Mode Toolbar (Identical to Marketplace) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 rounded-[20px] bg-card border border-border/80 shadow-2xs">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-3.5 rounded-[20px] bg-card border border-border/80 shadow-2xs">
+            {/* Left: Mobile Filter Toggle + Sort Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setMobileFiltersOpen(true)}
-                className="lg:hidden rounded-[12px] text-xs font-bold gap-1.5"
+                className="lg:hidden rounded-[12px] text-xs font-bold gap-1.5 shrink-0"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
                 <span>{isKa ? "ფილტრები" : "Filters"}</span>
@@ -731,32 +753,36 @@ function GardeningServicesCatalogContent() {
                 )}
               </Button>
 
-              <span className="text-xs sm:text-sm font-bold text-muted-foreground">
-                {isKa
-                  ? `ნაპოვნია ${filteredServices.length} სერვისი`
-                  : `Found ${filteredServices.length} services`}
-              </span>
+              {/* Sort Pills */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {[
+                  { id: "newest", labelKa: "უახლესი", labelEn: "Newest", isActive: sortBy === "newest" },
+                  { id: "rating", labelKa: "პოპულარული", labelEn: "Popular", isActive: sortBy === "rating" },
+                  {
+                    id: "price",
+                    labelKa: sortBy === "price-desc" ? "ფასი ↓" : sortBy === "price-asc" ? "ფასი ↑" : "ფასი ⇅",
+                    labelEn: sortBy === "price-desc" ? "Price ↓" : sortBy === "price-asc" ? "Price ↑" : "Price ⇅",
+                    isActive: sortBy === "price-asc" || sortBy === "price-desc",
+                  },
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => handleSortClick(opt.id)}
+                    className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                      opt.isActive
+                        ? "bg-primary text-white shadow-xs scale-[1.02]"
+                        : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
+                    }`}
+                  >
+                    {isKa ? opt.labelKa : opt.labelEn}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
-              {/* Sort Select */}
-              <div className="relative inline-flex items-center">
-                <select
-                  value={sortBy}
-                  onChange={(e) => {
-                    setSortBy(e.target.value);
-                    updateQueryParams({ sort: e.target.value });
-                  }}
-                  className="h-9 pl-3 pr-7 rounded-[12px] bg-card border border-border/80 text-xs font-bold text-foreground hover:bg-surface-container transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
-                >
-                  <option value="newest">{isKa ? "უახლესი" : "Newest"}</option>
-                  <option value="price-asc">{isKa ? "ფასი: დაბლიდან" : "Price: Low to High"}</option>
-                  <option value="price-desc">{isKa ? "ფასი: მაღლიდან" : "Price: High to Low"}</option>
-                  <option value="rating">{isKa ? "მაღალი რეიტინგი" : "Top Rated"}</option>
-                </select>
-                <ChevronDown className="w-3 h-3 text-muted-foreground absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
-              </div>
-
+            {/* Right: Page Size & View Mode */}
+            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
               {/* Page Size Selector */}
               <div className="relative inline-flex items-center">
                 <select

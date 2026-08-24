@@ -413,6 +413,43 @@ function ListingsCatalogContent() {
     return groups;
   }, [allListings, dbCategories]);
 
+  // Filter visible category groups based on itemTypeFilter (All / Plants / Inventory)
+  const visibleCategoryGroups = React.useMemo(() => {
+    if (itemTypeFilter === "PLANT") {
+      return dynamicCategoryGroups.filter((g) => g.id !== "inventory");
+    }
+    if (itemTypeFilter === "INVENTORY") {
+      return dynamicCategoryGroups.filter((g) => g.id === "inventory");
+    }
+    return dynamicCategoryGroups;
+  }, [dynamicCategoryGroups, itemTypeFilter]);
+
+  const handleItemTypeChange = (type: "ALL" | "PLANT" | "INVENTORY") => {
+    setItemTypeFilter(type);
+    setSelectedCategories([]);
+    if (type === "PLANT") {
+      setOpenSections((prev) => ({ ...prev, categories: true }));
+      setOpenGroups({
+        aroid: true,
+        flowering: true,
+        "tree-ficus": true,
+        "cactus-etc": true,
+        inventory: false,
+        "custom-categories": false,
+      });
+    } else if (type === "INVENTORY") {
+      setOpenSections((prev) => ({ ...prev, categories: true }));
+      setOpenGroups({
+        aroid: false,
+        flowering: false,
+        "tree-ficus": false,
+        "cactus-etc": false,
+        inventory: true,
+        "custom-categories": false,
+      });
+    }
+  };
+
   // Smart auto-expansion: when arriving from homepage / link with a categoryParam
   React.useEffect(() => {
     if (categoryParam) {
@@ -670,7 +707,7 @@ function ListingsCatalogContent() {
         title={isKa ? "ლოკაცია" : "Location"}
         isOpen={openSections.location}
         onToggle={() => toggleSection("location")}
-        badgeCount={selectedCity && selectedCity !== "მთელი საქართველო" ? 1 : 0}
+        badgeCount={selectedCity && selectedCity !== "მთელი საქართველო" && !selectedCity.includes("GPS") ? 1 : 0}
         className="relative z-40 overflow-visible"
       >
         <div className="rounded-[14px] border border-border/80 bg-background overflow-visible relative">
@@ -691,7 +728,82 @@ function ListingsCatalogContent() {
         )}
       </FilterSection>
 
-      {/* 💰 Price Range */}
+      {/* 3. Categories (Directly under Location) */}
+      <FilterSection
+        title={isKa ? "კატეგორიები" : "Categories"}
+        isOpen={openSections.categories}
+        onToggle={() => toggleSection("categories")}
+        badgeCount={selectedCategories.length}
+      >
+        <div className="space-y-2">
+          {visibleCategoryGroups.map((group) => {
+            const Icon = group.icon;
+            const groupTotal = group.children.reduce(
+              (sum, c) => sum + countByCategory(c.id),
+              0
+            );
+            if (groupTotal === 0) return null;
+            const isGroupOpen = openGroups[group.id] ?? false;
+            const groupLabel = isKa ? group.labelKa : group.labelEn;
+
+            return (
+              <div key={group.id} className="border-b border-border/40 pb-2 last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => toggleGroup(group.id)}
+                  className="w-full flex items-center justify-between py-2 px-2 rounded-[10px] text-left hover:bg-surface-container/60 transition-colors cursor-pointer"
+                >
+                  <div className={`flex items-center gap-2 ${group.color}`}>
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span className="text-sm font-bold text-foreground">{groupLabel}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-muted-foreground bg-secondary-container px-2 py-0.5 rounded-full">
+                      {groupTotal}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isGroupOpen ? "rotate-180" : ""}`} />
+                  </div>
+                </button>
+
+                {isGroupOpen && (
+                  <div className="space-y-1 mt-1 pl-2">
+                    {group.children.map((cat) => {
+                      const count = countByCategory(cat.id);
+                      if (count === 0) return null;
+                      const isActive = selectedCategories.includes(cat.id);
+                      const catLabel = isKa ? cat.labelKa : cat.labelEn;
+
+                      return (
+                        <button
+                          key={cat.id}
+                          onClick={() => toggleCategory(cat.id)}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
+                            isActive
+                              ? "bg-primary text-white font-bold shadow-sm"
+                              : "text-foreground hover:bg-surface-container font-medium"
+                          }`}
+                        >
+                          <span className="flex items-center gap-2 pr-2">
+                            <span className="text-base shrink-0">{cat.emoji}</span>
+                            <span className="break-words">{catLabel}</span>
+                          </span>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-auto ${
+                            isActive ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                          }`}>
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* 4. 💰 Price Range */}
       <FilterSection
         title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"}
         isOpen={openSections.price}
@@ -759,7 +871,7 @@ function ListingsCatalogContent() {
         </div>
       </FilterSection>
 
-      {/* Transaction Type */}
+      {/* 5. Transaction Type */}
       <FilterSection
         title={isKa ? "გარიგების ტიპი" : "Transaction Type"}
         isOpen={openSections.transaction}
@@ -797,7 +909,7 @@ function ListingsCatalogContent() {
         </div>
       </FilterSection>
 
-      {/* Delivery Methods */}
+      {/* 6. Delivery Methods */}
       <FilterSection
         title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"}
         isOpen={openSections.delivery}
@@ -832,86 +944,11 @@ function ListingsCatalogContent() {
           })}
         </div>
       </FilterSection>
-
-      {/* Categories */}
-      <FilterSection
-        title={isKa ? "კატეგორიები" : "Categories"}
-        isOpen={openSections.categories}
-        onToggle={() => toggleSection("categories")}
-        badgeCount={selectedCategories.length}
-      >
-        <div className="space-y-2">
-          {dynamicCategoryGroups.map((group) => {
-            const Icon = group.icon;
-            const groupTotal = group.children.reduce(
-              (sum, c) => sum + countByCategory(c.id),
-              0
-            );
-            if (groupTotal === 0) return null;
-            const isGroupOpen = openGroups[group.id] ?? false;
-            const groupLabel = isKa ? group.labelKa : group.labelEn;
-
-            return (
-              <div key={group.id} className="border-b border-border/40 pb-2 last:border-b-0">
-                <button
-                  type="button"
-                  onClick={() => toggleGroup(group.id)}
-                  className="w-full flex items-center justify-between py-2 px-2 rounded-[10px] text-left hover:bg-surface-container/60 transition-colors cursor-pointer"
-                >
-                  <div className={`flex items-center gap-2 ${group.color}`}>
-                    <Icon className="w-4 h-4 shrink-0" />
-                    <span className="text-sm font-bold text-foreground">{groupLabel}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-muted-foreground bg-secondary-container px-2 py-0.5 rounded-full">
-                      {groupTotal}
-                    </span>
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isGroupOpen ? "rotate-180" : ""}`} />
-                  </div>
-                </button>
-
-                {isGroupOpen && (
-                  <div className="space-y-1 mt-1 pl-2">
-                    {group.children.map((cat) => {
-                      const count = countByCategory(cat.id);
-                      if (count === 0) return null;
-                      const isActive = selectedCategories.includes(cat.id);
-                      const catLabel = isKa ? cat.labelKa : cat.labelEn;
-
-                      return (
-                        <button
-                          key={cat.id}
-                          onClick={() => toggleCategory(cat.id)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-[10px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
-                            isActive
-                              ? "bg-primary text-white font-bold shadow-sm"
-                              : "text-foreground hover:bg-surface-container font-medium"
-                          }`}
-                        >
-                          <span className="flex items-center gap-2 pr-2">
-                            <span className="text-base shrink-0">{cat.emoji}</span>
-                            <span className="break-words">{catLabel}</span>
-                          </span>
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ml-auto ${
-                            isActive ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
-                          }`}>
-                            {count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </FilterSection>
     </div>
   );
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8 pb-28 sm:pb-12">
       {/* 1. Header Hero Banner (Identical to Services layout) */}
       <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
@@ -944,7 +981,7 @@ function ListingsCatalogContent() {
             {/* 1. All */}
             <button
               type="button"
-              onClick={() => setItemTypeFilter("ALL")}
+              onClick={() => handleItemTypeChange("ALL")}
               className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
                 itemTypeFilter === "ALL"
                   ? "bg-primary text-white shadow-xs"
@@ -958,7 +995,7 @@ function ListingsCatalogContent() {
             {/* 2. Plants */}
             <button
               type="button"
-              onClick={() => setItemTypeFilter("PLANT")}
+              onClick={() => handleItemTypeChange("PLANT")}
               className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
                 itemTypeFilter === "PLANT"
                   ? "bg-primary text-white shadow-xs"
@@ -973,7 +1010,7 @@ function ListingsCatalogContent() {
             {/* 3. Inventory */}
             <button
               type="button"
-              onClick={() => setItemTypeFilter("INVENTORY")}
+              onClick={() => handleItemTypeChange("INVENTORY")}
               className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
                 itemTypeFilter === "INVENTORY"
                   ? "bg-primary text-white shadow-xs"

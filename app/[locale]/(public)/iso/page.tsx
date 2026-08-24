@@ -403,6 +403,41 @@ function IsoCatalogContent() {
   const plantsCount = React.useMemo(() => allListings.filter((l) => l.itemType === "PLANT").length, [allListings]);
   const inventoryCount = React.useMemo(() => allListings.filter((l) => l.itemType === "INVENTORY").length, [allListings]);
 
+  // Filter visible category groups based on itemTypeFilter (All / Plants / Inventory)
+  const visibleCategoryGroups = React.useMemo(() => {
+    if (itemTypeFilter === "PLANT") {
+      return PLANT_CATEGORY_GROUPS.filter((g) => g.id !== "inventory");
+    }
+    if (itemTypeFilter === "INVENTORY") {
+      return PLANT_CATEGORY_GROUPS.filter((g) => g.id === "inventory");
+    }
+    return PLANT_CATEGORY_GROUPS;
+  }, [itemTypeFilter]);
+
+  const handleItemTypeChange = (type: "ALL" | "PLANT" | "INVENTORY") => {
+    setItemTypeFilter(type);
+    setSelectedCategories([]);
+    if (type === "PLANT") {
+      setOpenSections((prev) => ({ ...prev, categories: true }));
+      setOpenGroups({
+        aroid: true,
+        flowering: true,
+        "tree-ficus": true,
+        "cactus-etc": true,
+        inventory: false,
+      });
+    } else if (type === "INVENTORY") {
+      setOpenSections((prev) => ({ ...prev, categories: true }));
+      setOpenGroups({
+        aroid: false,
+        flowering: false,
+        "tree-ficus": false,
+        "cactus-etc": false,
+        inventory: true,
+      });
+    }
+  };
+
   const toggleCategory = (cat: PlantCategory | string) => {
     setSelectedCategories((prev) =>
       prev.includes(cat as any) ? prev.filter((c) => c !== cat) : [...prev, cat as any]
@@ -562,7 +597,7 @@ function IsoCatalogContent() {
         </div>
       </FilterSection>
 
-      {/* Location */}
+      {/* 2. Location */}
       <FilterSection
         title={isKa ? "ლოკაცია" : "Location"}
         isOpen={openSections.location}
@@ -588,79 +623,7 @@ function IsoCatalogContent() {
         )}
       </FilterSection>
 
-      {/* Swap / Deal Mode */}
-      <FilterSection
-        title={isKa ? "გარიგების ფორმა" : "Trade Mode"}
-        isOpen={openSections.swapType}
-        onToggle={() => toggleSection("swapType")}
-        badgeCount={selectedTrans.length}
-      >
-        <div className="grid grid-cols-1 gap-2">
-          {[
-            { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Plant Trade" },
-            { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
-          ].map((t) => {
-            const active = selectedTrans.includes(t.id);
-            return (
-              <button
-                key={t.id}
-                type="button"
-                onClick={() => {
-                  setSelectedTrans((prev) =>
-                    prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id]
-                  );
-                }}
-                className={`w-full flex items-center justify-between p-2.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer border ${
-                  active
-                    ? "bg-primary text-white border-primary shadow-xs"
-                    : "bg-background border-border/70 text-foreground hover:bg-surface-container"
-                }`}
-              >
-                <span>{t.label}</span>
-                {active && <Check className="w-3.5 h-3.5 text-white" />}
-              </button>
-            );
-          })}
-        </div>
-      </FilterSection>
-
-      {/* Delivery Methods */}
-      <FilterSection
-        title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"}
-        isOpen={openSections.delivery}
-        onToggle={() => toggleSection("delivery")}
-        badgeCount={selectedDelivery.length}
-      >
-        <div className="space-y-1.5">
-          {[
-            { id: "PICKUP", label: isKa ? "ადგილზე გატანა" : "Local Pickup" },
-            { id: "COURIER", label: isKa ? "საკურიერო მიწოდება" : "Courier Delivery" },
-            { id: "MARSHRUTKA", label: isKa ? "სამარშრუტო ტრანსპორტი" : "Regional Transit" },
-          ].map((d) => {
-            const active = selectedDelivery.includes(d.id);
-            return (
-              <button
-                key={d.id}
-                onClick={() => toggleDelivery(d.id)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[12px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
-                  active
-                    ? "bg-indigo-500/10 text-indigo-900 dark:text-indigo-300 font-bold border border-indigo-500/30"
-                    : "text-foreground hover:bg-surface-container border border-border/50 bg-card"
-                }`}
-              >
-                <div className={`w-4 h-4 rounded-[6px] border flex items-center justify-center shrink-0 ${
-                  active ? "bg-indigo-600 border-indigo-600 text-white" : "border-border"
-                }`}>
-                  {active && <Check className="w-3 h-3" />}
-                </div>
-                <span className="font-semibold">{d.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </FilterSection>
-
-      {/* Categories */}
+      {/* 3. Categories (Directly under Location) */}
       <FilterSection
         title={isKa ? "კატეგორიები" : "Categories"}
         isOpen={openSections.categories}
@@ -668,7 +631,7 @@ function IsoCatalogContent() {
         badgeCount={selectedCategories.length}
       >
         <div className="space-y-2">
-          {PLANT_CATEGORY_GROUPS.map((group) => {
+          {visibleCategoryGroups.map((group) => {
             const Icon = group.icon;
             const groupTotal = group.children.reduce(
               (sum, c) => sum + countByCategory(c.id),
@@ -734,11 +697,83 @@ function IsoCatalogContent() {
           })}
         </div>
       </FilterSection>
+
+      {/* 4. Swap / Deal Mode */}
+      <FilterSection
+        title={isKa ? "გარიგების ფორმა" : "Trade Mode"}
+        isOpen={openSections.swapType}
+        onToggle={() => toggleSection("swapType")}
+        badgeCount={selectedTrans.length}
+      >
+        <div className="grid grid-cols-1 gap-2">
+          {[
+            { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Plant Trade" },
+            { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
+          ].map((t) => {
+            const active = selectedTrans.includes(t.id);
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => {
+                  setSelectedTrans((prev) =>
+                    prev.includes(t.id) ? prev.filter((x) => x !== t.id) : [...prev, t.id]
+                  );
+                }}
+                className={`w-full flex items-center justify-between p-2.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer border ${
+                  active
+                    ? "bg-primary text-white border-primary shadow-xs"
+                    : "bg-background border-border/70 text-foreground hover:bg-surface-container"
+                }`}
+              >
+                <span>{t.label}</span>
+                {active && <Check className="w-3.5 h-3.5 text-white" />}
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
+
+      {/* 5. Delivery Methods */}
+      <FilterSection
+        title={isKa ? "მიწოდების მეთოდები" : "Delivery Methods"}
+        isOpen={openSections.delivery}
+        onToggle={() => toggleSection("delivery")}
+        badgeCount={selectedDelivery.length}
+      >
+        <div className="space-y-1.5">
+          {[
+            { id: "PICKUP", label: isKa ? "ადგილზე გატანა" : "Local Pickup" },
+            { id: "COURIER", label: isKa ? "საკურიერო მიწოდება" : "Courier Delivery" },
+            { id: "MARSHRUTKA", label: isKa ? "სამარშრუტო ტრანსპორტი" : "Regional Transit" },
+          ].map((d) => {
+            const active = selectedDelivery.includes(d.id);
+            return (
+              <button
+                key={d.id}
+                onClick={() => toggleDelivery(d.id)}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[12px] text-xs sm:text-sm transition-all text-left cursor-pointer ${
+                  active
+                    ? "bg-primary/10 text-primary font-bold border border-primary/30"
+                    : "text-foreground hover:bg-surface-container border border-border/50 bg-card"
+                }`}
+              >
+                <div className={`w-4 h-4 rounded-[6px] border flex items-center justify-center shrink-0 ${
+                  active ? "bg-primary border-primary text-white" : "border-border"
+                }`}>
+                  {active && <Check className="w-3 h-3" />}
+                </div>
+                <span className="font-semibold">{d.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </FilterSection>
     </div>
   );
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8 pb-28 sm:pb-12">
       {/* 1. Header Hero Banner (Identical layout to Marketplace and Services) */}
       <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
@@ -809,7 +844,7 @@ function IsoCatalogContent() {
             <div className="flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setItemTypeFilter("ALL")}
+                onClick={() => handleItemTypeChange("ALL")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   itemTypeFilter === "ALL"
                     ? "bg-foreground text-background shadow-xs"
@@ -820,7 +855,7 @@ function IsoCatalogContent() {
               </button>
               <button
                 type="button"
-                onClick={() => setItemTypeFilter("PLANT")}
+                onClick={() => handleItemTypeChange("PLANT")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   itemTypeFilter === "PLANT"
                     ? "bg-primary text-white shadow-xs"
@@ -832,7 +867,7 @@ function IsoCatalogContent() {
               </button>
               <button
                 type="button"
-                onClick={() => setItemTypeFilter("INVENTORY")}
+                onClick={() => handleItemTypeChange("INVENTORY")}
                 className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
                   itemTypeFilter === "INVENTORY"
                     ? "bg-primary text-white shadow-xs"
