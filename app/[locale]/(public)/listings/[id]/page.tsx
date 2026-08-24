@@ -1187,31 +1187,31 @@ export default function ListingDetailPage({
 
             {/* Delivery Methods (All 3 on single compact line with dimmed inactives) */}
             <div className="grid grid-cols-3 gap-1.5 text-center">
-              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
+              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[10.5px] sm:text-[11px] transition-all ${
                 listing.deliveryMethods?.includes("PICKUP")
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
                   : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
               }`}>
                 <MapPin className="w-3 h-3 shrink-0" />
-                <span className="truncate">{isKa ? "ადგილიდან" : "Pickup"}</span>
+                <span className="whitespace-nowrap">{isKa ? "ადგილიდან" : "Pickup"}</span>
               </div>
 
-              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
+              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[10.5px] sm:text-[11px] transition-all ${
                 listing.deliveryMethods?.includes("COURIER")
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
                   : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
               }`}>
                 <Truck className="w-3 h-3 shrink-0" />
-                <span className="truncate">{isKa ? "კურიერი" : "Courier"}</span>
+                <span className="whitespace-nowrap">{isKa ? "კურიერი" : "Courier"}</span>
               </div>
 
-              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[11px] transition-all ${
+              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[10px] sm:text-[11px] transition-all ${
                 listing.deliveryMethods?.includes("MARSHRUTKA")
                   ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
                   : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
               }`}>
                 <Truck className="w-3 h-3 shrink-0" />
-                <span className="truncate">{isKa ? "სამარშრუტო" : "Intercity"}</span>
+                <span className="whitespace-nowrap">{isKa ? "სამარშრუტო" : "Intercity"}</span>
               </div>
             </div>
 
@@ -1674,54 +1674,6 @@ export default function ListingDetailPage({
         title={displayTitle}
         price={listing.price}
       />
-
-      {/* Mobile Sticky Floating Action Bar (lg:hidden) */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/80 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl animate-in slide-in-from-bottom duration-300">
-        <div className="container mx-auto flex items-center justify-between gap-3 max-w-lg">
-          {/* Price */}
-          <div className="min-w-0">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground block">
-              {isKa ? "ფასი" : "Price"}
-            </span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-lg font-black text-foreground">
-                {formatPrice(listing.price, "₾", isKa)}
-              </span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handlePhoneAction}
-              className="w-10 h-10 rounded-xl bg-secondary-container hover:bg-secondary text-foreground flex items-center justify-center border border-border/80 transition-colors shrink-0 shadow-xs cursor-pointer"
-              title={isKa ? "დარეკვა" : "Call"}
-            >
-              <Phone className="w-4 h-4 text-emerald-600" />
-            </button>
-
-            <a
-              href={directWaChatUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] flex items-center justify-center border border-[#25D366]/30 transition-colors shrink-0 shadow-xs"
-              title={isKa ? "WhatsApp-ში მიწერა" : "Chat on WhatsApp"}
-            >
-              <WhatsAppIcon className="w-4 h-4" />
-            </a>
-
-            <button
-              type="button"
-              onClick={handleChatClick}
-              className="rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold text-xs h-10 px-4 gap-1.5 shadow-md shrink-0 flex items-center cursor-pointer"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>{isKa ? "მიწერა" : "Chat"}</span>
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

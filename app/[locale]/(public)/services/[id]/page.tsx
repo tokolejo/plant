@@ -982,54 +982,7 @@ export default function ServiceDetailPage({
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          4. Mobile Sticky Floating Action Bar (lg:hidden)
-      ══════════════════════════════════════════════════════════════════════ */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/80 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl animate-in slide-in-from-bottom duration-300">
-        <div className="container mx-auto flex items-center justify-between gap-3 max-w-lg">
-          {/* Price & Unit */}
-          <div className="min-w-0">
-            <span className="text-[10px] uppercase font-bold text-muted-foreground block">
-              {isKa ? "ფასი" : "Price"}
-            </span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-lg font-black text-foreground">{service.price_from} ₾</span>
-              <span className="text-[10px] text-muted-foreground">/ {service.price_unit}</span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex items-center gap-2">
-            <a
-              href={`tel:${cleanPhone}`}
-              className="w-10 h-10 rounded-xl bg-secondary-container hover:bg-secondary text-foreground flex items-center justify-center border border-border/80 transition-colors shrink-0 shadow-xs"
-              title={isKa ? "დარეკვა" : "Call"}
-            >
-              <Phone className="w-4 h-4 text-emerald-600" />
-            </a>
-
-            <a
-              href={directWaChatUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-10 h-10 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] flex items-center justify-center border border-[#25D366]/30 transition-colors shrink-0 shadow-xs"
-              title={isKa ? "WhatsApp-ში მიწერა" : "Chat on WhatsApp"}
-            >
-              <WhatsAppIcon className="w-4 h-4" />
-            </a>
-
-            <Button
-              onClick={() => setInquiryModalOpen(true)}
-              className="rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold text-xs h-10 px-4 gap-1.5 shadow-md shrink-0 cursor-pointer"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>{isKa ? "დაჯავშნა" : "Book"}</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          5. Rich Online Booking & Live Cost Estimator Modal
+          4. Rich Online Booking & Live Cost Estimator Modal
       ══════════════════════════════════════════════════════════════════════ */}
       <ServiceBookingModal
         isOpen={inquiryModalOpen}
