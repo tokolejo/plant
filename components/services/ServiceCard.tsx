@@ -160,33 +160,11 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              <a
-                href={`tel:${service.phone}`}
-                className="h-9 px-3 rounded-[12px] bg-secondary-container/80 hover:bg-secondary-container text-foreground text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer border border-border/40"
-              >
-                <Phone className="w-3.5 h-3.5 text-primary" />
-                <span>{isKa ? "დარეკვა" : "Call"}</span>
-              </a>
-
-              {service.whatsapp ? (
-                <a
-                  href={`https://wa.me/${service.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`გამარჯობა, დავინტერესდი თქვენი სერვისით Plant.ge-ზე: „${service.title}“`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="h-9 px-3 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>WhatsApp</span>
-                </a>
-              ) : (
-                <Link href={`/services/${service.id}`}>
-                  <Button size="sm" className="h-9 rounded-[12px] text-xs font-bold bg-primary text-white">
-                    {isKa ? "დეტალები" : "Details"}
-                  </Button>
-                </Link>
-              )}
-            </div>
+            <Link href={`/services/${service.id}`}>
+              <Button size="sm" className="h-9 px-4 rounded-[12px] text-xs font-bold bg-primary hover:bg-primary/90 text-white cursor-pointer shadow-ambient">
+                {isKa ? "დეტალები & დაკავშირება" : "Details & Contact"}
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
@@ -300,35 +278,12 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2">
-          <a
-            href={`tel:${service.phone}`}
-            className="h-9 px-3 rounded-[12px] bg-secondary-container/70 hover:bg-secondary-container text-foreground text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-border/40"
-          >
-            <Phone className="w-3.5 h-3.5 text-primary" />
-            <span>{isKa ? "დარეკვა" : "Call"}</span>
-          </a>
-
-          {service.whatsapp ? (
-            <a
-              href={`https://wa.me/${service.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`გამარჯობა, დავინტერესდი თქვენი სერვისით Plant.ge-ზე: „${service.title}“`)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="h-9 px-3 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span>WhatsApp</span>
-            </a>
-          ) : (
-            <Link
-              href={`/services/${service.id}`}
-              className="h-9 px-3 rounded-[12px] bg-primary hover:bg-primary/90 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-            >
-              <span>{isKa ? "დეტალები" : "Details"}</span>
-            </Link>
-          )}
-        </div>
+        {/* Action Button */}
+        <Link href={`/services/${service.id}`} className="block">
+          <Button className="w-full h-9.5 rounded-[14px] bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-ambient cursor-pointer">
+            <span>{isKa ? "დეტალები & დაკავშირება" : "Details & Contact"}</span>
+          </Button>
+        </Link>
       </div>
     </div>
   );

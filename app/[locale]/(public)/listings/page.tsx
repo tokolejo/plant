@@ -927,7 +927,7 @@ function ListingsCatalogContent() {
           </p>
         </div>
 
-        <Link href="/create-listing">
+        <Link href="/dashboard/listings/new">
           <Button
             type="button"
             className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-6 gap-2 shadow-ambient cursor-pointer shrink-0"
