@@ -38,7 +38,8 @@ import {
   X, 
   Award,
   HelpCircle,
-  FileText
+  FileText,
+  Store
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -569,22 +570,25 @@ export default function ServiceDetailPage({
 
           {/* Provider Bio Profile Card */}
           <div className="p-5 rounded-[24px] bg-card border border-border/80 shadow-2xs space-y-4">
-            <div className="flex items-center gap-3.5">
+            <Link
+              href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
+              className="flex items-center gap-3.5 group/p hover:opacity-90 transition-opacity"
+            >
               {service.provider_avatar ? (
                 <img
                   src={service.provider_avatar}
                   alt={service.provider_name}
-                  className="h-12 w-12 rounded-full object-cover border border-border shrink-0 shadow-2xs"
+                  className="h-12 w-12 rounded-full object-cover border border-border shrink-0 shadow-2xs group-hover/p:ring-2 group-hover/p:ring-primary/40 transition-all"
                 />
               ) : (
-                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-base shrink-0">
+                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-base shrink-0 group-hover/p:bg-primary group-hover/p:text-white transition-all">
                   {service.provider_name.charAt(0)}
                 </div>
               )}
 
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-black text-foreground">
+                  <h4 className="text-sm font-black text-foreground group-hover/p:text-primary transition-colors">
                     {service.provider_name}
                   </h4>
                   {service.is_verified && (
@@ -595,7 +599,7 @@ export default function ServiceDetailPage({
                   {service.provider_experience_years || 8} წლიანი გამოცდილება
                 </span>
               </div>
-            </div>
+            </Link>
 
             {service.provider_bio && (
               <p className="text-xs text-muted-foreground leading-relaxed">
@@ -617,6 +621,15 @@ export default function ServiceDetailPage({
                 <span className="text-[10px] text-muted-foreground">შეფასება</span>
               </div>
             </div>
+
+            {/* View Full Specialist Storefront / Profile Button */}
+            <Link
+              href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
+              className="w-full h-10 rounded-[14px] bg-secondary-container hover:bg-secondary text-foreground text-xs font-black flex items-center justify-center gap-1.5 border border-border/60 transition-colors shadow-2xs"
+            >
+              <Store className="w-3.5 h-3.5 text-primary" />
+              <span>{isKa ? "ოსტატის პროფილის & სერვისების ნახვა" : "View Specialist Profile & Services"}</span>
+            </Link>
           </div>
         </div>
       </div>

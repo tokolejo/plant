@@ -95,19 +95,22 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
           <div className="space-y-2">
             {/* Provider & City Row */}
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 min-w-0">
+              <Link 
+                href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
+                className="flex items-center gap-2 min-w-0 hover:text-primary transition-colors group/prov"
+              >
                 {service.provider_avatar ? (
                   <img
                     src={service.provider_avatar}
                     alt={service.provider_name}
-                    className="h-7 w-7 rounded-full object-cover border border-border shrink-0"
+                    className="h-7 w-7 rounded-full object-cover border border-border shrink-0 group-hover/prov:ring-2 group-hover/prov:ring-primary/40 transition-all"
                   />
                 ) : (
-                  <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[11px] shrink-0">
+                  <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[11px] shrink-0 group-hover/prov:bg-primary group-hover/prov:text-white transition-all">
                     {service.provider_name.charAt(0)}
                   </div>
                 )}
-                <span className="text-xs font-black text-foreground truncate">
+                <span className="text-xs font-black text-foreground group-hover/prov:text-primary truncate">
                   {service.provider_name}
                 </span>
                 {service.is_verified && (
@@ -115,7 +118,7 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   </span>
                 )}
-              </div>
+              </Link>
 
               <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold shrink-0">
                 <Star className="w-3.5 h-3.5 fill-amber-500" />
@@ -233,22 +236,25 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
 
         {/* Provider Profile Header */}
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5 min-w-0">
+          <Link
+            href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
+            className="flex items-center gap-2.5 min-w-0 hover:text-primary transition-colors group/prov"
+          >
             {service.provider_avatar ? (
               <img
                 src={service.provider_avatar}
                 alt={service.provider_name}
-                className="h-8 w-8 rounded-full object-cover border border-border shrink-0 shadow-2xs"
+                className="h-8 w-8 rounded-full object-cover border border-border shrink-0 shadow-2xs group-hover/prov:ring-2 group-hover/prov:ring-primary/40 transition-all"
               />
             ) : (
-              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs shrink-0">
+              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs shrink-0 group-hover/prov:bg-primary group-hover/prov:text-white transition-all">
                 {service.provider_name.charAt(0)}
               </div>
             )}
 
             <div className="min-w-0">
               <div className="flex items-center gap-1">
-                <span className="text-xs font-black text-foreground truncate">
+                <span className="text-xs font-black text-foreground group-hover/prov:text-primary truncate">
                   {service.provider_name}
                 </span>
                 {service.is_verified && (
@@ -258,7 +264,7 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
                 )}
               </div>
             </div>
-          </div>
+          </Link>
 
           <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold shrink-0">
             <Star className="w-3.5 h-3.5 fill-amber-500" />

@@ -7,6 +7,8 @@ import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS, type PlantCategory, type ExtendedListingCardProps } from "@/lib/mock-data";
 import { ListingCard } from "@/components/listings/ListingCard";
+import { ServiceCard } from "@/components/services/ServiceCard";
+import { MOCK_SERVICES, type GardeningServiceItem } from "@/lib/mock-services";
 import { 
   Store, 
   MapPin, 
@@ -18,19 +20,20 @@ import {
   Sprout, 
   Share2, 
   Check, 
-  ChevronLeft,
-  ChevronDown,
-  ChevronUp,
-  Layers,
-  Sparkles,
-  Search,
-  SlidersHorizontal,
-  RotateCcw,
-  X,
-  Leaf,
-  Flower2,
-  TreeDeciduous,
-  Navigation
+  ChevronLeft, 
+  ChevronDown, 
+  ChevronUp, 
+  Layers, 
+  Sparkles, 
+  Search, 
+  SlidersHorizontal, 
+  RotateCcw, 
+  X, 
+  Leaf, 
+  Flower2, 
+  TreeDeciduous, 
+  Navigation,
+  Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -206,6 +209,8 @@ export default function ShopStorefrontPage({
   const [selectedTrans, setSelectedTrans] = React.useState<string[]>([]);
   const [selectedDelivery, setSelectedDelivery] = React.useState<string[]>([]);
   const [itemTypeFilter, setItemTypeFilter] = React.useState<"ALL" | "PLANT" | "INVENTORY">("ALL");
+  const [storeTab, setStoreTab] = React.useState<"listings" | "services">("listings");
+  const [providerServices, setProviderServices] = React.useState<GardeningServiceItem[]>([]);
   const [priceRange, setPriceRange] = React.useState<[number, number]>([0, 500]);
   const [sortBy, setSortBy] = React.useState<"newest" | "price-asc" | "price-desc" | "views">("newest");
   const [visibleCount, setVisibleCount] = React.useState<number>(16);
@@ -355,6 +360,39 @@ export default function ShopStorefrontPage({
                 },
               }))
             );
+          }
+
+          // Fetch provider's gardening services
+          try {
+            const { data: dbServices } = await supabase
+              .from("gardening_services")
+              .select("*")
+              .or(`provider_id.eq.${profile.id},provider_slug.eq.${slug}`)
+              .order("created_at", { ascending: false });
+
+            if (dbServices && dbServices.length > 0) {
+              setProviderServices(dbServices as any);
+            } else {
+              // Match mock services if specialist matches demo
+              const matchedMocks = MOCK_SERVICES.filter(
+                (s) => s.provider_slug === slug || s.provider_id === profile.id
+              );
+              if (matchedMocks.length > 0) {
+                setProviderServices(matchedMocks);
+              } else {
+                setProviderServices(
+                  MOCK_SERVICES.slice(0, 2).map((s) => ({
+                    ...s,
+                    provider_id: profile.id,
+                    provider_slug: slug,
+                    provider_name: currentShopData.shopName,
+                    provider_avatar: currentShopData.avatarUrl,
+                  }))
+                );
+              }
+            }
+          } catch (servErr) {
+            console.warn("Error fetching provider services:", servErr);
           }
         }
       } catch (e) {
@@ -834,32 +872,34 @@ export default function ShopStorefrontPage({
         <div className="space-y-5 pt-4">
           {/* Top Toolbar: Switcher Tabs + Mobile Filter Button + Sorting */}
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            {/* Item Type Switcher Tabs */}
+            {/* Item Type & Services Switcher Tabs */}
             <div className="flex items-center gap-1.5 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-fit">
               <button
                 type="button"
                 onClick={() => {
+                  setStoreTab("listings");
                   setItemTypeFilter("ALL");
                   setVisibleCount(16);
                 }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
-                  itemTypeFilter === "ALL"
+                  storeTab === "listings" && itemTypeFilter === "ALL"
                     ? "bg-primary text-white shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <span>{isKa ? "ყველა" : "All"}</span>
+                <span>{isKa ? "ყველა განცხადება" : "All Listings"}</span>
                 <span className="text-[10px] opacity-80 font-mono">({shopListings.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
+                  setStoreTab("listings");
                   setItemTypeFilter("PLANT");
                   setVisibleCount(16);
                 }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
-                  itemTypeFilter === "PLANT"
+                  storeTab === "listings" && itemTypeFilter === "PLANT"
                     ? "bg-primary text-white shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
@@ -871,17 +911,35 @@ export default function ShopStorefrontPage({
               <button
                 type="button"
                 onClick={() => {
+                  setStoreTab("listings");
                   setItemTypeFilter("INVENTORY");
                   setVisibleCount(16);
                 }}
                 className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
-                  itemTypeFilter === "INVENTORY"
+                  storeTab === "listings" && itemTypeFilter === "INVENTORY"
                     ? "bg-primary text-white shadow-xs"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <span>{isKa ? "ინვენტარი" : "Inventory"}</span>
+                <span>{isKa ? "ინვენტარი" : "Supplies"}</span>
                 <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
+              </button>
+
+              {/* Services Tab */}
+              <button
+                type="button"
+                onClick={() => {
+                  setStoreTab("services");
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+                  storeTab === "services"
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Wrench className="w-3.5 h-3.5" />
+                <span>{isKa ? "სერვისები" : "Services"}</span>
+                <span className="text-[10px] opacity-80 font-mono">({providerServices.length})</span>
               </button>
             </div>
 
@@ -995,9 +1053,24 @@ export default function ShopStorefrontPage({
               </div>
             </aside>
 
-            {/* Results Column: 4 Columns x 4 Rows = 16 Items */}
+            {/* Results Column: 4 Columns x 4 Rows = 16 Items (or Services Grid) */}
             <div className="flex-1 min-w-0">
-              {filteredAndSortedListings.length > 0 ? (
+              {storeTab === "services" ? (
+                providerServices.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                    {providerServices.map((srv) => (
+                      <ServiceCard key={srv.id} service={srv} variant="compact" />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-16 bg-card rounded-3xl border border-dashed border-border/80">
+                    <Wrench className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                    <h3 className="text-base font-bold text-foreground">
+                      {isKa ? "სერვისები არ მოიძებნა" : "No services offered yet"}
+                    </h3>
+                  </div>
+                )
+              ) : filteredAndSortedListings.length > 0 ? (
                 <div className="space-y-8">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
                     {filteredAndSortedListings.slice(0, visibleCount).map((listing) => (

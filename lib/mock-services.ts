@@ -10,6 +10,7 @@ export type ServiceCategory =
 export interface GardeningServiceItem {
   id: string;
   provider_id?: string;
+  provider_slug?: string;
   provider_name: string;
   provider_avatar?: string;
   provider_bio?: string;
