@@ -450,102 +450,99 @@ export default function ServiceDetailPage({
             )}
           </div>
 
-          {/* Service Parameters & Key Highlights (Identical 6-Box Grid to Marketplace Specs) */}
-          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
-            <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Wrench className="w-4 h-4 text-primary" />
-              <span>{isKa ? "სერვისის პარამეტრები & მახასიათებლები" : "Service Highlights & Specs"}</span>
-            </h2>
+          {/* Dynamic Service Specifications / Guidelines Card (100% Identical to Marketplace Table Row List) */}
+          <div className="rounded-[24px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
+                <Wrench className="w-4 h-4 text-primary" />
+                <span>{isKa ? "სერვისის პარამეტრები & მახასიათებლები" : "Service Guidelines & Parameters"}</span>
+              </h3>
+              {categoryMeta && (
+                <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5">
+                  <CatIcon className="w-3.5 h-3.5" />
+                  <span>{isKa ? categoryMeta.labelKa : categoryMeta.labelEn}</span>
+                </span>
+              )}
+            </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {/* 1. Category */}
-              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <CatIcon className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-muted-foreground block font-medium">
-                    {isKa ? "კატეგორია" : "Category"}
-                  </span>
-                  <span className="text-xs font-bold text-foreground truncate block">
-                    {categoryMeta ? (isKa ? categoryMeta.labelKa : categoryMeta.labelEn) : service.category}
+            {/* Single unified sequential card rows */}
+            <div className="divide-y divide-border/40 rounded-[16px] bg-secondary-container/30 border border-border/50 overflow-hidden">
+              {/* 1. კატეგორია */}
+              <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <CatIcon className="w-4 h-4 text-amber-500 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                    {isKa ? "კატეგორია:" : "Category:"}
                   </span>
                 </div>
+                <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                  {categoryMeta ? (isKa ? categoryMeta.labelKa : categoryMeta.labelEn) : service.category}
+                </span>
               </div>
 
-              {/* 2. Working Hours */}
-              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-[10px] bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                  <Clock className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-muted-foreground block font-medium">
-                    {isKa ? "სამუშაო საათები" : "Hours"}
-                  </span>
-                  <span className="text-xs font-bold text-foreground truncate block">
-                    {service.working_hours || "09:00 - 20:00"}
+              {/* 2. სამუშაო საათები */}
+              <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Clock className="w-4 h-4 text-teal-500 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                    {isKa ? "სამუშაო საათები:" : "Working Hours:"}
                   </span>
                 </div>
+                <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                  {service.working_hours || (isKa ? "ორშაბათი - შაბათი (09:00 - 20:00)" : "Mon - Sat (09:00 - 20:00)")}
+                </span>
               </div>
 
-              {/* 3. Service Area */}
-              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-[10px] bg-sky-500/10 text-sky-600 flex items-center justify-center shrink-0">
-                  <MapPin className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-muted-foreground block font-medium">
-                    {isKa ? "არეალი" : "Area"}
-                  </span>
-                  <span className="text-xs font-bold text-foreground truncate block">
-                    {service.city}
+              {/* 3. მომსახურების არეალი */}
+              <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                    {isKa ? "მომსახურების არეალი:" : "Service Area:"}
                   </span>
                 </div>
+                <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                  {service.city} {isKa ? "და მიმდებარე ტერიტორია" : "& surroundings"}
+                </span>
               </div>
 
-              {/* 4. Guarantee & Safety */}
-              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-[10px] bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-muted-foreground block font-medium">
-                    {isKa ? "გარანტია" : "Guarantee"}
-                  </span>
-                  <span className="text-xs font-bold text-foreground truncate block">
-                    {isKa ? "შედეგის გარანტია" : "Result Guarantee"}
+              {/* 4. გარანტია & უსაფრთხოება */}
+              <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <ShieldCheck className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                    {isKa ? "გარანტია & უსაფრთხოება:" : "Guarantee & Safety:"}
                   </span>
                 </div>
+                <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 text-right">
+                  {isKa ? "შედეგის გარანტია / უსაფრთხოების ნორმები" : "Full Result Guarantee"}
+                </span>
               </div>
 
-              {/* 5. Experience */}
-              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-[10px] bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
-                  <Award className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-muted-foreground block font-medium">
-                    {isKa ? "გამოცდილება" : "Experience"}
-                  </span>
-                  <span className="text-xs font-bold text-foreground truncate block">
-                    {service.provider_experience_years || 8}+ წელი
+              {/* 5. გამოცდილება */}
+              <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Award className="w-4 h-4 text-blue-500 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                    {isKa ? "გამოცდილება:" : "Experience:"}
                   </span>
                 </div>
+                <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                  {service.provider_experience_years || 8}+ {isKa ? "წლიანი პრაქტიკული სტაჟი" : "Years Experience"}
+                </span>
               </div>
 
-              {/* 6. On-site Visit */}
-              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
-                <div className="w-8 h-8 rounded-[10px] bg-teal-500/10 text-teal-600 flex items-center justify-center shrink-0">
-                  <Navigation className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-[10px] text-muted-foreground block font-medium">
-                    {isKa ? "ვიზიტი" : "Visit"}
-                  </span>
-                  <span className="text-xs font-bold text-foreground truncate block">
-                    {isKa ? "ადგილზე მისვლა" : "On-site visit"}
+              {/* 6. ვიზიტი & შეფასება */}
+              <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Navigation className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                    {isKa ? "ვიზიტი & შეფასება:" : "Visit & Estimation:"}
                   </span>
                 </div>
+                <span className="text-xs sm:text-sm font-bold text-foreground text-right">
+                  {isKa ? "ადგილზე მისვლა და კონსულტაცია" : "On-site visit & consultation"}
+                </span>
               </div>
             </div>
           </div>
