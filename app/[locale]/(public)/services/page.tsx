@@ -1,197 +1,98 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
-import { Link } from "@/i18n/routing";
+import { useSearchParams, useRouter } from "next/navigation";
+import { usePathname } from "@/i18n/routing";
 import { useLocale } from "next-intl";
-import { createClient } from "@/utils/supabase/client";
+import { ServiceCard } from "@/components/services/ServiceCard";
 import { 
-  Wrench, 
-  TreePine, 
-  Sparkles, 
-  MapPin, 
-  Phone, 
-  MessageSquare, 
-  Star, 
-  ShieldCheck, 
-  Search, 
-  X, 
-  Plus, 
-  ChevronRight, 
-  Clock, 
-  Droplets, 
-  Building2, 
-  Stethoscope, 
-  CheckCircle2, 
-  ExternalLink,
+  MOCK_SERVICES, 
+  SERVICE_CATEGORIES, 
+  type GardeningServiceItem, 
+  type ServiceCategory 
+} from "@/lib/mock-services";
+import { createClient } from "@/utils/supabase/client";
+import {
+  SlidersHorizontal,
+  X,
+  Sparkles,
+  Sprout,
+  Wrench,
+  TreePine,
   Layers,
-  Award
+  Building2,
+  Droplets,
+  Stethoscope,
+  ChevronDown,
+  Search,
+  Check,
+  RotateCcw,
+  LayoutGrid,
+  List,
+  MapPin,
+  Star,
+  ShieldCheck,
+  Plus,
+  ArrowDownUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "@/i18n/routing";
 
-export interface GardeningService {
-  id: string;
-  provider_id?: string;
-  provider_name: string;
-  provider_avatar?: string;
-  is_verified: boolean;
-  category: "PRUNING" | "LANDSCAPE" | "LAWN" | "GREENING" | "IRRIGATION" | "DOCTOR_VISIT";
-  title: string;
-  description: string;
-  price_from: number;
-  price_unit: string;
-  city: string;
-  phone: string;
-  whatsapp?: string;
-  portfolio_images: string[];
-  rating: number;
-  reviews_count: number;
-  created_at?: string;
-}
-
-const CATEGORIES = [
-  { id: "ALL", label: "ყველა სერვისი", icon: Wrench },
-  { id: "PRUNING", label: "ხეების გასხვლა & ფორმირება", icon: TreePine },
-  { id: "LANDSCAPE", label: "ლანდშაფტის დიზაინი", icon: Sparkles },
-  { id: "LAWN", label: "რულონური გაზონი & მოვლა", icon: Layers },
-  { id: "GREENING", label: "ოფისების გამწვანება", icon: Building2 },
-  { id: "IRRIGATION", label: "სარწყავი სისტემების მონტაჟი", icon: Droplets },
-  { id: "DOCTOR_VISIT", label: "მცენარის ექიმის გამოძახება", icon: Stethoscope },
+const GEORGIA_CITIES = [
+  "ყველა ქალაქი",
+  "თბილისი",
+  "ბათუმი",
+  "ქუთაისი",
+  "რუსთავი",
+  "მცხეთა",
+  "გორი",
+  "თელავი",
+  "ზუგდიდი",
+  "ფოთი",
+  "კახეთი",
+  "მთელი საქართველო",
 ];
 
-const SEED_SERVICES: GardeningService[] = [
-  {
-    id: "srv-1",
-    provider_name: "GreenCraft ლანდშაფტი",
-    provider_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-    is_verified: true,
-    category: "LANDSCAPE",
-    title: "ეზოსა და აგარაკის სრული ლანდშაფტური დაგეგმარება 3D ვიზუალიზაციით",
-    description: "პროფესიონალური ლანდშაფტური არქიტექტურა, მცენარეების შერჩევა ქართული კლიმატისთვის, განათება და ბილიკების მოწყობა.",
-    price_from: 25,
-    price_unit: "მ²-დან",
-    city: "თბილისი & მცხეთა",
-    phone: "+995599123456",
-    whatsapp: "995599123456",
-    portfolio_images: [
-      "https://images.unsplash.com/photo-1558904541-efa8c4a08931?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1584467746765-a8f895c10fa8?auto=format&fit=crop&w=600&q=80",
-    ],
-    rating: 4.9,
-    reviews_count: 24,
-  },
-  {
-    id: "srv-2",
-    provider_name: "ოსტატი გიორგი — მებაღე",
-    provider_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-    is_verified: true,
-    category: "PRUNING",
-    title: "ხეხილისა და დეკორატიული ხეების გასხვლა, შეწამვლა და გაახალგაზრდავება",
-    description: "15-წლიანი გამოცდილება. ხეხილის სწორი ფორმირება უხვი მოსავლიანობისთვის, მშრალი ტოტების უსაფრთხო მოჭრა.",
-    price_from: 35,
-    price_unit: "ხეზე",
-    city: "თბილისი, რუსთავი, კახეთი",
-    phone: "+995598765432",
-    whatsapp: "995598765432",
-    portfolio_images: [
-      "https://images.unsplash.com/photo-1592417817098-8f3d6eb22295?auto=format&fit=crop&w=600&q=80",
-      "https://images.unsplash.com/photo-1617576683096-00fc8eecb3af?auto=format&fit=crop&w=600&q=80",
-    ],
-    rating: 5.0,
-    reviews_count: 38,
-  },
-  {
-    id: "srv-3",
-    provider_name: "HydroGarden Georgia",
-    provider_avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&q=80",
-    is_verified: true,
-    category: "IRRIGATION",
-    title: "ავტომატური სარწყავი & წვეთოვანი სისტემების პროექტირება და მონტაჟი (Hunter, RainBird)",
-    description: "სმარტფონით მართვადი ჭკვიანი სარწყავი სისტემები გაზონისა და ბაღებისთვის. წყლის 50%-იანი ეკონომია.",
-    price_from: 150,
-    price_unit: "წერტილიდან",
-    city: "მთელი საქართველო",
-    phone: "+995591998877",
-    whatsapp: "995591998877",
-    portfolio_images: [
-      "https://images.unsplash.com/photo-1563245372-f21724e3856d?auto=format&fit=crop&w=600&q=80",
-    ],
-    rating: 4.8,
-    reviews_count: 19,
-  },
-  {
-    id: "srv-4",
-    provider_name: "PlantDoctor — ბიო ექიმი",
-    provider_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
-    is_verified: true,
-    category: "DOCTOR_VISIT",
-    title: "მცენარეთა ექიმის ვიზიტი ადგილზე — დაავადებების დიაგნოსტიკა, შეწამვლა & მკურნალობა",
-    description: "ოთახის მცენარეების, ორანჟერეებისა და ეზოს მცენარეების კომპლექსური გაჯანსაღება ეკოლოგიურად სუფთა ბიო-პრეპარატებით.",
-    price_from: 60,
-    price_unit: "ვიზიტზე",
-    city: "თბილისი",
-    phone: "+995597112233",
-    whatsapp: "995597112233",
-    portfolio_images: [
-      "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=600&q=80",
-    ],
-    rating: 4.9,
-    reviews_count: 42,
-  },
-  {
-    id: "srv-5",
-    provider_name: "RollLawn Georgia",
-    provider_avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80",
-    is_verified: true,
-    category: "LAWN",
-    title: "პრემიუმ ხარისხის რულონური გაზონის დაგება, გასუფთავება და მოვლა",
-    description: "სპორტული და დეკორატიული ცოცხალი გაზონი პირდაპირ პლანტაციიდან. ნიადაგის მომზადება და 100%-იანი გახარების გარანტია.",
-    price_from: 14,
-    price_unit: "მ²",
-    city: "თბილისი, ბათუმი, ქუთაისი",
-    phone: "+995593445566",
-    whatsapp: "995593445566",
-    portfolio_images: [
-      "https://images.unsplash.com/photo-1599818816942-0f04c6e93892?auto=format&fit=crop&w=600&q=80",
-    ],
-    rating: 4.7,
-    reviews_count: 31,
-  },
-  {
-    id: "srv-6",
-    provider_name: "BioOffice Green",
-    provider_avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80",
-    is_verified: true,
-    category: "GREENING",
-    title: "ოფისების, რესტორნებისა და ვერანდების ფიტოდიზაინი & მცენარეებით გამწვანება",
-    description: "ინტერიერის გამწვანება, ვერტიკალური ბაღები და ცოცხალი კედლები. ყოველთვიური სააბონენტო მომსახურებით.",
-    price_from: 200,
-    price_unit: "ობიექტიდან",
-    city: "თბილისი, ბათუმი",
-    phone: "+995599887766",
-    whatsapp: "995599887766",
-    portfolio_images: [
-      "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80",
-    ],
-    rating: 5.0,
-    reviews_count: 15,
-  },
-];
+const CATEGORY_ICON_MAP: Record<string, React.ElementType> = {
+  TreePine,
+  Sparkles,
+  Layers,
+  Building2,
+  Droplets,
+  Stethoscope,
+  Sprout,
+};
 
-export default function GardeningServicesPage() {
+export default function GardeningServicesCatalogPage() {
   const locale = useLocale();
   const isKa = locale !== "en";
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
 
-  const [services, setServices] = React.useState<GardeningService[]>(SEED_SERVICES);
-  const [selectedCategory, setSelectedCategory] = React.useState<string>("ALL");
-  const [selectedCity, setSelectedCity] = React.useState<string>("ALL");
-  const [searchQuery, setSearchQuery] = React.useState<string>("");
+  // Data States
+  const [services, setServices] = React.useState<GardeningServiceItem[]>(MOCK_SERVICES);
+  const [loading, setLoading] = React.useState(true);
 
+  // Filter States from URL / State
+  const [searchQuery, setSearchQuery] = React.useState(searchParams.get("q") || "");
+  const [selectedCategory, setSelectedCategory] = React.useState<string>(searchParams.get("category") || "ALL");
+  const [selectedCity, setSelectedCity] = React.useState<string>(searchParams.get("city") || "ყველა ქალაქი");
+  const [minPrice, setMinPrice] = React.useState<string>(searchParams.get("minPrice") || "");
+  const [maxPrice, setMaxPrice] = React.useState<string>(searchParams.get("maxPrice") || "");
+  const [verifiedOnly, setVerifiedOnly] = React.useState<boolean>(searchParams.get("verified") === "true");
+  const [sortBy, setSortBy] = React.useState<string>(searchParams.get("sort") || "newest");
+  const [viewMode, setViewMode] = React.useState<"grid" | "list">("grid");
+
+  // Mobile Filter Drawer State
+  const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
+
+  // Fetch Services from Supabase (merging with mock services)
   React.useEffect(() => {
-    async function fetchDbServices() {
+    async function loadServices() {
       try {
         const { data, error } = await supabase
           .from("gardening_services")
@@ -199,59 +100,171 @@ export default function GardeningServicesPage() {
           .order("created_at", { ascending: false });
 
         if (!error && data && data.length > 0) {
-          setServices([...data, ...SEED_SERVICES]);
+          // Merge database items with mock seed items
+          const dbItems: GardeningServiceItem[] = data.map((d: any) => ({
+            id: d.id,
+            provider_id: d.provider_id,
+            provider_name: d.provider_name,
+            provider_avatar: d.provider_avatar,
+            provider_bio: d.provider_bio,
+            provider_experience_years: d.provider_experience_years || 5,
+            completed_jobs_count: d.completed_jobs_count || 10,
+            is_verified: d.is_verified ?? true,
+            category: d.category as ServiceCategory,
+            title: d.title,
+            description: d.description,
+            price_from: Number(d.price_from) || 0,
+            price_unit: d.price_unit || "ხეზე",
+            city: d.city || "თბილისი",
+            phone: d.phone,
+            whatsapp: d.whatsapp,
+            portfolio_images: d.portfolio_images && d.portfolio_images.length > 0 ? d.portfolio_images : [
+              "https://images.unsplash.com/photo-1558904541-efa8c4a08931?w=600&auto=format&fit=crop&q=80"
+            ],
+            rating: Number(d.rating) || 5.0,
+            reviews_count: Number(d.reviews_count) || 1,
+            included_features: d.included_features || [],
+            created_at: d.created_at,
+          }));
+
+          // Avoid duplicates by ID
+          const existingIds = new Set(dbItems.map((item) => item.id));
+          const mockFiltered = MOCK_SERVICES.filter((item) => !existingIds.has(item.id));
+          setServices([...dbItems, ...mockFiltered]);
         }
       } catch (err) {
-        console.warn("Using seed services:", err);
+        console.warn("Failed to fetch gardening services:", err);
+      } finally {
+        setLoading(false);
       }
     }
-    fetchDbServices();
+    loadServices();
   }, [supabase]);
 
+  // Sync with URL params
+  const updateQueryParams = React.useCallback(
+    (params: Record<string, string | null>) => {
+      const current = new URLSearchParams(Array.from(searchParams.entries()));
+      Object.entries(params).forEach(([key, val]) => {
+        if (!val || val === "ALL" || val === "ყველა ქალაქი" || val === "false") {
+          current.delete(key);
+        } else {
+          current.set(key, val);
+        }
+      });
+      const search = current.toString();
+      const query = search ? `?${search}` : "";
+      router.replace(`${pathname}${query}`, { scroll: false });
+    },
+    [searchParams, router, pathname]
+  );
+
+  const handleCategorySelect = (catId: string) => {
+    setSelectedCategory(catId);
+    updateQueryParams({ category: catId });
+  };
+
+  const handleCitySelect = (city: string) => {
+    setSelectedCity(city);
+    updateQueryParams({ city });
+  };
+
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setSelectedCategory("ALL");
+    setSelectedCity("ყველა ქალაქი");
+    setMinPrice("");
+    setMaxPrice("");
+    setVerifiedOnly(false);
+    setSortBy("newest");
+    router.replace(pathname, { scroll: false });
+  };
+
+  // Filter & Sort Logic
   const filteredServices = React.useMemo(() => {
-    return services.filter((srv) => {
-      if (selectedCategory !== "ALL" && srv.category !== selectedCategory) return false;
+    return services
+      .filter((srv) => {
+        // 1. Search Query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const match =
+            srv.title.toLowerCase().includes(q) ||
+            srv.description.toLowerCase().includes(q) ||
+            srv.provider_name.toLowerCase().includes(q) ||
+            srv.city.toLowerCase().includes(q);
+          if (!match) return false;
+        }
 
-      if (selectedCity !== "ALL") {
-        if (!srv.city.toLowerCase().includes(selectedCity.toLowerCase())) return false;
-      }
+        // 2. Category Filter
+        if (selectedCategory !== "ALL" && srv.category !== selectedCategory) {
+          return false;
+        }
 
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matches =
-          srv.title.toLowerCase().includes(q) ||
-          srv.description.toLowerCase().includes(q) ||
-          srv.provider_name.toLowerCase().includes(q);
-        if (!matches) return false;
-      }
+        // 3. City Filter
+        if (selectedCity !== "ყველა ქალაქი") {
+          if (!srv.city.toLowerCase().includes(selectedCity.toLowerCase())) {
+            return false;
+          }
+        }
 
-      return true;
-    });
-  }, [services, selectedCategory, selectedCity, searchQuery]);
+        // 4. Min Price
+        if (minPrice) {
+          const min = parseFloat(minPrice);
+          if (!isNaN(min) && srv.price_from < min) return false;
+        }
+
+        // 5. Max Price
+        if (maxPrice) {
+          const max = parseFloat(maxPrice);
+          if (!isNaN(max) && srv.price_from > max) return false;
+        }
+
+        // 6. Verified Specialist Only
+        if (verifiedOnly && !srv.is_verified) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "price_asc") return a.price_from - b.price_from;
+        if (sortBy === "price_desc") return b.price_from - a.price_from;
+        if (sortBy === "rating") return b.rating - a.rating;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+  }, [services, searchQuery, selectedCategory, selectedCity, minPrice, maxPrice, verifiedOnly, sortBy]);
+
+  const hasActiveFilters =
+    searchQuery !== "" ||
+    selectedCategory !== "ALL" ||
+    selectedCity !== "ყველა ქალაქი" ||
+    minPrice !== "" ||
+    maxPrice !== "" ||
+    verifiedOnly;
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-6xl space-y-8">
-      {/* 1. Header & Hero */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-border/60">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8">
+      {/* 1. Header Hero Banner (Identical to Market Listings layout) */}
+      <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 text-xs font-black">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs font-black">
             <Wrench className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{isKa ? "მებაღეობა & გამწვანება" : "Pro Gardening & Landscaping"}</span>
+            <span>{isKa ? "პროფესიონალური მებაღეობა & გამწვანება" : "Pro Gardening & Landscaping"}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
             {isKa ? "მებაღეობის & გამწვანების სერვისები" : "Gardening & Landscaping Services"}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
             {isKa
-              ? "იპოვეთ გამოცდილი მებაღეები, ლანდშაფტის დიზაინერები, ხეების მესხვლელები და სარწყავი სისტემების ოსტატები მთელი საქართველოს მასშტაბით."
-              : "Find trusted gardeners, landscape architects, tree pruning pros, and irrigation installers across Georgia."}
+              ? "იპოვეთ გამოცდილი მებაღეები, ხეების მესხვლელები, ლანდშაფტის დიზაინერები და სარწყავი სისტემების ოსტატები მთელი საქართველოს მასშტაბით."
+              : "Discover verified gardening specialists, arborists, landscape designers, and irrigation contractors."}
           </p>
         </div>
 
         <Link href="/dashboard/services">
           <Button
             type="button"
-            className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-5 gap-2 shadow-ambient cursor-pointer shrink-0"
+            className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-6 gap-2 shadow-ambient cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
             <span>{isKa ? "სერვისის დამატება" : "Offer a Service"}</span>
@@ -259,192 +272,377 @@ export default function GardeningServicesPage() {
         </Link>
       </div>
 
-      {/* 2. Category Filter Pills */}
+      {/* 2. Top Category Horizontal Bar */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {CATEGORIES.map((cat) => {
+        <button
+          type="button"
+          onClick={() => handleCategorySelect("ALL")}
+          className={`px-4 py-2.5 rounded-[16px] text-xs font-black whitespace-nowrap transition-all cursor-pointer shadow-2xs flex items-center gap-2 ${
+            selectedCategory === "ALL"
+              ? "bg-primary text-white shadow-ambient scale-102"
+              : "bg-card text-muted-foreground hover:text-foreground border border-border/80"
+          }`}
+        >
+          <Wrench className="w-3.5 h-3.5" />
+          <span>{isKa ? "ყველა სერვისი" : "All Services"}</span>
+        </button>
+
+        {SERVICE_CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
-          const CatIcon = cat.icon;
+          const CatIcon = CATEGORY_ICON_MAP[cat.iconName] || Wrench;
           return (
             <button
               key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-2 rounded-[14px] text-xs font-black whitespace-nowrap transition-all cursor-pointer shadow-2xs flex items-center gap-2 ${
+              onClick={() => handleCategorySelect(cat.id)}
+              className={`px-4 py-2.5 rounded-[16px] text-xs font-black whitespace-nowrap transition-all cursor-pointer shadow-2xs flex items-center gap-2 ${
                 isSelected
                   ? "bg-emerald-600 text-white shadow-ambient scale-102"
                   : "bg-card text-muted-foreground hover:text-foreground border border-border/80"
               }`}
             >
               <CatIcon className="w-3.5 h-3.5" />
-              <span>{cat.label}</span>
+              <span>{isKa ? cat.labelKa : cat.labelEn}</span>
             </button>
           );
         })}
       </div>
 
-      {/* 3. Search & City Toolbar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-[22px] bg-secondary-container/40 border border-border/60">
-        <div className="sm:col-span-2 relative">
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={isKa ? "მოძებნეთ სერვისი, მებაღე ან მომსახურება..." : "Search services..."}
-            className="h-10 pl-9 rounded-[14px] text-xs font-bold bg-card"
-          />
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
+      {/* 3. Main Catalog Layout: Left Sidebar + Right Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+        {/* DESKTOP FILTER SIDEBAR */}
+        <aside className="hidden lg:block lg:col-span-1 rounded-[24px] border border-border/80 bg-card p-5 shadow-2xs space-y-6 sticky top-24">
+          <div className="flex items-center justify-between border-b border-border/60 pb-3">
+            <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
+              <SlidersHorizontal className="w-4 h-4 text-primary" />
+              <span>{isKa ? "ფილტრები" : "Filters"}</span>
+            </span>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-[11px] font-bold text-muted-foreground hover:text-destructive flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>გასუფთავება</span>
+              </button>
+            )}
+          </div>
 
-        <div>
-          <select
-            value={selectedCity}
-            onChange={(e) => setSelectedCity(e.target.value)}
-            className="w-full h-10 px-3 rounded-[14px] border border-border/80 bg-card text-xs font-bold text-foreground outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
-          >
-            <option value="ALL">ყველა ქალაქი / რეგიონი</option>
-            <option value="თბილისი">თბილისი</option>
-            <option value="ბათუმი">ბათუმი</option>
-            <option value="ქუთაისი">ქუთაისი</option>
-            <option value="მცხეთა">მცხეთა</option>
-            <option value="რუსთავი">რუსთავი</option>
-            <option value="კახეთი">კახეთი</option>
-          </select>
+          {/* Search Box */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-foreground block">
+              {isKa ? "ძიება" : "Search"}
+            </label>
+            <div className="relative">
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={isKa ? "სერვისი, ოსტატი..." : "Search..."}
+                className="h-10 pl-9 pr-8 rounded-[14px] text-xs font-bold bg-background"
+              />
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* City Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-foreground block">
+              {isKa ? "ქალაქი / რეგიონი" : "City / Region"}
+            </label>
+            <select
+              value={selectedCity}
+              onChange={(e) => handleCitySelect(e.target.value)}
+              className="w-full h-10 px-3 rounded-[14px] border border-border/80 bg-background text-xs font-bold text-foreground outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
+            >
+              {GEORGIA_CITIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Price Range */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-foreground block">
+              {isKa ? "საწყისი ფასი (₾)" : "Price Range (₾)"}
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              <Input
+                type="number"
+                placeholder="მინ"
+                value={minPrice}
+                onChange={(e) => {
+                  setMinPrice(e.target.value);
+                  updateQueryParams({ minPrice: e.target.value });
+                }}
+                className="h-10 rounded-[12px] text-xs font-bold bg-background"
+              />
+              <Input
+                type="number"
+                placeholder="მაქს"
+                value={maxPrice}
+                onChange={(e) => {
+                  setMaxPrice(e.target.value);
+                  updateQueryParams({ maxPrice: e.target.value });
+                }}
+                className="h-10 rounded-[12px] text-xs font-bold bg-background"
+              />
+            </div>
+          </div>
+
+          {/* Verified Specialists Only Toggle */}
+          <div className="pt-2 border-t border-border/50">
+            <label className="flex items-center justify-between cursor-pointer group">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                <span className="text-xs font-bold text-foreground">
+                  {isKa ? "მხოლოდ ვერიფიცირებული" : "Verified Only"}
+                </span>
+              </div>
+              <input
+                type="checkbox"
+                checked={verifiedOnly}
+                onChange={(e) => {
+                  setVerifiedOnly(e.target.checked);
+                  updateQueryParams({ verified: e.target.checked ? "true" : null });
+                }}
+                className="h-4 w-4 rounded text-primary focus:ring-primary border-border cursor-pointer"
+              />
+            </label>
+          </div>
+        </aside>
+
+        {/* RIGHT: CATALOG CONTENT */}
+        <div className="lg:col-span-3 space-y-5">
+          {/* Top Control Bar: Results count, Sort & View switcher */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-[20px] bg-secondary-container/30 border border-border/60">
+            <div className="flex items-center gap-2">
+              {/* Mobile Filter Drawer Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setMobileFiltersOpen(true)}
+                className="lg:hidden h-9 px-3 rounded-[12px] text-xs font-bold gap-1.5 bg-card border-border/80 cursor-pointer"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                <span>{isKa ? "ფილტრები" : "Filters"}</span>
+                {hasActiveFilters && (
+                  <span className="h-2 w-2 rounded-full bg-primary" />
+                )}
+              </Button>
+
+              <span className="text-xs font-black text-foreground">
+                {filteredServices.length} {isKa ? "სერვისი ნაპოვნია" : "Services found"}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Sort By Dropdown */}
+              <div className="flex items-center gap-1.5">
+                <ArrowDownUp className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    setSortBy(e.target.value);
+                    updateQueryParams({ sort: e.target.value });
+                  }}
+                  className="h-9 px-2.5 rounded-[12px] border border-border/80 bg-card text-xs font-bold text-foreground outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  <option value="newest">უახლესი</option>
+                  <option value="rating">მაღალი რეიტინგი</option>
+                  <option value="price_asc">ფასი: დაბლიდან მაღლა</option>
+                  <option value="price_desc">ფასი: მაღლიდან დაბლა</option>
+                </select>
+              </div>
+
+              {/* Grid / List View Mode Toggle */}
+              <div className="flex items-center bg-card border border-border/80 p-0.5 rounded-[12px]">
+                <button
+                  type="button"
+                  onClick={() => setViewMode("grid")}
+                  className={`p-1.5 rounded-[9px] transition-all cursor-pointer ${
+                    viewMode === "grid"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="Grid View"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode("list")}
+                  className={`p-1.5 rounded-[9px] transition-all cursor-pointer ${
+                    viewMode === "list"
+                      ? "bg-primary text-white shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                  title="List View"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Services Cards Grid / List */}
+          {filteredServices.length === 0 ? (
+            <div className="py-16 text-center border-2 border-dashed border-border/80 rounded-[24px] bg-card/40 p-8 space-y-4">
+              <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                <Wrench className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-foreground">
+                  {isKa ? "სერვისები ამ ფილტრით ვერ მოიძებნა" : "No services match your filters"}
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
+                  {isKa
+                    ? "სცადეთ ფილტრების გასუფთავება ან სხვა ქალაქის / კატეგორიის არჩევა."
+                    : "Try clearing your filters or selecting a different city."}
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleResetFilters}
+                className="rounded-[14px] bg-primary hover:bg-primary/90 text-white text-xs font-black gap-2 shadow-ambient cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>{isKa ? "ფილტრების გასუფთავება" : "Reset Filters"}</span>
+              </Button>
+            </div>
+          ) : (
+            <div
+              className={
+                viewMode === "grid"
+                  ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-5"
+                  : "flex flex-col gap-4"
+              }
+            >
+              {filteredServices.map((service) => (
+                <ServiceCard
+                  key={service.id}
+                  service={service}
+                  variant={viewMode === "list" ? "list" : "compact"}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* 4. Services Catalog Grid */}
-      {filteredServices.length === 0 ? (
-        <div className="py-16 text-center border-2 border-dashed border-border/80 rounded-[24px] bg-card/40 p-8 space-y-3">
-          <Wrench className="w-10 h-10 text-muted-foreground/40 mx-auto" />
-          <h3 className="text-base font-black text-foreground">
-            {isKa ? "სერვისები ამ ფილტრით ვერ მოიძებნა" : "No services found"}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {isKa ? "სცადეთ სხვა კატეგორიის ან ქალაქის არჩევა." : "Try adjusting your filters."}
-          </p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredServices.map((srv) => (
-            <div
-              key={srv.id}
-              className="rounded-[24px] border border-border/80 bg-card p-5 shadow-2xs hover:shadow-ambient transition-all flex flex-col justify-between space-y-4 group overflow-hidden"
-            >
-              {/* Top: Portfolio Image Carousel / Thumbnail */}
-              <div className="space-y-3.5">
-                {srv.portfolio_images && srv.portfolio_images.length > 0 && (
-                  <div className="relative h-44 w-full rounded-[18px] overflow-hidden bg-surface-container border border-border/60">
-                    <img
-                      src={srv.portfolio_images[0]}
-                      alt={srv.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-2.5 left-2.5">
-                      <span className="px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-black border border-white/20">
-                        {srv.city}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Provider Header */}
-                <div className="flex items-center gap-3">
-                  {srv.provider_avatar ? (
-                    <img
-                      src={srv.provider_avatar}
-                      alt={srv.provider_name}
-                      className="h-9 w-9 rounded-full object-cover border border-border shrink-0 shadow-2xs"
-                    />
-                  ) : (
-                    <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs shrink-0">
-                      {srv.provider_name.charAt(0)}
-                    </div>
-                  )}
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <h4 className="text-xs font-black text-foreground truncate">
-                        {srv.provider_name}
-                      </h4>
-                      {srv.is_verified && (
-                        <span title="ვერიფიცირებული ოსტატი">
-                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold">
-                      <Star className="w-3 h-3 fill-amber-500" />
-                      <span>{srv.rating}</span>
-                      <span className="text-muted-foreground font-normal">({srv.reviews_count})</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Service Title & Desc */}
-                <div>
-                  <h3 className="text-sm font-black text-foreground leading-snug line-clamp-2">
-                    {srv.title}
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                    {srv.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Bottom: Pricing & Direct Actions */}
-              <div className="pt-3 border-t border-border/50 space-y-3">
-                <div className="flex items-baseline justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    საორიენტაციო ფასი
-                  </span>
-                  <div className="text-right">
-                    <span className="text-base font-black text-emerald-700 dark:text-emerald-300">
-                      {srv.price_from} ₾
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-1">/ {srv.price_unit}</span>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-2">
-                  <a
-                    href={`tel:${srv.phone}`}
-                    className="h-9 px-3 rounded-[12px] bg-secondary-container/60 hover:bg-secondary-container text-foreground text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer border border-border/40"
-                  >
-                    <Phone className="w-3.5 h-3.5 text-primary" />
-                    <span>დარეკვა</span>
-                  </a>
-
-                  {srv.whatsapp ? (
-                    <a
-                      href={`https://wa.me/${srv.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`გამარჯობა, დავინტერესდი თქვენი სერვისით Plant.ge-ზე: „${srv.title}“`)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="h-9 px-3 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>WhatsApp</span>
-                    </a>
-                  ) : (
-                    <a
-                      href={`tel:${srv.phone}`}
-                      className="h-9 px-3 rounded-[12px] bg-primary hover:bg-primary/90 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                    >
-                      <span>კონტაქტი</span>
-                    </a>
-                  )}
-                </div>
-              </div>
+      {/* 4. MOBILE FILTER DRAWER MODAL */}
+      {mobileFiltersOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+          <div className="bg-card border border-border/80 rounded-t-[28px] sm:rounded-[28px] max-w-lg w-full p-6 shadow-2xl space-y-5 max-h-[90vh] flex flex-col animate-in slide-in-from-bottom-5">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <span className="text-sm font-black text-foreground flex items-center gap-2">
+                <SlidersHorizontal className="w-4 h-4 text-primary" />
+                <span>{isKa ? "სერვისების ფილტრი" : "Filter Services"}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-          ))}
+
+            <div className="space-y-4 overflow-y-auto flex-1 p-1">
+              {/* Category */}
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">კატეგორია</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => handleCategorySelect(e.target.value)}
+                  className="w-full h-10 px-3 rounded-[12px] border border-border/80 bg-background text-xs font-bold text-foreground"
+                >
+                  <option value="ALL">ყველა სერვისი</option>
+                  {SERVICE_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.labelKa}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* City */}
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">ქალაქი</label>
+                <select
+                  value={selectedCity}
+                  onChange={(e) => handleCitySelect(e.target.value)}
+                  className="w-full h-10 px-3 rounded-[12px] border border-border/80 bg-background text-xs font-bold text-foreground"
+                >
+                  {GEORGIA_CITIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Price */}
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">ფასი (₾)</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="number"
+                    placeholder="მინ"
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="h-10 text-xs font-bold"
+                  />
+                  <Input
+                    type="number"
+                    placeholder="მაქს"
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="h-10 text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Verified Only */}
+              <label className="flex items-center justify-between p-3 rounded-[14px] bg-secondary-container/40 border border-border/60">
+                <span className="text-xs font-bold text-foreground">მხოლოდ ვერიფიცირებული ოსტატები</span>
+                <input
+                  type="checkbox"
+                  checked={verifiedOnly}
+                  onChange={(e) => setVerifiedOnly(e.target.checked)}
+                  className="h-4 w-4 rounded text-primary"
+                />
+              </label>
+            </div>
+
+            <div className="flex items-center gap-2 pt-3 border-t border-border/60">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResetFilters}
+                className="flex-1 rounded-[12px] text-xs font-bold"
+              >
+                გასუფთავება
+              </Button>
+              <Button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="flex-1 rounded-[12px] bg-primary text-white text-xs font-black"
+              >
+                შედეგების ჩვენება ({filteredServices.length})
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>
