@@ -20,7 +20,6 @@ import {
   Share2, 
   ChevronLeft, 
   ChevronRight, 
-  ArrowLeft, 
   Clock, 
   Calendar, 
   CheckCircle2, 
@@ -39,11 +38,45 @@ import {
   Award,
   HelpCircle,
   FileText,
-  Store
+  Store,
+  Navigation,
+  ExternalLink,
+  Copy,
+  Heart,
+  Camera,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+
+// Social SVG Icons
+function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.312.045-.694.062-2.18-.553-1.614-.668-2.67-2.316-2.75-2.423-.08-.108-.654-.871-.654-1.662 0-.792.414-1.18.561-1.341.144-.162.315-.203.42-.203.104 0 .209.002.3.007.098.005.228-.037.356.27.133.318.455 1.109.495 1.19.04.082.067.177.013.284-.053.107-.08.174-.16.269-.08.093-.168.209-.241.281-.08.08-.164.168-.07.33.094.162.418.69 1.002 1.21.75.668 1.383.874 1.579.972.196.098.312.083.428-.051.116-.134.495-.577.628-.775.133-.198.266-.165.449-.098.183.067 1.16.547 1.36.647.2.1.332.148.382.233.049.085.049.495-.095.9z" />
+    </svg>
+  );
+}
+
+function FacebookIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+    </svg>
+  );
+}
+
+const CATEGORY_ICON_MAP: Record<string, React.ElementType> = {
+  TreePine,
+  Sparkles,
+  Layers,
+  Building2,
+  Droplets,
+  Stethoscope,
+  Sprout,
+  Wrench,
+};
 
 export default function ServiceDetailPage({
   params,
@@ -61,7 +94,9 @@ export default function ServiceDetailPage({
   const [service, setService] = React.useState<GardeningServiceItem | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [activeImageIndex, setActiveImageIndex] = React.useState(0);
-  const [phoneRevealed, setPhoneRevealed] = React.useState(false);
+  const [showPhone, setShowPhone] = React.useState(false);
+  const [copiedLink, setCopiedLink] = React.useState(false);
+  const [inWishlist, setInWishlist] = React.useState(false);
 
   // Inquiry Booking Modal
   const [inquiryModalOpen, setInquiryModalOpen] = React.useState(false);
@@ -130,6 +165,7 @@ export default function ServiceDetailPage({
           setService({
             id: data.id,
             provider_id: data.provider_id,
+            provider_slug: data.provider_slug,
             provider_name: data.provider_name,
             provider_avatar: data.provider_avatar,
             provider_bio: data.provider_bio || "პროფესიონალი სპეციალისტი გამწვანებისა და მცენარეთა მოვლის სფეროში.",
@@ -142,13 +178,13 @@ export default function ServiceDetailPage({
             price_from: Number(data.price_from) || 0,
             price_unit: data.price_unit || "ხეზე",
             city: data.city || "თბილისი",
-            phone: data.phone,
-            whatsapp: data.whatsapp,
+            phone: data.phone || "557 57 90 20",
+            whatsapp: data.whatsapp || "557 57 90 20",
             portfolio_images: data.portfolio_images && data.portfolio_images.length > 0 ? data.portfolio_images : [
               "https://images.unsplash.com/photo-1558904541-efa8c4a08931?w=1200&auto=format&fit=crop&q=80"
             ],
             rating: Number(data.rating) || 5.0,
-            reviews_count: Number(data.reviews_count) || 1,
+            reviews_count: Number(data.reviews_count) || 2,
             included_features: data.included_features || [
               "ადგილზე ვიზიტი და კონსულტაცია",
               "პროფესიონალური ტექნიკით მომსახურება",
@@ -156,7 +192,7 @@ export default function ServiceDetailPage({
               "შედეგის გარანტია",
             ],
             working_hours: data.working_hours || "ყოველდღე: 09:00 - 20:00",
-            created_at: data.created_at,
+            created_at: data.created_at || new Date().toISOString(),
           });
         } else {
           // Fallback to Mock Data
@@ -204,24 +240,40 @@ export default function ServiceDetailPage({
     }
   };
 
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(typeof window !== "undefined" ? window.location.href : "");
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
+
+  const handlePhoneAction = () => {
+    if (!showPhone) {
+      setShowPhone(true);
+    } else if (service?.phone) {
+      window.location.href = `tel:${service.phone}`;
+    }
+  };
+
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-24 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-7 h-7 animate-spin text-primary" />
-        <span className="font-bold">{isKa ? "იტვირთება სერვისის დეტალები..." : "Loading Service..."}</span>
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center space-y-3 min-h-[50vh]">
+        <div className="w-10 h-10 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm font-bold text-muted-foreground">{isKa ? "სერვისის დეტალები იტვირთება..." : "Loading service..."}</p>
       </div>
     );
   }
 
   if (!service) {
     return (
-      <div className="container mx-auto px-4 py-24 text-center space-y-4">
-        <h2 className="text-xl font-black text-foreground">
-          {isKa ? "სერვისი ვერ მოიძებნა" : "Service Not Found"}
-        </h2>
+      <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center space-y-4 min-h-[50vh]">
+        <Wrench className="w-12 h-12 text-muted-foreground/50" />
+        <h2 className="text-xl font-bold text-foreground">{isKa ? "სერვისი ვერ მოიძებნა" : "Service not found"}</h2>
+        <p className="text-xs text-muted-foreground max-w-sm">
+          {isKa ? "შესაძლოა განცხადება წაიშალა ან ვადა გაუვიდა." : "This service may have been removed or expired."}
+        </p>
         <Link href="/services">
-          <Button className="rounded-[14px] bg-primary text-white text-xs font-bold">
-            {isKa ? "სერვისების კატალოგში დაბრუნება" : "Back to Services"}
+          <Button className="rounded-[14px] bg-primary text-white text-xs font-bold h-10 px-5">
+            {isKa ? "სერვისებში დაბრუნება" : "Back to Services"}
           </Button>
         </Link>
       </div>
@@ -237,85 +289,141 @@ export default function ServiceDetailPage({
     (s) => s.id !== service.id && (s.category === service.category || s.city === service.city)
   ).slice(0, 3);
 
+  const cleanPhone = (service.phone || "").replace(/\D/g, "");
+  const formattedFullPhone = service.phone || "557 57 90 20";
+  const maskedPhone = `${cleanPhone.slice(0, 3)} ${cleanPhone.slice(3, 6)} ***`;
+
+  const directWaChatUrl = `https://wa.me/${(service.whatsapp || service.phone || "557579020").replace(/\D/g, "")}?text=${encodeURIComponent(
+    `გამარჯობა, დავინტერესდი თქვენი სერვისით Plant.ge-ზე: „${service.title}“ (${typeof window !== "undefined" ? window.location.href : ""})`
+  )}`;
+
+  const pageUrl = typeof window !== "undefined" ? window.location.href : `https://plant.ge/${locale}/services/${service.id}`;
+  const shareFbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`;
+  const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${service.title} - ${pageUrl}`)}`;
+
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(service.city + " საქართველო")}`;
+  const providerSlugUrl = service.provider_slug 
+    ? `/shops/${service.provider_slug}` 
+    : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`);
+
+  const CatIcon = categoryMeta ? (CATEGORY_ICON_MAP[categoryMeta.iconName] || Wrench) : Wrench;
+
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8">
-      {/* 1. Breadcrumb Navigation */}
-      <div className="flex items-center justify-between gap-4 text-xs font-bold text-muted-foreground">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-          <Link href="/" className="hover:text-foreground transition-colors">
-            {isKa ? "მთავარი" : "Home"}
-          </Link>
-          <span>/</span>
-          <Link href="/services" className="hover:text-foreground transition-colors">
-            {isKa ? "სერვისები" : "Services"}
-          </Link>
-          <span>/</span>
-          <span className="text-foreground truncate max-w-[200px] sm:max-w-md">
-            {service.title}
+    <div className="container mx-auto px-4 sm:px-6 py-6 max-w-6xl">
+      {/* Schema.org Structured Data for Google Rich Snippets */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org/",
+            "@type": "Service",
+            name: service.title,
+            image: images,
+            description: service.description,
+            serviceType: categoryMeta?.labelKa || "Gardening Service",
+            provider: {
+              "@type": "Person",
+              name: service.provider_name,
+            },
+            areaServed: {
+              "@type": "AdministrativeArea",
+              name: service.city,
+            },
+            offers: {
+              "@type": "Offer",
+              priceCurrency: "GEL",
+              price: service.price_from,
+              priceUnit: service.price_unit,
+            },
+          }),
+        }}
+      />
+
+      {/* Top Bar: Breadcrumb + Back Button */}
+      <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <Link
+          href="/services"
+          className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-primary transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          {isKa ? "უკან კატალოგში" : "Back to catalog"}
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] font-mono text-muted-foreground">
+            #SRV-{service.id.slice(0, 8)}
           </span>
         </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            navigator.clipboard.writeText(window.location.href);
-            alert("ბმული დაკოპირდა.");
-          }}
-          className="p-2 rounded-[12px] bg-card border border-border/80 text-muted-foreground hover:text-foreground flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors shrink-0"
-          title="გაზიარება"
-        >
-          <Share2 className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">{isKa ? "გაზიარება" : "Share"}</span>
-        </button>
       </div>
 
-      {/* 2. Main Two-Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN: Gallery & Service Details (8 Cols) */}
-        <div className="lg:col-span-8 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-7 items-start">
+        {/* ══════════════════════════════════════════════════════════════════════
+            LEFT COLUMN: Gallery, Service Highlights Grid, Description & Reviews
+        ══════════════════════════════════════════════════════════════════════ */}
+        <div className="lg:col-span-7 space-y-5">
           {/* Main Photo Gallery */}
-          <div className="space-y-3">
-            <div className="relative h-[320px] sm:h-[460px] w-full rounded-[26px] overflow-hidden bg-surface-container border border-border/80 shadow-ambient">
+          <div className="space-y-2.5">
+            {/* Active Large Image */}
+            <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[22px] bg-surface-container border border-border/80 shadow-ambient">
               <Image
                 src={images[activeImageIndex]}
                 alt={service.title}
                 fill
-                priority
                 className="object-cover"
-                sizes="(max-width: 1024px) 100vw, 66vw"
+                sizes="(max-width: 768px) 100vw, 700px"
+                priority
               />
 
-              {/* Badges Over Image */}
-              <div className="absolute top-4 left-4 flex items-center gap-2 z-10">
-                <span className="px-3 py-1 rounded-full bg-black/65 backdrop-blur-md text-white text-xs font-black border border-white/20">
-                  {categoryMeta ? (isKa ? categoryMeta.labelKa : categoryMeta.labelEn) : service.category}
-                </span>
-                <span className="px-3 py-1 rounded-full bg-black/65 backdrop-blur-md text-white text-xs font-bold border border-white/20 flex items-center gap-1">
-                  <MapPin className="w-3 h-3 text-emerald-400" />
+              {/* Badges on Large Image */}
+              <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 z-10">
+                <Badge className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-black text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px] flex items-center gap-1">
+                  <CatIcon className="w-3.5 h-3.5" />
+                  <span>{categoryMeta ? (isKa ? categoryMeta.labelKa : categoryMeta.labelEn) : service.category}</span>
+                </Badge>
+                {service.is_verified && (
+                  <Badge className="bg-gradient-to-r from-amber-500 to-amber-600 text-white font-black text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px] flex items-center gap-1">
+                    <ShieldCheck className="w-3 h-3" />
+                    <span>{isKa ? "ვერიფიცირებული" : "Verified"}</span>
+                  </Badge>
+                )}
+              </div>
+
+              <div className="absolute top-3 right-3 z-10">
+                <span className="px-2.5 py-1 rounded-[8px] bg-black/65 backdrop-blur-md text-white text-xs font-bold border border-white/20 flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-emerald-400" />
                   <span>{service.city}</span>
                 </span>
               </div>
 
-              {/* Navigation Arrows (if multi-image) */}
               {images.length > 1 && (
-                <div className="absolute inset-y-0 inset-x-3 flex items-center justify-between pointer-events-none z-10">
+                <div className="absolute bottom-3 right-3 z-10">
+                  <span className="px-2.5 py-1 rounded-[8px] bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center gap-1">
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>{activeImageIndex + 1} / {images.length}</span>
+                  </span>
+                </div>
+              )}
+
+              {/* Prev / Next Image Navigation Arrows */}
+              {images.length > 1 && (
+                <div className="absolute inset-y-0 inset-x-2 flex items-center justify-between pointer-events-none z-10">
                   <button
                     type="button"
                     onClick={() =>
                       setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1))
                     }
-                    className="h-10 w-10 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center pointer-events-auto backdrop-blur-md border border-white/20 transition-all cursor-pointer"
+                    className="h-9 w-9 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center pointer-events-auto backdrop-blur-md border border-white/20 transition-all cursor-pointer shadow-md"
                   >
-                    <ChevronLeft className="w-5 h-5" />
+                    <ChevronLeft className="w-4 h-4" />
                   </button>
                   <button
                     type="button"
                     onClick={() =>
                       setActiveImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0))
                     }
-                    className="h-10 w-10 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center pointer-events-auto backdrop-blur-md border border-white/20 transition-all cursor-pointer"
+                    className="h-9 w-9 rounded-full bg-black/50 hover:bg-black/75 text-white flex items-center justify-center pointer-events-auto backdrop-blur-md border border-white/20 transition-all cursor-pointer shadow-md"
                   >
-                    <ChevronRight className="w-5 h-5" />
+                    <ChevronRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
@@ -323,13 +431,13 @@ export default function ServiceDetailPage({
 
             {/* Thumbnail Strip */}
             {images.length > 1 && (
-              <div className="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
                 {images.map((img, idx) => (
                   <button
                     key={idx}
                     type="button"
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`relative h-18 w-24 rounded-[14px] overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
+                    className={`relative h-16 w-20 rounded-[14px] overflow-hidden border-2 shrink-0 transition-all cursor-pointer ${
                       activeImageIndex === idx
                         ? "border-primary ring-2 ring-primary/20 scale-102"
                         : "border-border/80 opacity-70 hover:opacity-100"
@@ -342,49 +450,130 @@ export default function ServiceDetailPage({
             )}
           </div>
 
-          {/* Service Title & Detailed Description */}
-          <div className="p-6 sm:p-8 rounded-[28px] bg-card border border-border/80 shadow-2xs space-y-6">
-            <div className="space-y-2">
-              <h1 className="text-xl sm:text-3xl font-black text-foreground leading-tight">
-                {service.title}
-              </h1>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground font-bold">
-                <span className="flex items-center gap-1 text-amber-500">
-                  <Star className="w-4 h-4 fill-amber-500" />
-                  <span>{service.rating.toFixed(1)}</span>
-                  <span className="text-muted-foreground">({service.reviews_count} შეფასება)</span>
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
-                  <span>{service.working_hours || "09:00 - 20:00"}</span>
-                </span>
+          {/* Service Parameters & Key Highlights (Identical 6-Box Grid to Marketplace Specs) */}
+          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
+            <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <Wrench className="w-4 h-4 text-primary" />
+              <span>{isKa ? "სერვისის პარამეტრები & მახასიათებლები" : "Service Highlights & Specs"}</span>
+            </h2>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              {/* 1. Category */}
+              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-[10px] bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <CatIcon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "კატეგორია" : "Category"}
+                  </span>
+                  <span className="text-xs font-bold text-foreground truncate block">
+                    {categoryMeta ? (isKa ? categoryMeta.labelKa : categoryMeta.labelEn) : service.category}
+                  </span>
+                </div>
+              </div>
+
+              {/* 2. Working Hours */}
+              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-[10px] bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "სამუშაო საათები" : "Hours"}
+                  </span>
+                  <span className="text-xs font-bold text-foreground truncate block">
+                    {service.working_hours || "09:00 - 20:00"}
+                  </span>
+                </div>
+              </div>
+
+              {/* 3. Service Area */}
+              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-[10px] bg-sky-500/10 text-sky-600 flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "არეალი" : "Area"}
+                  </span>
+                  <span className="text-xs font-bold text-foreground truncate block">
+                    {service.city}
+                  </span>
+                </div>
+              </div>
+
+              {/* 4. Guarantee & Safety */}
+              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-[10px] bg-amber-500/10 text-amber-600 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "გარანტია" : "Guarantee"}
+                  </span>
+                  <span className="text-xs font-bold text-foreground truncate block">
+                    {isKa ? "შედეგის გარანტია" : "Result Guarantee"}
+                  </span>
+                </div>
+              </div>
+
+              {/* 5. Experience */}
+              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-[10px] bg-purple-500/10 text-purple-600 flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "გამოცდილება" : "Experience"}
+                  </span>
+                  <span className="text-xs font-bold text-foreground truncate block">
+                    {service.provider_experience_years || 8}+ წელი
+                  </span>
+                </div>
+              </div>
+
+              {/* 6. On-site Visit */}
+              <div className="rounded-[14px] bg-secondary-container/50 border border-border/50 p-2.5 flex items-start gap-2.5">
+                <div className="w-8 h-8 rounded-[10px] bg-teal-500/10 text-teal-600 flex items-center justify-center shrink-0">
+                  <Navigation className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <span className="text-[10px] text-muted-foreground block font-medium">
+                    {isKa ? "ვიზიტი" : "Visit"}
+                  </span>
+                  <span className="text-xs font-bold text-foreground truncate block">
+                    {isKa ? "ადგილზე მისვლა" : "On-site visit"}
+                  </span>
+                </div>
               </div>
             </div>
+          </div>
 
-            {/* Description Body */}
-            <div className="space-y-3 pt-4 border-t border-border/60">
-              <h3 className="text-sm font-black uppercase tracking-wider text-foreground">
-                {isKa ? "მომსახურების აღწერა" : "Service Overview"}
-              </h3>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                {service.description}
-              </p>
-            </div>
+          {/* Description & Included Features Card */}
+          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-4">
+            <h2 className="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+              <FileText className="w-4 h-4 text-primary" />
+              <span>{isKa ? "მომსახურების აღწერა & დეტალები" : "Service Overview & Details"}</span>
+            </h2>
+
+            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+              {service.description}
+            </p>
 
             {/* What's Included Checklist */}
             {service.included_features && service.included_features.length > 0 && (
-              <div className="space-y-3 pt-4 border-t border-border/60">
-                <h3 className="text-sm font-black uppercase tracking-wider text-foreground">
+              <div className="space-y-2.5 pt-3 border-t border-border/50">
+                <span className="text-xs font-bold text-foreground block">
                   {isKa ? "რა შედის სერვისში:" : "What's Included:"}
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {service.included_features.map((feat, i) => (
                     <div
                       key={i}
-                      className="p-3 rounded-[14px] bg-secondary-container/40 border border-border/60 flex items-center gap-2.5 text-xs font-bold text-foreground"
+                      className="p-2.5 rounded-[12px] bg-secondary-container/40 border border-border/50 flex items-center gap-2 text-xs font-bold text-foreground"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                       <span>{feat}</span>
                     </div>
                   ))}
@@ -393,32 +582,32 @@ export default function ServiceDetailPage({
             )}
           </div>
 
-          {/* Customer Reviews & Feedback Section */}
-          <div className="p-6 sm:p-8 rounded-[28px] bg-card border border-border/80 shadow-2xs space-y-6">
-            <div className="flex items-center justify-between border-b border-border/60 pb-4">
+          {/* Customer Reviews & Feedback Section (Identical to Marketplace Feedback) */}
+          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-4">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div>
-                <h3 className="text-base font-black text-foreground">
+                <h3 className="text-sm sm:text-base font-extrabold text-foreground">
                   {isKa ? "კლიენტების შეფასებები" : "Customer Reviews"}
                 </h3>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[11px] text-muted-foreground">
                   {reviews.length} {isKa ? "გამოხმაურება" : "Reviews"}
                 </p>
               </div>
 
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black text-sm">
-                <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black text-xs sm:text-sm">
+                <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
                 <span>{service.rating.toFixed(1)}</span>
               </div>
             </div>
 
             {/* Write a Review Form */}
-            <form onSubmit={handleReviewSubmit} className="p-4 rounded-[20px] bg-secondary-container/30 border border-border/60 space-y-3">
+            <form onSubmit={handleReviewSubmit} className="p-3.5 rounded-[16px] bg-secondary-container/30 border border-border/60 space-y-2.5">
               <span className="text-xs font-black uppercase text-foreground block">
                 {isKa ? "დატოვეთ შეფასება ოსტატზე:" : "Leave a review:"}
               </span>
 
               {/* Star rating selector */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <button
                     key={star}
@@ -427,7 +616,7 @@ export default function ServiceDetailPage({
                     className="p-1 text-amber-500 hover:scale-110 transition-transform cursor-pointer"
                   >
                     <Star
-                      className={`w-5 h-5 ${
+                      className={`w-4 h-4 ${
                         star <= newRating ? "fill-amber-500 text-amber-500" : "text-muted-foreground/40"
                       }`}
                     />
@@ -444,7 +633,7 @@ export default function ServiceDetailPage({
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder={isKa ? "გაგვიზიარეთ თქვენი გამოცდილება (სამუშაოს ხარისხი, პუნქტუალურობა)..." : "Write your feedback..."}
-                className="w-full rounded-[12px] border border-border/80 bg-background p-2.5 text-xs font-medium focus:ring-1 focus:ring-primary outline-hidden resize-none"
+                className="w-full rounded-[10px] border border-border/80 bg-background p-2.5 text-xs font-medium focus:ring-1 focus:ring-primary outline-hidden resize-none"
               />
 
               <div className="flex items-center justify-between">
@@ -465,11 +654,11 @@ export default function ServiceDetailPage({
             </form>
 
             {/* Reviews List */}
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {reviews.map((rev) => (
                 <div
                   key={rev.id}
-                  className="p-4 rounded-[18px] bg-surface-container/30 border border-border/50 space-y-1.5"
+                  className="p-3.5 rounded-[14px] bg-surface-container/30 border border-border/50 space-y-1"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -493,116 +682,233 @@ export default function ServiceDetailPage({
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Pricing & Provider Sticky Box (4 Cols) */}
-        <div className="lg:col-span-4 space-y-5 sticky top-24">
-          {/* Price & Contact Card */}
-          <div className="p-6 rounded-[28px] bg-card border-2 border-emerald-500/30 shadow-ambient space-y-6">
+        {/* ══════════════════════════════════════════════════════════════════════
+            RIGHT COLUMN: Pricing, Contacts, Specialist Profile & Safety Box
+        ══════════════════════════════════════════════════════════════════════ */}
+        <div className="lg:col-span-5 space-y-4 sticky top-24">
+          {/* Main Info Card */}
+          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3.5">
+            {/* Title & Clickable Category / City Badges */}
             <div>
-              <span className="text-[10.5px] font-black uppercase tracking-wider text-muted-foreground block">
-                {isKa ? "საწყისი ტარიფი" : "Pricing Rate"}
-              </span>
-              <div className="flex items-baseline gap-1.5 mt-1">
-                <span className="text-3xl font-black text-emerald-700 dark:text-emerald-300">
-                  {service.price_from} ₾
-                </span>
-                <span className="text-sm font-bold text-muted-foreground">/ {service.price_unit}</span>
+              <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                {/* 1. Service Category Badge */}
+                <Link href={`/services?category=${encodeURIComponent(service.category)}`}>
+                  <Badge className="rounded-[8px] bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-primary/30 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5">
+                    <CatIcon className="w-3.5 h-3.5" />
+                    <span>{categoryMeta ? (isKa ? categoryMeta.labelKa : categoryMeta.labelEn) : service.category}</span>
+                  </Badge>
+                </Link>
+
+                {/* 2. City Badge */}
+                <Link href={`/services?city=${encodeURIComponent(service.city)}`}>
+                  <Badge className="rounded-[8px] bg-secondary-container text-foreground hover:bg-surface-container hover:scale-105 transition-all border border-border/50 text-[11px] font-bold cursor-pointer gap-1 py-1 px-2.5">
+                    <MapPin className="w-3 h-3 text-primary" />
+                    <span>{service.city}</span>
+                  </Badge>
+                </Link>
+
+                {/* 3. Verified Badge */}
+                {service.is_verified && (
+                  <Badge className="rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-[11px] font-bold py-1 px-2.5 gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    <span>{isKa ? "ვერიფიცირებული" : "Verified"}</span>
+                  </Badge>
+                )}
               </div>
-              <p className="text-[11px] text-muted-foreground mt-1">
-                საბოლოო ფასი დამოკიდებულია სამუშაოს სირთულესა და ობიექტის მოცულობაზე.
-              </p>
-            </div>
 
-            {/* Direct Contact Actions */}
-            <div className="space-y-2.5 pt-4 border-t border-border/60">
-              {/* Call Button / Reveal */}
-              {phoneRevealed ? (
-                <a
-                  href={`tel:${service.phone}`}
-                  className="w-full h-12 rounded-[16px] bg-secondary-container hover:bg-secondary-container/80 text-foreground font-black text-sm flex items-center justify-center gap-2 border border-border/60 transition-colors"
-                >
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span>{service.phone}</span>
-                </a>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={() => setPhoneRevealed(true)}
-                  className="w-full h-12 rounded-[16px] bg-secondary-container hover:bg-surface-container text-foreground font-black text-xs sm:text-sm gap-2 border border-border/60 cursor-pointer"
-                >
-                  <Phone className="w-4 h-4 text-primary" />
-                  <span>{isKa ? "ნომრის ჩვენება & დარეკვა" : "Show Phone & Call"}</span>
-                </Button>
-              )}
+              <h1 className="text-base sm:text-lg font-extrabold text-foreground leading-snug">
+                {service.title}
+              </h1>
 
-              {/* WhatsApp Button */}
-              {service.whatsapp && (
+              <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-medium flex-wrap">
+                <Link
+                  href={`/services?city=${encodeURIComponent(service.city)}`}
+                  className="hover:text-primary font-bold text-foreground transition-colors inline-flex items-center gap-1"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span>{service.city}</span>
+                </Link>
+                <span>•</span>
+                <span className="flex items-center gap-1 text-amber-500 font-bold">
+                  <Star className="w-3.5 h-3.5 fill-amber-500" />
+                  <span>{service.rating.toFixed(1)}</span>
+                  <span className="text-muted-foreground font-normal">({service.reviews_count})</span>
+                </span>
+                {/* Google Maps Directions Button */}
                 <a
-                  href={`https://wa.me/${service.whatsapp.replace(/\D/g, "")}?text=${encodeURIComponent(`გამარჯობა, დავინტერესდი თქვენი სერვისით Plant.ge-ზე: „${service.title}“`)}`}
+                  href={googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full h-12 rounded-[16px] bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-ambient transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-[7px] border border-emerald-500/30 transition-colors cursor-pointer shadow-2xs"
+                  title={isKa ? "მარშრუტის გახსნა Google Maps-ში" : "Open directions in Google Maps"}
                 >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>WhatsApp-ით დაკავშირება</span>
+                  <Navigation className="w-3 h-3 text-emerald-600" />
+                  <span>{isKa ? "მარშრუტი (Google Maps)" : "Directions (Google Maps)"}</span>
+                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
                 </a>
-              )}
-
-              {/* Inquiry Booking Button */}
-              <Button
-                type="button"
-                onClick={() => setInquiryModalOpen(true)}
-                className="w-full h-12 rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm gap-2 shadow-ambient cursor-pointer"
-              >
-                <Send className="w-4 h-4" />
-                <span>{isKa ? "შეკვეთის დატოვება (Inquiry)" : "Send Booking Inquiry"}</span>
-              </Button>
+              </div>
             </div>
 
-            {/* Trust Badges */}
-            <div className="p-3.5 rounded-[16px] bg-surface-container/40 border border-border/40 text-[11px] text-muted-foreground space-y-1.5 font-medium">
-              <div className="flex items-center gap-1.5 text-foreground font-bold">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Plant.ge-ს უსაფრთხოების სტანდარტი</span>
+            {/* Price & Status Row */}
+            <div className="rounded-[14px] bg-secondary-container/60 border border-border/50 px-3.5 py-2.5 flex items-center justify-between">
+              <div className="flex items-baseline gap-1.5">
+                <span className="text-xs font-bold text-muted-foreground uppercase block">
+                  {isKa ? "საწყისი ფასი:" : "From:"}
+                </span>
+                <span className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+                  {service.price_from} ₾
+                </span>
+                <span className="text-xs text-muted-foreground font-medium">/ {service.price_unit}</span>
               </div>
-              <p>ოსტატის ვერიფიკაცია, პირდაპირი კონტაქტი და გამჭვირვალე ფასები.</p>
+
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-card border border-border/50 px-2.5 py-1 rounded-[7px] shadow-2xs">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                {isKa ? "აქტიური" : "Active"}
+              </span>
+            </div>
+
+            {/* Actions & Contacts */}
+            <div className="space-y-2 pt-1 border-t border-border/40">
+              {/* Primary Phone Reveal & Dial (Centered, Compact & Non-Stretched) */}
+              <button
+                type="button"
+                onClick={handlePhoneAction}
+                className={`w-full h-11 px-4 rounded-[12px] font-bold flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs ${
+                  showPhone
+                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
+                    : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
+                }`}
+              >
+                <Phone className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-black tracking-wider">
+                  {showPhone ? formattedFullPhone : maskedPhone}
+                </span>
+                <span className="text-[10.5px] px-2 py-0.5 rounded-[6px] bg-white/20 font-black ml-0.5">
+                  {showPhone ? (isKa ? "დარეკვა" : "Call") : (isKa ? "ნახვა" : "Show")}
+                </span>
+              </button>
+
+              {/* Chat & WhatsApp Row */}
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href={directWaChatUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white shadow-2xs transition-all cursor-pointer"
+                >
+                  <WhatsAppIcon className="w-4 h-4" />
+                  <span>WhatsApp</span>
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setInquiryModalOpen(true)}
+                  className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1.5 bg-secondary-container hover:bg-secondary text-foreground border border-border/50 transition-all cursor-pointer"
+                >
+                  <Send className="w-4 h-4 text-primary" />
+                  <span>{isKa ? "შეკვეთა" : "Inquiry"}</span>
+                </button>
+              </div>
+
+              {/* Direct Booking Inquiry Button */}
+              <button
+                type="button"
+                onClick={() => setInquiryModalOpen(true)}
+                className="w-full h-10 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 shadow-2xs"
+              >
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span>{isKa ? "📝 შეკვეთის / ვიზიტის დატოვება" : "Send Booking Request"}</span>
+              </button>
+
+              {/* Icon-Only Share & Action Strip */}
+              <div className="pt-2 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={() => setInWishlist(!inWishlist)}
+                  className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
+                    inWishlist
+                      ? "bg-rose-500 text-white border-rose-500 shadow-xs"
+                      : "bg-secondary-container hover:bg-secondary text-foreground border-border/60 hover:text-rose-500"
+                  }`}
+                  title={inWishlist ? "შენახულია რჩეულებში" : "სურვილების სიაში დამატება"}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${inWishlist ? "fill-current" : ""}`} />
+                  <span>{inWishlist ? (isKa ? "შენახულია" : "Saved") : (isKa ? "შენახვა" : "Wishlist")}</span>
+                </button>
+
+                <div className="flex items-center gap-1.5">
+                  <a
+                    href={shareFbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={isKa ? "Facebook-ზე გაზიარება" : "Share on Facebook"}
+                    className="w-8 h-8 rounded-full bg-[#1877F2]/10 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-[#1877F2]/20 flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <FacebookIcon className="w-3.5 h-3.5" />
+                  </a>
+
+                  <a
+                    href={shareWaUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={isKa ? "WhatsApp-ში გაზიარება" : "Share on WhatsApp"}
+                    className="w-8 h-8 rounded-full bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    <WhatsAppIcon className="w-3.5 h-3.5" />
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    title={copiedLink ? (isKa ? "დაკოპირდა!" : "Copied!") : (isKa ? "ლინკის კოპირება" : "Copy Link")}
+                    className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                      copiedLink
+                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                        : "bg-secondary-container hover:bg-secondary text-foreground border-border/60"
+                    }`}
+                  >
+                    {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Provider Bio Profile Card */}
-          <div className="p-5 rounded-[24px] bg-card border border-border/80 shadow-2xs space-y-4">
+          {/* Specialist / Storefront Profile Card */}
+          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
             <Link
-              href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
-              className="flex items-center gap-3.5 group/p hover:opacity-90 transition-opacity"
+              href={providerSlugUrl}
+              className="flex items-center gap-3 group/p hover:opacity-90 transition-opacity"
             >
               {service.provider_avatar ? (
                 <img
                   src={service.provider_avatar}
                   alt={service.provider_name}
-                  className="h-12 w-12 rounded-full object-cover border border-border shrink-0 shadow-2xs group-hover/p:ring-2 group-hover/p:ring-primary/40 transition-all"
+                  className="h-11 w-11 rounded-full object-cover border border-border shrink-0 shadow-2xs group-hover/p:ring-2 group-hover/p:ring-primary/40 transition-all"
                 />
               ) : (
-                <div className="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-base shrink-0 group-hover/p:bg-primary group-hover/p:text-white transition-all">
+                <div className="h-11 w-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0 group-hover/p:bg-primary group-hover/p:text-white transition-all">
                   {service.provider_name.charAt(0)}
                 </div>
               )}
 
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h4 className="text-sm font-black text-foreground group-hover/p:text-primary transition-colors">
+                  <h4 className="text-xs sm:text-sm font-black text-foreground group-hover/p:text-primary transition-colors truncate">
                     {service.provider_name}
                   </h4>
                   {service.is_verified && (
-                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                   )}
                 </div>
                 <span className="text-[11px] text-muted-foreground font-medium">
-                  {service.provider_experience_years || 8} წლიანი გამოცდილება
+                  {service.provider_experience_years || 8} {isKa ? "წლიანი გამოცდილება" : "years experience"}
                 </span>
               </div>
             </Link>
 
             {service.provider_bio && (
-              <p className="text-xs text-muted-foreground leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
                 {service.provider_bio}
               </p>
             )}
@@ -612,38 +918,53 @@ export default function ServiceDetailPage({
                 <span className="text-xs font-black text-foreground block">
                   {service.completed_jobs_count || 120}+
                 </span>
-                <span className="text-[10px] text-muted-foreground">სამუშაო</span>
+                <span className="text-[10px] text-muted-foreground">{isKa ? "სამუშაო" : "Jobs"}</span>
               </div>
               <div className="p-2 rounded-[12px] bg-secondary-container/40 border border-border/40">
                 <span className="text-xs font-black text-emerald-600 block">
                   {service.rating.toFixed(1)} / 5.0
                 </span>
-                <span className="text-[10px] text-muted-foreground">შეფასება</span>
+                <span className="text-[10px] text-muted-foreground">{isKa ? "შეფასება" : "Rating"}</span>
               </div>
             </div>
 
             {/* View Full Specialist Storefront / Profile Button */}
             <Link
-              href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
-              className="w-full h-10 rounded-[14px] bg-secondary-container hover:bg-secondary text-foreground text-xs font-black flex items-center justify-center gap-1.5 border border-border/60 transition-colors shadow-2xs"
+              href={providerSlugUrl}
+              className="w-full h-9.5 rounded-[12px] bg-secondary-container hover:bg-secondary text-foreground text-xs font-black flex items-center justify-center gap-1.5 border border-border/60 transition-colors shadow-2xs cursor-pointer"
             >
               <Store className="w-3.5 h-3.5 text-primary" />
               <span>{isKa ? "ოსტატის პროფილის & სერვისების ნახვა" : "View Specialist Profile & Services"}</span>
             </Link>
           </div>
+
+          {/* Safety & Trust Notice Box (Identical to Marketplace Safety) */}
+          <div className="rounded-[18px] border border-emerald-500/30 bg-emerald-500/5 p-3.5 sm:p-4 space-y-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 font-bold text-foreground">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>{isKa ? "Plant.ge-ს უსაფრთხოების სტანდარტი" : "Safety Standard"}</span>
+            </div>
+            <p className="text-[11px] leading-relaxed">
+              {isKa
+                ? "ვერიფიცირებული სპეციალისტები, პირდაპირი კონტაქტი შუამავლების გარეშე და გამჭვირვალე ფასები."
+                : "Verified specialists, direct communication with zero intermediaries, and transparent pricing."}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 3. Related / Similar Services */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          3. Related / Similar Services Slider
+      ══════════════════════════════════════════════════════════════════════ */}
       {relatedServices.length > 0 && (
-        <div className="space-y-4 pt-8 border-t border-border/60">
+        <div className="space-y-4 pt-8 border-t border-border/60 mt-8">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg sm:text-xl font-black text-foreground">
+              <h3 className="text-base sm:text-lg font-extrabold text-foreground">
                 {isKa ? "მსგავსი სერვისები" : "Similar Services"}
               </h3>
               <p className="text-xs text-muted-foreground">
-                სხვა სპეციალისტები ამავე კატეგორიაში
+                {isKa ? "სხვა სპეციალისტები ამავე კატეგორიაში" : "Other specialists in this category"}
               </p>
             </div>
             <Link href="/services">
@@ -654,7 +975,7 @@ export default function ServiceDetailPage({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {relatedServices.map((rel) => (
               <ServiceCard key={rel.id} service={rel} variant="compact" />
             ))}
@@ -662,15 +983,17 @@ export default function ServiceDetailPage({
         </div>
       )}
 
-      {/* 4. Inquiry Booking Modal */}
+      {/* ══════════════════════════════════════════════════════════════════════
+          4. Inquiry Booking Modal
+      ══════════════════════════════════════════════════════════════════════ */}
       {inquiryModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-card border border-border/80 rounded-[26px] max-w-md w-full p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
+          <div className="bg-card border border-border/80 rounded-[24px] max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div className="flex items-center gap-2">
                 <Send className="w-4 h-4 text-primary" />
                 <h3 className="text-sm sm:text-base font-black text-foreground">
-                  შეკვეთის / მოთხოვნის გაგზავნა
+                  {isKa ? "შეკვეთის / მოთხოვნის გაგზავნა" : "Send Booking Inquiry"}
                 </h3>
               </div>
               <button
@@ -688,30 +1011,30 @@ export default function ServiceDetailPage({
                   <Check className="w-6 h-6" />
                 </div>
                 <h4 className="text-sm font-black text-foreground">
-                  შეტყობინება წარმატებით გაიგზავნა!
+                  {isKa ? "შეტყობინება წარმატებით გაიგზავნა!" : "Inquiry sent successfully!"}
                 </h4>
                 <p className="text-xs text-muted-foreground">
-                  ოსტატი უმოკლეს დროში დაგიკავშირდებათ მითითებულ ნომერზე.
+                  {isKa ? "ოსტატი უმოკლეს დროში დაგიკავშირდებათ მითითებულ ნომერზე." : "The specialist will reach out shortly."}
                 </p>
               </div>
             ) : (
               <form onSubmit={handleSendInquiry} className="space-y-3.5">
                 <div>
                   <label className="text-xs font-bold text-foreground block mb-1">
-                    თქვენი სახელი *
+                    {isKa ? "თქვენი სახელი *" : "Your Name *"}
                   </label>
                   <Input
                     required
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    placeholder="გიორგი..."
+                    placeholder={isKa ? "გიორგი..." : "Name..."}
                     className="h-10 rounded-[12px] text-xs font-bold"
                   />
                 </div>
 
                 <div>
                   <label className="text-xs font-bold text-foreground block mb-1">
-                    ტელეფონის ნომერი *
+                    {isKa ? "ტელეფონის ნომერი *" : "Phone Number *"}
                   </label>
                   <Input
                     required
@@ -724,13 +1047,13 @@ export default function ServiceDetailPage({
 
                 <div>
                   <label className="text-xs font-bold text-foreground block mb-1">
-                    მოკლე აღწერა / შეკითხვა
+                    {isKa ? "მოკლე აღწერა / შეკითხვა" : "Brief Description / Message"}
                   </label>
                   <textarea
                     rows={3}
                     value={inquiryMessage}
                     onChange={(e) => setInquiryMessage(e.target.value)}
-                    placeholder="მაგ: მინდა 10 ხეხილის გასხვლა მცხეთაში შაბათს..."
+                    placeholder={isKa ? "მაგ: მინდა 10 ხეხილის გასხვლა მცხეთაში შაბათს..." : "e.g. Tree pruning request for this Saturday..."}
                     className="w-full rounded-[12px] border border-input bg-background p-2.5 text-xs font-medium focus:ring-1 focus:ring-primary outline-hidden resize-none"
                   />
                 </div>
@@ -741,9 +1064,9 @@ export default function ServiceDetailPage({
                     variant="outline"
                     size="sm"
                     onClick={() => setInquiryModalOpen(false)}
-                    className="rounded-[10px] text-xs"
+                    className="rounded-[10px] text-xs font-bold"
                   >
-                    გაუქმება
+                    {isKa ? "გაუქმება" : "Cancel"}
                   </Button>
                   <Button
                     type="submit"
@@ -751,7 +1074,7 @@ export default function ServiceDetailPage({
                     className="rounded-[10px] bg-primary hover:bg-primary/90 text-white text-xs font-bold gap-1.5 cursor-pointer shadow-ambient"
                   >
                     {submittingInquiry ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                    <span>გაგზავნა</span>
+                    <span>{isKa ? "გაგზავნა" : "Send"}</span>
                   </Button>
                 </div>
               </form>
