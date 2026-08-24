@@ -911,14 +911,14 @@ function ListingsCatalogContent() {
     <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl">
       {/* Top Toolbar: Switcher Tabs + Mobile Controls Bar */}
       <div className="space-y-3 mb-5">
-        {/* Row 1: Item Type Switcher Tabs (All -> Plants -> Inventory & Care) */}
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-1.5 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-fit max-w-full overflow-x-auto no-scrollbar">
+        {/* Row 1: Item Type Switcher Tabs (All -> Plants -> Inventory) */}
+        <div className="w-full">
+          <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-full">
             {/* 1. All */}
             <button
               type="button"
               onClick={() => setItemTypeFilter("ALL")}
-              className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
                 itemTypeFilter === "ALL"
                   ? "bg-primary text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
@@ -932,13 +932,13 @@ function ListingsCatalogContent() {
             <button
               type="button"
               onClick={() => setItemTypeFilter("PLANT")}
-              className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
                 itemTypeFilter === "PLANT"
                   ? "bg-primary text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Sprout className="w-3.5 h-3.5" />
+              <Sprout className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
               <span>{isKa ? "მცენარეები" : "Plants"}</span>
               <span className="text-[10px] opacity-80 font-mono">({plantsCount})</span>
             </button>
@@ -947,14 +947,14 @@ function ListingsCatalogContent() {
             <button
               type="button"
               onClick={() => setItemTypeFilter("INVENTORY")}
-              className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
                 itemTypeFilter === "INVENTORY"
                   ? "bg-primary text-white shadow-xs"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              <Layers className="w-3.5 h-3.5" />
-              <span>{isKa ? "ინვენტარი & მოვლა" : "Inventory"}</span>
+              <Layers className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
+              <span>{isKa ? "ინვენტარი" : "Supplies"}</span>
               <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
             </button>
           </div>
@@ -1091,8 +1091,8 @@ function ListingsCatalogContent() {
         <div className="flex-1 min-w-0">
           {/* Top Sorting Pill Bar (Mobile & Desktop) */}
           <div className="mb-4 flex items-center justify-between gap-2">
-            {/* Sort Buttons (Grid on mobile to fit 100% width cleanly, flex on desktop) */}
-            <div className="grid grid-cols-4 sm:flex sm:items-center gap-1 sm:gap-1.5 w-full sm:w-auto">
+            {/* Sort Buttons (Smooth horizontal pill bar) */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto pb-0.5">
               {[
                 { 
                   id: "nearest", 
@@ -1124,7 +1124,7 @@ function ListingsCatalogContent() {
                   <button
                     key={opt.id}
                     onClick={() => handleSortClick(opt.id)}
-                    className={`px-1.5 sm:px-3 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-bold text-center sm:text-left whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                       isActive
                         ? "bg-primary text-white shadow-xs scale-[1.02]"
                         : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
@@ -1133,7 +1133,7 @@ function ListingsCatalogContent() {
                     {opt.id === "nearest" && gpsLoading ? (
                       <span className="flex items-center justify-center gap-1">
                         <Loader2 className="w-3 h-3 animate-spin" />
-                        <span className="hidden sm:inline">{isKa ? "GPS..." : "Locating..."}</span>
+                        <span>{isKa ? "GPS..." : "Locating..."}</span>
                       </span>
                     ) : (
                       isKa ? opt.labelKa : opt.labelEn
