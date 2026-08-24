@@ -947,6 +947,7 @@ export default function EditListingPage() {
               <span className="text-xs font-bold text-foreground block mb-1">ფასი (₾ ლარი)</span>
               <Input
                 type="number"
+                inputMode="decimal"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 placeholder="ჩაწერეთ ფასი ლარში"
@@ -1135,6 +1136,7 @@ export default function EditListingPage() {
             </span>
             <Input
               type="tel"
+              inputMode="tel"
               required
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}

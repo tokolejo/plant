@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -8,6 +8,13 @@ import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 import { MobileBottomNav } from "@/components/common/MobileBottomNav";
 import "../globals.css";
+
+export const viewport: Viewport = {
+  themeColor: "#059669",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
 export async function generateMetadata({

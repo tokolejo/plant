@@ -154,14 +154,14 @@ export function ListingCard({
           <button
             type="button"
             onClick={handleWishlistClick}
-            className={`absolute top-2.5 right-2.5 z-20 h-7 w-7 rounded-full backdrop-blur-md flex items-center justify-center transition-colors cursor-pointer shadow-xs ${
+            className={`absolute top-2.5 right-2.5 z-20 h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-xs ${
               isWishlisted
                 ? "bg-rose-500 text-white"
                 : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
             }`}
             title={isWishlisted ? "რჩეულებიდან ამოშლა" : "რჩეულებში დამატება"}
           >
-            <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-current" : ""}`} />
+            <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current" : ""}`} />
           </button>
 
           {images?.length > 1 && (
@@ -315,7 +315,7 @@ export function ListingCard({
         <button
           type="button"
           onClick={handleWishlistClick}
-          className={`absolute top-2 right-2 z-20 h-6.5 w-6.5 rounded-full backdrop-blur-md flex items-center justify-center transition-colors cursor-pointer shadow-xs ${
+          className={`absolute top-2 right-2 z-20 h-7.5 w-7.5 rounded-full backdrop-blur-md flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-xs ${
             isWishlisted
               ? "bg-rose-500 text-white"
               : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"

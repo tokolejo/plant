@@ -921,6 +921,7 @@ const ALL_GEORGIAN_CITIES = [
                   type="number"
                   min="0"
                   step="0.5"
+                  inputMode="decimal"
                   required={transactionType === "FIXED"}
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
@@ -1246,6 +1247,7 @@ const ALL_GEORGIAN_CITIES = [
             </label>
             <Input
               type="tel"
+              inputMode="tel"
               required
               value={contactPhone}
               onChange={(e) => setContactPhone(e.target.value)}

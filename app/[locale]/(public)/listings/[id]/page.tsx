@@ -585,6 +585,32 @@ export default function ListingDetailPage({
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 max-w-6xl">
+      {/* Schema.org Structured Data for Google Rich Snippets */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org/",
+            "@type": "Product",
+            name: displayTitle,
+            image: images,
+            description: listing?.description || displayTitle,
+            sku: `PLANT-${listing?.id}`,
+            offers: {
+              "@type": "Offer",
+              url: typeof window !== "undefined" ? window.location.href : `https://plantsale.ge/${locale}/listings/${listing?.id}`,
+              priceCurrency: "GEL",
+              price: listing?.price || 0,
+              availability: listing?.status === "ACTIVE" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+              seller: {
+                "@type": "Person",
+                name: listing?.seller?.name || listing?.seller?.fullName || "Plant Seller",
+              },
+            },
+          }),
+        }}
+      />
+
       {/* Top Bar: Breadcrumb + Edit Button for Owner / Admin */}
       <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <Link
@@ -623,6 +649,7 @@ export default function ListingDetailPage({
                 alt={displayTitle}
                 fill
                 className="object-cover"
+                sizes="(max-width: 768px) 100vw, 700px"
                 priority
               />
 

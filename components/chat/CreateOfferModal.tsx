@@ -171,6 +171,7 @@ export function CreateOfferModal({
                     min="1"
                     step="1"
                     required
+                    inputMode="numeric"
                     value={offeredPrice}
                     onChange={(e) => setOfferedPrice(Number(e.target.value))}
                     className="w-full h-11 px-3.5 rounded-[12px] border border-input bg-background text-sm font-black text-foreground focus:ring-2 focus:ring-primary/30 outline-hidden"
