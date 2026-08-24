@@ -386,22 +386,22 @@ export default function ListingDetailPage({
     }
   };
 
-  const rawCat = listing.plantCategory || listing.plant_category || listing.inventory_category;
+  const rawCat = listing?.plantCategory || listing?.plant_category || listing?.inventory_category;
   const categoryInfo = rawCat && CATEGORIES_DATA[rawCat]
     ? {
         label: isKa ? CATEGORIES_DATA[rawCat].labelKa : CATEGORIES_DATA[rawCat].labelEn,
         emoji: CATEGORIES_DATA[rawCat].emoji,
       }
     : rawCat
-    ? { label: rawCat, emoji: listing.itemType === "INVENTORY" ? "📦" : "🌿" }
+    ? { label: rawCat, emoji: listing?.itemType === "INVENTORY" ? "📦" : "🌿" }
     : null;
 
-  const rawTitle = isKa ? (listing.titleKa || listing.title || "") : (listing.titleEn || listing.title || "");
+  const rawTitle = isKa ? (listing?.titleKa || listing?.title || "") : (listing?.titleEn || listing?.title || "");
   const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
   // Dynamic botanical care info matching species, plant category and tags
   const careInfo = React.useMemo(() => {
-    return getBotanicalCareDetails(listing);
+    return listing ? getBotanicalCareDetails(listing) : {} as any;
   }, [listing]);
 
   // Carousel Refs for smooth arrow scrolling
@@ -431,7 +431,7 @@ export default function ListingDetailPage({
   };
 
   // Similar plant listings (excluding current listing)
-  const similarListings = SAMPLE_LISTINGS.filter((l) => l.id !== listing.id);
+  const similarListings = SAMPLE_LISTINGS.filter((l) => l.id !== listing?.id);
 
   // Reviews state
   const [reviews, setReviews] = React.useState<any[]>([
@@ -473,7 +473,7 @@ export default function ListingDetailPage({
   const [copiedLink, setCopiedLink] = React.useState(false);
 
   // Seller phone formatting
-  const rawSellerPhone = listing.seller?.phone || "557 579 123";
+  const rawSellerPhone = listing?.seller?.phone || "557 579 123";
   const cleanPhoneDigits = rawSellerPhone.replace(/\D/g, "") || "557579123";
 
   // Masked format: "557 579 ***"
@@ -512,9 +512,9 @@ export default function ListingDetailPage({
       : `Hello, I'm interested in your listing on Plant.ge: "${displayTitle}"`
   )}`;
 
-  const fullAddressString = `${listing.city || "თბილისი"}${listing.address ? `, ${listing.address}` : ""}`;
-  const targetLat = listing.latitude ?? (listing as any).lat;
-  const targetLng = listing.longitude ?? (listing as any).lng;
+  const fullAddressString = `${listing?.city || "თბილისი"}${listing?.address ? `, ${listing.address}` : ""}`;
+  const targetLat = listing?.latitude ?? (listing as any)?.lat;
+  const targetLng = listing?.longitude ?? (listing as any)?.lng;
   const googleMapsUrl = targetLat && targetLng
     ? `https://www.google.com/maps/dir/?api=1&destination=${targetLat},${targetLng}`
     : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(fullAddressString)}`;
@@ -524,6 +524,7 @@ export default function ListingDetailPage({
       setAuthModalOpen(true);
       return;
     }
+    if (!listing?.seller?.id) return;
     router.push(`/dashboard/messages?listing=${listing.id}&seller=${listing.seller.id}`);
   };
 
