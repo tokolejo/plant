@@ -11,6 +11,7 @@ import {
   type GardeningServiceItem 
 } from "@/lib/mock-services";
 import { ServiceCard } from "@/components/services/ServiceCard";
+import { ServiceBookingModal } from "@/components/services/ServiceBookingModal";
 import { 
   MapPin, 
   Star, 
@@ -981,104 +982,61 @@ export default function ServiceDetailPage({
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          4. Inquiry Booking Modal
+          4. Mobile Sticky Floating Action Bar (lg:hidden)
       ══════════════════════════════════════════════════════════════════════ */}
-      {inquiryModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-card border border-border/80 rounded-[24px] max-w-md w-full p-5 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
-              <div className="flex items-center gap-2">
-                <Send className="w-4 h-4 text-primary" />
-                <h3 className="text-sm sm:text-base font-black text-foreground">
-                  {isKa ? "შეკვეთის / მოთხოვნის გაგზავნა" : "Send Booking Inquiry"}
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setInquiryModalOpen(false)}
-                className="p-1 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border/80 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-2xl animate-in slide-in-from-bottom duration-300">
+        <div className="container mx-auto flex items-center justify-between gap-3 max-w-lg">
+          {/* Price & Unit */}
+          <div className="min-w-0">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground block">
+              {isKa ? "ფასი" : "Price"}
+            </span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-lg font-black text-foreground">{service.price_from} ₾</span>
+              <span className="text-[10px] text-muted-foreground">/ {service.price_unit}</span>
             </div>
+          </div>
 
-            {inquirySuccess ? (
-              <div className="py-8 text-center space-y-2">
-                <div className="h-12 w-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
-                  <Check className="w-6 h-6" />
-                </div>
-                <h4 className="text-sm font-black text-foreground">
-                  {isKa ? "შეტყობინება წარმატებით გაიგზავნა!" : "Inquiry sent successfully!"}
-                </h4>
-                <p className="text-xs text-muted-foreground">
-                  {isKa ? "ოსტატი უმოკლეს დროში დაგიკავშირდებათ მითითებულ ნომერზე." : "The specialist will reach out shortly."}
-                </p>
-              </div>
-            ) : (
-              <form onSubmit={handleSendInquiry} className="space-y-3.5">
-                <div>
-                  <label className="text-xs font-bold text-foreground block mb-1">
-                    {isKa ? "თქვენი სახელი *" : "Your Name *"}
-                  </label>
-                  <Input
-                    required
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder={isKa ? "გიორგი..." : "Name..."}
-                    className="h-10 rounded-[12px] text-xs font-bold"
-                  />
-                </div>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            <a
+              href={`tel:${cleanPhone}`}
+              className="w-10 h-10 rounded-xl bg-secondary-container hover:bg-secondary text-foreground flex items-center justify-center border border-border/80 transition-colors shrink-0 shadow-xs"
+              title={isKa ? "დარეკვა" : "Call"}
+            >
+              <Phone className="w-4 h-4 text-emerald-600" />
+            </a>
 
-                <div>
-                  <label className="text-xs font-bold text-foreground block mb-1">
-                    {isKa ? "ტელეფონის ნომერი *" : "Phone Number *"}
-                  </label>
-                  <Input
-                    required
-                    value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
-                    placeholder="+995 5..."
-                    className="h-10 rounded-[12px] text-xs font-bold"
-                  />
-                </div>
+            <a
+              href={directWaChatUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-10 h-10 rounded-xl bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#25D366] flex items-center justify-center border border-[#25D366]/30 transition-colors shrink-0 shadow-xs"
+              title={isKa ? "WhatsApp-ში მიწერა" : "Chat on WhatsApp"}
+            >
+              <WhatsAppIcon className="w-4 h-4" />
+            </a>
 
-                <div>
-                  <label className="text-xs font-bold text-foreground block mb-1">
-                    {isKa ? "მოკლე აღწერა / შეკითხვა" : "Brief Description / Message"}
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={inquiryMessage}
-                    onChange={(e) => setInquiryMessage(e.target.value)}
-                    placeholder={isKa ? "მაგ: მინდა 10 ხეხილის გასხვლა მცხეთაში შაბათს..." : "e.g. Tree pruning request for this Saturday..."}
-                    className="w-full rounded-[12px] border border-input bg-background p-2.5 text-xs font-medium focus:ring-1 focus:ring-primary outline-hidden resize-none"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/60">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setInquiryModalOpen(false)}
-                    className="rounded-[10px] text-xs font-bold"
-                  >
-                    {isKa ? "გაუქმება" : "Cancel"}
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={submittingInquiry}
-                    className="rounded-[10px] bg-primary hover:bg-primary/90 text-white text-xs font-bold gap-1.5 cursor-pointer shadow-ambient"
-                  >
-                    {submittingInquiry ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                    <span>{isKa ? "გაგზავნა" : "Send"}</span>
-                  </Button>
-                </div>
-              </form>
-            )}
+            <Button
+              onClick={() => setInquiryModalOpen(true)}
+              className="rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold text-xs h-10 px-4 gap-1.5 shadow-md shrink-0 cursor-pointer"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              <span>{isKa ? "დაჯავშნა" : "Book"}</span>
+            </Button>
           </div>
         </div>
-      )}
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          5. Rich Online Booking & Live Cost Estimator Modal
+      ══════════════════════════════════════════════════════════════════════ */}
+      <ServiceBookingModal
+        isOpen={inquiryModalOpen}
+        onClose={() => setInquiryModalOpen(false)}
+        service={service}
+        isKa={isKa}
+      />
     </div>
   );
 }
