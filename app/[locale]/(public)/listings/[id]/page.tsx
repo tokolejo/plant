@@ -550,6 +550,46 @@ export default function ListingDetailPage({
     setTimeout(() => setReviewSubmitted(false), 4000);
   };
 
+  const [greenhouseAdded, setGreenhouseAdded] = React.useState(false);
+  const [addingToGreenhouse, setAddingToGreenhouse] = React.useState(false);
+
+  const handleAddToGreenhouse = async () => {
+    if (!currentUser) {
+      setAuthModalOpen(true);
+      return;
+    }
+    if (!listing) return;
+
+    setAddingToGreenhouse(true);
+    try {
+      const now = new Date();
+      const nextWaterDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+      const { error } = await supabase.from("user_plants").insert({
+        user_id: currentUser.id,
+        listing_id: listing.id,
+        name: displayTitle,
+        species_name: careInfo?.speciesName || careInfo?.latinName || null,
+        room_location: "მისაღები",
+        watering_frequency_days: 7,
+        last_watered_at: now.toISOString(),
+        next_watering_at: nextWaterDate.toISOString(),
+        image_url: images[0] || null,
+        notes: `შეძენილია Plant.ge-დან (${listing.seller?.fullName || "სელერი"})`,
+      });
+
+      if (!error) {
+        setGreenhouseAdded(true);
+        setWishlistNotice(isKa ? `მცენარე „${displayTitle}“ დაემატა თქვენს ორანჟერეაში!` : `Added "${displayTitle}" to your Greenhouse!`);
+        setTimeout(() => setWishlistNotice(""), 4000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setAddingToGreenhouse(false);
+    }
+  };
+
   if (loadingListing) {
     return (
       <div className="container mx-auto px-4 py-20 flex flex-col items-center justify-center text-center space-y-3 min-h-[50vh]">
@@ -1217,6 +1257,30 @@ export default function ListingDetailPage({
                   <span>{isKa ? "Live ჩატი" : "Live Chat"}</span>
                 </button>
               </div>
+
+              {/* 1-Click Greenhouse Bridge */}
+              <button
+                type="button"
+                disabled={addingToGreenhouse || greenhouseAdded}
+                onClick={handleAddToGreenhouse}
+                className={`w-full h-10 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border ${
+                  greenhouseAdded
+                    ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 cursor-default"
+                    : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 shadow-2xs"
+                }`}
+              >
+                {greenhouseAdded ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span>{isKa ? "ორანჟერეაშია" : "In Your Greenhouse"}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sprout className="w-4 h-4 text-emerald-600" />
+                    <span>{isKa ? "ჩემს ორანჟერეაში დამატება" : "Add to My Greenhouse"}</span>
+                  </>
+                )}
+              </button>
 
               {/* Wishlist Notice */}
               {wishlistNotice && (

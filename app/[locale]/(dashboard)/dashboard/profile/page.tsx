@@ -30,7 +30,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   Mail,
-  Sliders
+  Sliders,
+  Award,
+  Sprout,
+  Stethoscope
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -366,6 +369,54 @@ export default function ProfileEditPage() {
           />
         </div>
       </div>
+      {/* 2.5. Botanical Status & Achievement Badges */}
+      <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-emerald-600" />
+            <span className="text-xs font-black uppercase tracking-wider text-foreground">
+              {isKa ? "ბოტანიკური რანგი & მიღწევები" : "Botanical Rank & Achievements"}
+            </span>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 text-[10px] font-black border border-emerald-500/20">
+            {isKa ? "დონე 2: ორანჟერეის ოსტატი" : "Level 2: Greenhouse Master"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
+          <div className="p-2.5 rounded-[14px] bg-secondary-container/40 border border-border/60 flex items-center gap-2">
+            <Sprout className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div>
+              <span className="text-[11px] font-black text-foreground block">მწვანე თითი</span>
+              <span className="text-[9.5px] text-muted-foreground">ორანჟერეის წევრი</span>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-[14px] bg-secondary-container/40 border border-border/60 flex items-center gap-2">
+            <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+            <div>
+              <span className="text-[11px] font-black text-foreground block">ვერიფიცირებული</span>
+              <span className="text-[9.5px] text-muted-foreground">ნომერი დადასტურებულია</span>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-[14px] bg-secondary-container/40 border border-border/60 flex items-center gap-2">
+            <Stethoscope className="w-4 h-4 text-teal-600 shrink-0" />
+            <div>
+              <span className="text-[11px] font-black text-foreground block">მცენარის ექიმი</span>
+              <span className="text-[9.5px] text-muted-foreground">AI დიაგნოსტიკა</span>
+            </div>
+          </div>
+
+          <div className="p-2.5 rounded-[14px] bg-secondary-container/40 border border-border/60 flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+            <div>
+              <span className="text-[11px] font-black text-foreground block">კომუნის წევრი</span>
+              <span className="text-[9.5px] text-muted-foreground">აქტიური მებაღე</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* 3. Main Grid Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -374,10 +425,10 @@ export default function ProfileEditPage() {
           {/* Modern Segmented Tab Bar */}
           <div className="flex items-center gap-1.5 p-1 bg-surface-container/60 rounded-[16px] border border-border/60 overflow-x-auto no-scrollbar">
             {[
-              { id: "general", label: isKa ? "👤 ძირითადი" : "👤 General", icon: User },
-              { id: "social", label: isKa ? "💬 მესინჯერები" : "💬 Social/Chat", icon: Share2 },
-              { id: "security", label: isKa ? "🔒 უსაფრთხოება" : "🔒 Security", icon: Lock },
-              { id: "notifications", label: isKa ? "🔔 შეტყობინებები" : "🔔 Alerts", icon: Bell },
+              { id: "general", label: isKa ? "ძირითადი" : "General", icon: User },
+              { id: "social", label: isKa ? "მესინჯერები" : "Social/Chat", icon: Share2 },
+              { id: "security", label: isKa ? "უსაფრთხოება" : "Security", icon: Lock },
+              { id: "notifications", label: isKa ? "შეტყობინებები" : "Alerts", icon: Bell },
             ].map((tab) => {
               const IconComp = tab.icon;
               const isSelected = activeTab === tab.id;

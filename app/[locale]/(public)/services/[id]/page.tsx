@@ -66,6 +66,51 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ id: st
   const [submittingInquiry, setSubmittingInquiry] = React.useState(false);
   const [inquirySuccess, setInquirySuccess] = React.useState(false);
 
+  // Reviews State
+  const [reviews, setReviews] = React.useState([
+    {
+      id: "rev-1",
+      authorName: "გიორგი მ.",
+      rating: 5,
+      comment: "საუკეთესო მომსახურება! დროულად მოვიდნენ, ხეები იდეალურად გასხლეს და ნარჩენებიც სრულად გაიტანეს. რეკომენდაციას ვუწევ!",
+      createdAt: "3 დღის წინ",
+    },
+    {
+      id: "rev-2",
+      authorName: "ნინო ჩხეიძე",
+      rating: 5,
+      comment: "ძალიან კმაყოფილი ვარ. პროფესიონალური მიდგომა და ხარისხიანი შედეგი.",
+      createdAt: "1 კვირის წინ",
+    },
+  ]);
+  const [newRating, setNewRating] = React.useState(5);
+  const [newComment, setNewComment] = React.useState("");
+  const [reviewNotice, setReviewNotice] = React.useState("");
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newComment.trim()) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.push(`/login?next=/services/${serviceId}`);
+      return;
+    }
+
+    const newRev = {
+      id: `rev-${Date.now()}`,
+      authorName: user.user_metadata?.full_name || user.email?.split("@")[0] || "მომხმარებელი",
+      rating: newRating,
+      comment: newComment.trim(),
+      createdAt: "ახლახანს",
+    };
+
+    setReviews((prev) => [newRev, ...prev]);
+    setNewComment("");
+    setReviewNotice("თქვენი შეფასება წარმატებით დაემატა!");
+    setTimeout(() => setReviewNotice(""), 4000);
+  };
+
   React.useEffect(() => {
     async function loadService() {
       try {
@@ -341,6 +386,105 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ id: st
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Customer Reviews & Feedback Section */}
+          <div className="p-6 sm:p-8 rounded-[28px] bg-card border border-border/80 shadow-2xs space-y-6">
+            <div className="flex items-center justify-between border-b border-border/60 pb-4">
+              <div>
+                <h3 className="text-base font-black text-foreground">
+                  {isKa ? "კლიენტების შეფასებები" : "Customer Reviews"}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {reviews.length} {isKa ? "გამოხმაურება" : "Reviews"}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-600 font-black text-sm">
+                <Star className="w-4 h-4 fill-amber-500 text-amber-500" />
+                <span>{service.rating.toFixed(1)}</span>
+              </div>
+            </div>
+
+            {/* Write a Review Form */}
+            <form onSubmit={handleReviewSubmit} className="p-4 rounded-[20px] bg-secondary-container/30 border border-border/60 space-y-3">
+              <span className="text-xs font-black uppercase text-foreground block">
+                {isKa ? "დატოვეთ შეფასება ოსტატზე:" : "Leave a review:"}
+              </span>
+
+              {/* Star rating selector */}
+              <div className="flex items-center gap-1.5">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <button
+                    key={star}
+                    type="button"
+                    onClick={() => setNewRating(star)}
+                    className="p-1 text-amber-500 hover:scale-110 transition-transform cursor-pointer"
+                  >
+                    <Star
+                      className={`w-5 h-5 ${
+                        star <= newRating ? "fill-amber-500 text-amber-500" : "text-muted-foreground/40"
+                      }`}
+                    />
+                  </button>
+                ))}
+                <span className="text-xs font-bold text-muted-foreground ml-2">
+                  {newRating} / 5
+                </span>
+              </div>
+
+              <textarea
+                rows={2}
+                required
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder={isKa ? "გაგვიზიარეთ თქვენი გამოცდილება (სამუშაოს ხარისხი, პუნქტუალურობა)..." : "Write your feedback..."}
+                className="w-full rounded-[12px] border border-border/80 bg-background p-2.5 text-xs font-medium focus:ring-1 focus:ring-primary outline-hidden resize-none"
+              />
+
+              <div className="flex items-center justify-between">
+                {reviewNotice ? (
+                  <span className="text-xs font-bold text-emerald-600 animate-in fade-in">
+                    {reviewNotice}
+                  </span>
+                ) : <span />}
+
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="rounded-[10px] bg-primary hover:bg-primary/90 text-white text-xs font-bold px-4 cursor-pointer shadow-ambient"
+                >
+                  <span>{isKa ? "შეფასების გაგზავნა" : "Submit Review"}</span>
+                </Button>
+              </div>
+            </form>
+
+            {/* Reviews List */}
+            <div className="space-y-3">
+              {reviews.map((rev) => (
+                <div
+                  key={rev.id}
+                  className="p-4 rounded-[18px] bg-surface-container/30 border border-border/50 space-y-1.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black text-foreground">
+                        {rev.authorName}
+                      </span>
+                      <div className="flex items-center text-amber-500">
+                        {Array.from({ length: rev.rating }).map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-amber-500" />
+                        ))}
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">{rev.createdAt}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {rev.comment}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
