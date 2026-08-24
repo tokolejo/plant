@@ -2598,17 +2598,17 @@ export default function AdminDashboardPage() {
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* TAB: FEEDBACK & INQUIRIES MANAGEMENT                                 */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === "feedback" && (
-        <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
+{activeTab === "feedback" && (
+        <div className="rounded-[24px] border border-border/80 bg-card p-4 sm:p-7 shadow-ambient space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
             <div>
               <div className="flex items-center gap-2.5">
                 <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
-                  <MessageSquare className="w-5 h-5 text-amber-600" />
+                  <MessageSquare className="w-5 h-5 text-primary" />
                   <span>შეტყობინებები & მომხმარებელთა ფიდბექი</span>
                 </h2>
                 {unreadFeedbackCount > 0 && (
-                  <Badge className="bg-amber-500 text-white text-xs font-black border-none animate-pulse">
+                  <Badge className="bg-emerald-600 text-white text-xs font-black border-none animate-pulse">
                     {unreadFeedbackCount} ახალი შეტყობინება
                   </Badge>
                 )}
@@ -2627,7 +2627,7 @@ export default function AdminDashboardPage() {
                 className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
                 title="CSV ექსპორტი"
               >
-                <Download className="w-3.5 h-3.5 text-amber-600" />
+                <Download className="w-3.5 h-3.5 text-primary" />
                 CSV ექსპორტი
               </Button>
 
@@ -2644,111 +2644,102 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* Filter Toolbar */}
-          <div className="space-y-3 bg-secondary-container/40 p-4 rounded-[20px] border border-border/60">
-            {/* Category Filter */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0">
-                კატეგორია:
-              </span>
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full">
-                {[
-                  { id: "ALL", label: "ყველა" },
-                  { id: "general", label: "💬 ზოგადი" },
-                  { id: "suggestion", label: "💡 იდეა & წინადადება" },
-                  { id: "bug", label: "⚠️ ხარვეზის რეპორტი" },
-                  { id: "partnership", label: "🤝 პარტნიორობა / B2B" },
-                ].map((cat) => {
-                  const isSelected = feedbackTypeFilter === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setFeedbackTypeFilter(cat.id)}
-                      className={`px-3 py-1.5 rounded-[10px] text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-amber-600 text-white shadow-xs"
-                          : "bg-background/90 text-muted-foreground hover:text-foreground hover:bg-background border border-border/60"
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  );
-                })}
-              </div>
+          {/* Modern Filter Toolbar */}
+          <div className="space-y-3 bg-secondary-container/30 p-3.5 sm:p-4.5 rounded-[22px] border border-border/60">
+            {/* 1. Search Bar */}
+            <div className="relative w-full">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+              <input
+                type="text"
+                value={feedbackSearchQuery}
+                onChange={(e) => setFeedbackSearchQuery(e.target.value)}
+                placeholder="ძიება სახელით, მეილით, ტელეფონით, ტექსტით..."
+                className="w-full h-10 pl-9.5 pr-8 rounded-[14px] border border-border/80 text-xs sm:text-sm bg-card focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary font-medium transition-all shadow-2xs"
+              />
+              {feedbackSearchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setFeedbackSearchQuery("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 rounded cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
-            {/* Status Filter & Search */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2 border-t border-border/40">
-              <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0 mr-1">
-                  სტატუსი:
-                </span>
-                {[
-                  { id: "ALL", label: "ყველა" },
-                  { id: "NEW", label: "🟡 ახალი" },
-                  { id: "READ", label: "🔵 წაკითხული" },
-                  { id: "REPLIED", label: "🟢 პასუხგაცემული" },
-                ].map((st) => {
-                  const isSelected = feedbackStatusFilter === st.id;
-                  return (
-                    <button
-                      key={st.id}
-                      type="button"
-                      onClick={() => setFeedbackStatusFilter(st.id)}
-                      className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-primary text-white shadow-xs"
-                          : "bg-background/80 text-muted-foreground hover:text-foreground border border-border/50"
-                      }`}
-                    >
-                      {st.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="relative w-full sm:w-72">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={feedbackSearchQuery}
-                  onChange={(e) => setFeedbackSearchQuery(e.target.value)}
-                  placeholder="ძიება სახელით, მეილით, ტექსტით..."
-                  className="w-full h-8 pl-8 pr-7 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
-                />
-                {feedbackSearchQuery && (
+            {/* 2. Category Filter Pill Bar */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
+              {[
+                { id: "ALL", label: "ყველა კატეგორია" },
+                { id: "general", label: "💬 ზოგადი" },
+                { id: "suggestion", label: "💡 იდეა / წინადადება" },
+                { id: "bug", label: "⚠️ ხარვეზის რეპორტი" },
+                { id: "partnership", label: "🤝 პარტნიორობა / B2B" },
+              ].map((cat) => {
+                const isSelected = feedbackTypeFilter === cat.id;
+                return (
                   <button
+                    key={cat.id}
                     type="button"
-                    onClick={() => setFeedbackSearchQuery("")}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={() => setFeedbackTypeFilter(cat.id)}
+                    className={`shrink-0 px-3 py-1.5 rounded-[12px] text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-primary text-white shadow-xs"
+                        : "bg-card text-muted-foreground hover:text-foreground hover:bg-surface-container border border-border/60"
+                    }`}
                   >
-                    <X className="w-3 h-3" />
+                    {cat.label}
                   </button>
-                )}
-              </div>
+                );
+              })}
+            </div>
+
+            {/* 3. Status Filter Pill Bar */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-border/40 pb-0.5 no-scrollbar">
+              {[
+                { id: "ALL", label: "ყველა სტატუსი" },
+                { id: "NEW", label: "🟢 ახალი" },
+                { id: "READ", label: "🔵 წაკითხული" },
+                { id: "REPLIED", label: "✅ პასუხგაცემული" },
+              ].map((st) => {
+                const isSelected = feedbackStatusFilter === st.id;
+                return (
+                  <button
+                    key={st.id}
+                    type="button"
+                    onClick={() => setFeedbackStatusFilter(st.id)}
+                    className={`shrink-0 px-2.5 py-1.5 rounded-[10px] text-[11px] font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-foreground text-background shadow-xs"
+                        : "bg-card text-muted-foreground hover:text-foreground hover:bg-surface-container border border-border/50"
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
           {/* Feedback Messages List */}
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {loadingFeedback ? (
               <div className="py-16 text-center text-muted-foreground text-xs">
                 <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-primary" />
                 შეტყობინებები იტვირთება...
               </div>
             ) : filteredFeedbackList.length === 0 ? (
-              <div className="py-16 text-center text-muted-foreground text-xs space-y-2 border border-dashed border-border/80 rounded-[20px]">
-                <Inbox className="w-8 h-8 mx-auto text-muted-foreground/50 mb-2" />
-                <p className="font-bold">შეტყობინებები არ მოიძებნა</p>
-                <p className="text-[11px]">
+              <div className="py-16 text-center text-muted-foreground text-xs space-y-2 border border-dashed border-border/80 rounded-[22px] bg-card/50">
+                <Inbox className="w-9 h-9 mx-auto text-muted-foreground/40 mb-2" />
+                <p className="text-sm font-bold text-foreground">შეტყობინებები არ მოიძებნა</p>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
                   {feedbackSearchQuery || feedbackStatusFilter !== "ALL" || feedbackTypeFilter !== "ALL"
-                    ? "შერჩეული ფილტრებით შედეგი ცარიელია."
+                    ? "შერჩეული ფილტრებით შედეგი ცარიელია. სცადეთ ძიების გასუფთავება."
                     : "საკონტაქტო ფორმიდან ჯერჯერობით არცერთი შეტყობინება არ შემოსულა."}
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-1 gap-3.5">
                 {filteredFeedbackList.map((item) => {
                   const dateObj = item.created_at ? new Date(item.created_at) : new Date();
                   const dateFormatted = dateObj.toLocaleDateString("ka-GE", {
@@ -2762,61 +2753,69 @@ export default function AdminDashboardPage() {
                   });
 
                   const isNew = item.status === "NEW";
-                  const isRead = item.status === "READ";
-                  const isReplied = item.status === "REPLIED";
 
                   const typeLabelMap: Record<string, { label: string; color: string }> = {
-                    general: { label: "ზოგადი კითხვა", color: "bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200 border-blue-200" },
-                    suggestion: { label: "იდეა / წინადადება", color: "bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200 border-purple-200" },
-                    bug: { label: "ხარვეზის რეპორტი", color: "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border-rose-200" },
-                    partnership: { label: "პარტნიორობა / B2B", color: "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 border-emerald-200" },
+                    general: { label: "💬 ზოგადი კითხვა", color: "bg-blue-500/10 text-blue-800 dark:text-blue-200 border-blue-500/20" },
+                    suggestion: { label: "💡 იდეა / წინადადება", color: "bg-purple-500/10 text-purple-800 dark:text-purple-200 border-purple-500/20" },
+                    bug: { label: "⚠️ ხარვეზის რეპორტი", color: "bg-rose-500/10 text-rose-800 dark:text-rose-200 border-rose-500/20" },
+                    partnership: { label: "🤝 პარტნიორობა / B2B", color: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/20" },
                   };
 
-                  const typeInfo = typeLabelMap[item.type] || { label: item.type || "შეტყობინება", color: "bg-slate-100 text-slate-800 border-slate-200" };
+                  const typeInfo = typeLabelMap[item.type] || { label: item.type || "შეტყობინება", color: "bg-secondary-container text-foreground border-border/60" };
 
                   return (
                     <div
                       key={item.id}
-                      className={`p-4 sm:p-5 rounded-[18px] border transition-all duration-200 ${
+                      className={`p-4 sm:p-5 rounded-[22px] border bg-card transition-all duration-200 shadow-2xs hover:shadow-sm ${
                         isNew
-                          ? "bg-amber-500/5 border-amber-500/30 shadow-2xs"
-                          : "bg-card border-border/80 hover:border-border"
+                          ? "border-emerald-500/40 ring-1 ring-emerald-500/10"
+                          : "border-border/80 hover:border-border"
                       }`}
                     >
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-3 border-b border-border/40">
-                        {/* Sender Info */}
-                        <div className="flex items-start gap-3 min-w-0">
-                          <div className="h-9 w-9 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-300 flex items-center justify-center font-bold text-xs shrink-0 border border-amber-500/20">
+                      {/* Top Row: Sender Info, Category, Timestamp */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Avatar */}
+                          <div className="relative h-10 w-10 rounded-[14px] bg-gradient-to-br from-primary/15 to-primary/5 border border-primary/20 text-primary flex items-center justify-center font-black text-sm shrink-0 shadow-2xs">
                             {(item.name || "U").charAt(0).toUpperCase()}
+                            {isNew && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-emerald-500 ring-2 ring-card" />
+                            )}
                           </div>
-                          <div className="min-w-0">
+
+                          {/* Name & Type Badge */}
+                          <div className="min-w-0 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="text-xs sm:text-sm font-black text-foreground truncate">
+                              <h4 className="text-sm font-black text-foreground truncate">
                                 {item.name}
                               </h4>
-                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${typeInfo.color}`}>
+                              <span className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-bold border ${typeInfo.color}`}>
                                 {typeInfo.label}
                               </span>
                               {isNew && (
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-600 text-white shadow-2xs">
                                   NEW
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center gap-3 text-[11px] text-muted-foreground mt-0.5 flex-wrap">
+
+                            {/* Contact Badges Strip */}
+                            <div className="flex items-center gap-2 mt-1 flex-wrap text-xs">
                               <a
                                 href={`mailto:${item.email}`}
-                                className="flex items-center gap-1 hover:text-primary transition-colors font-medium"
+                                className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[8px] bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/60 transition-colors font-medium text-[11px]"
+                                title="გაგზავნეთ მეილი"
                               >
-                                <Mail className="w-3 h-3 text-muted-foreground" />
+                                <Mail className="w-3 h-3 text-primary" />
                                 <span>{item.email}</span>
                               </a>
                               {item.phone && (
                                 <a
                                   href={`tel:${item.phone}`}
-                                  className="flex items-center gap-1 hover:text-primary transition-colors font-medium"
+                                  className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[8px] bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/60 transition-colors font-medium text-[11px]"
+                                  title="დარეკეთ"
                                 >
-                                  <Phone className="w-3 h-3 text-muted-foreground" />
+                                  <Phone className="w-3 h-3 text-emerald-600" />
                                   <span>{item.phone}</span>
                                 </a>
                               )}
@@ -2824,29 +2823,60 @@ export default function AdminDashboardPage() {
                           </div>
                         </div>
 
-                        {/* Date & Quick Action Dropdown */}
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
-                          <div className="text-right text-[10px] text-muted-foreground mr-1">
-                            <div>{timeFormatted}</div>
-                            <div>{dateFormatted}</div>
-                          </div>
+                        {/* Timestamp */}
+                        <div className="text-right text-[11px] text-muted-foreground self-start sm:self-center font-medium bg-surface-container/50 px-2.5 py-1 rounded-[8px] border border-border/40 shrink-0">
+                          <span>{dateFormatted}</span> <span className="text-muted-foreground/60">•</span> <span>{timeFormatted}</span>
+                        </div>
+                      </div>
 
+                      {/* Middle: Subject & Message Body */}
+                      <div className="py-3.5 space-y-2">
+                        {item.subject && (
+                          <h5 className="text-xs sm:text-sm font-black text-foreground flex items-center gap-1.5">
+                            <span className="text-primary font-bold">თემა:</span>
+                            <span>{item.subject}</span>
+                          </h5>
+                        )}
+                        <div className="rounded-[14px] bg-surface-container/40 border border-border/50 p-3.5">
+                          <p className="text-xs sm:text-[13px] text-foreground/90 leading-relaxed whitespace-pre-wrap font-medium">
+                            {item.message}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Admin Notes if present */}
+                      {item.admin_notes && (
+                        <div className="mb-3 p-2.5 rounded-[12px] bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                          <span className="font-bold shrink-0">📝 შენიშვნა:</span>
+                          <span className="font-medium">{item.admin_notes}</span>
+                        </div>
+                      )}
+
+                      {/* Bottom: Action Toolbar (Status Select, Reply, Notes, Delete) */}
+                      <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/40 flex-wrap">
+                        {/* Status Switcher */}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-bold text-muted-foreground hidden sm:inline">სტატუსი:</span>
                           <select
                             value={item.status || "NEW"}
                             onChange={(e) => updateFeedbackStatus(item.id, e.target.value)}
-                            className="py-1 px-2 rounded-[8px] border border-border/80 bg-background text-foreground text-[10px] font-bold focus:outline-none cursor-pointer"
+                            className="h-8.5 px-2.5 rounded-[10px] border border-border/80 bg-background text-foreground text-xs font-bold focus:outline-none focus:ring-1.5 focus:ring-primary cursor-pointer shadow-2xs"
                           >
-                            <option value="NEW">🟡 ახალი</option>
+                            <option value="NEW">🟢 ახალი</option>
                             <option value="READ">🔵 წაკითხული</option>
-                            <option value="REPLIED">🟢 პასუხგაცემული</option>
+                            <option value="REPLIED">✅ პასუხგაცემული</option>
                           </select>
+                        </div>
 
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-1.5">
                           <a
                             href={`mailto:${item.email}?subject=Re: ${encodeURIComponent(item.subject || "Plant.ge")}&body=${encodeURIComponent(`\n\n--- თქვენი წერილი ---\n${item.message}`)}`}
-                            className="p-1.5 rounded-[8px] bg-primary/10 hover:bg-primary text-primary hover:text-white transition-colors cursor-pointer"
+                            className="h-8.5 px-3 rounded-[10px] bg-primary text-white hover:bg-primary-container text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
                             title="მეილით პასუხის გაცემა"
                           >
                             <Reply className="w-3.5 h-3.5" />
+                            <span>პასუხი</span>
                           </a>
 
                           <button
@@ -2855,42 +2885,23 @@ export default function AdminDashboardPage() {
                               setSelectedFeedbackModal(item);
                               setFeedbackAdminNotesInput(item.admin_notes || "");
                             }}
-                            className="p-1.5 rounded-[8px] bg-surface-container hover:bg-surface-container-high text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-                            title="სრული დეტალები"
+                            className="h-8.5 px-2.5 rounded-[10px] bg-card hover:bg-surface-container border border-border/80 text-foreground text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+                            title="სრული დეტალები & შენიშვნა"
                           >
-                            <FileText className="w-3.5 h-3.5" />
+                            <FileText className="w-3.5 h-3.5 text-muted-foreground" />
+                            <span className="hidden sm:inline">შენიშვნა</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => deleteFeedback(item.id, item.name)}
-                            className="p-1.5 rounded-[8px] hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
-                            title="წაშლა"
+                            className="h-8.5 w-8.5 rounded-[10px] hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors cursor-pointer border border-transparent hover:border-destructive/20"
+                            title="შეტყობინების წაშლა"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
-
-                      {/* Subject & Message Body */}
-                      <div className="pt-3 space-y-1.5">
-                        {item.subject && (
-                          <h5 className="text-xs font-bold text-foreground">
-                            თემა: {item.subject}
-                          </h5>
-                        )}
-                        <p className="text-xs text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                          {item.message}
-                        </p>
-                      </div>
-
-                      {/* Admin Notes Preview if available */}
-                      {item.admin_notes && (
-                        <div className="mt-3 pt-2 border-t border-border/40 text-[11px] text-amber-800 dark:text-amber-300 bg-amber-500/10 p-2 rounded-[10px] flex items-start gap-1.5">
-                          <span className="font-bold shrink-0">📝 ადმინის ჩანაწერი:</span>
-                          <span>{item.admin_notes}</span>
-                        </div>
-                      )}
                     </div>
                   );
                 })}
