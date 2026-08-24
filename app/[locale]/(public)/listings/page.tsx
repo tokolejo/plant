@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { usePathname } from "@/i18n/routing";
+import { usePathname, Link } from "@/i18n/routing";
 import { useLocale } from "next-intl";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { LocationSearchCombobox, GEORGIA_CITIES } from "@/components/common/LocationSearchCombobox";
@@ -29,7 +29,8 @@ import {
   ArrowDownUp,
   Loader2,
   LayoutGrid,
-  List
+  List,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -908,7 +909,35 @@ function ListingsCatalogContent() {
   );
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl">
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8">
+      {/* 1. Header Hero Banner (Identical to Services layout) */}
+      <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="space-y-2 max-w-2xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs font-black">
+            <Sprout className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{isKa ? "მცენარეთა ონლაინ მარკეტი" : "Online Plant Marketplace"}</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
+            {isKa ? "მცენარეები & ბაღის ინვენტარი" : "Plants & Garden Marketplace"}
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            {isKa
+              ? "შეიძინეთ, გაცვალეთ ან გააჩუქეთ ოთახის და ეზოს მცენარეები, იშვიათი კოლექციები, ქოთნები და ორგანული სასუქები."
+              : "Buy, trade, and discover houseplants, rare botanical specimens, pots, substrates, and care supplies."}
+          </p>
+        </div>
+
+        <Link href="/create-listing">
+          <Button
+            type="button"
+            className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-6 gap-2 shadow-ambient cursor-pointer shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span>{isKa ? "განცხადების დამატება" : "Add Listing"}</span>
+          </Button>
+        </Link>
+      </div>
+
       {/* Top Toolbar: Switcher Tabs + Mobile Controls Bar */}
       <div className="space-y-3 mb-5">
         {/* Row 1: Item Type Switcher Tabs (All -> Plants -> Inventory) */}
