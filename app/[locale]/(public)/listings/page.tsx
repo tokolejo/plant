@@ -909,69 +909,125 @@ function ListingsCatalogContent() {
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 max-w-7xl">
-      {/* Top Toolbar: Switcher Tabs + Mobile Filter Button */}
-      <div className="flex items-center justify-between gap-3 mb-5 flex-wrap">
-        {/* 🏷️ Item Type Switcher Tabs (All -> Plants -> Inventory & Care) */}
-        <div className="flex items-center gap-1.5 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-fit">
-          {/* 1. All */}
-          <button
-            type="button"
-            onClick={() => setItemTypeFilter("ALL")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
-              itemTypeFilter === "ALL"
-                ? "bg-primary text-white shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <span>{isKa ? "ყველა" : "All"}</span>
-            <span className="text-[10px] opacity-80 font-mono">({allListings.length})</span>
-          </button>
+      {/* Top Toolbar: Switcher Tabs + Mobile Controls Bar */}
+      <div className="space-y-3 mb-5">
+        {/* Row 1: Item Type Switcher Tabs (All -> Plants -> Inventory & Care) */}
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-1.5 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-fit max-w-full overflow-x-auto no-scrollbar">
+            {/* 1. All */}
+            <button
+              type="button"
+              onClick={() => setItemTypeFilter("ALL")}
+              className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                itemTypeFilter === "ALL"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>{isKa ? "ყველა" : "All"}</span>
+              <span className="text-[10px] opacity-80 font-mono">({allListings.length})</span>
+            </button>
 
-          {/* 2. Plants */}
-          <button
-            type="button"
-            onClick={() => setItemTypeFilter("PLANT")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
-              itemTypeFilter === "PLANT"
-                ? "bg-primary text-white shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Sprout className="w-3.5 h-3.5" />
-            <span>{isKa ? "მცენარეები" : "Plants"}</span>
-            <span className="text-[10px] opacity-80 font-mono">({plantsCount})</span>
-          </button>
+            {/* 2. Plants */}
+            <button
+              type="button"
+              onClick={() => setItemTypeFilter("PLANT")}
+              className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                itemTypeFilter === "PLANT"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Sprout className="w-3.5 h-3.5" />
+              <span>{isKa ? "მცენარეები" : "Plants"}</span>
+              <span className="text-[10px] opacity-80 font-mono">({plantsCount})</span>
+            </button>
 
-          {/* 3. Inventory */}
-          <button
-            type="button"
-            onClick={() => setItemTypeFilter("INVENTORY")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
-              itemTypeFilter === "INVENTORY"
-                ? "bg-primary text-white shadow-xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>{isKa ? "ინვენტარი & მოვლა" : "Inventory"}</span>
-            <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
-          </button>
+            {/* 3. Inventory */}
+            <button
+              type="button"
+              onClick={() => setItemTypeFilter("INVENTORY")}
+              className={`flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                itemTypeFilter === "INVENTORY"
+                  ? "bg-primary text-white shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>{isKa ? "ინვენტარი & მოვლა" : "Inventory"}</span>
+              <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
+            </button>
+          </div>
         </div>
 
-        {/* Mobile Filter Toggle */}
-        <div className="lg:hidden">
+        {/* Row 2 (Mobile Only Action Bar): Filters Button + Page Size + Grid/List Mode */}
+        <div className="flex lg:hidden items-center justify-between gap-2">
+          {/* Left: Mobile Filter Toggle Button */}
           <button
+            type="button"
             onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-[14px] border border-border bg-card text-xs font-bold text-foreground shadow-xs cursor-pointer"
+            className="flex items-center gap-2 h-9 px-3.5 rounded-[14px] border border-border/80 bg-card text-xs font-bold text-foreground shadow-2xs hover:bg-surface-container transition-all cursor-pointer shrink-0"
           >
             <SlidersHorizontal className="w-4 h-4 text-primary" />
-            {isKa ? "ფილტრები" : "Filters"}
+            <span>{isKa ? "ფილტრები" : "Filters"}</span>
             {activeFilterCount > 0 && (
               <span className="w-5 h-5 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
           </button>
+
+          {/* Right: Page Size & Grid/List Mode Toggle */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Page Size Selector */}
+            <div className="relative inline-flex items-center">
+              <select
+                value={pageSize}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setPageSize(val);
+                  setVisibleCount(val);
+                }}
+                className="h-9 pl-2.5 pr-6 rounded-[12px] bg-card border border-border/80 text-xs font-bold text-foreground hover:bg-surface-container transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
+                title={isKa ? "რაოდენობა" : "Items per page"}
+              >
+                <option value={20}>20</option>
+                <option value={40}>40</option>
+                <option value={60}>60</option>
+                <option value={80}>80</option>
+                <option value={100}>100</option>
+              </select>
+              <ChevronDown className="w-3 h-3 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
+            </div>
+
+            {/* Grid / List View Toggle */}
+            <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-[12px] p-0.5 shadow-2xs h-9">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`h-7.5 w-7.5 rounded-[8px] flex items-center justify-center transition-all cursor-pointer ${
+                  viewMode === "grid"
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
+                }`}
+                title={isKa ? "გრიდის ხედი" : "Grid View"}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                className={`h-7.5 w-7.5 rounded-[8px] flex items-center justify-center transition-all cursor-pointer ${
+                  viewMode === "list"
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
+                }`}
+                title={isKa ? "სიის ხედი" : "List View"}
+              >
+                <List className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1025,10 +1081,10 @@ function ListingsCatalogContent() {
 
         {/* Results Column */}
         <div className="flex-1 min-w-0">
-          {/* Top Sorting Pill Bar & View Mode Switcher (Compact Single Row) */}
-          <div className="mb-4 flex items-center justify-between gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {/* Sort Buttons + Page Size */}
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Top Sorting Pill Bar (Mobile & Desktop) */}
+          <div className="mb-4 flex items-center justify-between gap-2">
+            {/* Sort Buttons (Grid on mobile to fit 100% width cleanly, flex on desktop) */}
+            <div className="grid grid-cols-4 sm:flex sm:items-center gap-1 sm:gap-1.5 w-full sm:w-auto">
               {[
                 { 
                   id: "nearest", 
@@ -1060,16 +1116,16 @@ function ListingsCatalogContent() {
                   <button
                     key={opt.id}
                     onClick={() => handleSortClick(opt.id)}
-                    className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    className={`px-1.5 sm:px-3 py-2 sm:py-1.5 rounded-xl text-[11px] sm:text-xs font-bold text-center sm:text-left whitespace-nowrap transition-all duration-200 cursor-pointer ${
                       isActive
                         ? "bg-primary text-white shadow-xs scale-[1.02]"
                         : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
                     }`}
                   >
                     {opt.id === "nearest" && gpsLoading ? (
-                      <span className="flex items-center gap-1">
+                      <span className="flex items-center justify-center gap-1">
                         <Loader2 className="w-3 h-3 animate-spin" />
-                        {isKa ? "GPS..." : "Locating..."}
+                        <span className="hidden sm:inline">{isKa ? "GPS..." : "Locating..."}</span>
                       </span>
                     ) : (
                       isKa ? opt.labelKa : opt.labelEn
@@ -1077,8 +1133,11 @@ function ListingsCatalogContent() {
                   </button>
                 );
               })}
+            </div>
 
-              {/* Page Size Selector Dropdown (Only numbers: 20, 40, 60, 80, 100) */}
+            {/* Desktop Only: Page Size Selector & View Mode Switcher */}
+            <div className="hidden lg:flex items-center gap-2 shrink-0">
+              {/* Page Size Selector Dropdown */}
               <div className="relative inline-flex items-center">
                 <select
                   value={pageSize}
@@ -1087,7 +1146,7 @@ function ListingsCatalogContent() {
                     setPageSize(val);
                     setVisibleCount(val);
                   }}
-                  className="h-8 sm:h-9 pl-2.5 pr-6 rounded-xl bg-card border border-border/70 text-xs font-bold text-foreground hover:bg-surface-container hover:border-primary/40 transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
+                  className="h-8.5 pl-2.5 pr-6 rounded-xl bg-card border border-border/70 text-xs font-bold text-foreground hover:bg-surface-container hover:border-primary/40 transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
                   title={isKa ? "რაოდენობა" : "Items per page"}
                 >
                   <option value={20}>20</option>
@@ -1098,34 +1157,32 @@ function ListingsCatalogContent() {
                 </select>
                 <ChevronDown className="w-3 h-3 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
               </div>
-            </div>
 
-            {/* Right: View Mode Toggle (Grid vs List) */}
-            <div className="flex items-center gap-1 shrink-0">
+              {/* View Mode Toggle (Grid vs List) */}
               <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-xl p-0.5 shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid")}
-                  className={`p-1 sm:p-1.5 rounded-[8px] transition-all cursor-pointer ${
+                  className={`p-1.5 rounded-[8px] transition-all cursor-pointer ${
                     viewMode === "grid"
                       ? "bg-primary text-white shadow-xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
                   }`}
                   title={isKa ? "გრიდის ხედი" : "Grid View"}
                 >
-                  <LayoutGrid className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <LayoutGrid className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => setViewMode("list")}
-                  className={`p-1 sm:p-1.5 rounded-[8px] transition-all cursor-pointer ${
+                  className={`p-1.5 rounded-[8px] transition-all cursor-pointer ${
                     viewMode === "list"
                       ? "bg-primary text-white shadow-xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
                   }`}
                   title={isKa ? "სიის ხედი" : "List View"}
                 >
-                  <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <List className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
