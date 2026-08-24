@@ -2441,7 +2441,122 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-[18px] border border-border/80">
+          {/* 📱 Mobile Users Card List (< md screens) */}
+          <div className="grid grid-cols-1 gap-3.5 block md:hidden">
+            {users.map((user) => {
+              const isSelected = selectedUserIds.has(user.id);
+              const currentRole = user.role || (user.isAdmin ? "SUPER_ADMIN" : "USER");
+              const config = ROLES_CONFIG[currentRole as UserRole] || ROLES_CONFIG.USER;
+
+              return (
+                <div
+                  key={user.id}
+                  className={`p-4 rounded-[20px] border bg-card shadow-2xs space-y-3.5 transition-all ${
+                    isSelected ? "border-primary ring-1 ring-primary/20 bg-primary/[0.02]" : "border-border/80"
+                  }`}
+                >
+                  {/* Top: Avatar, Name, Email, Checkbox */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectOneUser(user.id)}
+                        className="w-4 h-4 rounded accent-primary cursor-pointer shrink-0 mt-0.5"
+                      />
+                      {user.avatarUrl ? (
+                        <img
+                          src={user.avatarUrl}
+                          alt={user.fullName}
+                          className="h-10 w-10 rounded-[12px] object-cover border border-border shrink-0 shadow-2xs"
+                        />
+                      ) : (
+                        <div className="h-10 w-10 rounded-[12px] bg-primary/10 text-primary flex items-center justify-center font-black text-sm shrink-0 border border-primary/20 shadow-2xs">
+                          {(user.fullName || "U").charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h4 className="text-xs sm:text-sm font-black text-foreground truncate">
+                          {user.fullName || "მომხმარებელი"}
+                        </h4>
+                        <p className="text-[11px] text-muted-foreground truncate">{user.email}</p>
+                      </div>
+                    </div>
+
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full ${config.badgeBg} ${config.badgeText} ${config.badgeBorder} text-[10px] font-black border shadow-2xs shrink-0`}>
+                      {config.badgeEmoji} {config.nameKa}
+                    </span>
+                  </div>
+
+                  {/* Slug & Tier Strip */}
+                  <div className="flex items-center justify-between gap-2 p-2.5 rounded-[12px] bg-surface-container/50 border border-border/50 text-xs flex-wrap">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[10.5px] font-bold text-muted-foreground">Slug:</span>
+                      {user.customSlug ? (
+                        <Link href={`/shops/${user.customSlug}`} className="text-emerald-600 hover:underline font-mono text-[11px] font-bold truncate">
+                          /{user.customSlug}
+                        </Link>
+                      ) : (
+                        <span className="text-muted-foreground text-[10px]">არ არის</span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSlug = window.prompt(`შეიყვანეთ ახალი Custom Slug "${user.fullName}":`, user.customSlug || "");
+                          if (newSlug !== null) updateUserSlug(user.id, newSlug);
+                        }}
+                        className="p-0.5 text-muted-foreground hover:text-primary rounded cursor-pointer"
+                        title="Slug-ის შეცვლა"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                      </button>
+                    </div>
+
+                    <Badge variant="outline" className="text-[10px] font-black bg-card">
+                      {user.tier}
+                    </Badge>
+                  </div>
+
+                  {/* Role & Tier Selectors */}
+                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-border/40">
+                    <div>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">როლის შეცვლა</label>
+                      <select
+                        value={currentRole}
+                        onChange={(e) => updateUserRole(user.id, e.target.value)}
+                        className="w-full h-8.5 px-2 rounded-[10px] border border-border/80 bg-background text-foreground text-[11px] font-bold focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
+                      >
+                        <option value="USER">👤 USER</option>
+                        <option value="PARTNER">🤝 PARTNER</option>
+                        <option value="SUPPORT">🎧 SUPPORT</option>
+                        <option value="MODERATOR">🛡️ MODERATOR</option>
+                        <option value="CONTENT_MANAGER">📝 CONTENT</option>
+                        <option value="FINANCE_ADMIN" disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}>💰 FINANCE</option>
+                        <option value="SUPER_ADMIN" disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}>👑 SUPER ADMIN</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] font-bold text-muted-foreground block mb-0.5">ტარიფის შეცვლა</label>
+                      <select
+                        value={user.tier}
+                        onChange={(e) => updateUserTier(user.id, e.target.value)}
+                        className="w-full h-8.5 px-2 rounded-[10px] border border-border/80 bg-background text-foreground text-[11px] font-bold focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
+                      >
+                        <option value="FREE">Free (5)</option>
+                        <option value="TIER_1">Tier 1 (25)</option>
+                        <option value="TIER_2">Tier 2 (100)</option>
+                        <option value="TIER_3">Tier 3 (∞)</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 💻 Desktop Users Data Table (>= md screens) */}
+          <div className="hidden md:block overflow-x-auto rounded-[18px] border border-border/80">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[10px] font-bold select-none">
                 <tr>
@@ -2908,6 +3023,89 @@ export default function AdminDashboardPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ── STICKY FLOATING BULK ACTION DOCK ───────────────────────────────── */}
+      {((activeTab === "listings" && selectedIds.size > 0) || (activeTab === "users" && selectedUserIds.size > 0)) && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-foreground/95 text-background backdrop-blur-md py-2.5 px-4 sm:px-5 rounded-[22px] shadow-2xl flex items-center gap-2.5 sm:gap-4 animate-in slide-in-from-bottom-5 duration-200 border border-background/20 max-w-[95vw]">
+          <div className="flex items-center gap-2 font-black text-xs sm:text-sm whitespace-nowrap">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>
+              {activeTab === "listings" ? `📦 ${selectedIds.size} განცხადება` : `👥 ${selectedUserIds.size} მომხმარებელი`}
+            </span>
+          </div>
+
+          <div className="h-4 w-px bg-background/20 hidden sm:block" />
+
+          {/* Bulk Actions for Listings */}
+          {activeTab === "listings" && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={bulkLoading}
+                onClick={() => bulkAction("ACTIVE")}
+                className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                title="გამოჩენა საიტზე"
+              >
+                🟢 გამოჩენა
+              </button>
+              <button
+                type="button"
+                disabled={bulkLoading}
+                onClick={() => bulkAction("HIDDEN")}
+                className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                title="დამალვა"
+              >
+                🟡 დამალვა
+              </button>
+              <button
+                type="button"
+                disabled={bulkLoading}
+                onClick={() => bulkAction("DELETE")}
+                className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-destructive hover:bg-destructive/80 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                title="წაშლა"
+              >
+                🗑️ წაშლა
+              </button>
+            </div>
+          )}
+
+          {/* Bulk Actions for Users */}
+          {activeTab === "users" && (
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                disabled={bulkUserLoading}
+                onClick={() => bulkExtendUsers(30)}
+                className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                title="30 დღის დამატება"
+              >
+                📅 +30 დღე
+              </button>
+              <button
+                type="button"
+                disabled={bulkUserLoading}
+                onClick={bulkSuspendUsers}
+                className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-destructive hover:bg-destructive/80 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                title="დაბლოკვა / გაყინვა"
+              >
+                🚫 დაბლოკვა
+              </button>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              if (activeTab === "listings") setSelectedIds(new Set());
+              if (activeTab === "users") setSelectedUserIds(new Set());
+            }}
+            className="p-1 rounded-[8px] bg-background/10 hover:bg-background/20 text-background transition-colors cursor-pointer ml-1"
+            title="მონიშვნის გაუქმება"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
         </div>
       )}
 

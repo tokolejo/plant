@@ -22,7 +22,8 @@ ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS shop_working_hours TEXT,
   ADD COLUMN IF NOT EXISTS shop_delivery_terms TEXT,
   ADD COLUMN IF NOT EXISTS is_verified_shop BOOLEAN DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{"email": true, "push": true, "offers": true}'::jsonb;
+  ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{"email": true, "push": true, "offers": true}'::jsonb,
+  ADD COLUMN IF NOT EXISTS social_links JSONB DEFAULT '{"whatsapp": "", "telegram": "", "instagram": "", "facebook": ""}'::jsonb;
 
 -- 3. CREATE VIRTUAL GREENHOUSE & PLANT CARE CALENDAR (User Plants)
 CREATE TABLE IF NOT EXISTS public.user_plants (

@@ -73,6 +73,8 @@ export async function PATCH(req: NextRequest) {
     if (city !== undefined) updatePayload.city = city.trim();
     if (bio !== undefined) updatePayload.bio = bio.trim();
     if (custom_slug !== undefined) updatePayload.custom_slug = custom_slug.trim();
+    if (body.social_links !== undefined) updatePayload.social_links = body.social_links;
+    if (body.notification_preferences !== undefined) updatePayload.notification_preferences = body.notification_preferences;
 
     const { data: updatedProfile, error } = await adminClient
       .from("profiles")
