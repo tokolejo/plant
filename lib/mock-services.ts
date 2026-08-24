@@ -96,6 +96,8 @@ export const SERVICE_CATEGORIES: ServiceCategoryMeta[] = [
 export const MOCK_SERVICES: GardeningServiceItem[] = [
   {
     id: "srv-1",
+    provider_id: "greencraft-landscape",
+    provider_slug: "greencraft-landscape",
     provider_name: "GreenCraft ლანდშაფტი",
     provider_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80",
     provider_bio: "ლანდშაფტური არქიტექტურისა და ურბანული გამწვანების სტუდია 8-წლიანი გამოცდილებით.",
@@ -129,6 +131,8 @@ export const MOCK_SERVICES: GardeningServiceItem[] = [
   },
   {
     id: "srv-2",
+    provider_id: "ostati-giorgi",
+    provider_slug: "ostati-giorgi",
     provider_name: "ოსტატი გიორგი — მებაღე",
     provider_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80",
     provider_bio: "პროფესიონალი მებაღე 15-წლიანი გამოცდილებით ხეხილის და დეკორატიული მცენარეების მოვლაში.",
@@ -160,6 +164,8 @@ export const MOCK_SERVICES: GardeningServiceItem[] = [
   },
   {
     id: "srv-3",
+    provider_id: "hydrogarden-georgia",
+    provider_slug: "hydrogarden-georgia",
     provider_name: "HydroGarden Georgia",
     provider_avatar: "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80",
     provider_bio: "ჭკვიანი საინჟინრო სარწყავი სისტემების ავტორიზებული ინსტალატორი საქართველოში.",
@@ -191,6 +197,8 @@ export const MOCK_SERVICES: GardeningServiceItem[] = [
   },
   {
     id: "srv-4",
+    provider_id: "plantdoctor-clinic",
+    provider_slug: "plantdoctor-clinic",
     provider_name: "PlantDoctor — ბიო ექიმი",
     provider_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80",
     provider_bio: "აგრონომ-ბიოლოგი, სპეციალიზებული ოთახისა და ეგზოტიკური მცენარეების რეანიმაციაში.",
@@ -222,6 +230,8 @@ export const MOCK_SERVICES: GardeningServiceItem[] = [
   },
   {
     id: "srv-5",
+    provider_id: "rolllawn-georgia",
+    provider_slug: "rolllawn-georgia",
     provider_name: "RollLawn Georgia",
     provider_avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80",
     provider_bio: "რულონური გაზონის უმსხვილესი მწარმოებელი და პროფესიონალი შემსრულებელი.",
@@ -253,6 +263,8 @@ export const MOCK_SERVICES: GardeningServiceItem[] = [
   },
   {
     id: "srv-6",
+    provider_id: "biooffice-green",
+    provider_slug: "biooffice-green",
     provider_name: "BioOffice Green",
     provider_avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=200&q=80",
     provider_bio: "კორპორატიული ფიტოდიზაინისა და სამუშაო სივრცეების გამწვანების კომპანია.",

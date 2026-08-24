@@ -203,14 +203,41 @@ export default function ShopStorefrontPage({
   const isKa = locale !== "en";
   const supabase = createClient();
 
+  const decodedSlug = React.useMemo(() => {
+    try {
+      return decodeURIComponent(slug || "");
+    } catch {
+      return slug || "";
+    }
+  }, [slug]);
+
+  // Try to find matching specialist in MOCK_SERVICES immediately for fast initial render
+  const initialSpecialist = React.useMemo(() => {
+    return MOCK_SERVICES.find(
+      (s) =>
+        s.provider_slug === slug ||
+        s.provider_slug === decodedSlug ||
+        s.provider_id === slug ||
+        s.provider_name.toLowerCase() === decodedSlug.toLowerCase() ||
+        (s.provider_slug && decodedSlug.toLowerCase().includes(s.provider_slug.toLowerCase()))
+    );
+  }, [slug, decodedSlug]);
+
   // Filter States
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
   const [selectedTrans, setSelectedTrans] = React.useState<string[]>([]);
   const [selectedDelivery, setSelectedDelivery] = React.useState<string[]>([]);
   const [itemTypeFilter, setItemTypeFilter] = React.useState<"ALL" | "PLANT" | "INVENTORY">("ALL");
-  const [storeTab, setStoreTab] = React.useState<"listings" | "services">("listings");
-  const [providerServices, setProviderServices] = React.useState<GardeningServiceItem[]>([]);
+  const [storeTab, setStoreTab] = React.useState<"listings" | "services">(initialSpecialist ? "services" : "listings");
+  const [providerServices, setProviderServices] = React.useState<GardeningServiceItem[]>(() => {
+    if (initialSpecialist) {
+      return MOCK_SERVICES.filter(
+        (s) => s.provider_slug === initialSpecialist.provider_slug || s.provider_name === initialSpecialist.provider_name
+      );
+    }
+    return [];
+  });
   const [priceRange, setPriceRange] = React.useState<[number, number]>([0, 500]);
   const [sortBy, setSortBy] = React.useState<"newest" | "price-asc" | "price-desc" | "views">("newest");
   const [visibleCount, setVisibleCount] = React.useState<number>(16);
@@ -258,32 +285,55 @@ export default function ShopStorefrontPage({
   };
 
   // Shop Profile State
-  const [shop, setShop] = React.useState<any>({
-    id: "usr-shop",
-    customSlug: slug,
-    shopName: slug === "tamarbustan" ? "თამარ ბოტანიკა" : `@${slug}`,
-    bio: "იშვიათი ოთახის მცენარეების, აროიდების, მონსტერების და პრემიუმ სუბსტრატების ორანჟერეა.",
-    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
-    bannerUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
-    city: "თბილისი",
-    address: "",
-    phone: "+995 599 12 34 56",
-    whatsapp: "+995599123456",
-    rating: 5.0,
-    totalReviews: 8,
-    badges: ["Verified Shop", "Trusted Seller", "Green Thumb"],
-    tier: "TIER_2",
+  const [shop, setShop] = React.useState<any>(() => {
+    if (initialSpecialist) {
+      return {
+        id: initialSpecialist.provider_id || "srv-prov",
+        customSlug: initialSpecialist.provider_slug || decodedSlug,
+        shopName: initialSpecialist.provider_name,
+        bio: initialSpecialist.provider_bio || "პროფესიონალი სპეციალისტი გამწვანებისა და მცენარეთა მოვლის სფეროში.",
+        avatarUrl: initialSpecialist.provider_avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+        bannerUrl: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&auto=format&fit=crop&q=80",
+        city: initialSpecialist.city || "თბილისი",
+        address: "",
+        phone: initialSpecialist.phone || "+995 599 12 34 56",
+        whatsapp: initialSpecialist.whatsapp || initialSpecialist.phone || "+995599123456",
+        rating: initialSpecialist.rating || 5.0,
+        totalReviews: initialSpecialist.reviews_count || 8,
+        badges: ["Verified Specialist", "Trusted Provider", "Green Thumb"],
+        tier: "TIER_2",
+        isOnVacation: false,
+        workingHours: initialSpecialist.working_hours || "09:00 - 20:00",
+        deliveryTerms: "ადგილზე ვიზიტი და კონსულტაცია",
+      };
+    }
+    return {
+      id: "usr-shop",
+      customSlug: decodedSlug,
+      shopName: slug === "tamarbustan" ? "თამარ ბოტანიკა" : (decodedSlug.startsWith("@") ? decodedSlug : `@${decodedSlug}`),
+      bio: "იშვიათი ოთახის მცენარეების, აროიდების, მონსტერების და პრემიუმ სუბსტრატების ორანჟერეა.",
+      avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+      bannerUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
+      city: "თბილისი",
+      address: "",
+      phone: "+995 599 12 34 56",
+      whatsapp: "+995599123456",
+      rating: 5.0,
+      totalReviews: 8,
+      badges: ["Verified Shop", "Trusted Seller", "Green Thumb"],
+      tier: "TIER_2",
+    };
   });
 
   const [shopListings, setShopListings] = React.useState<ExtendedListingCardProps[]>(() => {
     return SAMPLE_LISTINGS.map((l, index) => ({
       ...l,
-      id: `${slug}-${l.id}`,
+      id: `${decodedSlug}-${l.id}`,
       seller: {
         ...l.seller,
         id: "usr-shop",
-        fullName: slug === "tamarbustan" ? "თამარ ბოტანიკა" : `@${slug}`,
-        customSlug: slug,
+        fullName: initialSpecialist ? initialSpecialist.provider_name : (slug === "tamarbustan" ? "თამარ ბოტანიკა" : `@${decodedSlug}`),
+        customSlug: decodedSlug,
       },
     }));
   });
@@ -294,7 +344,7 @@ export default function ShopStorefrontPage({
         let { data: profile } = await supabase
           .from("profiles")
           .select("*")
-          .eq("custom_slug", slug)
+          .or(`custom_slug.eq.${slug},custom_slug.eq.${decodedSlug}`)
           .maybeSingle();
 
         if (!profile && slug.length === 36) {
@@ -310,7 +360,7 @@ export default function ShopStorefrontPage({
           const { data: pByEmail } = await supabase
             .from("profiles")
             .select("*")
-            .ilike("email", `${slug}%`)
+            .ilike("email", `${decodedSlug}%`)
             .maybeSingle();
           profile = pByEmail;
         }
@@ -318,8 +368,8 @@ export default function ShopStorefrontPage({
         if (profile) {
           const currentShopData = {
             id: profile.id,
-            customSlug: profile.custom_slug || slug,
-            shopName: profile.full_name || `@${slug}`,
+            customSlug: profile.custom_slug || decodedSlug,
+            shopName: profile.full_name || `@${decodedSlug}`,
             bio: profile.bio || "ჯანსაღი და ხარისხიანი მცენარეები.",
             avatarUrl: profile.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
             bannerUrl: profile.shop_banner_url || "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
@@ -347,52 +397,72 @@ export default function ShopStorefrontPage({
           if (dbListings && dbListings.length > 0) {
             setShopListings(dbListings.map((row) => formatDbListing(row, profile)));
           } else {
-            // Populate demo listings for rich interactive storefront showcase
             setShopListings(
               SAMPLE_LISTINGS.map((l) => ({
                 ...l,
-                id: `${slug}-${l.id}`,
+                id: `${decodedSlug}-${l.id}`,
                 seller: {
                   ...l.seller,
                   id: profile.id,
                   fullName: currentShopData.shopName,
-                  customSlug: slug,
+                  customSlug: decodedSlug,
                 },
               }))
             );
           }
 
-          // Fetch provider's gardening services
+          // Fetch provider's gardening services from DB
           try {
             const { data: dbServices } = await supabase
               .from("gardening_services")
               .select("*")
-              .or(`provider_id.eq.${profile.id},provider_slug.eq.${slug}`)
+              .or(`provider_id.eq.${profile.id},provider_slug.eq.${slug},provider_slug.eq.${decodedSlug}`)
               .order("created_at", { ascending: false });
 
             if (dbServices && dbServices.length > 0) {
               setProviderServices(dbServices as any);
-            } else {
-              // Match mock services if specialist matches demo
-              const matchedMocks = MOCK_SERVICES.filter(
-                (s) => s.provider_slug === slug || s.provider_id === profile.id
-              );
-              if (matchedMocks.length > 0) {
-                setProviderServices(matchedMocks);
-              } else {
-                setProviderServices(
-                  MOCK_SERVICES.slice(0, 2).map((s) => ({
-                    ...s,
-                    provider_id: profile.id,
-                    provider_slug: slug,
-                    provider_name: currentShopData.shopName,
-                    provider_avatar: currentShopData.avatarUrl,
-                  }))
-                );
-              }
             }
           } catch (servErr) {
             console.warn("Error fetching provider services:", servErr);
+          }
+        } else {
+          // If not in database, check MOCK_SERVICES
+          const matchedService = MOCK_SERVICES.find(
+            (s) =>
+              s.provider_slug === slug ||
+              s.provider_slug === decodedSlug ||
+              s.provider_id === slug ||
+              s.provider_name.toLowerCase() === decodedSlug.toLowerCase() ||
+              (s.provider_slug && decodedSlug.toLowerCase().includes(s.provider_slug.toLowerCase()))
+          );
+
+          if (matchedService) {
+            const specialistShopData = {
+              id: matchedService.provider_id || "srv-prov",
+              customSlug: matchedService.provider_slug || decodedSlug,
+              shopName: matchedService.provider_name,
+              bio: matchedService.provider_bio || "პროფესიონალი სპეციალისტი გამწვანებისა და მცენარეთა მოვლის სფეროში.",
+              avatarUrl: matchedService.provider_avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
+              bannerUrl: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1200&auto=format&fit=crop&q=80",
+              city: matchedService.city || "თბილისი",
+              address: "",
+              phone: matchedService.phone || "+995 599 12 34 56",
+              whatsapp: matchedService.whatsapp || matchedService.phone || "+995599123456",
+              rating: matchedService.rating || 5.0,
+              totalReviews: matchedService.reviews_count || 8,
+              badges: ["Verified Specialist", "Trusted Provider", "Green Thumb"],
+              tier: "TIER_2",
+              isOnVacation: false,
+              workingHours: matchedService.working_hours || "09:00 - 20:00",
+              deliveryTerms: "ადგილზე ვიზიტი და კონსულტაცია",
+            };
+            setShop(specialistShopData);
+
+            const providerMocks = MOCK_SERVICES.filter(
+              (s) => s.provider_slug === matchedService.provider_slug || s.provider_name === matchedService.provider_name
+            );
+            setProviderServices(providerMocks.length > 0 ? providerMocks : [matchedService]);
+            setStoreTab("services");
           }
         }
       } catch (e) {
@@ -400,7 +470,7 @@ export default function ShopStorefrontPage({
       }
     }
     loadShopData();
-  }, [slug, supabase]);
+  }, [slug, decodedSlug, supabase]);
 
   const countByCategory = (catId: string) =>
     shopListings.filter((l) => l.plantCategory === catId).length;
@@ -772,11 +842,11 @@ export default function ShopStorefrontPage({
 
               <div className="space-y-1.5 max-w-xl">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-black text-foreground">
+                  <h1 className="text-xl sm:text-2xl font-black text-foreground break-words max-w-xl">
                     {shop.shopName}
                   </h1>
                   <Badge variant="emerald" className="font-bold text-xs gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5" /> ვერიფიცირებული მაღაზია
+                    <ShieldCheck className="w-3.5 h-3.5" /> {isKa ? "ვერიფიცირებული პროფილი" : "Verified Profile"}
                   </Badge>
                 </div>
 
@@ -791,8 +861,8 @@ export default function ShopStorefrontPage({
                     <span className="text-muted-foreground font-normal">({shop.totalReviews} {isKa ? "შეფასება" : "reviews"})</span>
                   </div>
                   <span>•</span>
-                  <span className="font-mono text-[11px] text-muted-foreground">
-                    plantsale.ge/{slug}
+                  <span className="font-mono text-[11px] text-muted-foreground truncate max-w-[220px]">
+                    plant.ge/{shop.customSlug || decodedSlug}
                   </span>
                   {shop.workingHours && (
                     <>
