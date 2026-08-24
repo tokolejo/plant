@@ -1043,12 +1043,20 @@ function ListingsCatalogContent() {
               </span>
             ) : null;
           })}
-          {selectedTrans.map((t) => (
-            <span key={t} className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] bg-amber-500/15 text-amber-900 dark:text-amber-200 text-xs sm:text-sm font-bold border border-amber-500/30">
-              {t === "FIXED" ? (isKa ? "ფიქსირებული" : "Fixed") : t === "NEGOTIABLE" ? (isKa ? "შეთანხმებით" : "Negotiable") : (isKa ? "გაცვლა" : "Trade")}
-              <button onClick={() => toggleTrans(t)} className="hover:opacity-75"><X className="w-3.5 h-3.5" /></button>
-            </span>
-          ))}
+          {selectedTrans.map((t) => {
+            const chipClass = 
+              t === "TRADE"
+                ? "bg-indigo-500/15 text-indigo-900 dark:text-indigo-200 border-indigo-500/30"
+                : t === "NEGOTIABLE"
+                ? "bg-stone-500/15 text-stone-900 dark:text-stone-200 border-stone-400/30"
+                : "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/30";
+            return (
+              <span key={t} className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] text-xs sm:text-sm font-bold border ${chipClass}`}>
+                {t === "FIXED" ? (isKa ? "💰 ფიქსირებული" : "💰 Fixed") : t === "NEGOTIABLE" ? (isKa ? "🤝 შეთანხმებით" : "🤝 Negotiable") : (isKa ? "🔄 გაცვლა" : "🔄 Trade")}
+                <button onClick={() => toggleTrans(t)} className="hover:opacity-75"><X className="w-3.5 h-3.5" /></button>
+              </span>
+            );
+          })}
           {selectedDelivery.map((d) => (
             <span key={d} className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] bg-teal-500/15 text-teal-900 dark:text-teal-200 text-xs sm:text-sm font-bold border border-teal-500/30">
               {d === "COURIER" ? (isKa ? "🚚 კურიერი" : "🚚 Courier") : d === "MARSHRUTKA" ? (isKa ? "🚐 სამარშრუტო" : "🚐 Intercity") : (isKa ? "📍 ადგილზე" : "📍 Pickup")}

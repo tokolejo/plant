@@ -183,8 +183,8 @@ export function ListingCard({
                     <span>{isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}</span>
                   </span>
                 ) : transactionType === "TRADE" ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30">
-                    <RefreshCw className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-indigo-500/15 text-indigo-800 dark:text-indigo-300 text-xs font-black border border-indigo-500/30">
+                    <RefreshCw className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                     <span>{isKa ? "გაცვლა" : "Trade"}</span>
                   </span>
                 ) : (
@@ -351,8 +351,8 @@ export function ListingCard({
                 <span>{isKa ? "უფასო" : "Free"}</span>
               </span>
             ) : transactionType === "TRADE" ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-amber-500/15 text-amber-800 dark:text-amber-300 text-xs font-black border border-amber-500/30 whitespace-nowrap">
-                <RefreshCw className="w-2.5 h-2.5" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-indigo-500/15 text-indigo-800 dark:text-indigo-300 text-xs font-black border border-indigo-500/30 whitespace-nowrap">
+                <RefreshCw className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" />
                 <span>{isKa ? "გაცვლა" : "Trade"}</span>
               </span>
             ) : (

@@ -43,7 +43,7 @@ export function CompactListingCard({
             {itemType === "PLANT" ? (
               <Sprout className="w-2.5 h-2.5 text-emerald-600" />
             ) : (
-              <Layers className="w-2.5 h-2.5 text-amber-600" />
+              <Layers className="w-2.5 h-2.5 text-stone-600 dark:text-stone-400" />
             )}
           </span>
         </div>
@@ -51,7 +51,7 @@ export function CompactListingCard({
         {/* Trade badge */}
         {transactionType === "TRADE" && (
           <div className="absolute top-1.5 right-1.5">
-            <span className="inline-flex items-center gap-0.5 rounded-md bg-amber-500 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-indigo-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
               <RefreshCw className="w-2.5 h-2.5" /> Trade
             </span>
           </div>
