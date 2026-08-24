@@ -6,22 +6,26 @@ import { useTranslations, useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { 
   Sprout, 
-  Plus,
+  Plus, 
   PlusCircle, 
   Shuffle, 
   Store, 
   Sparkles, 
   Layers, 
-  User,
-  MessageSquare,
-  LogOut,
-  ChevronDown,
-  ShieldCheck,
-  Bell,
-  Settings,
-  Crown,
-  MapPin,
+  User, 
+  MessageSquare, 
+  LogOut, 
+  ChevronDown, 
+  ShieldCheck, 
+  Bell, 
+  Settings, 
+  Crown, 
+  MapPin, 
   HelpCircle,
+  Stethoscope,
+  Wrench,
+  Droplets,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -90,11 +94,12 @@ export function Header() {
 
   const navLinks = [
     { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
+    { href: "/services", label: isKa ? "სერვისები" : "Services", icon: Wrench, match: "/services" },
+    { href: "/plant-doctor", label: isKa ? "AI ექიმი" : "AI Doctor", icon: Stethoscope, match: "/plant-doctor" },
+    { href: "/community", label: isKa ? "კომუნა" : "Community", icon: Users, match: "/community" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/iso", label: navT("iso"), icon: Shuffle },
-    { href: "/faq", label: isKa ? "კითხვები" : "FAQ", icon: HelpCircle },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles },
-    { href: "/contact", label: navT("contact"), icon: MessageSquare },
   ];
 
   const tierColors: Record<string, string> = {
@@ -255,6 +260,12 @@ export function Header() {
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
                         <User className="w-4 h-4 text-primary" />
                         {isKa ? "კაბინეტი" : "Dashboard"}
+                      </Link>
+
+                      <Link href="/dashboard/greenhouse" onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-black bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors">
+                        <Sprout className="w-4 h-4 text-emerald-600" />
+                        {isKa ? "🏡 ჩემი ორანჟერეა" : "🏡 My Greenhouse"}
                       </Link>
 
                       <Link href="/dashboard/seller" onClick={() => setDropdownOpen(false)}

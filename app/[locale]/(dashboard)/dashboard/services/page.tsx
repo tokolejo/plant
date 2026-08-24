@@ -1,0 +1,473 @@
+"use client";
+
+import * as React from "react";
+import { Link, useRouter } from "@/i18n/routing";
+import { useLocale } from "next-intl";
+import { createClient } from "@/utils/supabase/client";
+import { compressImage } from "@/utils/image-compression";
+import { uploadListingImage } from "@/utils/supabase/storage";
+import { 
+  Wrench, 
+  Plus, 
+  ArrowLeft, 
+  Sparkles, 
+  CheckCircle2, 
+  AlertCircle, 
+  Trash2, 
+  Edit3, 
+  Camera, 
+  Phone, 
+  MessageSquare, 
+  Loader2, 
+  Check, 
+  X,
+  ExternalLink
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+
+export default function DashboardServicesPage() {
+  const locale = useLocale();
+  const isKa = locale !== "en";
+  const supabase = createClient();
+  const router = useRouter();
+
+  const [loading, setLoading] = React.useState(true);
+  const [user, setUser] = React.useState<any>(null);
+  const [services, setServices] = React.useState<any[]>([]);
+  const [notice, setNotice] = React.useState<string>("");
+
+  // Modal form states
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+
+  const [formTitle, setFormTitle] = React.useState("");
+  const [formCategory, setFormCategory] = React.useState("PRUNING");
+  const [formDescription, setFormDescription] = React.useState("");
+  const [formPriceFrom, setFormPriceFrom] = React.useState<number>(50);
+  const [formPriceUnit, setFormPriceUnit] = React.useState("ხეზე");
+  const [formCity, setFormCity] = React.useState("თბილისი");
+  const [formPhone, setFormPhone] = React.useState("");
+  const [formWhatsapp, setFormWhatsapp] = React.useState("");
+  const [formImages, setFormImages] = React.useState<string[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const showNotice = (msg: string) => {
+    setNotice(msg);
+    setTimeout(() => setNotice(""), 4000);
+  };
+
+  const loadUserServices = React.useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+      setUser(user);
+
+      const { data, error } = await supabase
+        .from("gardening_services")
+        .select("*")
+        .eq("provider_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        setServices(data);
+      }
+    } catch (err) {
+      console.warn("Failed to load user services:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  React.useEffect(() => {
+    loadUserServices();
+  }, [loadUserServices]);
+
+  const handleOpenAddModal = () => {
+    setEditingId(null);
+    setFormTitle("");
+    setFormCategory("PRUNING");
+    setFormDescription("");
+    setFormPriceFrom(50);
+    setFormPriceUnit("ხეზე");
+    setFormCity("თბილისი");
+    setFormPhone(user?.user_metadata?.phone || "");
+    setFormWhatsapp(user?.user_metadata?.phone || "");
+    setFormImages([]);
+    setModalOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0 || !user) return;
+    const file = e.target.files[0];
+    try {
+      const compressed = await compressImage(file, { maxDimension: 1000, quality: 0.85, mimeType: "image/jpeg" });
+      const { url, error } = await uploadListingImage(compressed, user.id);
+      if (!error && url) {
+        setFormImages((prev) => [...prev, url]);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSaveService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formTitle.trim() || !user) return;
+
+    setSaving(true);
+    try {
+      const payload = {
+        provider_id: user.id,
+        provider_name: user.user_metadata?.full_name || user.email?.split("@")[0] || "მებაღე",
+        provider_avatar: user.user_metadata?.avatar_url || null,
+        title: formTitle.trim(),
+        category: formCategory,
+        description: formDescription.trim(),
+        price_from: formPriceFrom,
+        price_unit: formPriceUnit,
+        city: formCity,
+        phone: formPhone.trim(),
+        whatsapp: formWhatsapp.trim() || null,
+        portfolio_images: formImages.length > 0 ? formImages : [
+          "https://images.unsplash.com/photo-1558904541-efa8c4a08931?auto=format&fit=crop&w=600&q=80"
+        ],
+        is_verified: true,
+      };
+
+      if (editingId) {
+        const { error } = await supabase
+          .from("gardening_services")
+          .update(payload)
+          .eq("id", editingId);
+        if (error) throw error;
+        showNotice("🛠️ სერვისი წარმატებით განახლდა!");
+      } else {
+        const { error } = await supabase
+          .from("gardening_services")
+          .insert(payload);
+        if (error) throw error;
+        showNotice("🎉 სერვისი წარმატებით დაემატა კატალოგში!");
+      }
+
+      setModalOpen(false);
+      loadUserServices();
+    } catch (err: any) {
+      showNotice(`❌ შეცდომა: ${err.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string, title: string) => {
+    if (!confirm(`ნამდვილად გსურთ სერვისის წაშლა: „${title}“?`)) return;
+    setServices((prev) => prev.filter((s) => s.id !== id));
+    showNotice("🗑️ სერვისი წაიშალა.");
+    try {
+      await supabase.from("gardening_services").delete().eq("id", id);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-24 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
+        <Loader2 className="w-7 h-7 animate-spin text-primary" />
+        <span className="font-bold">იტვირთება...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 sm:px-6 py-8 max-w-5xl space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-border/60">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5">
+            <Link
+              href="/dashboard"
+              className="p-1.5 rounded-[10px] bg-surface-container/60 hover:bg-surface-container text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+            </Link>
+            <div className="h-9 w-9 rounded-[12px] bg-primary/10 text-primary flex items-center justify-center font-black">
+              <Wrench className="w-5 h-5" />
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-foreground">
+              {isKa ? "ჩემი მებაღეობის სერვისები" : "My Gardening Services"}
+            </h1>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            დაამატეთ თქვენი სერვისები (გასხვლა, ლანდშაფტი, გაზონი, სარწყავი სისტემები) და მიიღეთ პირდაპირი შეკვეთები.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link href="/services">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-[12px] text-xs font-bold gap-1.5 h-10 border-border/80"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>კატალოგის ნახვა</span>
+            </Button>
+          </Link>
+
+          <Button
+            type="button"
+            onClick={handleOpenAddModal}
+            className="rounded-[12px] bg-primary hover:bg-primary/90 text-white text-xs font-black gap-1.5 h-10 shadow-ambient cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>ახალი სერვისის დამატება</span>
+          </Button>
+        </div>
+      </div>
+
+      {notice && (
+        <div className="rounded-[16px] bg-emerald-500/15 border border-emerald-500/30 p-3.5 text-xs font-black text-emerald-900 dark:text-emerald-200 animate-in fade-in flex items-center gap-2.5 shadow-2xs">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{notice}</span>
+        </div>
+      )}
+
+      {/* Services List */}
+      {services.length === 0 ? (
+        <div className="py-16 text-center border-2 border-dashed border-border/80 rounded-[24px] bg-card/40 p-8 space-y-4">
+          <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+            <Wrench className="w-7 h-7" />
+          </div>
+          <div>
+            <h3 className="text-base font-black text-foreground">
+              თქვენ ჯერ არ გაქვთ დამატებული სერვისი
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
+              თუ ხართ მებაღე, ლანდშაფტის დიზაინერი ან გამწვანების სპეციალისტი, განათავსეთ თქვენი მომსახურება Plant.ge-ს კატალოგში.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={handleOpenAddModal}
+            className="rounded-[14px] bg-primary hover:bg-primary/90 text-white text-xs font-black gap-2 shadow-ambient cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>პირველი სერვისის დამატება</span>
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {services.map((srv) => (
+            <div
+              key={srv.id}
+              className="rounded-[22px] border border-border/80 bg-card p-5 shadow-2xs space-y-3 flex flex-col justify-between"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary border-primary/20">
+                    {srv.category}
+                  </Badge>
+                  <span className="text-xs font-black text-emerald-600">
+                    დან {srv.price_from} ₾ / {srv.price_unit}
+                  </span>
+                </div>
+                <h3 className="text-sm font-black text-foreground">{srv.title}</h3>
+                <p className="text-xs text-muted-foreground line-clamp-2">{srv.description}</p>
+                <div className="text-[11px] text-muted-foreground font-medium">📍 {srv.city} | 📞 {srv.phone}</div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={() => handleDelete(srv.id, srv.title)}
+                  className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Add / Edit Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+          <div className="bg-card border border-border/80 rounded-[24px] max-w-lg w-full p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-border/60 pb-3">
+              <div className="flex items-center gap-2">
+                <Wrench className="w-5 h-5 text-primary" />
+                <h3 className="text-base font-black text-foreground">
+                  {editingId ? "სერვისის რედაქტირება" : "ახალი სერვისის დამატება"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setModalOpen(false)}
+                className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveService} className="space-y-3.5 overflow-y-auto flex-1 p-1">
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">სათაური *</label>
+                <Input
+                  required
+                  value={formTitle}
+                  onChange={(e) => setFormTitle(e.target.value)}
+                  placeholder="მაგ: ხეხილის პროფესიონალური გასხვლა და შეწამვლა"
+                  className="h-10 rounded-[12px] text-xs font-bold"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">კატეგორია *</label>
+                  <select
+                    value={formCategory}
+                    onChange={(e) => setFormCategory(e.target.value)}
+                    className="w-full h-10 px-3 rounded-[12px] border border-input bg-card text-xs font-bold text-foreground outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
+                  >
+                    <option value="PRUNING">🌳 ხეების გასხვლა</option>
+                    <option value="LANDSCAPE">🏡 ლანდშაფტის დიზაინი</option>
+                    <option value="LAWN">🌿 რულონური გაზონი</option>
+                    <option value="GREENING">🏢 ოფისების გამწვანება</option>
+                    <option value="IRRIGATION">💧 სარწყავი სისტემები</option>
+                    <option value="DOCTOR_VISIT">🩺 მცენარის ექიმი</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">ქალაქი / რეგიონი *</label>
+                  <Input
+                    required
+                    value={formCity}
+                    onChange={(e) => setFormCity(e.target.value)}
+                    placeholder="თბილისი, მცხეთა..."
+                    className="h-10 rounded-[12px] text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">საწყისი ფასი (₾) *</label>
+                  <Input
+                    type="number"
+                    required
+                    min={1}
+                    value={formPriceFrom}
+                    onChange={(e) => setFormPriceFrom(parseFloat(e.target.value) || 0)}
+                    className="h-10 rounded-[12px] text-xs font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">ერთეული *</label>
+                  <Input
+                    required
+                    value={formPriceUnit}
+                    onChange={(e) => setFormPriceUnit(e.target.value)}
+                    placeholder="ხეზე, მ², საათში..."
+                    className="h-10 rounded-[12px] text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">ტელეფონის ნომერი *</label>
+                  <Input
+                    required
+                    value={formPhone}
+                    onChange={(e) => setFormPhone(e.target.value)}
+                    placeholder="+995 5..."
+                    className="h-10 rounded-[12px] text-xs font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1">WhatsApp ნომერი</label>
+                  <Input
+                    value={formWhatsapp}
+                    onChange={(e) => setFormWhatsapp(e.target.value)}
+                    placeholder="995599..."
+                    className="h-10 rounded-[12px] text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1">აღწერა & პირობები *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={formDescription}
+                  onChange={(e) => setFormDescription(e.target.value)}
+                  placeholder="აღწერეთ თქვენი გამოცდილება, გამოყენებული ტექნიკა და მომსახურების პირობები..."
+                  className="w-full rounded-[12px] border border-input bg-background p-2.5 text-xs font-medium focus:ring-1 focus:ring-primary outline-hidden resize-none"
+                />
+              </div>
+
+              {/* Photo Upload */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-foreground block">პორტფოლიოს ფოტოები</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="px-3 py-2 rounded-[10px] bg-secondary-container text-foreground text-xs font-bold flex items-center gap-1.5 cursor-pointer hover:bg-surface-container"
+                >
+                  <Camera className="w-3.5 h-3.5 text-primary" />
+                  <span>ფოტოს დამატება</span>
+                </button>
+                {formImages.length > 0 && (
+                  <div className="flex gap-2 overflow-x-auto pt-1">
+                    {formImages.map((img, i) => (
+                      <img key={i} src={img} alt="" className="h-14 w-14 rounded-lg object-cover border" />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/60">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setModalOpen(false)}
+                  className="rounded-[10px] text-xs"
+                >
+                  გაუქმება
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="rounded-[10px] bg-primary hover:bg-primary/90 text-white text-xs font-bold gap-1.5 cursor-pointer shadow-ambient"
+                >
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                  <span>შენახვა & გამოქვეყნება</span>
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

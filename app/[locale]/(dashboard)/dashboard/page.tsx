@@ -29,7 +29,9 @@ import {
   X,
   User,
   Phone,
-  Loader2
+  Loader2,
+  Droplets,
+  Stethoscope
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -232,6 +234,51 @@ export default function UserDashboardPage() {
             </Button>
           </Link>
         </div>
+      </div>
+
+      {/* 🌿 Virtual Greenhouse & AI Doctor Quick Access Banner */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <Link
+          href="/dashboard/greenhouse"
+          className="p-4 sm:p-5 rounded-[22px] bg-gradient-to-br from-emerald-500/10 via-card to-emerald-500/5 border border-emerald-500/30 hover:border-emerald-500/60 shadow-xs hover:shadow-ambient transition-all group flex items-center justify-between gap-3 cursor-pointer"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="h-11 w-11 rounded-[14px] bg-emerald-600 text-white flex items-center justify-center font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <Sprout className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-foreground">ჩემი ვირტუალური ორანჟერეა</h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-black">NEW</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                მცენარეების კოლექცია, მორწყვის კალენდარი & შეხსენებები
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform shrink-0" />
+        </Link>
+
+        <Link
+          href="/plant-doctor"
+          className="p-4 sm:p-5 rounded-[22px] bg-gradient-to-br from-teal-500/10 via-card to-teal-500/5 border border-teal-500/30 hover:border-teal-500/60 shadow-xs hover:shadow-ambient transition-all group flex items-center justify-between gap-3 cursor-pointer"
+        >
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="h-11 w-11 rounded-[14px] bg-teal-600 text-white flex items-center justify-center font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+              <Stethoscope className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-black text-foreground">AI მცენარის ექიმი</h3>
+                <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-800 dark:text-teal-300 text-[10px] font-black">AI</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                გადაუღე ფოტო ფოთოლს და გაიგე რა სჭირს მცენარეს
+              </p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-teal-600 group-hover:translate-x-1 transition-transform shrink-0" />
+        </Link>
       </div>
 
       {/* Metrics Row */}
