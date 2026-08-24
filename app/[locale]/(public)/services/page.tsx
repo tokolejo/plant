@@ -65,7 +65,7 @@ const CATEGORY_ICON_MAP: Record<string, React.ElementType> = {
   Sprout,
 };
 
-export default function GardeningServicesCatalogPage() {
+function GardeningServicesCatalogContent() {
   const locale = useLocale();
   const isKa = locale !== "en";
   const searchParams = useSearchParams();
@@ -646,5 +646,22 @@ export default function GardeningServicesCatalogPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function GardeningServicesCatalogPage() {
+  const locale = useLocale();
+  const isKa = locale !== "en";
+  return (
+    <React.Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-24 text-center text-sm text-muted-foreground flex flex-col items-center justify-center gap-3">
+          <div className="w-8 h-8 border-3 border-primary border-t-transparent rounded-full animate-spin" />
+          <span className="font-bold">{isKa ? "იტვირთება სერვისების კატალოგი..." : "Loading services..."}</span>
+        </div>
+      }
+    >
+      <GardeningServicesCatalogContent />
+    </React.Suspense>
   );
 }
