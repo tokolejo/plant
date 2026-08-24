@@ -67,16 +67,16 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] lg:hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[200] lg:hidden animate-in fade-in duration-200">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Drawer Container */}
-      <div className="fixed inset-y-0 right-0 w-[290px] max-w-[82vw] bg-card text-foreground shadow-2xl z-[160] flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-250 ease-out border-l border-border/80">
+      <div className="fixed inset-y-0 right-0 w-[290px] max-w-[82vw] bg-card text-foreground shadow-2xl z-[201] flex flex-col justify-between overflow-hidden animate-in slide-in-from-right duration-250 ease-out border-l border-border/80">
         
         {/* Top Header */}
         <div>

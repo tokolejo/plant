@@ -558,9 +558,9 @@ export default function BotanicalMap() {
   }, [isMapReady, filteredListings]);
 
   return (
-    <div className="relative w-full h-[calc(100vh-5rem)] overflow-hidden bg-background">
+    <div className="relative isolate z-0 w-full h-[calc(100dvh-4rem-3.75rem)] lg:h-[calc(100vh-5rem)] overflow-hidden bg-background">
       {/* Top Floating Controls Bar */}
-      <div className="absolute top-4 left-4 z-[1000] flex items-center gap-2 pointer-events-auto">
+      <div className="absolute top-3 sm:top-4 left-3 sm:left-4 z-20 flex items-center gap-1.5 sm:gap-2 pointer-events-auto">
         {/* Filters Toggle Button */}
         <Button
           onClick={() => setFilterPanelOpen(!filterPanelOpen)}
@@ -613,7 +613,7 @@ export default function BotanicalMap() {
 
       {/* Floating Glassmorphic Filter Sidebar */}
       {filterPanelOpen && (
-        <div className="absolute top-16 left-4 bottom-6 z-[1000] w-80 sm:w-84 max-w-[calc(100vw-2rem)] rounded-[24px] bg-card/95 backdrop-blur-xl border border-border/80 shadow-ambient-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-left-4 duration-200">
+        <div className="absolute top-14 sm:top-16 left-3 sm:left-4 bottom-4 sm:bottom-6 z-30 w-80 sm:w-84 max-w-[calc(100vw-1.5rem)] rounded-[24px] bg-card/95 backdrop-blur-xl border border-border/80 shadow-ambient-lg flex flex-col overflow-hidden animate-in fade-in slide-in-from-left-4 duration-200">
           {/* Header */}
           <div className="p-4 border-b border-border/60 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2">

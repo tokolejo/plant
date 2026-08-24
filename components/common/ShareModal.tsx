@@ -59,7 +59,7 @@ export function ShareModal({ isOpen, onClose, title, url, price }: ShareModalPro
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="relative w-full max-w-sm rounded-[24px] bg-card border border-border/80 p-5 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
         
         {/* Header */}

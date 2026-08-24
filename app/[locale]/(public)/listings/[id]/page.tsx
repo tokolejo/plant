@@ -1535,7 +1535,7 @@ export default function ListingDetailPage({
 
       {/* Auth Modal Prompt when Unauthenticated */}
       {authModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fade-in">
           <div className="rounded-[24px] border border-border/80 bg-card p-6 max-w-sm w-full shadow-ambient-lg text-center space-y-4">
             <div className="h-12 w-12 rounded-[16px] bg-secondary-container text-primary flex items-center justify-center mx-auto">
               <Lock className="w-6 h-6" />
