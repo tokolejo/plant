@@ -25,7 +25,8 @@ import {
   Loader2, 
   TrendingUp, 
   Sprout, 
-  Image as ImageIcon
+  ImageIcon,
+  Award
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,11 +49,11 @@ export interface CommunityPost {
 
 const CATEGORIES = [
   { id: "ALL", label: "ყველა თემა", icon: Users },
-  { id: "QA", label: "❓ კითხვა-პასუხი & რჩევები", icon: HelpCircle },
-  { id: "SHOWCASE", label: "🌿 ჩემი ორანჟერეა / ფოტოები", icon: Sprout },
-  { id: "IDENTIFY", label: "🔍 მცენარის ამოცნობა", icon: Sparkles },
-  { id: "SWAP", label: "🔄 გაცვლა & ჩუქება", icon: Shuffle },
-  { id: "CONTEST", label: "🏆 ფოტო-კონკურსი", icon: Trophy },
+  { id: "QA", label: "კითხვა-პასუხი & რჩევები", icon: HelpCircle },
+  { id: "SHOWCASE", label: "ჩემი ორანჟერეა", icon: Sprout },
+  { id: "IDENTIFY", label: "მცენარის ამოცნობა", icon: Sparkles },
+  { id: "SWAP", label: "გაცვლა & ჩუქება", icon: Shuffle },
+  { id: "CONTEST", label: "ფოტო-კონკურსი", icon: Trophy },
 ];
 
 const SEED_POSTS: CommunityPost[] = [
@@ -61,7 +62,7 @@ const SEED_POSTS: CommunityPost[] = [
     author_name: "ნინო ჩხეიძე",
     author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
     category: "SHOWCASE",
-    title: "ჩემი Philodendron Pink Princess-ის ახალი, თითქმის ნახევრად ვარდისფერი ფოთოლი! 🌸",
+    title: "ჩემი Philodendron Pink Princess-ის ახალი, ვარდისფერი ფოთოლი",
     content: "3 თვე ველოდი ამ ფოთოლს. კაშკაშა გაფანტულმა სინათლემ და ტენიანობის მომატებამ საოცარი ვარიეგაცია მისცა!",
     image_url: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80",
     upvotes_count: 34,
@@ -69,7 +70,7 @@ const SEED_POSTS: CommunityPost[] = [
     created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
     comments: [
       { id: "c1", author_name: "გიორგი", content: "საოცარი ფერია! რა სასუქს აძლევ?", created_at: "2 საათის წინ" },
-      { id: "c2", author_name: "ნინო ჩხეიძე", content: "თხევად ბიო-ჰუმუსს თვეში 2-ჯერ 🌱", created_at: "1 საათის წინ" },
+      { id: "c2", author_name: "ნინო ჩხეიძე", content: "თხევად ბიო-ჰუმუსს თვეში 2-ჯერ", created_at: "1 საათის წინ" },
     ],
   },
   {
@@ -77,7 +78,7 @@ const SEED_POSTS: CommunityPost[] = [
     author_name: "ლაშა მებუკე",
     author_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
     category: "QA",
-    title: "რატომ უყვითლდება მონსტერას ქვედა ფოთლები? მორწყვას ვუკლებ თუ ზედმეტი მომდის?",
+    title: "რატომ უყვითლდება მონსტერას ქვედა ფოთლები?",
     content: "კვირაში ერთხელ ვრწყავ, ნიადაგის ზედაპირი მშრალი ჩანს, მაგრამ ფოთლის კიდეები გაყვითლდა და დარბილდა. მირჩიეთ რამე.",
     image_url: "https://images.unsplash.com/photo-1617576683096-00fc8eecb3af?auto=format&fit=crop&w=800&q=80",
     upvotes_count: 19,
@@ -92,7 +93,7 @@ const SEED_POSTS: CommunityPost[] = [
     author_name: "სალომე კ.",
     author_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
     category: "SWAP",
-    title: "გავცვლი დაფესვიანებულ სინგონიუმს (Syngonium Albo) ფილოდენდრონის ტოტზე 🌿",
+    title: "გავცვლი დაფესვიანებულ სინგონიუმს (Syngonium Albo) ფილოდენდრონის ტოტზე",
     content: "თბილისი, ვაკე/საბურთალო. ჯანმრთელი, აქტიურად მზარდი 2-ფოთლიანი კალამი. შემეხმიანეთ პირადში ან WhatsApp-ზე.",
     image_url: "https://images.unsplash.com/photo-1598880940371-c756e015fea1?auto=format&fit=crop&w=800&q=80",
     upvotes_count: 22,
@@ -113,14 +114,10 @@ export default function CommunityPage() {
   const [searchQuery, setSearchQuery] = React.useState<string>("");
   const [user, setUser] = React.useState<any>(null);
 
-  // Upvote state tracking
   const [likedPosts, setLikedPosts] = React.useState<Set<string>>(new Set());
-
-  // Expand Comments State
   const [expandedCommentsPostId, setExpandedCommentsPostId] = React.useState<string | null>(null);
   const [commentInput, setCommentInput] = React.useState<string>("");
 
-  // Create Post Modal State
   const [modalOpen, setModalOpen] = React.useState(false);
   const [formTitle, setFormTitle] = React.useState("");
   const [formCategory, setFormCategory] = React.useState<CommunityPost["category"]>("QA");
@@ -150,7 +147,6 @@ export default function CommunityPage() {
     loadDbPosts();
   }, [supabase]);
 
-  // Handle Upvote
   const handleToggleLike = (postId: string) => {
     const isLiked = likedPosts.has(postId);
     const updated = new Set(likedPosts);
@@ -169,7 +165,6 @@ export default function CommunityPage() {
     setLikedPosts(updated);
   };
 
-  // Handle Add Comment
   const handleAddComment = (postId: string) => {
     if (!commentInput.trim()) return;
 
@@ -196,7 +191,6 @@ export default function CommunityPage() {
     setCommentInput("");
   };
 
-  // Handle Create Post
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formTitle.trim() || !formContent.trim()) return;
@@ -235,7 +229,6 @@ export default function CommunityPage() {
 
       setPosts((prev) => [newPost, ...prev]);
 
-      // Try inserting to DB
       if (user) {
         await supabase.from("community_posts").insert({
           author_id: user.id,
@@ -282,10 +275,10 @@ export default function CommunityPage() {
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 text-xs font-black">
             <Users className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{isKa ? "მებაღეთა კლუბი & ფიდი" : "Plant Community & Feed"}</span>
+            <span>{isKa ? "მებაღეთა კლუბი" : "Plant Community & Feed"}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
-            {isKa ? "💬 მებაღეთა კომუნა & რჩევები" : "Plant Community & Q&A"}
+            {isKa ? "მებაღეთა კომუნა & რჩევები" : "Plant Community & Q&A"}
           </h1>
           <p className="text-xs text-muted-foreground">
             გააზიარეთ თქვენი მცენარეების ფოტოები, დასვით კითხვები და გაიცანით სხვა მცენარის მოყვარულები.
@@ -309,7 +302,7 @@ export default function CommunityPage() {
       </div>
 
       {/* 2. Monthly Photo Contest Banner */}
-      <div className="rounded-[24px] bg-gradient-to-r from-amber-500/15 via-primary/10 to-emerald-500/15 border border-amber-500/30 p-5 sm:p-6 shadow-ambient flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="rounded-[24px] bg-gradient-to-r from-amber-500/10 via-primary/10 to-emerald-500/10 border border-amber-500/30 p-5 sm:p-6 shadow-ambient flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-[16px] bg-amber-500 text-white flex items-center justify-center font-black shrink-0 shadow-md">
             <Trophy className="w-6 h-6" />
@@ -317,15 +310,15 @@ export default function CommunityPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-black uppercase text-amber-700 dark:text-amber-300 bg-amber-500/20 px-2 py-0.5 rounded-full">
-                აგვისტოს კონკურსი
+                თვის კონკურსი
               </span>
-              <span className="text-xs font-bold text-muted-foreground">🏆 პრიზი: 100 ₾ ვაუჩერი</span>
+              <span className="text-xs font-bold text-muted-foreground">პრიზი: 100 ₾ ვაუჩერი</span>
             </div>
             <h3 className="text-sm sm:text-base font-black text-foreground mt-0.5">
               „თვის ყველაზე ლამაზი ოთახის ჯუნგლები“
             </h3>
             <p className="text-xs text-muted-foreground">
-              ატვირთეთ თქვენი მცენარეების კუთხის ფოტო ჰეშთეგით #კონკურსი და მიიღეთ ხმები!
+              ატვირთეთ თქვენი მცენარეების კუთხის ფოტო და მიიღეთ ხმები საზოგადოებისგან.
             </p>
           </div>
         </div>
@@ -334,7 +327,7 @@ export default function CommunityPage() {
           size="sm"
           onClick={() => {
             setFormCategory("CONTEST");
-            setFormTitle("🏆 ჩემი მწვანე კუთხე (#კონკურსი)");
+            setFormTitle("ჩემი მწვანე კუთხე");
             setModalOpen(true);
           }}
           className="rounded-[12px] bg-amber-600 hover:bg-amber-700 text-white text-xs font-black gap-1.5 shrink-0 shadow-xs cursor-pointer"
@@ -348,17 +341,19 @@ export default function CommunityPage() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
+          const CatIcon = cat.icon;
           return (
             <button
               key={cat.id}
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-2 rounded-[14px] text-xs font-black whitespace-nowrap transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 rounded-[14px] text-xs font-black whitespace-nowrap transition-all cursor-pointer shadow-2xs flex items-center gap-2 ${
                 isSelected
                   ? "bg-primary text-white shadow-ambient scale-102"
                   : "bg-card text-muted-foreground hover:text-foreground border border-border/80"
               }`}
             >
+              <CatIcon className="w-3.5 h-3.5" />
               <span>{cat.label}</span>
             </button>
           );
@@ -406,7 +401,7 @@ export default function CommunityPage() {
                 </div>
 
                 <Badge variant="outline" className="text-[10px] font-black bg-surface-container/50">
-                  {CATEGORIES.find((c) => c.id === post.category)?.label.split(" ")[0]} {post.category}
+                  {CATEGORIES.find((c) => c.id === post.category)?.label || post.category}
                 </Badge>
               </div>
 
@@ -465,7 +460,7 @@ export default function CommunityPage() {
                   type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(window.location.href);
-                    alert("ბმული დაკოპირდა!");
+                    alert("ბმული დაკოპირდა.");
                   }}
                   className="p-1.5 text-muted-foreground hover:text-foreground cursor-pointer"
                   title="გაზიარება"
@@ -477,11 +472,10 @@ export default function CommunityPage() {
               {/* Expandable Comments Thread */}
               {isCommentsExpanded && (
                 <div className="pt-3 border-t border-border/40 space-y-3 animate-in fade-in">
-                  {/* Comments List */}
                   <div className="space-y-2 max-h-60 overflow-y-auto">
                     {(!post.comments || post.comments.length === 0) ? (
                       <p className="text-[11px] text-muted-foreground text-center py-2">
-                        კომენტარები ჯერ არ არის — დაწერეთ პირველი!
+                        კომენტარები ჯერ არ არის.
                       </p>
                     ) : (
                       post.comments.map((c) => (
@@ -496,13 +490,12 @@ export default function CommunityPage() {
                     )}
                   </div>
 
-                  {/* Add Comment Input */}
                   <div className="flex gap-2">
                     <Input
                       value={commentInput}
                       onChange={(e) => setCommentInput(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && handleAddComment(post.id)}
-                      placeholder="დაწერეთ კომენტარი / პასუხი..."
+                      placeholder="დაწერეთ კომენტარი..."
                       className="h-9 text-xs rounded-[12px] bg-background"
                     />
                     <Button
@@ -548,11 +541,11 @@ export default function CommunityPage() {
                   onChange={(e) => setFormCategory(e.target.value as any)}
                   className="w-full h-10 px-3 rounded-[12px] border border-input bg-card text-xs font-bold text-foreground outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
                 >
-                  <option value="QA">❓ კითხვა-პასუხი & რჩევები</option>
-                  <option value="SHOWCASE">🌿 ჩემი ორანჟერეა / ფოტოები</option>
-                  <option value="IDENTIFY">🔍 მცენარის ამოცნობა</option>
-                  <option value="SWAP">🔄 გაცვლა & ჩუქება</option>
-                  <option value="CONTEST">🏆 ფოტო-კონკურსი</option>
+                  <option value="QA">კითხვა-პასუხი & რჩევები</option>
+                  <option value="SHOWCASE">ჩემი ორანჟერეა</option>
+                  <option value="IDENTIFY">მცენარის ამოცნობა</option>
+                  <option value="SWAP">გაცვლა & ჩუქება</option>
+                  <option value="CONTEST">ფოტო-კონკურსი</option>
                 </select>
               </div>
 
@@ -574,7 +567,7 @@ export default function CommunityPage() {
                   required
                   value={formContent}
                   onChange={(e) => setFormContent(e.target.value)}
-                  placeholder="დაწერეთ თქვენი შეკითხვა ან გაუზიარეთ გამოცდილება მებაღეთა საზოგადოებას..."
+                  placeholder="დაწერეთ თქვენი შეკითხვა ან გაუზიარეთ გამოცდილება საზოგადოებას..."
                   className="w-full rounded-[12px] border border-input bg-background p-2.5 text-xs font-medium focus:ring-1 focus:ring-primary outline-hidden resize-none"
                 />
               </div>

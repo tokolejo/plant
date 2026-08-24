@@ -27,7 +27,11 @@ import {
   Heart,
   Store,
   Info,
-  Check
+  Check,
+  Scan,
+  MapPin,
+  HelpCircle,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -56,7 +60,7 @@ const COMMON_PRESETS = [
   { name: "პოთოსი", species: "Epipremnum aureum", days: 6, light: "საშუალო სინათლე", room: "აივანი" },
   { name: "ორქიდეა", species: "Phalaenopsis", days: 9, light: "გაფანტული სინათლე", room: "მისაღები" },
   { name: "სპატიფილუმი", species: "Spathiphyllum", days: 4, light: "ნახევრად ჩრდილი", room: "საძინებელი" },
-  { name: "სუკულენტი / კაქტუსი", species: "Succulent", days: 18, light: "მზიანი ადგილი", room: "აივანი" },
+  { name: "სუკულენტი", species: "Succulent", days: 18, light: "მზიანი ადგილი", room: "აივანი" },
 ];
 
 export default function VirtualGreenhousePage() {
@@ -79,6 +83,7 @@ export default function VirtualGreenhousePage() {
   const [modalOpen, setModalOpen] = React.useState(false);
   const [editingPlantId, setEditingPlantId] = React.useState<string | null>(null);
   const [savingPlant, setSavingPlant] = React.useState(false);
+  const [recognizing, setRecognizing] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const [formName, setFormName] = React.useState("");
@@ -142,7 +147,7 @@ export default function VirtualGreenhousePage() {
       )
     );
 
-    showNotice(`💧 „${plant.name}“ მოირწყა! შემდეგი მორწყვა: ${nextWaterDate.toLocaleDateString("ka-GE", { day: "numeric", month: "short" })}`);
+    showNotice(`მცენარე „${plant.name}“ მოირწყა. შემდეგი მორწყვა: ${nextWaterDate.toLocaleDateString("ka-GE", { day: "numeric", month: "short" })}`);
 
     try {
       await supabase
@@ -154,6 +159,69 @@ export default function VirtualGreenhousePage() {
         .eq("id", plant.id);
     } catch (err: any) {
       console.error(err);
+    }
+  };
+
+  // Plant.id & PlantNet AI Recognition
+  const handleAutoRecognize = async () => {
+    if (!formImageFile && !formImagePreview) return;
+    setRecognizing(true);
+    try {
+      let base64 = "";
+      if (formImageFile) {
+        const compressed = await compressImage(formImageFile, { maxDimension: 800, quality: 0.85, mimeType: "image/jpeg" });
+        const reader = new FileReader();
+        base64 = await new Promise<string>((resolve) => {
+          reader.onloadend = () => resolve((reader.result as string).split(",")[1] || "");
+          reader.readAsDataURL(compressed);
+        });
+      }
+
+      // Try Plant.id first
+      const res = await fetch("/api/ai/recognize-plantid", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: base64 }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.suggestion) {
+        const sug = data.suggestion;
+        setFormName(sug.nameKa || sug.name || "მცენარე");
+        setFormSpecies(sug.scientificName || "");
+        if (sug.watering) {
+          if (sug.watering.toLowerCase().includes("2-3") || sug.watering.toLowerCase().includes("14")) {
+            setFormFrequency(14);
+          } else if (sug.watering.toLowerCase().includes("2-ჯერ") || sug.watering.toLowerCase().includes("3-4")) {
+            setFormFrequency(4);
+          } else {
+            setFormFrequency(7);
+          }
+        }
+        if (sug.light) {
+          setFormNotes(`განათება: ${sug.light}. მოვლა: ${sug.toxicity || "ჯანსაღი"}`);
+        }
+        showNotice(`მცენარე ამოცნობილია: ${sug.nameKa || sug.scientificName}`);
+      } else {
+        // Fallback to PlantNet / Gemini
+        const netRes = await fetch("/api/ai/recognize-plantnet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ imageBase64: base64 }),
+        });
+        const netData = await netRes.json();
+        if (netData.success && netData.identification) {
+          const idn = netData.identification;
+          setFormName(idn.nameKa || idn.scientificName);
+          setFormSpecies(idn.scientificName);
+          setFormNotes(idn.careGuideKa || "");
+          showNotice(`მცენარე ამოცნობილია: ${idn.nameKa || idn.scientificName}`);
+        }
+      }
+    } catch (err: any) {
+      showNotice("ამოცნობის შეცდომა. გთხოვთ ხელით მიუთითოთ სახელი.");
+    } finally {
+      setRecognizing(false);
     }
   };
 
@@ -237,7 +305,7 @@ export default function VirtualGreenhousePage() {
           .eq("id", editingPlantId);
 
         if (error) throw error;
-        showNotice(`🌿 „${formName}“ წარმატებით განახლდა!`);
+        showNotice(`მცენარე „${formName}“ წარმატებით განახლდა.`);
       } else {
         // Insert New Plant
         const { error } = await supabase
@@ -255,13 +323,13 @@ export default function VirtualGreenhousePage() {
           });
 
         if (error) throw error;
-        showNotice(`🎉 „${formName}“ დაემატა თქვენს ორანჟერეაში!`);
+        showNotice(`მცენარე „${formName}“ დაემატა თქვენს ორანჟერეაში.`);
       }
 
       setModalOpen(false);
       loadPlants();
     } catch (err: any) {
-      showNotice(`❌ შეცდომა: ${err.message}`);
+      showNotice(`შეცდომა: ${err.message}`);
     } finally {
       setSavingPlant(false);
     }
@@ -271,7 +339,7 @@ export default function VirtualGreenhousePage() {
     if (!confirm(`ნამდვილად გსურთ „${name}“-ს წაშლა ორანჟერეიდან?`)) return;
 
     setPlants((prev) => prev.filter((p) => p.id !== id));
-    showNotice(`🗑️ „${name}“ წაიშალა.`);
+    showNotice(`„${name}“ წაიშალა.`);
 
     try {
       await supabase.from("user_plants").delete().eq("id", id);
@@ -291,24 +359,27 @@ export default function VirtualGreenhousePage() {
     if (diffDays < 0) {
       return {
         status: "OVERDUE",
-        label: `🔴 ვადაგადაცილებულია (${Math.abs(diffDays)} დღით)`,
+        label: `ვადაგადაცილებულია (${Math.abs(diffDays)} დღით)`,
         diffDays,
-        color: "bg-destructive/15 text-destructive border-destructive/30",
+        color: "bg-destructive/10 text-destructive border-destructive/25",
+        icon: AlertCircle,
       };
     }
     if (diffDays === 0) {
       return {
         status: "TODAY",
-        label: "🟡 დღეს მოსარწყავია",
+        label: "დღეს მოსარწყავია",
         diffDays,
-        color: "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30",
+        color: "bg-amber-500/10 text-amber-800 dark:text-amber-300 border-amber-500/25",
+        icon: Droplets,
       };
     }
     return {
       status: "UPCOMING",
-      label: `🟢 მოირწყვება ${diffDays} დღეში`,
+      label: `მოირწყვება ${diffDays} დღეში`,
       diffDays,
-      color: "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30",
+      color: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/25",
+      icon: CheckCircle2,
     };
   };
 
@@ -374,7 +445,7 @@ export default function VirtualGreenhousePage() {
               <Sprout className="w-5 h-5" />
             </div>
             <h1 className="text-lg sm:text-2xl font-black text-foreground">
-              {isKa ? "ჩემი ვირტუალური ორანჟერეა" : "My Virtual Greenhouse"}
+              {isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}
             </h1>
             <Badge className="bg-primary/10 text-primary border-primary/20 text-xs font-black">
               {plants.length} {isKa ? "მცენარე" : "Plants"}
@@ -382,7 +453,7 @@ export default function VirtualGreenhousePage() {
           </div>
           <p className="text-xs text-muted-foreground">
             {isKa
-              ? "მართეთ თქვენი მცენარეების კოლექცია, მორწყვის კალენდარი და მიიღეთ ჭკვიანი რჩევები."
+              ? "მართეთ თქვენი მცენარეების კოლექცია, მორწყვის კალენდარი და მიიღეთ ზუსტი რჩევები."
               : "Manage your houseplants, watering schedules, and health care tracking."}
           </p>
         </div>
@@ -396,7 +467,7 @@ export default function VirtualGreenhousePage() {
               className="h-10 rounded-[12px] text-xs font-bold gap-1.5 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/10 cursor-pointer"
             >
               <Stethoscope className="w-4 h-4 text-emerald-600" />
-              <span>{isKa ? "🩺 AI მცენარის ექიმი" : "AI Plant Doctor"}</span>
+              <span>{isKa ? "AI მცენარის ექიმი" : "AI Plant Doctor"}</span>
             </Button>
           </Link>
 
@@ -411,7 +482,7 @@ export default function VirtualGreenhousePage() {
         </div>
       </div>
 
-      {/* Floating Notice */}
+      {/* Notice */}
       {notice && (
         <div className="rounded-[16px] bg-emerald-500/15 border border-emerald-500/30 p-3.5 text-xs font-black text-emerald-900 dark:text-emerald-200 animate-in fade-in flex items-center gap-2.5 shadow-2xs">
           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -442,7 +513,7 @@ export default function VirtualGreenhousePage() {
             {isKa ? "დღეს მოსარწყავი" : "Due Today"}
           </span>
           <p className="text-2xl font-black text-amber-600">{todayCount}</p>
-          <span className="text-[10px] text-muted-foreground">{isKa ? "დაუყოვნებლივ" : "Needs water"}</span>
+          <span className="text-[10px] text-muted-foreground">{isKa ? "საჭიროებს მორწყვას" : "Needs water"}</span>
         </div>
 
         {/* Overdue */}
@@ -457,10 +528,10 @@ export default function VirtualGreenhousePage() {
             {isKa ? "ვადაგადაცილებული" : "Overdue"}
           </span>
           <p className="text-2xl font-black text-destructive">{overdueCount}</p>
-          <span className="text-[10px] text-muted-foreground">{isKa ? "დაგვიანებული" : "Urgent"}</span>
+          <span className="text-[10px] text-muted-foreground">{isKa ? "სასწრაფო" : "Urgent"}</span>
         </div>
 
-        {/* Upcoming / Well Watered */}
+        {/* Upcoming / Watered */}
         <div 
           onClick={() => setSelectedStatus("UPCOMING")}
           className={`p-4 rounded-[20px] border shadow-2xs space-y-1 cursor-pointer transition-all ${
@@ -472,7 +543,7 @@ export default function VirtualGreenhousePage() {
             {isKa ? "მორწყული" : "Watered"}
           </span>
           <p className="text-2xl font-black text-emerald-600">{upcomingCount}</p>
-          <span className="text-[10px] text-muted-foreground">{isKa ? "კარგ მდგომარეობაში" : "In schedule"}</span>
+          <span className="text-[10px] text-muted-foreground">{isKa ? "გრაფიკის მიხედვით" : "In schedule"}</span>
         </div>
       </div>
 
@@ -529,9 +600,9 @@ export default function VirtualGreenhousePage() {
           </span>
           {[
             { id: "ALL", label: isKa ? "ყველა სტატუსი" : "All" },
-            { id: "TODAY", label: isKa ? "🟡 დღეს მოსარწყავი" : "🟡 Due Today" },
-            { id: "OVERDUE", label: isKa ? "🔴 ვადაგადაცილებული" : "🔴 Overdue" },
-            { id: "UPCOMING", label: isKa ? "🟢 მორწყული" : "🟢 Watered" },
+            { id: "TODAY", label: isKa ? "დღეს მოსარწყავი" : "Due Today" },
+            { id: "OVERDUE", label: isKa ? "ვადაგადაცილებული" : "Overdue" },
+            { id: "UPCOMING", label: isKa ? "მორწყული" : "Watered" },
           ].map((st) => {
             const isSelected = selectedStatus === st.id;
             return (
@@ -567,7 +638,7 @@ export default function VirtualGreenhousePage() {
             <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
               {plants.length === 0
                 ? (isKa
-                    ? "დაამატეთ თქვენი პირველი მცენარე, რათა სისტემამ დროულად შეგახსენოთ მორწყვისა და მოვლის წესები!"
+                    ? "დაამატეთ თქვენი პირველი მცენარე, რათა სისტემამ დროულად შეგახსენოთ მორწყვისა და მოვლის წესები."
                     : "Add your first houseplant to get automated watering and care schedules.")
                 : (isKa ? "სცადეთ ფილტრების გასუფთავება ან სხვა სიტყვით ძიება." : "Try clearing your filters.")}
             </p>
@@ -587,6 +658,7 @@ export default function VirtualGreenhousePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {filteredPlants.map((plant) => {
             const statusInfo = getWateringStatus(plant);
+            const StatusIcon = statusInfo.icon;
             const lastWateredDate = plant.last_watered_at
               ? new Date(plant.last_watered_at).toLocaleDateString("ka-GE", { day: "numeric", month: "short" })
               : (isKa ? "არ არის" : "None");
@@ -620,7 +692,7 @@ export default function VirtualGreenhousePage() {
                         </h3>
                         {plant.room_location && (
                           <span className="px-2 py-0.5 rounded-[8px] bg-surface-container text-[10px] font-bold text-muted-foreground shrink-0 border border-border/40">
-                            📍 {plant.room_location}
+                            {plant.room_location}
                           </span>
                         )}
                       </div>
@@ -641,7 +713,7 @@ export default function VirtualGreenhousePage() {
                   {/* Watering Status Pill */}
                   <div className={`p-2.5 rounded-[14px] border text-xs font-bold flex items-center justify-between ${statusInfo.color}`}>
                     <span className="flex items-center gap-1.5">
-                      <Droplets className="w-4 h-4" />
+                      <StatusIcon className="w-4 h-4 shrink-0" />
                       <span>{statusInfo.label}</span>
                     </span>
                     <span className="text-[10px] opacity-80">
@@ -649,10 +721,10 @@ export default function VirtualGreenhousePage() {
                     </span>
                   </div>
 
-                  {/* Notes / Care details if present */}
+                  {/* Notes / Care details */}
                   {plant.notes && (
                     <div className="p-2.5 rounded-[12px] bg-surface-container/40 border border-border/40 text-[11px] text-foreground/80 font-medium line-clamp-2">
-                      💡 {plant.notes}
+                      {plant.notes}
                     </div>
                   )}
                 </div>
@@ -666,10 +738,10 @@ export default function VirtualGreenhousePage() {
                     className="w-full h-10 rounded-[14px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black gap-2 cursor-pointer shadow-xs active:scale-98 transition-all"
                   >
                     <Droplets className="w-4 h-4" />
-                    <span>{isKa ? "💧 მოვრწყე დღეს" : "💧 Watered Today"}</span>
+                    <span>{isKa ? "მოვრწყე დღეს" : "Watered Today"}</span>
                   </Button>
 
-                  {/* Secondary Quick Toolbar (AI Doctor, Edit, Delete) */}
+                  {/* Secondary Quick Toolbar */}
                   <div className="flex items-center justify-between gap-1 pt-1">
                     <Link
                       href={`/plant-doctor?plantName=${encodeURIComponent(plant.name)}&species=${encodeURIComponent(plant.species_name || "")}&imageUrl=${encodeURIComponent(plant.image_url || "")}`}
@@ -710,7 +782,7 @@ export default function VirtualGreenhousePage() {
         </div>
       )}
 
-      {/* 5. Add / Edit Plant Modal */}
+      {/* 5. Add / Edit Plant Modal with Plant.id & PlantNet AI Recognition */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
           <div className="bg-card border border-border/80 rounded-[24px] max-w-lg w-full p-5 sm:p-6 shadow-2xl space-y-4 max-h-[90vh] flex flex-col animate-in zoom-in-95">
@@ -735,11 +807,11 @@ export default function VirtualGreenhousePage() {
             </div>
 
             <form onSubmit={handleSavePlant} className="space-y-4 overflow-y-auto flex-1 p-1">
-              {/* Presets Bar for Instant Auto-fill */}
+              {/* Presets Bar */}
               {!editingPlantId && (
                 <div className="space-y-1.5 p-3 rounded-[16px] bg-secondary-container/40 border border-border/60">
                   <span className="text-[10.5px] font-black uppercase text-muted-foreground block">
-                    ⚡ პოპულარული მცენარეები (სწრაფი შევსება):
+                    პოპულარული მცენარეები (სწრაფი შევსება):
                   </span>
                   <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
                     {COMMON_PRESETS.map((p) => (
@@ -756,34 +828,50 @@ export default function VirtualGreenhousePage() {
                 </div>
               )}
 
-              {/* Photo Upload */}
-              <div className="flex items-center gap-3.5 p-3 rounded-[16px] bg-surface-container/30 border border-border/50">
-                <div className="relative h-16 w-16 rounded-[14px] bg-primary/10 overflow-hidden border border-primary/20 flex items-center justify-center font-black text-primary shrink-0 shadow-2xs">
-                  {formImagePreview ? (
-                    <img src={formImagePreview} alt="preview" className="w-full h-full object-cover" />
-                  ) : (
-                    <Camera className="w-6 h-6 text-primary/60" />
-                  )}
+              {/* Photo Upload & AI Auto-Recognition Bar */}
+              <div className="flex items-center justify-between gap-3.5 p-3 rounded-[16px] bg-surface-container/30 border border-border/50">
+                <div className="flex items-center gap-3">
+                  <div className="relative h-16 w-16 rounded-[14px] bg-primary/10 overflow-hidden border border-primary/20 flex items-center justify-center font-black text-primary shrink-0 shadow-2xs">
+                    {formImagePreview ? (
+                      <img src={formImagePreview} alt="preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-primary/60" />
+                    )}
+                  </div>
+
+                  <div className="space-y-1">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={handleImageChange}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] bg-primary/10 hover:bg-primary text-primary hover:text-white text-xs font-bold transition-colors cursor-pointer border border-primary/20"
+                    >
+                      <Camera className="w-3.5 h-3.5" />
+                      <span>{isKa ? "ფოტოს ატვირთვა" : "Upload Photo"}</span>
+                    </button>
+                    <p className="text-[10.5px] text-muted-foreground">JPG, PNG, WebP (ავტო-ოპტიმიზაცია)</p>
+                  </div>
                 </div>
 
-                <div className="space-y-1">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    ref={fileInputRef}
-                    onChange={handleImageChange}
-                    className="hidden"
-                  />
-                  <button
+                {/* 1-Click Plant.id & PlantNet AI Recognition Trigger */}
+                {formImagePreview && (
+                  <Button
                     type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-[10px] bg-primary/10 hover:bg-primary text-primary hover:text-white text-xs font-bold transition-colors cursor-pointer border border-primary/20"
+                    disabled={recognizing}
+                    onClick={handleAutoRecognize}
+                    className="rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold gap-1.5 h-9 shadow-xs shrink-0 cursor-pointer"
+                    title="მცენარის ჯიშის ავტომატური ამოცნობა"
                   >
-                    <Camera className="w-3.5 h-3.5" />
-                    <span>{isKa ? "ფოტოს ატვირთვა" : "Upload Photo"}</span>
-                  </button>
-                  <p className="text-[10.5px] text-muted-foreground">JPG, PNG, WebP (ავტო-ოპტიმიზაცია)</p>
-                </div>
+                    {recognizing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Scan className="w-3.5 h-3.5" />}
+                    <span>{recognizing ? "ამოცნობა..." : "AI ამოცნობა"}</span>
+                  </Button>
+                )}
               </div>
 
               {/* Name & Species */}
@@ -796,7 +884,7 @@ export default function VirtualGreenhousePage() {
                     required
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
-                    placeholder="მაგ: ჩემი მონსტერა"
+                    placeholder="მაგ: მონსტერა"
                     className="h-10 rounded-[12px] text-xs font-bold"
                   />
                 </div>

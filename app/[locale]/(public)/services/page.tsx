@@ -41,7 +41,7 @@ export interface GardeningService {
   title: string;
   description: string;
   price_from: number;
-  price_unit: string; // e.g. "ხეზე", "მ²", "საათში", "პროექტზე"
+  price_unit: string;
   city: string;
   phone: string;
   whatsapp?: string;
@@ -53,12 +53,12 @@ export interface GardeningService {
 
 const CATEGORIES = [
   { id: "ALL", label: "ყველა სერვისი", icon: Wrench },
-  { id: "PRUNING", label: "🌳 ხეების გასხვლა & ფორმირება", icon: TreePine },
-  { id: "LANDSCAPE", label: "🏡 ლანდშაფტის დიზაინი", icon: Sparkles },
-  { id: "LAWN", label: "🌿 რულონური გაზონი & მოვლა", icon: Layers },
-  { id: "GREENING", label: "🏢 ოფისების გამწვანება", icon: Building2 },
-  { id: "IRRIGATION", label: "💧 სარწყავი სისტემების მონტაჟი", icon: Droplets },
-  { id: "DOCTOR_VISIT", label: "🩺 მცენარის ექიმის გამოძახება", icon: Stethoscope },
+  { id: "PRUNING", label: "ხეების გასხვლა & ფორმირება", icon: TreePine },
+  { id: "LANDSCAPE", label: "ლანდშაფტის დიზაინი", icon: Sparkles },
+  { id: "LAWN", label: "რულონური გაზონი & მოვლა", icon: Layers },
+  { id: "GREENING", label: "ოფისების გამწვანება", icon: Building2 },
+  { id: "IRRIGATION", label: "სარწყავი სისტემების მონტაჟი", icon: Droplets },
+  { id: "DOCTOR_VISIT", label: "მცენარის ექიმის გამოძახება", icon: Stethoscope },
 ];
 
 const SEED_SERVICES: GardeningService[] = [
@@ -189,9 +189,7 @@ export default function GardeningServicesPage() {
   const [selectedCategory, setSelectedCategory] = React.useState<string>("ALL");
   const [selectedCity, setSelectedCity] = React.useState<string>("ALL");
   const [searchQuery, setSearchQuery] = React.useState<string>("");
-  const [loading, setLoading] = React.useState<boolean>(false);
 
-  // Load from DB if available
   React.useEffect(() => {
     async function fetchDbServices() {
       try {
@@ -201,7 +199,6 @@ export default function GardeningServicesPage() {
           .order("created_at", { ascending: false });
 
         if (!error && data && data.length > 0) {
-          // Merge DB services with seeds
           setServices([...data, ...SEED_SERVICES]);
         }
       } catch (err) {
@@ -213,15 +210,12 @@ export default function GardeningServicesPage() {
 
   const filteredServices = React.useMemo(() => {
     return services.filter((srv) => {
-      // Category filter
       if (selectedCategory !== "ALL" && srv.category !== selectedCategory) return false;
 
-      // City filter
       if (selectedCity !== "ALL") {
         if (!srv.city.toLowerCase().includes(selectedCity.toLowerCase())) return false;
       }
 
-      // Search query
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const matches =
@@ -241,11 +235,11 @@ export default function GardeningServicesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-border/60">
         <div className="space-y-2 max-w-2xl">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 text-xs font-black">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-            <span>{isKa ? "პროფესიონალური მებაღეობა & გამწვანება" : "Pro Gardening & Landscaping"}</span>
+            <Wrench className="w-3.5 h-3.5 text-emerald-600" />
+            <span>{isKa ? "მებაღეობა & გამწვანება" : "Pro Gardening & Landscaping"}</span>
           </div>
           <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
-            {isKa ? "🛠️ მებაღეობის & გამწვანების სერვისები" : "Gardening & Landscaping Services"}
+            {isKa ? "მებაღეობის & გამწვანების სერვისები" : "Gardening & Landscaping Services"}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
             {isKa
@@ -260,7 +254,7 @@ export default function GardeningServicesPage() {
             className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-5 gap-2 shadow-ambient cursor-pointer shrink-0"
           >
             <Plus className="w-4 h-4" />
-            <span>{isKa ? "სერვისის დამატება / რეგისტრაცია" : "Offer a Service"}</span>
+            <span>{isKa ? "სერვისის დამატება" : "Offer a Service"}</span>
           </Button>
         </Link>
       </div>
@@ -269,17 +263,19 @@ export default function GardeningServicesPage() {
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
         {CATEGORIES.map((cat) => {
           const isSelected = selectedCategory === cat.id;
+          const CatIcon = cat.icon;
           return (
             <button
               key={cat.id}
               type="button"
               onClick={() => setSelectedCategory(cat.id)}
-              className={`px-3.5 py-2 rounded-[14px] text-xs font-black whitespace-nowrap transition-all cursor-pointer shadow-2xs flex items-center gap-1.5 ${
+              className={`px-3.5 py-2 rounded-[14px] text-xs font-black whitespace-nowrap transition-all cursor-pointer shadow-2xs flex items-center gap-2 ${
                 isSelected
                   ? "bg-emerald-600 text-white shadow-ambient scale-102"
                   : "bg-card text-muted-foreground hover:text-foreground border border-border/80"
               }`}
             >
+              <CatIcon className="w-3.5 h-3.5" />
               <span>{cat.label}</span>
             </button>
           );
@@ -313,7 +309,7 @@ export default function GardeningServicesPage() {
             onChange={(e) => setSelectedCity(e.target.value)}
             className="w-full h-10 px-3 rounded-[14px] border border-border/80 bg-card text-xs font-bold text-foreground outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
           >
-            <option value="ALL">📍 ყველა ქალაქი / რეგიონი</option>
+            <option value="ALL">ყველა ქალაქი / რეგიონი</option>
             <option value="თბილისი">თბილისი</option>
             <option value="ბათუმი">ბათუმი</option>
             <option value="ქუთაისი">ქუთაისი</option>

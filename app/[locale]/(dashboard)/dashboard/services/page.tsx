@@ -146,19 +146,19 @@ export default function DashboardServicesPage() {
           .update(payload)
           .eq("id", editingId);
         if (error) throw error;
-        showNotice("🛠️ სერვისი წარმატებით განახლდა!");
+        showNotice("სერვისი წარმატებით განახლდა.");
       } else {
         const { error } = await supabase
           .from("gardening_services")
           .insert(payload);
         if (error) throw error;
-        showNotice("🎉 სერვისი წარმატებით დაემატა კატალოგში!");
+        showNotice("სერვისი წარმატებით დაემატა კატალოგში.");
       }
 
       setModalOpen(false);
       loadUserServices();
     } catch (err: any) {
-      showNotice(`❌ შეცდომა: ${err.message}`);
+      showNotice(`შეცდომა: ${err.message}`);
     } finally {
       setSaving(false);
     }
@@ -167,7 +167,7 @@ export default function DashboardServicesPage() {
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`ნამდვილად გსურთ სერვისის წაშლა: „${title}“?`)) return;
     setServices((prev) => prev.filter((s) => s.id !== id));
-    showNotice("🗑️ სერვისი წაიშალა.");
+    showNotice("სერვისი წაიშალა.");
     try {
       await supabase.from("gardening_services").delete().eq("id", id);
     } catch (err) {
@@ -337,12 +337,12 @@ export default function DashboardServicesPage() {
                     onChange={(e) => setFormCategory(e.target.value)}
                     className="w-full h-10 px-3 rounded-[12px] border border-input bg-card text-xs font-bold text-foreground outline-hidden focus:ring-1 focus:ring-primary cursor-pointer"
                   >
-                    <option value="PRUNING">🌳 ხეების გასხვლა</option>
-                    <option value="LANDSCAPE">🏡 ლანდშაფტის დიზაინი</option>
-                    <option value="LAWN">🌿 რულონური გაზონი</option>
-                    <option value="GREENING">🏢 ოფისების გამწვანება</option>
-                    <option value="IRRIGATION">💧 სარწყავი სისტემები</option>
-                    <option value="DOCTOR_VISIT">🩺 მცენარის ექიმი</option>
+                    <option value="PRUNING">ხეების გასხვლა</option>
+                    <option value="LANDSCAPE">ლანდშაფტის დიზაინი</option>
+                    <option value="LAWN">რულონური გაზონი</option>
+                    <option value="GREENING">ოფისების გამწვანება</option>
+                    <option value="IRRIGATION">სარწყავი სისტემები</option>
+                    <option value="DOCTOR_VISIT">მცენარის ექიმი</option>
                   </select>
                 </div>
 

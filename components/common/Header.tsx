@@ -238,7 +238,7 @@ export function Header() {
                           <p className="text-xs font-bold text-foreground truncate">{profile?.full_name || user.email?.split("@")[0]}</p>
                           <p className="text-[10px] text-muted-foreground truncate">{user.email}</p>
                           <span className={`text-[9px] font-bold ${isAdmin ? "text-purple-500" : tierColors[userTier]}`}>
-                            {isAdmin ? "⭐ ADMIN" : `${tierLabels[userTier]} Plan`}
+                            {isAdmin ? "ADMIN" : `${tierLabels[userTier]} Plan`}
                           </span>
                         </div>
                       </div>
@@ -252,7 +252,7 @@ export function Header() {
                           className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 hover:bg-purple-500/20 transition-colors"
                         >
                           <ShieldCheck className="w-4 h-4" />
-                          {isKa ? "🛠️ ადმინ პანელი" : "🛠️ Admin Panel"}
+                          {isKa ? "ადმინ პანელი" : "Admin Panel"}
                         </Link>
                       )}
 
@@ -265,13 +265,13 @@ export function Header() {
                       <Link href="/dashboard/greenhouse" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-black bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors">
                         <Sprout className="w-4 h-4 text-emerald-600" />
-                        {isKa ? "🏡 ჩემი ორანჟერეა" : "🏡 My Greenhouse"}
+                        {isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}
                       </Link>
 
                       <Link href="/dashboard/seller" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors">
                         <BarChart3 className="w-4 h-4 text-emerald-600" />
-                        {isKa ? "📊 სელერის პორტალი" : "📊 Seller Portal"}
+                        {isKa ? "სელერის პორტალი" : "Seller Portal"}
                       </Link>
 
                       <Link href="/dashboard/wishlist" onClick={() => setDropdownOpen(false)}

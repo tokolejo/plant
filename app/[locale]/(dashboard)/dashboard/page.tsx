@@ -426,7 +426,7 @@ export default function UserDashboardPage() {
                   activeTab === "GIFT" ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                🎁 საჩუქარი
+                საჩუქარი
               </button>
               <button
                 type="button"
@@ -435,7 +435,7 @@ export default function UserDashboardPage() {
                   activeTab === "TRADE" ? "bg-card text-foreground shadow-2xs" : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                🔄 გაცვლა
+                გაცვლა
               </button>
             </div>
           </div>
@@ -550,7 +550,7 @@ export default function UserDashboardPage() {
                         </span>
                       ) : isTrade ? (
                         <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
-                          🔄 გაცვლა
+                          გაცვლა
                         </span>
                       ) : (
                         <span className="text-sm font-black text-foreground">

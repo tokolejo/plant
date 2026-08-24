@@ -3032,7 +3032,7 @@ export default function AdminDashboardPage() {
           <div className="flex items-center gap-2 font-black text-xs sm:text-sm whitespace-nowrap">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>
-              {activeTab === "listings" ? `📦 ${selectedIds.size} განცხადება` : `👥 ${selectedUserIds.size} მომხმარებელი`}
+              {activeTab === "listings" ? `${selectedIds.size} განცხადება` : `${selectedUserIds.size} მომხმარებელი`}
             </span>
           </div>
 
@@ -3048,7 +3048,7 @@ export default function AdminDashboardPage() {
                 className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 title="გამოჩენა საიტზე"
               >
-                🟢 გამოჩენა
+                გამოჩენა
               </button>
               <button
                 type="button"
@@ -3057,7 +3057,7 @@ export default function AdminDashboardPage() {
                 className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 title="დამალვა"
               >
-                🟡 დამალვა
+                დამალვა
               </button>
               <button
                 type="button"
@@ -3066,7 +3066,7 @@ export default function AdminDashboardPage() {
                 className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-destructive hover:bg-destructive/80 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 title="წაშლა"
               >
-                🗑️ წაშლა
+                წაშლა
               </button>
             </div>
           )}
@@ -3081,16 +3081,16 @@ export default function AdminDashboardPage() {
                 className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-purple-600 hover:bg-purple-700 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
                 title="30 დღის დამატება"
               >
-                📅 +30 დღე
+                +30 დღე
               </button>
               <button
                 type="button"
                 disabled={bulkUserLoading}
                 onClick={bulkSuspendUsers}
                 className="px-2.5 sm:px-3 py-1.5 rounded-[12px] bg-destructive hover:bg-destructive/80 text-white font-bold text-[11px] transition-all cursor-pointer shadow-xs disabled:opacity-50"
-                title="დაბლოკვა / გაყინვა"
+                title="დაბლოკვა"
               >
-                🚫 დაბლოკვა
+                დაბლოკვა
               </button>
             </div>
           )}

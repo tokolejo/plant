@@ -25,7 +25,9 @@ import {
   Check, 
   X, 
   HeartHandshake,
-  HelpCircle
+  HelpCircle,
+  ShieldCheck,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,7 +63,6 @@ export default function PlantDoctorPage() {
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Read URL params if linked from Greenhouse or Listing
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -149,11 +150,11 @@ export default function PlantDoctorPage() {
         user_id: user.id,
         name: result.plantName || "მკურნალობაში მყოფი მცენარე",
         species_name: result.speciesName || null,
-        room_location: "კარანტინი / სამკურნალო",
+        room_location: "კარანტინი",
         watering_frequency_days: 7,
         last_watered_at: now.toISOString(),
         next_watering_at: nextWaterDate.toISOString(),
-        notes: `🩺 AI დიაგნოზი: ${result.diseaseName}. მკურნალობა დაწყებულია.`,
+        notes: `დიაგნოზი: ${result.diseaseName}. მკურნალობის რეჟიმში.`,
         image_url: imagePreview || null,
       });
 
@@ -168,15 +169,15 @@ export default function PlantDoctorPage() {
       {/* 1. Header Banner */}
       <div className="text-center space-y-3 max-w-2xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20 text-xs font-black">
-          <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-          <span>{isKa ? "AI ბოტანიკური დიაგნოსტიკა" : "AI Botanical Diagnosis"}</span>
+          <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
+          <span>{isKa ? "ბოტანიკური დიაგნოსტიკა" : "AI Botanical Diagnosis"}</span>
         </div>
         <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
-          {isKa ? "🩺 AI მცენარის ექიმი" : "AI Plant Doctor"}
+          {isKa ? "AI მცენარის ექიმი" : "AI Plant Doctor"}
         </h1>
         <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
           {isKa
-            ? "გადაუღეთ ფოტო დაზიანებულ ფოთოლს ან მცენარეს. ხელოვნური ინტელექტი მომენტალურად ამოიცნობს დაავადებას, მავნებელს და მოგცემთ მკურნალობის ზუსტ გეგმას."
+            ? "გადაუღეთ ფოტო დაზიანებულ ფოთოლს ან მცენარეს. სისტემა მომენტალურად ამოიცნობს დაავადებას, მავნებელს და მოგცემთ მკურნალობის ზუსტ გეგმას."
             : "Upload a photo of your plant or sick leaf. AI will diagnose diseases, pests, and provide step-by-step treatment plans."}
         </p>
       </div>
@@ -259,12 +260,12 @@ export default function PlantDoctorPage() {
               {diagnosing ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  <span>{isKa ? "AI აანალიზებს ფოტოს..." : "AI Diagnosing..."}</span>
+                  <span>{isKa ? "მიმდინარეობს ანალიზი..." : "Diagnosing..."}</span>
                 </>
               ) : (
                 <>
                   <Stethoscope className="w-5 h-5" />
-                  <span>{isKa ? "დიაგნოსტირების დაწყება" : "Start AI Diagnosis"}</span>
+                  <span>{isKa ? "დიაგნოსტირების დაწყება" : "Start Diagnosis"}</span>
                 </>
               )}
             </Button>
@@ -289,10 +290,10 @@ export default function PlantDoctorPage() {
                   }`}
                 >
                   {result.isHealthy
-                    ? "🟢 ჯანმრთელი"
+                    ? "ჯანმრთელი"
                     : result.severity === "high"
-                    ? "🔴 კრიტიკული ყურადღება"
-                    : "🟡 საშუალო სიმძიმე"}
+                    ? "კრიტიკული ყურადღება"
+                    : "საშუალო სიმძიმე"}
                 </Badge>
                 <span className="text-xs font-bold text-muted-foreground">
                   სიზუსტე: {result.probability}%
@@ -327,7 +328,7 @@ export default function PlantDoctorPage() {
               ) : (
                 <>
                   <Sprout className="w-4 h-4" />
-                  <span>🏡 ორანჟერეაში დამატება</span>
+                  <span>ორანჟერეაში დამატება</span>
                 </>
               )}
             </Button>
@@ -372,7 +373,7 @@ export default function PlantDoctorPage() {
           <div className="p-5 rounded-[22px] bg-emerald-500/5 border border-emerald-500/20 space-y-3">
             <span className="text-sm font-black text-emerald-900 dark:text-emerald-200 flex items-center gap-2">
               <HeartHandshake className="w-5 h-5 text-emerald-600" />
-              <span>ნაბიჯ-ნაბიჯ მკურნალობის გეგმა</span>
+              <span>მკურნალობის გეგმა</span>
             </span>
             <div className="space-y-2.5">
               {result.treatmentPlan.map((step, idx) => (
@@ -389,7 +390,7 @@ export default function PlantDoctorPage() {
           {/* Prevention */}
           {result.prevention && result.prevention.length > 0 && (
             <div className="p-4 rounded-[20px] bg-card border border-border/80 text-xs text-muted-foreground space-y-1.5">
-              <span className="font-black text-foreground block">🛡️ მომავალი პრევენცია:</span>
+              <span className="font-black text-foreground block">მომავალი პრევენცია:</span>
               <ul className="space-y-1">
                 {result.prevention.map((p, i) => (
                   <li key={i} className="flex items-center gap-2">
@@ -401,15 +402,15 @@ export default function PlantDoctorPage() {
             </div>
           )}
 
-          {/* 🛒 Marketplace Up-sell Recommendations */}
+          {/* Marketplace Up-sell Recommendations */}
           {result.recommendedProducts && result.recommendedProducts.length > 0 && (
             <div className="p-5 rounded-[22px] bg-gradient-to-r from-primary/10 to-teal-500/10 border border-primary/20 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
                   <Store className="w-4 h-4 text-primary" />
-                  <span>სამკურნალო საშუალებები Plant.ge-ს მარკეტპლეისზე:</span>
+                  <span>სამკურნალო საშუალებები Plant.ge-ზე:</span>
                 </span>
-                <span className="text-[10.5px] text-muted-foreground font-bold">1-დაწკაპუნებით ძიება</span>
+                <span className="text-[10.5px] text-muted-foreground font-bold">ძიება კატალოგში</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
