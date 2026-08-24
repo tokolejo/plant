@@ -56,6 +56,9 @@ import {
   Inbox,
   CheckCheck,
   CheckSquare,
+  LayoutDashboard,
+  TrendingUp,
+  BarChart3,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -1479,83 +1482,104 @@ export default function AdminDashboardPage() {
     <div className="container mx-auto px-4 sm:px-6 py-8 max-w-7xl">
 
 
-      {/* Sleek Admin Header & Full-Width Tab Bar */}
+      {/* Modern Admin Header & Sleek Segmented Navigation */}
       <div className="space-y-4 mb-6">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-1">
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shadow-xs">
-              <ShieldCheck className="w-5 h-5" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-card via-card to-emerald-500/[0.04] border border-border/80 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shadow-xs shrink-0">
+              <ShieldCheck className="w-6 h-6" />
             </div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-black tracking-tight text-foreground whitespace-nowrap">
-                ადმინ პანელი
-              </h1>
-              {(() => {
-                const config = ROLES_CONFIG[currentUserRole as UserRole] || ROLES_CONFIG.SUPER_ADMIN;
-                return (
-                  <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black border shadow-2xs whitespace-nowrap ${config.badgeBg} ${config.badgeText} ${config.badgeBorder}`}>
-                    <span>{config.badgeEmoji}</span>
-                    <span>{currentUserRole === "SUPER_ADMIN" ? "SUPER ADMIN" : config.nameKa.toUpperCase()}</span>
-                  </span>
-                );
-              })()}
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-xl font-black tracking-tight text-foreground">
+                  ადმინ პანელი
+                </h1>
+                {(() => {
+                  const config = ROLES_CONFIG[currentUserRole as UserRole] || ROLES_CONFIG.SUPER_ADMIN;
+                  return (
+                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-black border shadow-2xs whitespace-nowrap ${config.badgeBg} ${config.badgeText} ${config.badgeBorder}`}>
+                      <span>{config.badgeEmoji}</span>
+                      <span>{currentUserRole === "SUPER_ADMIN" ? "SUPER ADMIN" : config.nameKa.toUpperCase()}</span>
+                    </span>
+                  );
+                })()}
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                პლატფორმის კონტროლი, მოდერაცია და სტატისტიკა
+              </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary-container text-foreground font-semibold text-[11px]">
+          <div className="flex items-center gap-2 self-start sm:self-auto pt-1 sm:pt-0">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-bold text-xs border border-emerald-500/20">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               სისტემა აქტიურია
             </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => { loadAdminData(); showNotice("🔄 მონაცემები გადამოწმდა და განახლდა!"); }}
+              className="h-8 rounded-xl px-2.5 text-xs font-bold gap-1 border-border/80 hover:bg-surface-container cursor-pointer"
+              title="მონაცემების განახლება"
+            >
+              <RefreshCw className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">განახლება</span>
+            </Button>
           </div>
         </div>
 
-        {/* Full-Width, Non-Clipped Responsive Navigation Tabs Bar */}
-        <div className="flex flex-wrap items-center gap-1.5 bg-surface-container/70 dark:bg-slate-900/70 p-1.5 rounded-2xl border border-border/70 w-full shadow-2xs">
-          {[
-            { id: "overview", label: "მიმოხილვა", visible: true },
-            { id: "listings", label: "განცხადებები", count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
-            { id: "users", label: "მომხმარებლები", count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { 
-              id: "feedback", 
-              label: "ფიდბექი & მესიჯები", 
-              count: unreadFeedbackCount > 0 ? `${unreadFeedbackCount} ახალი` : feedbackList.length,
-              isHighlight: unreadFeedbackCount > 0,
-              visible: true 
-            },
-            { id: "plans", label: "ტარიფები", count: plans.length, visible: canManagePlans(currentUserRole, currentUser?.email) },
-            { id: "analytics", label: "სტატისტიკა", visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { id: "audit", label: "აუდიტი", count: auditLogs.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
-            { id: "affiliate", label: "Affiliate", count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
-          ]
-            .filter((tab) => tab.visible)
-            .map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
-                    isActive
-                      ? "bg-primary text-white shadow-ambient scale-[1.02]"
-                      : "text-muted-foreground hover:text-foreground hover:bg-card"
-                  }`}
-                >
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && (
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
-                      isActive 
-                        ? "bg-white/20 text-white" 
-                        : tab.isHighlight
-                        ? "bg-amber-500 text-white animate-pulse"
-                        : "bg-secondary-container text-foreground"
-                    }`}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+        {/* Sleek Horizontal Scrollable Tab Bar (Mobile-first, No-Wrap Clutter) */}
+        <div className="relative">
+          <div className="flex items-center gap-1.5 p-1.5 bg-surface-container/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border border-border/70 overflow-x-auto no-scrollbar scroll-smooth">
+            {[
+              { id: "overview", label: "მიმოხილვა", icon: LayoutDashboard, visible: true },
+              { id: "listings", label: "განცხადებები", icon: Layers, count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
+              { id: "users", label: "მომხმარებლები", icon: Users, count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+              { 
+                id: "feedback", 
+                label: "ფიდბექი & მესიჯები", 
+                icon: MessageSquare,
+                count: unreadFeedbackCount > 0 ? `${unreadFeedbackCount} ახალი` : feedbackList.length,
+                isHighlight: unreadFeedbackCount > 0,
+                visible: true 
+              },
+              { id: "plans", label: "ტარიფები", icon: CreditCard, count: plans.length, visible: canManagePlans(currentUserRole, currentUser?.email) },
+              { id: "analytics", label: "სტატისტიკა", icon: TrendingUp, visible: canManageUsers(currentUserRole, currentUser?.email) },
+              { id: "audit", label: "აუდიტი", icon: FileText, count: auditLogs.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+              { id: "affiliate", label: "Affiliate", icon: Sparkles, count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
+            ]
+              .filter((tab) => tab.visible)
+              .map((tab) => {
+                const isActive = activeTab === tab.id;
+                const IconComponent = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 select-none ${
+                      isActive
+                        ? "bg-primary text-white shadow-md shadow-primary/20 scale-[1.01]"
+                        : "text-muted-foreground hover:text-foreground hover:bg-card/80"
+                    }`}
+                  >
+                    <IconComponent className={`w-3.5 h-3.5 shrink-0 ${isActive ? "text-white" : "text-muted-foreground"}`} />
+                    <span>{tab.label}</span>
+                    {tab.count !== undefined && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${
+                        isActive 
+                          ? "bg-white/20 text-white" 
+                          : tab.isHighlight
+                          ? "bg-amber-500 text-white animate-pulse"
+                          : "bg-secondary-container text-foreground"
+                      }`}>
+                        {tab.count}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+          </div>
         </div>
       </div>
 
@@ -1567,28 +1591,34 @@ export default function AdminDashboardPage() {
       {activeTab === "listings" && (
         <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
           
-          {/* Header & Reload */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
-            <div>
-              <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
-                <Layers className="w-5 h-5 text-primary" />
-                <span>განცხადებების სრული მოდერაცია & ფილტრაცია</span>
-                <Badge className="bg-secondary-container text-primary text-xs font-bold border-none">
+          {/* Header & Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border/60 pb-5">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                    <Layers className="w-4 h-4" />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-black text-foreground">
+                    განცხადებების მოდერაცია
+                  </h2>
+                </div>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black bg-primary/10 text-primary border border-primary/20">
                   {filteredListings.length} / {listings.length}
-                </Badge>
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
                 დაალაგეთ სვეტების მიხედვით, გაფილტრეთ თარიღით, სტატუსით და მომხმარებლით
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 self-stretch sm:self-auto">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => handleExport("listings")}
-                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+                className="flex-1 sm:flex-none rounded-xl text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer h-9 px-3"
                 title="განცხადებების CSV ექსპორტი (Excel UTF-8)"
               >
                 <Download className="w-3.5 h-3.5 text-emerald-600" />
@@ -1600,10 +1630,10 @@ export default function AdminDashboardPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => { loadAdminData(); showNotice("🔄 მონაცემები გადამოწმდა და განახლდა!"); }}
-                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
+                className="flex-1 sm:flex-none rounded-xl text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer h-9 px-3"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-primary" />
-                ბაზის გადატვირთვა
+                ბაზის განახლება
               </Button>
             </div>
           </div>
@@ -1876,8 +1906,160 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* 📋 Data Table with Interactive Sorting Headers */}
-          <div className="overflow-x-auto rounded-[18px] border border-border/80">
+          {/* 📱 Mobile Listing Cards (< md screens) */}
+          <div className="block md:hidden space-y-3">
+            {filteredListings.length === 0 ? (
+              <div className="py-10 text-center text-muted-foreground text-xs font-semibold bg-secondary-container/20 rounded-2xl border border-dashed border-border/80">
+                განცხადებები არჩეული ფილტრებით არ მოიძებნა.
+              </div>
+            ) : (
+              filteredListings.map((item: any) => {
+                const isHidden = item.status === "HIDDEN";
+                const isRejected = item.status === "REJECTED";
+                const isDeleted = item.status === "DELETED";
+                const isSelected = selectedIds.has(item.id);
+                const formattedDate = item.rawCreatedAt ? new Date(item.rawCreatedAt).toLocaleDateString("ka-GE") : "15 აგვ";
+
+                return (
+                  <div
+                    key={`mob-${item.id}`}
+                    className={`p-4 rounded-2xl border transition-all ${
+                      isSelected 
+                        ? "bg-primary/5 border-primary shadow-xs" 
+                        : "bg-card border-border/80 shadow-xs"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      {/* Checkbox */}
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleSelectOne(item.id)}
+                        className="mt-1 w-4 h-4 rounded accent-primary cursor-pointer shrink-0"
+                      />
+
+                      {/* Thumbnail */}
+                      <div className="relative h-14 w-14 rounded-xl overflow-hidden bg-surface-container shrink-0 border border-border/60">
+                        <img
+                          src={item.images?.[0] || item.image || "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=200"}
+                          alt="plant"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+
+                      {/* Content */}
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex items-start justify-between gap-1">
+                          <Link
+                            href={`/listings/${item.id}`}
+                            className="font-bold text-foreground hover:text-primary text-xs line-clamp-1"
+                            title={item.title}
+                          >
+                            {item.title}
+                          </Link>
+                          {/* Status Badge */}
+                          {isHidden ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-black shrink-0">
+                              🟡 დამალული
+                            </span>
+                          ) : isRejected ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-destructive/15 text-destructive text-[10px] font-black shrink-0">
+                              🔴 დაბლოკილი
+                            </span>
+                          ) : isDeleted ? (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold shrink-0">
+                              🗑️ წაშლილი
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-black shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              🟢 აქტიური
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                          <span>📍 {item.city || "თბილისი"}</span>
+                          <span>•</span>
+                          <span className="font-semibold truncate">{item.seller?.fullName || "გამყიდველი"}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-1">
+                          <div>
+                            {item.transactionType === "GIFT" || item.price === 0 ? (
+                              <Badge variant="outline" className="text-[10px] font-black border-emerald-500/40 text-emerald-600 bg-emerald-500/5">
+                                🎁 საჩუქარი
+                              </Badge>
+                            ) : item.transactionType === "TRADE" ? (
+                              <Badge variant="outline" className="text-[10px] font-bold border-amber-500/40 text-amber-600 bg-amber-500/5">
+                                🔄 გაცვლა
+                              </Badge>
+                            ) : (
+                              <span className="font-black text-foreground text-xs">
+                                {formatPrice(item.price)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[10px] text-muted-foreground">{formattedDate}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons Row */}
+                    <div className="flex items-center justify-end gap-1.5 pt-3 mt-3 border-t border-border/50">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => updateListingStatus(item.id, isHidden ? "ACTIVE" : "HIDDEN")}
+                        className={`h-8 px-3 text-[11px] font-bold rounded-xl cursor-pointer ${
+                          isHidden
+                            ? "border-emerald-500 text-emerald-600 hover:bg-emerald-500/10"
+                            : "border-amber-500/50 text-amber-600 hover:bg-amber-500/10"
+                        }`}
+                      >
+                        {isHidden ? "გამოჩენა" : "დამალვა"}
+                      </Button>
+
+                      <Link href={`/dashboard/listings/${item.id}/edit`}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 px-2.5 rounded-xl text-muted-foreground hover:text-primary hover:bg-primary/10 cursor-pointer text-[11px] font-bold gap-1"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>ჩასწორება</span>
+                        </Button>
+                      </Link>
+
+                      <Link href={`/listings/${item.id}`}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 rounded-xl text-muted-foreground hover:text-foreground cursor-pointer"
+                          title="ნახვა"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Button>
+                      </Link>
+
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteListing(item.id, item.title)}
+                        className="h-8 w-8 p-0 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                        title="წაშლა"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* 💻 Desktop Data Table (>= md screens) */}
+          <div className="hidden md:block overflow-x-auto rounded-[18px] border border-border/80">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[11px] font-bold select-none">
                 <tr>
@@ -3519,45 +3701,155 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Tab 1: Overview */}
+      {/* Tab 1: Overview Dashboard */}
       {activeTab === "overview" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="rounded-[22px] border border-border/80 bg-card p-6 shadow-ambient space-y-4">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Store className="w-4 h-4 text-primary" />
-                Custom URL შოპები
-              </h3>
+          {/* KPI Metrics Summary Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* KPI 1: Listings */}
+            <div 
+              onClick={() => setActiveTab("listings")}
+              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-emerald-500/[0.04] border border-border/80 shadow-xs hover:border-emerald-500/40 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  განცხადებები
+                </span>
+                <div className="h-8 w-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Layers className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-black text-foreground">{listings.length}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold">
+                <span className="text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
+                  {listings.filter((l) => l.status === "ACTIVE").length} აქტიური
+                </span>
+                <span className="text-muted-foreground">
+                  {listings.filter((l) => l.status === "HIDDEN").length} დამალული
+                </span>
+              </div>
+            </div>
+
+            {/* KPI 2: Users */}
+            <div 
+              onClick={() => setActiveTab("users")}
+              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-teal-500/[0.04] border border-border/80 shadow-xs hover:border-teal-500/40 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  მომხმარებლები
+                </span>
+                <div className="h-8 w-8 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <Users className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-black text-foreground">{users.length}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-muted-foreground">
+                <span>{users.filter((u) => u.isAdmin).length} ადმინი</span>
+                <span>•</span>
+                <span>{users.filter((u) => u.tier && u.tier !== "FREE").length} PRO შოპი</span>
+              </div>
+            </div>
+
+            {/* KPI 3: Feedback & Messages */}
+            <div 
+              onClick={() => setActiveTab("feedback")}
+              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-amber-500/[0.04] border border-border/80 shadow-xs hover:border-amber-500/40 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  შეტყობინებები
+                </span>
+                <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-black text-foreground">{feedbackList.length}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold">
+                {unreadFeedbackCount > 0 ? (
+                  <span className="text-amber-700 dark:text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded-md animate-pulse">
+                    🔥 {unreadFeedbackCount} ახალი
+                  </span>
+                ) : (
+                  <span className="text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
+                    ყველა წაკითხულია
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* KPI 4: Plans & Pricing */}
+            <div 
+              onClick={() => setActiveTab("plans")}
+              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-purple-500/[0.04] border border-border/80 shadow-xs hover:border-purple-500/40 transition-all cursor-pointer group"
+            >
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  ტარიფები
+                </span>
+                <div className="h-8 w-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+              </div>
+              <p className="text-2xl sm:text-3xl font-black text-foreground">{plans.length}</p>
+              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                <span>მართვა და რედაქტირება →</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Management Tiles */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+            <div className="rounded-2xl sm:rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+                  <Store className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">Custom URL შოპები</h3>
+                  <p className="text-[11px] text-muted-foreground">ვერიფიცირებული მაღაზიები</p>
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 Tier 2/3 მაღაზიებს აქვთ <strong className="text-foreground">plant.ge/username</strong> ტიპის მისამართი.
               </p>
-              <Link href="/shops/collin" className="text-xs text-primary hover:underline flex items-center gap-1 font-bold">
-                plant.ge/collin <ExternalLink className="w-3 h-3" />
+              <Link href="/shops" className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-bold pt-1">
+                მაღაზიების კატალოგი <ExternalLink className="w-3.5 h-3.5" />
               </Link>
             </div>
 
-            <div className="rounded-[22px] border border-border/80 bg-card p-6 shadow-ambient space-y-4">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <CreditCard className="w-4 h-4 text-purple-600" />
-                ტარიფები & ფასები
-              </h3>
+            <div className="rounded-2xl sm:rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">ტარიფები & ფასები</h3>
+                  <p className="text-[11px] text-muted-foreground">ფასების კონფიგურაცია</p>
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                შეცვალეთ ნებისმიერი ტარიფის ფასი, ლიმიტი — ცვლილება სასწრაფოდ ასახავს /pricing გვერდზე.
+                შეცვალეთ ნებისმიერი ტარიფის ფასი, ლიმიტი — ცვლილება მაშინვე აისახება /pricing გვერდზე.
               </p>
-              <Button size="sm" onClick={() => setActiveTab("plans")} className="rounded-xl text-xs font-bold gap-1 bg-primary text-white cursor-pointer">
+              <Button size="sm" onClick={() => setActiveTab("plans")} className="rounded-xl text-xs font-bold gap-1 bg-primary text-white cursor-pointer h-8">
                 ტარიფების რედაქტირება <ArrowRight className="w-3.5 h-3.5" />
               </Button>
             </div>
 
-            <div className="rounded-[22px] border border-border/80 bg-card p-6 shadow-ambient space-y-4">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Sprout className="w-4 h-4 text-emerald-600" />
-                მცენარეები ჩემს პროფილზე
-              </h3>
+            <div className="rounded-2xl sm:rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs space-y-3">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                  <Sprout className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">სატესტო მცენარეები</h3>
+                  <p className="text-[11px] text-muted-foreground">ადმინის პროფილზე ჩაწერა</p>
+                </div>
+              </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                ჩაწერეთ ყველა სატესტო მცენარე (Monstera, Pink Princess, Ficus და ა.შ.) რეალურ Supabase ბაზაში თქვენს პროფილზე.
+                ჩაწერეთ ყველა სატესტო მცენარე (Monstera, Pink Princess, Ficus და ა.შ.) რეალურ Supabase ბაზაში.
               </p>
-              <Button size="sm" onClick={handleSeedListingsToAdmin} className="rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-ambient">
+              <Button size="sm" onClick={handleSeedListingsToAdmin} className="rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer h-8 shadow-xs">
                 <Sparkles className="w-3.5 h-3.5" /> ჩაწერა ჩემს პროფილზე
               </Button>
             </div>
