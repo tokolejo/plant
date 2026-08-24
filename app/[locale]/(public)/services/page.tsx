@@ -733,56 +733,27 @@ function GardeningServicesCatalogContent() {
             </div>
           )}
 
-          {/* Sort & View Mode Toolbar (Identical to Marketplace) */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-3.5 rounded-[20px] bg-card border border-border/80 shadow-2xs">
-            {/* Left: Mobile Filter Toggle + Sort Pills */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setMobileFiltersOpen(true)}
-                className="lg:hidden rounded-[12px] text-xs font-bold gap-1.5 shrink-0"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
-                <span>{isKa ? "ფილტრები" : "Filters"}</span>
-                {activeFilterCount > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
-
-              {/* Sort Pills */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {[
-                  { id: "newest", labelKa: "უახლესი", labelEn: "Newest", isActive: sortBy === "newest" },
-                  { id: "rating", labelKa: "პოპულარული", labelEn: "Popular", isActive: sortBy === "rating" },
-                  {
-                    id: "price",
-                    labelKa: sortBy === "price-desc" ? "ფასი ↓" : sortBy === "price-asc" ? "ფასი ↑" : "ფასი ⇅",
-                    labelEn: sortBy === "price-desc" ? "Price ↓" : sortBy === "price-asc" ? "Price ↑" : "Price ⇅",
-                    isActive: sortBy === "price-asc" || sortBy === "price-desc",
-                  },
-                ].map((opt) => (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => handleSortClick(opt.id)}
-                    className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                      opt.isActive
-                        ? "bg-primary text-white shadow-xs scale-[1.02]"
-                        : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
-                    }`}
-                  >
-                    {isKa ? opt.labelKa : opt.labelEn}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Row 2: Filters Button + Page Size + Grid/List Toggle — identical to Marketplace */}
+          <div className="flex items-center justify-between gap-2">
+            {/* Left: Mobile Filter Toggle */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setMobileFiltersOpen(true)}
+              className="lg:hidden flex items-center gap-2 h-9 px-3.5 rounded-[14px] border border-border/80 bg-card text-xs font-bold text-foreground shadow-2xs hover:bg-surface-container transition-all cursor-pointer shrink-0"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-primary" />
+              <span>{isKa ? "ფილტრები" : "Filters"}</span>
+              {activeFilterCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
 
             {/* Right: Page Size & View Mode */}
-            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
               {/* Page Size Selector */}
               <div className="relative inline-flex items-center">
                 <select
@@ -832,6 +803,33 @@ function GardeningServicesCatalogContent() {
                 </button>
               </div>
             </div>
+          </div>
+
+          {/* Row 3: Sort Pills — identical to Marketplace */}
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            {[
+              { id: "newest", labelKa: "უახლესი", labelEn: "Newest", isActive: sortBy === "newest" },
+              { id: "rating", labelKa: "პოპულარული", labelEn: "Popular", isActive: sortBy === "rating" },
+              {
+                id: "price",
+                labelKa: sortBy === "price-desc" ? "ფასი ↓" : sortBy === "price-asc" ? "ფასი ↑" : "ფასი ⇅",
+                labelEn: sortBy === "price-desc" ? "Price ↓" : sortBy === "price-asc" ? "Price ↑" : "Price ⇅",
+                isActive: sortBy === "price-asc" || sortBy === "price-desc",
+              },
+            ].map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => handleSortClick(opt.id)}
+                className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  opt.isActive
+                    ? "bg-primary text-white shadow-xs scale-[1.02]"
+                    : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
+                }`}
+              >
+                {isKa ? opt.labelKa : opt.labelEn}
+              </button>
+            ))}
           </div>
 
           {/* Cards Grid / List Output */}
