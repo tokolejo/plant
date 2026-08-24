@@ -317,16 +317,18 @@ export default function ShopStorefrontPage({
             shopName: profile.full_name || `@${slug}`,
             bio: profile.bio || "ჯანსაღი და ხარისხიანი მცენარეები.",
             avatarUrl: profile.avatar_url || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300",
-            bannerUrl: "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
+            bannerUrl: profile.shop_banner_url || "https://images.unsplash.com/photo-1545241047-6083a3684587?w=1200&auto=format&fit=crop&q=80",
             city: profile.city || "თბილისი",
             address: profile.address || "",
             phone: profile.phone || "+995 599 12 34 56",
-            whatsapp: profile.whatsapp || "+995599123456",
+            whatsapp: profile.whatsapp || profile.phone || "+995599123456",
             rating: Number(profile.average_rating) || 5.0,
             totalReviews: Number(profile.total_reviews) || 0,
             badges: ["Verified Shop", "Community Member"],
             tier: profile.subscription_tier || "FREE",
             isOnVacation: profile.is_on_vacation || false,
+            workingHours: profile.shop_working_hours || "10:00 - 20:00",
+            deliveryTerms: profile.shop_delivery_terms || "",
           };
           setShop(currentShopData);
 
@@ -754,6 +756,22 @@ export default function ShopStorefrontPage({
                   <span className="font-mono text-[11px] text-muted-foreground">
                     plantsale.ge/{slug}
                   </span>
+                  {shop.workingHours && (
+                    <>
+                      <span>•</span>
+                      <span className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
+                        ⏰ {shop.workingHours}
+                      </span>
+                    </>
+                  )}
+                  {shop.deliveryTerms && (
+                    <>
+                      <span>•</span>
+                      <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
+                        🚚 {shop.deliveryTerms}
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed pt-1">

@@ -84,6 +84,45 @@ export default function UserDashboardPage() {
     });
   }, []);
 
+  const [bumpLoading, setBumpLoading] = React.useState<string | null>(null);
+  const [bumpMessage, setBumpMessage] = React.useState<{ id: string; text: string; success: boolean } | null>(null);
+
+  const handleBumpListing = async (listingId: string) => {
+    if (!currentUser) return;
+    setBumpLoading(listingId);
+    setBumpMessage(null);
+
+    try {
+      if (listingId.startsWith("lst-")) {
+        setBumpMessage({ id: listingId, text: "განცხადება წარმატებით ამოიწია თავში! (Demo)", success: true });
+      } else {
+        const { data, error } = await supabase.rpc("bump_listing", {
+          p_listing_id: listingId,
+          p_user_id: currentUser.id,
+        });
+        if (error || (data && !data.success)) {
+          setBumpMessage({ id: listingId, text: data?.error || "განახლება შესაძლებელია 24 საათში ერთხელ", success: false });
+        } else {
+          setBumpMessage({ id: listingId, text: data?.message || "განცხადება ამოიწია თავში!", success: true });
+        }
+      }
+    } catch {
+      setBumpMessage({ id: listingId, text: "შეცდომა განახლებისას", success: false });
+    } finally {
+      setBumpLoading(null);
+      setTimeout(() => setBumpMessage(null), 4000);
+    }
+  };
+
+  const handleStatusChange = async (listingId: string, newStatus: string) => {
+    setUserListings((prev) =>
+      prev.map((l) => (l.id === listingId ? { ...l, status: newStatus } : l))
+    );
+    if (!listingId.startsWith("lst-")) {
+      await supabase.from("listings").update({ status: newStatus }).eq("id", listingId);
+    }
+  };
+
   const handleDeleteListing = async (listingId: string) => {
     if (!confirm("დარწმუნებული ხართ რომ გსურთ განცხადების წაშლა?")) return;
     
@@ -377,47 +416,80 @@ export default function UserDashboardPage() {
              ☰ COMPACT LIST VIEW (სია - მინიმალური სივრცის დანაკარგი)
              ═══════════════════════════════════════════════════════════════════ */
           <div className="overflow-x-auto">
-            <div className="divide-y divide-border/40 min-w-[550px]">
+            <div className="divide-y divide-border/40 min-w-[700px]">
               {filteredListings.map((item) => {
                 const imageSrc = item.images?.[0] || item.image || "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600";
                 const title = item.title_ka || item.title || "მცენარე";
                 const priceVal = item.price;
                 const isGift = item.transaction_type === "GIFT" || item.transactionType === "GIFT" || priceVal === 0;
                 const isTrade = item.transaction_type === "TRADE" || item.transactionType === "TRADE";
-                const isHidden = item.status === "HIDDEN";
+                const currentStatus = item.status || "ACTIVE";
+                const isBumping = bumpLoading === item.id;
+                const msg = bumpMessage?.id === item.id ? bumpMessage : null;
 
                 return (
                   <div
                     key={item.id}
-                    className="py-2.5 px-2.5 rounded-[14px] hover:bg-surface-container/50 transition-colors flex items-center justify-between gap-3 group"
+                    className="py-3 px-3 rounded-[16px] hover:bg-surface-container/50 transition-colors flex items-center justify-between gap-3 group"
                   >
                     {/* Left: Thumbnail & Details */}
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="relative w-12 h-12 rounded-[10px] overflow-hidden bg-surface-container shrink-0 border border-border/60">
+                      <div className="relative w-12 h-12 rounded-[12px] overflow-hidden bg-surface-container shrink-0 border border-border/60">
                         <img
                           src={imageSrc}
                           alt={title}
                           className="w-full h-full object-cover"
                         />
-                        <span className={`absolute top-1 left-1 w-2 h-2 rounded-full ring-2 ring-background ${
-                          isHidden ? "bg-amber-500" : "bg-emerald-500"
+                        <span className={`absolute top-1 left-1 w-2.5 h-2.5 rounded-full ring-2 ring-background ${
+                          currentStatus === "ACTIVE" 
+                            ? "bg-emerald-500" 
+                            : currentStatus === "RESERVED"
+                            ? "bg-amber-500"
+                            : "bg-slate-400"
                         }`} />
                       </div>
 
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-xs sm:text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
-                          {title}
-                        </h4>
-                        <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-0.5">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-xs sm:text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                            {title}
+                          </h4>
+                          
+                          {/* Inline Status Badge / Switcher */}
+                          <select
+                            value={currentStatus}
+                            onChange={(e) => handleStatusChange(item.id, e.target.value)}
+                            className="text-[10.5px] font-bold px-2 py-0.5 rounded-[6px] bg-secondary-container border border-border/70 text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            <option value="ACTIVE">🟢 აქტიური</option>
+                            <option value="RESERVED">🟡 დაჯავშნილი</option>
+                            <option value="SOLD">⚪ გაყიდული</option>
+                            <option value="HIDDEN">🔒 დამალული</option>
+                          </select>
+                        </div>
+
+                        {/* Metrics: Location, Views, Phone Clicks */}
+                        <div className="flex items-center gap-2.5 text-[11px] text-muted-foreground mt-1 flex-wrap">
                           <span>📍 {item.city || "თბილისი"}</span>
                           <span>•</span>
-                          <span className="capitalize">{item.plant_category || item.plantCategory || "მცენარე"}</span>
-                          {isHidden && (
-                            <span className="px-1.5 py-0.2 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-bold">
-                              დამალული
-                            </span>
-                          )}
+                          <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                            <Eye className="w-3 h-3 text-primary" />
+                            <span>{item.views_count ?? item.views ?? 18} ნახვა</span>
+                          </span>
+                          <span>•</span>
+                          <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                            <Phone className="w-3 h-3 text-emerald-600" />
+                            <span>{item.phone_clicks_count ?? 3} ზარი</span>
+                          </span>
                         </div>
+
+                        {msg && (
+                          <p className={`text-[10px] font-bold mt-1 animate-in fade-in ${
+                            msg.success ? "text-emerald-600 dark:text-emerald-400" : "text-destructive"
+                          }`}>
+                            {msg.text}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -428,7 +500,7 @@ export default function UserDashboardPage() {
                           🎁 უფასო
                         </span>
                       ) : isTrade ? (
-                        <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-xs font-bold">
+                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
                           🔄 გაცვლა
                         </span>
                       ) : (
@@ -439,16 +511,34 @@ export default function UserDashboardPage() {
                     </div>
 
                     {/* Right: Actions */}
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {/* 1-Click Bump Up Button */}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={isBumping || currentStatus !== "ACTIVE"}
+                        onClick={() => handleBumpListing(item.id)}
+                        className="h-8 px-2.5 text-[11px] font-bold rounded-[10px] border-primary/40 bg-primary/5 text-primary hover:bg-primary/15 gap-1.5 cursor-pointer shadow-2xs"
+                        title="განცხადების თავში ამოწევა (24 სთ-ში ერთხელ)"
+                      >
+                        {isBumping ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <TrendingUp className="w-3 h-3" />
+                        )}
+                        <span>ამოწევა</span>
+                      </Button>
+
                       <Link href={`/dashboard/listings/${item.id}/edit`}>
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-7 px-2 text-[11px] font-bold rounded-[8px] border-primary/30 text-primary hover:bg-primary/10 gap-1 cursor-pointer"
+                          className="h-8 px-2.5 text-[11px] font-bold rounded-[10px] border-border/80 hover:bg-surface-container gap-1 cursor-pointer"
                           title="განცხადების რედაქტირება"
                         >
-                          <Edit3 className="w-3 h-3" />
-                          ედითი
+                          <Edit3 className="w-3 h-3 text-muted-foreground" />
+                          <span>ედითი</span>
                         </Button>
                       </Link>
 
@@ -456,7 +546,7 @@ export default function UserDashboardPage() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 w-7 p-0 rounded-[8px] text-muted-foreground hover:text-foreground cursor-pointer"
+                          className="h-8 w-8 p-0 rounded-[10px] text-muted-foreground hover:text-foreground cursor-pointer"
                           title="ნახვა"
                         >
                           <ExternalLink className="w-3.5 h-3.5" />
@@ -466,7 +556,7 @@ export default function UserDashboardPage() {
                       <button
                         type="button"
                         onClick={() => handleDeleteListing(item.id)}
-                        className="p-1.5 rounded-[8px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-[10px] text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
                         title="განცხადების წაშლა"
                       >
                         <Trash2 className="w-3.5 h-3.5" />

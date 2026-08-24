@@ -33,6 +33,9 @@ export default function ShopSettingsDashboardPage() {
   const [address, setAddress] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [whatsapp, setWhatsapp] = React.useState("");
+  const [shopBannerUrl, setShopBannerUrl] = React.useState("");
+  const [shopWorkingHours, setShopWorkingHours] = React.useState("");
+  const [shopDeliveryTerms, setShopDeliveryTerms] = React.useState("");
 
   const [isSlugAvailable, setIsSlugAvailable] = React.useState<boolean | null>(null);
   const [checkingSlug, setCheckingSlug] = React.useState(false);
@@ -56,6 +59,9 @@ export default function ShopSettingsDashboardPage() {
               setBio(data.bio || "");
               setCity(data.city || "თბილისი");
               setAddress(data.address || "");
+              setShopBannerUrl(data.shop_banner_url || "");
+              setShopWorkingHours(data.shop_working_hours || "10:00 - 20:00");
+              setShopDeliveryTerms(data.shop_delivery_terms || "");
             }
           });
       }
@@ -105,6 +111,9 @@ export default function ShopSettingsDashboardPage() {
           bio: bio.trim() || null,
           city: city || "თბილისი",
           address: address.trim() || null,
+          shop_banner_url: shopBannerUrl.trim() || null,
+          shop_working_hours: shopWorkingHours.trim() || null,
+          shop_delivery_terms: shopDeliveryTerms.trim() || null,
         })
         .eq("id", currentUser.id);
     }
@@ -283,12 +292,57 @@ export default function ShopSettingsDashboardPage() {
 
             <div className="sm:col-span-2">
               <label className="text-xs font-bold text-muted-foreground block mb-1.5">
+                🖼️ მაღაზიის მთავარი ქავერ ბანერის სურათი (Cover Banner URL)
+              </label>
+              <input
+                type="url"
+                value={shopBannerUrl}
+                onChange={(e) => setShopBannerUrl(e.target.value)}
+                placeholder="https://images.unsplash.com/photo-... (1200x350px)"
+                className="w-full rounded-xl border border-input bg-background px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+              />
+              {shopBannerUrl && (
+                <div className="mt-2 relative h-24 w-full rounded-xl overflow-hidden border border-border/80 bg-surface-container">
+                  <img src={shopBannerUrl} alt="Cover preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-muted-foreground block mb-1.5">
+                ⏰ სამუშაო საათები
+              </label>
+              <input
+                type="text"
+                value={shopWorkingHours}
+                onChange={(e) => setShopWorkingHours(e.target.value)}
+                placeholder="მაგ: 10:00 - 20:00 (ყოველდღე)"
+                className="w-full rounded-xl border border-input bg-background px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-muted-foreground block mb-1.5">
+                🚚 მიწოდების პირობები
+              </label>
+              <input
+                type="text"
+                value={shopDeliveryTerms}
+                onChange={(e) => setShopDeliveryTerms(e.target.value)}
+                placeholder="მაგ: მიწოდება თბილისში 1 დღეში (5 ₾)"
+                className="w-full rounded-xl border border-input bg-background px-3.5 py-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="text-xs font-bold text-muted-foreground block mb-1.5">
                 მაღაზიის აღწერა & მოვლის პირობები
               </label>
               <textarea
                 rows={3}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
+                placeholder="მოკლედ მოგვიყევით თქვენი სანერგის, მცენარეებისა და მოვლის სპეციფიკის შესახებ..."
                 className="w-full rounded-xl border border-input bg-background p-3 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
