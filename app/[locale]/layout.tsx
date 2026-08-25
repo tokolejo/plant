@@ -7,6 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 import { MobileBottomNav } from "@/components/common/MobileBottomNav";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 
 export const viewport: Viewport = {
@@ -155,6 +157,8 @@ export default async function LocaleLayout({
             <main className="flex-1" style={{ overflow: 'visible' }}>{children}</main>
             <Footer />
             <MobileBottomNav />
+            <Analytics />
+            <SpeedInsights />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
