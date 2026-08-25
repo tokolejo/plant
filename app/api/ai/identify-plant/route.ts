@@ -10,17 +10,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Pl@ntNet API Key არ არის კონფიგურირებული გარემოს ცვლადებში" }, { status: 500 });
     }
 
-    const formData = await req.formData();
-    const imageFiles = formData.getAll("images") as File[];
-    const singleImage = (formData.get("image") || formData.get("file")) as File | null;
-    const targetFile = singleImage || (imageFiles && imageFiles.length > 0 ? imageFiles[0] : null);
+    let targetBlob: Blob | null = null;
+    const contentType = req.headers.get("content-type") || "";
 
-    if (!targetFile) {
+    if (contentType.includes("application/json")) {
+      const body = await req.json();
+      const rawBase64 = body.imageBase64 || body.image || body.base64;
+      if (rawBase64) {
+        const cleanBase64 = rawBase64.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
+        const mime = body.mimeType || "image/jpeg";
+        const buffer = Buffer.from(cleanBase64, "base64");
+        targetBlob = new Blob([buffer], { type: mime });
+      }
+    } else {
+      const formData = await req.formData();
+      const imageFiles = formData.getAll("images") as File[];
+      const singleImage = (formData.get("image") || formData.get("file")) as File | null;
+      targetBlob = singleImage || (imageFiles && imageFiles.length > 0 ? imageFiles[0] : null);
+    }
+
+    if (!targetBlob) {
       return NextResponse.json({ success: false, error: "ფოტო არ არის ატვირთული" }, { status: 400 });
     }
 
     const plantNetFormData = new FormData();
-    plantNetFormData.append("images", targetFile, targetFile.name || "plant.jpg");
+    plantNetFormData.append("images", targetBlob, "plant.jpg");
     plantNetFormData.append("organs", "auto");
 
     const plantNetUrl = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}&lang=en`;

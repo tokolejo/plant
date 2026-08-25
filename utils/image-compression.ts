@@ -133,3 +133,75 @@ export function validateListingImages(files: File[]): { valid: boolean; error?: 
 
   return { valid: true };
 }
+
+/**
+ * Fast client-side image downscaling to clean Base64 string under 100KB for AI endpoints
+ */
+export async function compressImageToBase64(
+  file: File | Blob,
+  options: CompressionOptions = {}
+): Promise<{ imageBase64: string; mimeType: string }> {
+  const {
+    maxDimension = 800,
+    quality = 0.75,
+    mimeType = "image/jpeg",
+  } = options;
+
+  return new Promise((resolve, reject) => {
+    if (typeof window === "undefined" || !window.FileReader) {
+      return reject(new Error("Browser environment required for compression"));
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+
+    reader.onload = (event) => {
+      const img = new (window as any).Image();
+      img.src = event.target?.result as string;
+
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          return reject(new Error("Canvas context failed"));
+        }
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL(mimeType, quality);
+        const cleanBase64 = dataUrl.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
+
+        resolve({ imageBase64: cleanBase64, mimeType });
+      };
+
+      img.onerror = () => {
+        reject(new Error("Failed to load image into memory"));
+      };
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Failed to read image file"));
+    };
+  });
+}
+

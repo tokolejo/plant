@@ -6,7 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { uploadListingImage } from "@/utils/supabase/storage";
-import { compressImagesBatch, compressImage } from "@/utils/image-compression";
+import { compressImagesBatch, compressImage, compressImageToBase64 } from "@/utils/image-compression";
 import { 
   Sprout, 
   Layers, 
@@ -263,6 +263,23 @@ function CreateListingContent() {
   const [aiStatusMsg, setAiStatusMsg] = React.useState<{ text: string; type: "info" | "success" | "error" } | null>(null);
   const [geminiDetecting, setGeminiDetecting] = React.useState(false);
 
+  const safeParseResponse = async (res: Response, defaultError: string) => {
+    const text = await res.text();
+    let data: any = null;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (res.status === 413 || text.includes("Request Entity Too Large") || text.includes("Request En")) {
+        throw new Error("ფოტოს ზომა დიდია, სცადეთ უფრო მცირე ზომის ფოტო");
+      }
+      throw new Error(`სერვერის შეცდომა (${res.status}): ${text.slice(0, 80)}`);
+    }
+    if (!res.ok || !data.success) {
+      throw new Error(data?.error || defaultError);
+    }
+    return data.data;
+  };
+
   const handleGeminiAutoFill = async () => {
     if (selectedFiles.length === 0) {
       setAiStatusMsg({ text: isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო!" : "Please upload at least 1 photo!", type: "error" });
@@ -276,21 +293,15 @@ function CreateListingContent() {
 
     try {
       const firstFile = selectedFiles[0];
-      const compressed = await compressImage(firstFile, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
-      const formData = new FormData();
-      formData.append("image", compressed);
+      const { imageBase64, mimeType } = await compressImageToBase64(firstFile, { maxDimension: 800, quality: 0.75 });
 
       const res = await fetch("/api/ai/recognize-plant", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64, mimeType }),
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || (isKa ? "Gemini AI-ით ამოცნობა ვერ მოხერხდა" : "Gemini identification failed"));
-      }
-
-      const result = data.data;
+      const result = await safeParseResponse(res, isKa ? "Gemini AI-ით ამოცნობა ვერ მოხერხდა" : "Gemini identification failed");
 
       if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
       if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
@@ -353,21 +364,15 @@ function CreateListingContent() {
 
     try {
       const firstFile = selectedFiles[0];
-      const compressed = await compressImage(firstFile, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
-      const formData = new FormData();
-      formData.append("image", compressed);
+      const { imageBase64, mimeType } = await compressImageToBase64(firstFile, { maxDimension: 800, quality: 0.75 });
 
       const res = await fetch("/api/ai/identify-plant", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64, mimeType }),
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || (isKa ? "Pl@ntNet-ით ამოცნობა ვერ მოხერხდა" : "Pl@ntNet identification failed"));
-      }
-
-      const result = data.data;
+      const result = await safeParseResponse(res, isKa ? "Pl@ntNet-ით ამოცნობა ვერ მოხერხდა" : "Pl@ntNet identification failed");
 
       if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
       if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
@@ -430,21 +435,15 @@ function CreateListingContent() {
 
     try {
       const firstFile = selectedFiles[0];
-      const compressed = await compressImage(firstFile, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
-      const formData = new FormData();
-      formData.append("image", compressed);
+      const { imageBase64, mimeType } = await compressImageToBase64(firstFile, { maxDimension: 800, quality: 0.75 });
 
       const res = await fetch("/api/ai/recognize-plantid", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64, mimeType }),
       });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || (isKa ? "Plant.id-ით ამოცნობა ვერ მოხერხდა" : "Plant.id identification failed"));
-      }
-
-      const result = data.data;
+      const result = await safeParseResponse(res, isKa ? "Plant.id-ით ამოცნობა ვერ მოხერხდა" : "Plant.id identification failed");
 
       if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
       if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
