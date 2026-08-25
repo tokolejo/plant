@@ -137,9 +137,9 @@ function GardeningServicesCatalogContent() {
   const [openSections, setOpenSections] = React.useState({
     search: true,
     location: true,
-    price: true,
-    category: true,
-    verified: true,
+    price: false,
+    category: false, // Collapsed by default
+    verified: false,
   });
 
   const toggleSection = (key: keyof typeof openSections) => {
@@ -178,7 +178,7 @@ function GardeningServicesCatalogContent() {
             phone: d.phone,
             whatsapp: d.whatsapp,
             portfolio_images: d.portfolio_images && d.portfolio_images.length > 0 ? d.portfolio_images : [
-              "https://images.unsplash.com/photo-1558904541-efa8c4a08931?w=600&auto=format&fit=crop&q=80"
+              "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&auto=format&fit=crop&q=80"
             ],
             rating: Number(d.rating) || 5.0,
             reviews_count: Number(d.reviews_count) || 1,
@@ -220,6 +220,9 @@ function GardeningServicesCatalogContent() {
   const handleCategorySelect = (catId: string) => {
     setSelectedCategory(catId);
     updateQueryParams({ category: catId });
+    if (catId !== "ALL") {
+      setOpenSections((prev) => ({ ...prev, category: true }));
+    }
   };
 
   const handleResetFilters = () => {

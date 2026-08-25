@@ -49,13 +49,20 @@ export interface ServiceCardProps {
   variant?: "compact" | "list" | "normal";
 }
 
+const DEFAULT_SERVICE_IMG = "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=800&auto=format&fit=crop&q=80";
+
 export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) {
   const locale = useLocale();
   const isKa = locale !== "en";
 
   const CatIcon = CATEGORY_ICONS[service.category] || Wrench;
   const catLabel = CATEGORY_LABELS[service.category]?.[isKa ? "ka" : "en"] || service.category;
-  const primaryImage = service.portfolio_images?.[0] || "https://images.unsplash.com/photo-1558904541-efa8c4a08931?w=600&auto=format&fit=crop&q=80";
+  const primaryImage = service.portfolio_images?.[0] || DEFAULT_SERVICE_IMG;
+  const [imgSrc, setImgSrc] = React.useState(primaryImage);
+
+  React.useEffect(() => {
+    setImgSrc(service.portfolio_images?.[0] || DEFAULT_SERVICE_IMG);
+  }, [service.portfolio_images]);
 
   // Clean concise city name matching ListingCard format
   const cleanCity = (service.city || (isKa ? "თბილისი" : "Tbilisi"))
@@ -74,9 +81,10 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
           className="relative w-full sm:w-48 md:w-56 shrink-0 aspect-[4/3] sm:aspect-auto overflow-hidden bg-surface-container block"
         >
           <Image
-            src={primaryImage}
-            alt={service.title}
+            src={imgSrc}
+            alt=""
             fill
+            onError={() => setImgSrc(DEFAULT_SERVICE_IMG)}
             className="object-cover"
             sizes="(max-width: 640px) 100vw, 240px"
           />
@@ -177,9 +185,10 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
       {/* Top Image — Edge-to-Edge 4:3 Ratio */}
       <Link href={`/services/${service.id}`} className="relative aspect-[4/3] w-full overflow-hidden bg-surface-container block">
         <Image
-          src={primaryImage}
-          alt={service.title}
+          src={imgSrc}
+          alt=""
           fill
+          onError={() => setImgSrc(DEFAULT_SERVICE_IMG)}
           className="object-cover"
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
