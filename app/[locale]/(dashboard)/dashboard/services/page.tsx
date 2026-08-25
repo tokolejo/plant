@@ -21,7 +21,12 @@ import {
   Loader2, 
   Check, 
   X,
-  ExternalLink
+  ExternalLink,
+  Calendar,
+  Clock,
+  MapPin,
+  XCircle,
+  UserCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +41,8 @@ export default function DashboardServicesPage() {
   const [loading, setLoading] = React.useState(true);
   const [user, setUser] = React.useState<any>(null);
   const [services, setServices] = React.useState<any[]>([]);
+  const [bookings, setBookings] = React.useState<any[]>([]);
+  const [activeTab, setActiveTab] = React.useState<"services" | "bookings">("services");
   const [notice, setNotice] = React.useState<string>("");
 
   // Modal form states
@@ -59,7 +66,7 @@ export default function DashboardServicesPage() {
     setTimeout(() => setNotice(""), 4000);
   };
 
-  const loadUserServices = React.useCallback(async () => {
+  const loadData = React.useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -68,25 +75,52 @@ export default function DashboardServicesPage() {
       }
       setUser(user);
 
-      const { data, error } = await supabase
+      // 1. Load services
+      const { data: srvData } = await supabase
         .from("gardening_services")
         .select("*")
         .eq("provider_id", user.id)
         .order("created_at", { ascending: false });
 
-      if (!error && data) {
-        setServices(data);
+      if (srvData) {
+        setServices(srvData);
+      }
+
+      // 2. Load incoming bookings
+      const { data: bookData } = await supabase
+        .from("service_bookings")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (bookData) {
+        setBookings(bookData);
       }
     } catch (err) {
-      console.warn("Failed to load user services:", err);
+      console.warn("Failed to load dashboard services data:", err);
     } finally {
       setLoading(false);
     }
   }, [supabase]);
 
   React.useEffect(() => {
-    loadUserServices();
-  }, [loadUserServices]);
+    loadData();
+  }, [loadData]);
+
+  const handleUpdateBookingStatus = async (bookingId: string, newStatus: string) => {
+    setBookings((prev) =>
+      prev.map((b) => (b.id === bookingId ? { ...b, status: newStatus } : b))
+    );
+    showNotice(isKa ? `ჯავშნის სტატუსი განახლდა: ${newStatus}` : `Status updated to ${newStatus}`);
+
+    try {
+      await supabase
+        .from("service_bookings")
+        .update({ status: newStatus })
+        .eq("id", bookingId);
+    } catch (e) {
+      console.warn("Booking status update error:", e);
+    }
+  };
 
   const handleOpenAddModal = () => {
     setEditingId(null);
@@ -156,7 +190,7 @@ export default function DashboardServicesPage() {
       }
 
       setModalOpen(false);
-      loadUserServices();
+      loadData();
     } catch (err: any) {
       showNotice(`შეცდომა: ${err.message}`);
     } finally {
@@ -239,61 +273,243 @@ export default function DashboardServicesPage() {
         </div>
       )}
 
-      {/* Services List */}
-      {services.length === 0 ? (
-        <div className="py-16 text-center border-2 border-dashed border-border/80 rounded-[24px] bg-card/40 p-8 space-y-4">
-          <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
-            <Wrench className="w-7 h-7" />
-          </div>
-          <div>
-            <h3 className="text-base font-black text-foreground">
-              თქვენ ჯერ არ გაქვთ დამატებული სერვისი
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
-              თუ ხართ მებაღე, ლანდშაფტის დიზაინერი ან გამწვანების სპეციალისტი, განათავსეთ თქვენი მომსახურება Plant.ge-ს კატალოგში.
-            </p>
-          </div>
-          <Button
-            type="button"
-            onClick={handleOpenAddModal}
-            className="rounded-[14px] bg-primary hover:bg-primary/90 text-white text-xs font-black gap-2 shadow-ambient cursor-pointer"
-          >
-            <Plus className="w-4 h-4" />
-            <span>პირველი სერვისის დამატება</span>
-          </Button>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {services.map((srv) => (
-            <div
-              key={srv.id}
-              className="rounded-[22px] border border-border/80 bg-card p-5 shadow-2xs space-y-3 flex flex-col justify-between"
-            >
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary border-primary/20">
-                    {srv.category}
-                  </Badge>
-                  <span className="text-xs font-black text-emerald-600">
-                    დან {srv.price_from} ₾ / {srv.price_unit}
-                  </span>
-                </div>
-                <h3 className="text-sm font-black text-foreground">{srv.title}</h3>
-                <p className="text-xs text-muted-foreground line-clamp-2">{srv.description}</p>
-                <div className="text-[11px] text-muted-foreground font-medium">📍 {srv.city} | 📞 {srv.phone}</div>
-              </div>
+      {/* Tab Switcher: Services vs Bookings */}
+      <div className="flex items-center gap-2 p-1 rounded-[16px] bg-secondary-container/60 border border-border/60 w-full sm:w-auto self-start">
+        <button
+          type="button"
+          onClick={() => setActiveTab("services")}
+          className={`px-4 py-2 rounded-[12px] text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === "services"
+              ? "bg-primary text-white shadow-xs"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Wrench className="w-3.5 h-3.5" />
+          <span>{isKa ? "ჩემი სერვისები" : "My Services"}</span>
+          <span className="text-[10px] opacity-80 font-mono">({services.length})</span>
+        </button>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/40">
-                <button
-                  type="button"
-                  onClick={() => handleDelete(srv.id, srv.title)}
-                  className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("bookings")}
+          className={`px-4 py-2 rounded-[12px] text-xs font-black transition-all cursor-pointer flex items-center gap-2 ${
+            activeTab === "bookings"
+              ? "bg-primary text-white shadow-xs"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>{isKa ? "მიღებული ჯავშნები" : "Client Bookings"}</span>
+          <span className="text-[10px] opacity-80 font-mono">({bookings.length})</span>
+        </button>
+      </div>
+
+      {/* ─── TAB 1: SERVICES LIST ─── */}
+      {activeTab === "services" && (
+        <>
+          {services.length === 0 ? (
+            <div className="py-16 text-center border-2 border-dashed border-border/80 rounded-[24px] bg-card/40 p-8 space-y-4">
+              <div className="h-14 w-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                <Wrench className="w-7 h-7" />
               </div>
+              <div>
+                <h3 className="text-base font-black text-foreground">
+                  {isKa ? "თქვენ ჯერ არ გაქვთ დამატებული სერვისი" : "No services added yet"}
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
+                  {isKa
+                    ? "თუ ხართ მებაღე, ლანდშაფტის დიზაინერი ან გამწვანების სპეციალისტი, განათავსეთ თქვენი მომსახურება Plant.ge-ს კატალოგში."
+                    : "If you are a gardener, landscape architect, or plant care specialist, post your services here."}
+                </p>
+              </div>
+              <Button
+                type="button"
+                onClick={handleOpenAddModal}
+                className="rounded-[14px] bg-primary hover:bg-primary/90 text-white text-xs font-black gap-2 shadow-ambient cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>{isKa ? "პირველი სერვისის დამატება" : "Add Your First Service"}</span>
+              </Button>
             </div>
-          ))}
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {services.map((srv) => (
+                <div
+                  key={srv.id}
+                  className="rounded-[22px] border border-border/80 bg-card p-5 shadow-2xs space-y-3 flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className="text-[10px] font-black bg-primary/5 text-primary border-primary/20">
+                        {srv.category}
+                      </Badge>
+                      <span className="text-xs font-black text-emerald-600">
+                        დან {srv.price_from} ₾ / {srv.price_unit}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-black text-foreground">{srv.title}</h3>
+                    <p className="text-xs text-muted-foreground line-clamp-2">{srv.description}</p>
+                    <div className="text-[11px] text-muted-foreground font-medium flex items-center gap-3">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-primary" />
+                        <span>{srv.city}</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>{srv.phone}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-border/40">
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(srv.id, srv.title)}
+                      className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive cursor-pointer"
+                      title={isKa ? "სერვისის წაშლა" : "Delete Service"}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ─── TAB 2: INCOMING CLIENT BOOKINGS ─── */}
+      {activeTab === "bookings" && (
+        <div className="space-y-4">
+          {bookings.length === 0 ? (
+            <div className="py-16 text-center border-2 border-dashed border-border/80 rounded-[24px] bg-card/40 p-8 space-y-3">
+              <Calendar className="w-10 h-10 text-muted-foreground mx-auto" />
+              <h3 className="text-base font-black text-foreground">
+                {isKa ? "ახალი ჯავშნები ჯერ არ არის" : "No booking requests yet"}
+              </h3>
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+                {isKa
+                  ? "როდესაც მომხმარებელი დაჯავშნის თქვენს სერვისს კალენდრიდან, მოთხოვნა გამოჩნდება აქ."
+                  : "When clients book your service through the interactive calendar, requests will appear here."}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {bookings.map((b) => {
+                const isPending = !b.status || b.status === "pending";
+                const isConfirmed = b.status === "confirmed";
+                const isCompleted = b.status === "completed";
+                const isCancelled = b.status === "cancelled";
+
+                return (
+                  <div
+                    key={b.id}
+                    className="rounded-[22px] border border-border/80 bg-card p-5 shadow-2xs space-y-3.5 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <Badge
+                          variant="outline"
+                          className={`text-[10.5px] font-black ${
+                            isPending
+                              ? "bg-amber-500/15 text-amber-800 dark:text-amber-300 border-amber-500/30"
+                              : isConfirmed
+                              ? "bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-500/30"
+                              : isCompleted
+                              ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
+                              : "bg-muted text-muted-foreground border-border/60"
+                          }`}
+                        >
+                          {isPending
+                            ? (isKa ? "მოლოდინში" : "Pending")
+                            : isConfirmed
+                            ? (isKa ? "დადასტურებული" : "Confirmed")
+                            : isCompleted
+                            ? (isKa ? "შესრულებული" : "Completed")
+                            : (isKa ? "გაუქმებული" : "Cancelled")}
+                        </Badge>
+
+                        <span className="text-xs font-black text-emerald-600">
+                          ~{b.estimated_price || 0} ₾
+                        </span>
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-black text-foreground">{b.client_name || "დამკვეთი"}</h4>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                          <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                          <a href={`tel:${b.client_phone}`} className="font-bold text-foreground hover:underline">
+                            {b.client_phone}
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="p-3 rounded-[14px] bg-secondary-container/40 border border-border/50 text-xs space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-primary" />
+                            <span>{isKa ? "თარიღი:" : "Date:"}</span>
+                          </span>
+                          <span className="font-bold text-foreground">{b.booking_date} ({b.time_slot})</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground flex items-center gap-1">
+                            <MapPin className="w-3.5 h-3.5 text-sky-500" />
+                            <span>{isKa ? "მისამართი:" : "Address:"}</span>
+                          </span>
+                          <span className="font-medium text-foreground truncate max-w-[180px]">{b.client_address || "-"}</span>
+                        </div>
+                        {b.comment && (
+                          <div className="pt-1 text-[11px] text-muted-foreground italic border-t border-border/30">
+                            „{b.comment}“
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Booking Action Buttons */}
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-border/40">
+                      {isPending && (
+                        <>
+                          <Button
+                            size="sm"
+                            type="button"
+                            onClick={() => handleUpdateBookingStatus(b.id, "cancelled")}
+                            variant="outline"
+                            className="h-8.5 px-3 rounded-[10px] text-xs font-bold text-muted-foreground hover:text-destructive border-border/80"
+                          >
+                            <X className="w-3.5 h-3.5 mr-1" />
+                            <span>{isKa ? "უარყოფა" : "Decline"}</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            type="button"
+                            onClick={() => handleUpdateBookingStatus(b.id, "confirmed")}
+                            className="h-8.5 px-3 rounded-[10px] bg-primary hover:bg-primary/90 text-white text-xs font-black"
+                          >
+                            <Check className="w-3.5 h-3.5 mr-1" />
+                            <span>{isKa ? "დადასტურება" : "Confirm"}</span>
+                          </Button>
+                        </>
+                      )}
+
+                      {isConfirmed && (
+                        <Button
+                          size="sm"
+                          type="button"
+                          onClick={() => handleUpdateBookingStatus(b.id, "completed")}
+                          className="h-8.5 px-4 rounded-[10px] bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                          <span>{isKa ? "შესრულებულად მონიშვნა" : "Mark as Completed"}</span>
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

@@ -1201,16 +1201,46 @@ function ListingsCatalogContent() {
         </div>
       )}
 
-      {/* Mobile Filter Drawer */}
+      {/* Mobile Filter Bottom Sheet */}
       {mobileFilterOpen && (
-        <div className="lg:hidden mb-6 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient-lg relative z-30 overflow-visible">
-          <div className="flex items-center justify-between mb-3.5">
-            <span className="text-base font-bold text-foreground">{isKa ? "ფილტრები" : "Filters"}</span>
-            <button onClick={() => setMobileFilterOpen(false)} className="p-1 rounded-[8px] hover:bg-surface-container cursor-pointer">
-              <X className="w-5 h-5 text-muted-foreground" />
-            </button>
+        <div 
+          className="fixed inset-0 z-[120] lg:hidden bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 flex flex-col justify-end"
+          onClick={() => setMobileFilterOpen(false)}
+        >
+          <div 
+            className="w-full bg-card rounded-t-[28px] border-t border-border/80 p-5 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-250"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Swipe Handle & Header */}
+            <div>
+              <div className="w-10 h-1.5 rounded-full bg-border mx-auto mb-3" />
+              <div className="flex items-center justify-between pb-3 border-b border-border/80">
+                <h3 className="font-extrabold text-base text-foreground flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-primary" />
+                  <span>{isKa ? "ფილტრები" : "Filters"}</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setMobileFilterOpen(false)}
+                  className="p-1.5 rounded-full hover:bg-surface-container text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {SidebarContent}
+
+            <div className="pt-3 border-t border-border/80 sticky bottom-0 bg-card">
+              <Button
+                type="button"
+                className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs cursor-pointer shadow-ambient"
+                onClick={() => setMobileFilterOpen(false)}
+              >
+                {isKa ? `შედეგების ნახვა (${filtered.length})` : `Show Results (${filtered.length})`}
+              </Button>
+            </div>
           </div>
-          {SidebarContent}
         </div>
       )}
 

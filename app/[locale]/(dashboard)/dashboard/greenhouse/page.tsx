@@ -742,37 +742,53 @@ export default function VirtualGreenhousePage() {
                   </Button>
 
                   {/* Secondary Quick Toolbar */}
-                  <div className="flex items-center justify-between gap-1 pt-1">
+                  <div className="grid grid-cols-2 gap-1.5 pt-1">
                     <Link
                       href={`/plant-doctor?plantName=${encodeURIComponent(plant.name)}&species=${encodeURIComponent(plant.species_name || "")}&imageUrl=${encodeURIComponent(plant.image_url || "")}`}
-                      className="flex-1"
                     >
                       <button
                         type="button"
                         className="w-full h-8 px-2 rounded-[10px] bg-surface-container/60 hover:bg-surface-container text-foreground text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer border border-border/40"
-                        title="დაავადების შემოწმება AI ექიმით"
+                        title={isKa ? "დაავადების შემოწმება AI ექიმით" : "Check with AI Doctor"}
                       >
                         <Stethoscope className="w-3.5 h-3.5 text-emerald-600" />
                         <span>AI ექიმი</span>
                       </button>
                     </Link>
 
+                    <Link
+                      href={`/dashboard/listings/new?title=${encodeURIComponent(plant.name)}&description=${encodeURIComponent(plant.notes || "")}&imageUrl=${encodeURIComponent(plant.image_url || "")}`}
+                    >
+                      <button
+                        type="button"
+                        className="w-full h-8 px-2 rounded-[10px] bg-primary/10 hover:bg-primary/20 text-primary text-[11px] font-bold flex items-center justify-center gap-1 transition-colors cursor-pointer border border-primary/20"
+                        title={isKa ? "მარკეტზე ან გაცვლაზე გატანა" : "List for Sale or Swap"}
+                      >
+                        <Store className="w-3.5 h-3.5" />
+                        <span>{isKa ? "გაყიდვა/გაცვლა" : "Sell/Swap"}</span>
+                      </button>
+                    </Link>
+                  </div>
+
+                  {/* Edit & Delete row */}
+                  <div className="flex items-center justify-end gap-1 pt-0.5">
                     <button
                       type="button"
                       onClick={() => handleOpenEditModal(plant)}
-                      className="h-8 px-2.5 rounded-[10px] bg-card hover:bg-surface-container text-muted-foreground hover:text-foreground text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer border border-border/50"
-                      title="რედაქტირება"
+                      className="h-7 px-2 rounded-[8px] bg-card hover:bg-surface-container text-muted-foreground hover:text-foreground text-[10px] font-bold flex items-center gap-1 transition-colors cursor-pointer border border-border/50"
+                      title={isKa ? "რედაქტირება" : "Edit"}
                     >
-                      <Edit3 className="w-3.5 h-3.5" />
+                      <Edit3 className="w-3 h-3" />
+                      <span>{isKa ? "შეცვლა" : "Edit"}</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => handleDeletePlant(plant.id, plant.name)}
-                      className="h-8 w-8 rounded-[10px] hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors cursor-pointer"
-                      title="წაშლა"
+                      className="h-7 w-7 rounded-[8px] hover:bg-destructive/10 text-muted-foreground hover:text-destructive flex items-center justify-center transition-colors cursor-pointer"
+                      title={isKa ? "წაშლა" : "Delete"}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3 h-3" />
                     </button>
                   </div>
                 </div>

@@ -8,6 +8,7 @@ import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 import { ListingCard } from "@/components/listings/ListingCard";
 import { ShareModal } from "@/components/common/ShareModal";
+import { EscrowCheckoutModal } from "@/components/checkout/EscrowCheckoutModal";
 import { 
   MapPin, 
   Truck, 
@@ -21,6 +22,7 @@ import {
   MessageSquare, 
   Share2, 
   Heart,
+  CreditCard,
   ChevronLeft,
   ChevronRight,
   Store,
@@ -253,6 +255,7 @@ export default function ListingDetailPage({
   const [inWishlist, setInWishlist] = React.useState(false);
   const [wishlistNotice, setWishlistNotice] = React.useState("");
   const [shareModalOpen, setShareModalOpen] = React.useState(false);
+  const [checkoutModalOpen, setCheckoutModalOpen] = React.useState(false);
 
   // ── Dynamic Affiliate Cross-Selling Offers ──
   const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>(RECOMMENDED_INVENTORY);
@@ -1222,6 +1225,18 @@ export default function ListingDetailPage({
 
             {/* Actions & Share */}
             <div className="space-y-2 pt-1 border-t border-border/40">
+              {/* Primary Buy Now / Escrow Online Payment Button (if price > 0) */}
+              {listing.price > 0 && listing.transactionType !== "GIFT" && (
+                <button
+                  type="button"
+                  onClick={() => setCheckoutModalOpen(true)}
+                  className="w-full h-11 px-4 rounded-[12px] font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/25 shadow-xs hover:scale-[1.01] active:scale-[0.99]"
+                >
+                  <CreditCard className="w-4 h-4 shrink-0" />
+                  <span>{isKa ? "ონლაინ ყიდვა & Escrow გარანტია" : "Buy Online with Escrow"}</span>
+                </button>
+              )}
+
               {/* Primary Phone Reveal & Dial (Centered, Compact & Non-Stretched) */}
               <button
                 type="button"
@@ -1678,6 +1693,14 @@ export default function ListingDetailPage({
         onClose={() => setShareModalOpen(false)}
         title={displayTitle}
         price={listing.price}
+      />
+
+      {/* Escrow Online Checkout Modal (Test Mode) */}
+      <EscrowCheckoutModal
+        isOpen={checkoutModalOpen}
+        onClose={() => setCheckoutModalOpen(false)}
+        listing={listing}
+        isKa={isKa}
       />
     </div>
   );
