@@ -57,39 +57,35 @@ export async function POST(req: NextRequest) {
 
     const categoryListStr = STRUCTURED_CATEGORIES.map((c) => `${c.id} (${c.nameKa} / ${c.nameEn})`).join(", ");
 
-    const prompt = `You are a world-class master botanist, horticulturist, and plant marketplace specialist in Georgia.
-Look carefully at the provided plant / flower / garden / gardening item photo.
+    const prompt = `Identify this plant / flower / gardening item.
+Rules:
+1. "titleKa": ONLY the plant name in Georgian (e.g. "შროშანი", "მონსტერა დელიციოზა", "ფიკუსი ელასტიკა"). STRICTLY NO care tips or extra sentences in the title.
+2. "titleEn": ONLY the English plant name (e.g. "Lily", "Monstera Deliciosa", "Rubber Tree").
+3. "descKa": Brief 1-sentence visual description only (NO watering/care tips here). E.g. "ჯანსაღი, ხასხასა ფოთლებით გამორჩეული დეკორატიული მცენარე."
+4. "descEn": Brief 1-sentence visual description only.
+5. "latinName": Exact botanical binomial Latin name (e.g. "Monstera deliciosa").
+6. "categoryId": closest ID from: [${categoryListStr}].
+7. Botanical fields: "careDifficulty" ("Easy"|"Medium"|"Expert"), "light" (in Georgian, e.g. "კაშკაშა გაფანტული"), "watering" (in Georgian, e.g. "კვირაში 1-ხელ"), "toxicity" (in Georgian, e.g. "უსაფრთხოა ცხოველებისთვის" ან "ტოქსიკურია კატებისთვის"), "tags" (array of 3-5 strings).
 
-1. Accurately identify the exact plant species, flower, cultivar, or gardening item shown (e.g. Red Lily / Lilium bulbiferum / Asiatic Lily, Monstera deliciosa, Philodendron Pink Princess, Orchid Phalaenopsis, Ficus Lyrata, Ceramic Pot, Substrate Mix, etc.).
-2. Translate and formulate a highly professional, accurate, and appealing marketplace title and description in Georgian (ქართულად) and English.
-3. Determine the closest category ID from this taxonomy list:
-[${categoryListStr}]
-4. Provide accurate botanical care details: watering schedule in Georgian, light requirement in Georgian, difficulty ("Easy" | "Medium" | "Expert"), pet toxicity warning, and search tags.
-IMPORTANT: Do NOT suggest or write any price.
-
-Return ONLY a raw JSON object (STRICTLY NO markdown, NO \`\`\`json codeblocks, NO preamble):
+Return ONLY raw JSON (no markdown):
 {
-  "latinName": "Exact botanical binomial Latin name (e.g. Lilium bulbiferum, Monstera deliciosa, Philodendron erubescens)",
-  "commonName": "მცენარის პოპულარული ქართული სახელი (მაგ: შროშანი / წითელი ლილია, მონსტერა დელიციოზა, ორქიდეა)",
-  "nameKa": "ქართული სახელი",
-  "nameEn": "English common name (e.g. Red Asiatic Lily, Swiss Cheese Plant)",
-  "titleKa": "მცენარის ქართული სახელი (ლათინური სახელი) — მოკლე სათაური (მაგ: შროშანი (Lilium bulbiferum) — ჯანსაღი ყვავილოვანი მცენარე)",
-  "titleEn": "English Title (e.g. Red Asiatic Lily (Lilium bulbiferum) — Healthy Plant)",
-  "descKa": "დეტალური, ცოცხალი და მიმზიდველი აღწერა ქართულად (აღწერე მცენარის ჯანმრთელობა, ყვავილობა/ფოთლები, სიმაღლე, მოვლის რჩევები და სად გრძნობს თავს საუკეთესოდ)",
-  "descEn": "Detailed and attractive marketplace description in English (condition, foliage/blooms, care advice, growth habit)",
-  "categoryId": "the best matching category ID from the taxonomy list above (e.g. outdoor-garden, monstera, philodendron, orchid, cactus-succulent, bonsai, ficus, etc.)",
-  "itemType": "PLANT",
+  "titleKa": "მცენარის სახელი",
+  "titleEn": "Plant Name",
+  "latinName": "Botanical Latin Name",
+  "descKa": "მოკლე ვიზუალური აღწერა (1 წინადადება)",
+  "descEn": "Brief 1-sentence visual description",
+  "categoryId": "category-id",
   "careDifficulty": "Easy",
-  "light": "კაშკაშა გაფანტული / მზის სინათლე",
-  "watering": "კვირაში 1-2 ჯერ (ნიადაგის შეშრობისას)",
-  "toxicity": "ტოქსიკურია კატებისთვის (ან: უსაფრთხოა ცხოველებისთვის / Pet Friendly)",
-  "tags": ["შროშანი", "ლილია", "Lilium", "ბაღის მცენარე", "ყვავილოვანი", "იშვიათი"]
+  "light": "კაშკაშა გაფანტული",
+  "watering": "კვირაში 1-ხელ",
+  "toxicity": "უსაფრთხოა ცხოველებისთვის",
+  "tags": ["ტეგი1", "ტეგი2", "ტეგი3"]
 }`;
 
     const modelsToTry = [
-      "gemini-3.6-flash",
       "gemini-3.5-flash-lite",
       "gemini-flash-latest",
+      "gemini-3.6-flash",
       "gemini-3.7-flash",
     ];
 

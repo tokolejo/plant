@@ -62,11 +62,11 @@ export async function POST(req: NextRequest) {
     const commonNames: string[] = species?.commonNames || [];
     const taxon = lookupBotanicalTaxon(scientificName, commonNames);
 
-    const titleKa = `${taxon.ka} (${scientificName})`;
-    const titleEn = `${commonNames[0] || taxon.en} (${scientificName})`;
+    const titleKa = taxon.ka || scientificName;
+    const titleEn = commonNames[0] || taxon.en || scientificName;
 
-    const descKa = `${taxon.ka} (${scientificName}) — ჯანსაღი და ხარისხიანი მცენარე. იდეალურია სახლის, აივნისა თუ ბაღისთვის.\n\n🌱 მოვლის მოკლე რჩევა:\n• მორწყვა: ${taxon.wateringKa}\n• განათება: ${taxon.lightKa}\n• სირთულე: ${taxon.difficulty === "Easy" ? "მარტივი" : taxon.difficulty === "Medium" ? "საშუალო" : "რთული"}\n• ტოქსიკურობა: ${taxon.toxicityKa}`;
-    const descEn = `${commonNames[0] || taxon.en} (${scientificName}) — Healthy and well-established plant.\n\n🌱 Care Tips:\n• Watering: ${taxon.wateringEn}\n• Light: ${taxon.lightEn}\n• Difficulty: ${taxon.difficulty}\n• Pet safety: ${taxon.toxicityEn}`;
+    const descKa = `${taxon.ka} — ჯანსაღი და ხარისხიანი დეკორატიული მცენარე.`;
+    const descEn = `${commonNames[0] || taxon.en} — Healthy and well-established ornamental plant.`;
 
     return NextResponse.json({
       success: true,
