@@ -62,7 +62,6 @@ export function MobileMenuDrawer({ isOpen, onClose }: MobileMenuDrawerProps) {
     { href: "/listings", label: navT("market"), icon: Store, match: "/listings" },
     { href: "/services", label: isKa ? "სერვისები" : "Services", icon: Wrench, match: "/services" },
     { href: "/iso", label: isKa ? "ვეძებ მცენარეს" : "In Search Of", icon: Shuffle, match: "/iso" },
-    { href: "/dashboard/greenhouse", label: isKa ? "ჩემი ორანჟერეა" : "Greenhouse", icon: Sprout, match: "/dashboard/greenhouse" },
     { href: "/community", label: isKa ? "მწვანე კომუნა" : "Community", icon: Users, match: "/community" },
     { href: "/map", label: navT("map"), icon: MapPin, match: "/map" },
     { href: "/pricing", label: navT("pricing"), icon: Sparkles, match: "/pricing" },

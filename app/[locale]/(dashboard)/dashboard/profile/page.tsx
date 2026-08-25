@@ -316,16 +316,26 @@ export default function ProfileEditPage() {
           </h1>
         </div>
 
-        {customSlug && (
+        <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
           <Link
-            href={`/shops/${customSlug}`}
-            className="inline-flex items-center gap-2 text-xs font-black text-primary bg-primary/10 hover:bg-primary/20 px-3.5 py-2 rounded-[12px] border border-primary/20 transition-all self-start sm:self-auto"
+            href="/dashboard/greenhouse"
+            className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-3.5 py-2 rounded-[12px] border border-emerald-500/20 transition-all cursor-pointer"
           >
-            <Store className="w-4 h-4" />
-            <span>{isKa ? "მაღაზიის ვიტრინა" : "Storefront"}</span>
-            <ExternalLink className="w-3.5 h-3.5" />
+            <Sprout className="w-4 h-4 text-emerald-600" />
+            <span>{isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}</span>
           </Link>
-        )}
+
+          {customSlug && (
+            <Link
+              href={`/shops/${customSlug}`}
+              className="inline-flex items-center gap-2 text-xs font-black text-primary bg-primary/10 hover:bg-primary/20 px-3.5 py-2 rounded-[12px] border border-primary/20 transition-all"
+            >
+              <Store className="w-4 h-4" />
+              <span>{isKa ? "მაღაზიის ვიტრინა" : "Storefront"}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* 2. Profile Strength / Completeness Meter */}
