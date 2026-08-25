@@ -871,13 +871,13 @@ const ALL_GEORGIAN_CITIES = [
 
         {/* ═══ 2. Photos & AI Recognition ═══ */}
         <div className="rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
               {isKa ? "2. ფოტოები (2 - 5 ფოტო) *" : "2. Photos (2 - 5 photos) *"}
             </label>
 
             {/* Gemini AI, Plant.id, and Pl@ntNet AI Recognition Buttons */}
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="grid grid-cols-3 gap-1.5 w-full sm:w-auto">
               {/* Gemini AI Button */}
               <Button
                 type="button"
@@ -885,7 +885,7 @@ const ALL_GEORGIAN_CITIES = [
                 size="sm"
                 disabled={selectedFiles.length === 0 || geminiDetecting || plantIdDetecting || plantNetDetecting}
                 onClick={handleGeminiAutoFill}
-                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1 sm:gap-1.5 h-8 px-1.5 sm:px-2.5 border-border/80 transition-all cursor-pointer justify-center ${
                   selectedFiles.length > 0 && !geminiDetecting
                     ? "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30 hover:bg-purple-500/20"
                     : "hover:bg-surface-container"
@@ -893,13 +893,13 @@ const ALL_GEORGIAN_CITIES = [
               >
                 {geminiDetecting ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                    <span>Gemini AI...</span>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                    <span className="truncate">Gemini...</span>
                   </>
                 ) : (
                   <>
-                    <Zap className="w-3.5 h-3.5 text-purple-600" />
-                    <span>Gemini AI</span>
+                    <Zap className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+                    <span className="truncate">Gemini AI</span>
                   </>
                 )}
               </Button>
@@ -911,7 +911,7 @@ const ALL_GEORGIAN_CITIES = [
                 size="sm"
                 disabled={selectedFiles.length === 0 || plantIdDetecting || plantNetDetecting || geminiDetecting}
                 onClick={handlePlantIdAutoFill}
-                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1 sm:gap-1.5 h-8 px-1.5 sm:px-2.5 border-border/80 transition-all cursor-pointer justify-center ${
                   selectedFiles.length > 0 && !plantIdDetecting
                     ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
                     : "hover:bg-surface-container"
@@ -919,13 +919,13 @@ const ALL_GEORGIAN_CITIES = [
               >
                 {plantIdDetecting ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                    <span>Plant.id...</span>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                    <span className="truncate">Plant.id...</span>
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Plant.id</span>
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">Plant.id</span>
                   </>
                 )}
               </Button>
@@ -937,7 +937,7 @@ const ALL_GEORGIAN_CITIES = [
                 size="sm"
                 disabled={selectedFiles.length === 0 || plantNetDetecting || plantIdDetecting || geminiDetecting}
                 onClick={handlePlantNetAutoFill}
-                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1 sm:gap-1.5 h-8 px-1.5 sm:px-2.5 border-border/80 transition-all cursor-pointer justify-center ${
                   selectedFiles.length > 0 && !plantNetDetecting
                     ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
                     : "hover:bg-surface-container"
@@ -945,13 +945,13 @@ const ALL_GEORGIAN_CITIES = [
               >
                 {plantNetDetecting ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
-                    <span>Pl@ntNet...</span>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
+                    <span className="truncate">Pl@ntNet...</span>
                   </>
                 ) : (
                   <>
-                    <Sprout className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Pl@ntNet</span>
+                    <Sprout className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                    <span className="truncate">Pl@ntNet</span>
                   </>
                 )}
               </Button>
