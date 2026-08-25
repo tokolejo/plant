@@ -242,7 +242,7 @@ export default function ProfileEditPage() {
         throw new Error(data.error || "პროფილის შენახვა ვერ მოხერხდა");
       }
 
-      setSuccessMsg(isKa ? "პროფილის მონაცემები წარმატებით განახლდა! ✅" : "Profile successfully updated! ✅");
+      setSuccessMsg(isKa ? "პროფილის მონაცემები წარმატებით განახლდა! " : "Profile successfully updated! ");
       setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err: any) {
       console.error(err);
@@ -275,7 +275,7 @@ export default function ProfileEditPage() {
 
       if (error) throw error;
 
-      setPasswordSuccess(isKa ? "პაროლი წარმატებით შეიცვალა! 🔒" : "Password successfully updated! 🔒");
+      setPasswordSuccess(isKa ? "პაროლი წარმატებით შეიცვალა! " : "Password successfully updated! ");
       setNewPassword("");
       setConfirmPassword("");
       setTimeout(() => setPasswordSuccess(""), 4000);
@@ -348,7 +348,7 @@ export default function ProfileEditPage() {
               </div>
               <p className="text-[11px] text-muted-foreground">
                 {completeness.score === 100
-                  ? (isKa ? "🎉 თქვენი პროფილი სრულად შევსებულია და მზადაა მაქსიმალური ნდობისთვის!" : "🎉 Your profile is 100% complete!")
+                  ? (isKa ? " თქვენი პროფილი სრულად შევსებულია და მზადაა მაქსიმალური ნდობისთვის!" : " Your profile is 100% complete!")
                   : (isKa ? `დარჩენილია: ${completeness.missing.slice(0, 2).join(", ")}` : `Complete: ${completeness.missing.slice(0, 2).join(", ")}`)}
               </p>
             </div>
@@ -783,7 +783,7 @@ export default function ProfileEditPage() {
                   </div>
                 </div>
                 <Badge className="bg-emerald-600/10 text-emerald-800 dark:text-emerald-300 border-emerald-500/20 text-[10px] font-black">
-                  {isKa ? "✓ დადასტურებული" : "✓ Verified"}
+                  {isKa ? " დადასტურებული" : " Verified"}
                 </Badge>
               </div>
 
@@ -954,7 +954,7 @@ export default function ProfileEditPage() {
                   {location && <span className="truncate text-muted-foreground/70">• {location}</span>}
                 </p>
                 <div className="flex items-center gap-1 text-[11px] font-bold text-amber-500 mt-1">
-                  <span>★ {averageRating.toFixed(1)}</span>
+                  <span> {averageRating.toFixed(1)}</span>
                   <span className="text-muted-foreground font-medium">• {isKa ? "სანდო გამყიდველი" : "Trusted Seller"}</span>
                 </div>
               </div>

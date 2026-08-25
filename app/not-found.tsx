@@ -6,7 +6,7 @@ export default function NotFound() {
       <body className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-slate-900 font-sans">
         <div className="text-center space-y-4 max-w-md p-8 rounded-3xl bg-white border border-slate-200 shadow-xl">
           <div className="h-12 w-12 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center mx-auto text-xl font-bold">
-            🌱
+            
           </div>
           <h1 className="text-3xl font-extrabold">404</h1>
           <p className="text-sm text-slate-600">

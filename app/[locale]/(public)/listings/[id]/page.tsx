@@ -335,7 +335,7 @@ export default function ListingDetailPage({
             image: a.image_url || "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600",
             shopName: a.partner_name || "პარტნიორი",
             shopBadge: a.partner_name || "პარტნიორი",
-            shopLogo: "🪴",
+            shopLogo: "",
             link: a.product_url,
             isExternal: true,
           }));
@@ -376,7 +376,7 @@ export default function ListingDetailPage({
     }
     const nextState = !inWishlist;
     setInWishlist(nextState);
-    setWishlistNotice(nextState ? "❤️ დაემატა რჩეულებში!" : "💔 ამოიშალა რჩეულებიდან");
+    setWishlistNotice(nextState ? "️ დაემატა რჩეულებში!" : " ამოიშალა რჩეულებიდან");
     setTimeout(() => setWishlistNotice(""), 3000);
     try {
       await fetch("/api/wishlist", {
@@ -399,7 +399,7 @@ export default function ListingDetailPage({
     : null;
 
   const rawTitle = isKa ? (listing?.titleKa || listing?.title || "") : (listing?.titleEn || listing?.title || "");
-  const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
+  const displayTitle = rawTitle.replace(/^(\s*\s*(საჩუქარი|gift):?\s*|\s*\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
   // Dynamic botanical care info matching species, plant category and tags
   const careInfo = React.useMemo(() => {
@@ -945,7 +945,7 @@ export default function ListingDetailPage({
           </div>
 
           {/* ══════════════════════════════════════════════════════════════════════
-              🪴 RECOMMENDED PARTNER RETAILER INVENTORY (Domino, Gorgia, Agrohub, etc.)
+               RECOMMENDED PARTNER RETAILER INVENTORY (Domino, Gorgia, Agrohub, etc.)
               Crystal Clear Store Badges & Clean Readable Typography
           ══════════════════════════════════════════════════════════════════════ */}
           <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-4.5 shadow-ambient space-y-3">
@@ -1418,7 +1418,7 @@ export default function ListingDetailPage({
                   )}
                   {/* Verified check badge on avatar */}
                   <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-600 border-2 border-card flex items-center justify-center text-white text-[9px] font-black">
-                    ✓
+                    
                   </div>
                 </div>
 
@@ -1506,7 +1506,7 @@ export default function ListingDetailPage({
                 {isKa ? "გამყიდველის შეფასებები & რევიუები" : "Seller Ratings & Reviews"}
               </h3>
               <span className="text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                ★ 4.9 ({reviews.length})
+                 4.9 ({reviews.length})
               </span>
             </div>
 
@@ -1590,7 +1590,7 @@ export default function ListingDetailPage({
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          🌿 COMPACT SIMILAR PLANT LISTINGS SLIDER (Bottom Section)
+           COMPACT SIMILAR PLANT LISTINGS SLIDER (Bottom Section)
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="mt-10 pt-6 border-t border-border/60 space-y-3.5">
         <div className="flex items-center justify-between gap-2">

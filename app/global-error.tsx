@@ -14,7 +14,7 @@ export default function GlobalError({
       <body className="min-h-screen flex items-center justify-center p-4 bg-slate-50 text-slate-900 font-sans">
         <div className="text-center space-y-4 max-w-md p-8 rounded-3xl bg-white border border-slate-200 shadow-xl">
           <div className="h-12 w-12 rounded-2xl bg-destructive/15 text-destructive flex items-center justify-center mx-auto text-xl font-bold">
-            ⚠️
+            ️
           </div>
           <h2 className="text-xl font-bold">დაფიქსირდა შეცდომა</h2>
           <p className="text-xs text-slate-600">

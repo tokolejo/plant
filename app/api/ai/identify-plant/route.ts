@@ -122,7 +122,7 @@ const BOTANICAL_DATABASE: Record<string, BotanicalCareProfile> = {
     watering: "Every 4-6 days (4-6 დღეში 1-ხელ)",
     light: "Medium Filtered (ნახევრად ჩრდილი)",
     difficulty: "Medium",
-    toxicity: "✅ არატოქსიკურია (Pet Friendly)",
+    toxicity: "არატოქსიკურია (Pet Friendly)",
     tags: ["კალათეა", "მარანტა", "ტენიანობის მოყვარული"],
   },
   orchis: {
@@ -133,7 +133,7 @@ const BOTANICAL_DATABASE: Record<string, BotanicalCareProfile> = {
     watering: "Every 7-10 days (ჩაძირვის მეთოდით)",
     light: "Bright Indirect (გაფანტული სინათლე)",
     difficulty: "Medium",
-    toxicity: "✅ არატოქსიკურია (Pet Friendly)",
+    toxicity: "არატოქსიკურია (Pet Friendly)",
     tags: ["ორქიდეა", "ფალენოფსისი", "ყვავილოვანი"],
   },
   sedum: {
@@ -144,7 +144,7 @@ const BOTANICAL_DATABASE: Record<string, BotanicalCareProfile> = {
     watering: "Every 2-3 weeks (2-3 კვირაში 1-ხელ)",
     light: "Direct Sun (პირდაპირი მზე)",
     difficulty: "Easy",
-    toxicity: "✅ არატოქსიკურია (Pet Friendly)",
+    toxicity: "არატოქსიკურია (Pet Friendly)",
     tags: ["სუქულენტი", "კაქტუსი", "მინიატურული"],
   },
   crassula: {
@@ -192,7 +192,7 @@ function matchBotanicalProfile(speciesName: string, genus: string, family: strin
       watering: "Bi-weekly (2-3 კვირაში 1-ხელ)",
       light: "Bright / Direct Sun (კაშკაშა მზე)",
       difficulty: "Easy",
-      toxicity: "✅ ძირითადად არატოქსიკურია",
+      toxicity: "ძირითადად არატოქსიკურია",
       tags: ["სუქულენტი", "კაქტუსი", "გამძლე"],
     };
   }

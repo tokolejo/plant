@@ -318,7 +318,7 @@ export default function BotanicalMap() {
     };
   }, []);
 
-  // 🎯 Auto-detect user's GPS location on initial map load
+  //  Auto-detect user's GPS location on initial map load
   React.useEffect(() => {
     if (!isMapReady || typeof window === "undefined" || !navigator.geolocation) return;
 
@@ -360,7 +360,7 @@ export default function BotanicalMap() {
         <div class="relative flex items-center justify-center">
           <div class="absolute w-10 h-10 bg-blue-500/25 rounded-full animate-ping"></div>
           <div class="w-7 h-7 bg-blue-600 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-black z-10">
-            📍
+            
           </div>
         </div>
       `;
@@ -374,7 +374,7 @@ export default function BotanicalMap() {
 
       userMarkerRef.current = L.marker(userCoords, { icon: userIcon, zIndexOffset: 1000 })
         .addTo(map)
-        .bindPopup("<div class='text-xs font-bold text-center p-1.5'>📍 თქვენ იმყოფებით აქ</div>");
+        .bindPopup("<div class='text-xs font-bold text-center p-1.5'> თქვენ იმყოფებით აქ</div>");
     }
 
     updateUserLocation();
@@ -459,23 +459,23 @@ export default function BotanicalMap() {
 
         let pinBg = 'border-gray-200 bg-white text-gray-900 group-hover:border-[#003629] group-hover:bg-[#003629] group-hover:text-white';
         let pinArrow = 'bg-white border-r border-b border-gray-200 group-hover:bg-[#003629] group-hover:border-[#003629]';
-        let pinEmoji = '🌱';
+        let pinEmoji = '';
         let priceLabel = formatPrice(item.price);
 
         if (isVip) {
           pinBg = 'bg-amber-600 text-white border-amber-300 font-bold scale-105 ring-2 ring-amber-500/30';
           pinArrow = 'bg-amber-600 border-r border-b border-amber-300';
-          pinEmoji = '⭐';
+          pinEmoji = '<svg class="w-3.5 h-3.5 inline text-amber-200 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
           priceLabel = isGift ? 'საჩუქარი' : isTrade ? 'გაცვლა' : formatPrice(item.price);
         } else if (isGift) {
           pinBg = 'bg-emerald-600 text-white border-emerald-300 font-black ring-2 ring-emerald-500/30';
           pinArrow = 'bg-emerald-600 border-r border-b border-emerald-300';
-          pinEmoji = '🎁';
+          pinEmoji = '';
           priceLabel = 'საჩუქარი';
         } else if (isTrade) {
           pinBg = 'bg-amber-500 text-white border-amber-300 font-bold';
           pinArrow = 'bg-amber-500 border-r border-b border-amber-300';
-          pinEmoji = '🔄';
+          pinEmoji = '';
           priceLabel = 'გაცვლა';
         }
 
@@ -525,14 +525,14 @@ export default function BotanicalMap() {
                 ${popupPriceText}
               </span>
               <span class="custom-popup-dist-badge">
-                📍 ${distLabel}
+                 ${distLabel}
               </span>
             </div>
             <div class="custom-popup-title">
               ${item.title}
             </div>
             <div class="custom-popup-footer">
-              <span class="custom-popup-city">📍 ${item.city}</span>
+              <span class="custom-popup-city"> ${item.city}</span>
               <span class="custom-popup-action">დეტალურად ნახვა →</span>
             </div>
           </a>
@@ -579,7 +579,7 @@ export default function BotanicalMap() {
           )}
         </Button>
 
-        {/* 🎯 Locate Me GPS Button directly beside Filters */}
+        {/*  Locate Me GPS Button directly beside Filters */}
         <Button
           type="button"
           onClick={handleLocateMe}
@@ -692,7 +692,7 @@ export default function BotanicalMap() {
               )}
             </MapFilterSection>
 
-            {/* 💰 Price Range — Moved directly below Location */}
+            {/*  Price Range — Moved directly below Location */}
             <MapFilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"}>
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2">

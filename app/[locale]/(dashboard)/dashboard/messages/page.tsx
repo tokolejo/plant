@@ -345,7 +345,7 @@ function MessagesInboxContent() {
 
                     {c.listing && (
                       <p className="text-[11px] font-semibold text-primary dark:text-primary-fixed truncate mb-0.5">
-                        🌱 {c.listing.title} ({formatPrice(c.listing.price)})
+                         {c.listing.title} ({formatPrice(c.listing.price)})
                       </p>
                     )}
 

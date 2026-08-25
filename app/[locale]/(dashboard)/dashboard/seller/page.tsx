@@ -79,7 +79,7 @@ export default function SellerDashboardPage() {
       }
     } catch (e: any) {
       setIsOnVacation(!nextState); // rollback
-      setNotice(`❌ შეცდომა: ${e.message}`);
+      setNotice(` შეცდომა: ${e.message}`);
     } finally {
       setVacationLoading(false);
     }
@@ -132,7 +132,7 @@ export default function SellerDashboardPage() {
             title={isKa ? "შვებულების რეჟიმი (მყიდველები ხედავენ რომ დროებით მიუწვდომელი ხართ)" : "Vacation mode"}
           >
             <Palmtree className="w-4 h-4 text-amber-500" />
-            <span>{isOnVacation ? "🏖️ შვებულებაშია (ჩართულია)" : "🏖️ შვებულების რეჟიმი"}</span>
+            <span>{isOnVacation ? "️ შვებულებაშია (ჩართულია)" : "️ შვებულების რეჟიმი"}</span>
           </button>
 
           <Link href="/dashboard/listings/new">
@@ -148,7 +148,7 @@ export default function SellerDashboardPage() {
         <div className="rounded-[18px] bg-primary/10 border border-primary/30 p-3.5 text-xs text-primary font-bold flex items-center justify-between animate-in fade-in">
           <span>{notice}</span>
           <button onClick={() => setNotice("")} className="text-primary hover:underline text-xs cursor-pointer">
-            ✕
+            
           </button>
         </div>
       )}
@@ -340,7 +340,7 @@ export default function SellerDashboardPage() {
                               {formatPrice(listing.price)}
                             </span>
                             <span className="text-[10px] text-muted-foreground">
-                              · 👁️ {listing.viewsCount} ნახვა
+                              · ️ {listing.viewsCount} ნახვა
                             </span>
                           </div>
                         </div>

@@ -162,7 +162,7 @@ export default function ShopsDirectoryPage() {
   return (
     <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl">
       
-      {/* 🌟 1. Header Banner */}
+      {/*  1. Header Banner */}
       <div className="text-center max-w-3xl mx-auto space-y-2.5 mb-8">
         <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold border border-primary/20 shadow-2xs">
           <Store className="w-3.5 h-3.5" />
@@ -180,7 +180,7 @@ export default function ShopsDirectoryPage() {
         </p>
       </div>
 
-      {/* 🔍 2. Search & City Filters */}
+      {/*  2. Search & City Filters */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-8 bg-card border border-border/70 p-3 sm:p-4 rounded-[20px] shadow-ambient">
         <div className="relative w-full sm:w-80">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -215,7 +215,7 @@ export default function ShopsDirectoryPage() {
         </div>
       </div>
 
-      {/* 🏪 3. Shops Grid */}
+      {/*  3. Shops Grid */}
       {filteredShops.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredShops.map((shop) => (
@@ -332,7 +332,7 @@ export default function ShopsDirectoryPage() {
         </div>
       )}
 
-      {/* 🚀 4. Pro Shop Registration CTA Banner */}
+      {/*  4. Pro Shop Registration CTA Banner */}
       <div className="mt-12 rounded-[24px] border border-primary/20 bg-gradient-to-br from-primary/10 via-surface-container to-secondary-container/40 p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
         <div className="space-y-2 text-center sm:text-left max-w-xl">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-primary uppercase tracking-wider">

@@ -109,8 +109,8 @@ export async function POST(req: NextRequest) {
     if (chat_id) {
       const isSwap = Boolean(offered_listing_id);
       const content = isSwap
-        ? `🤝 ახალი შეთავაზება გაცვლაზე (+${cash_difference || 0} ₾)`
-        : `💰 ახალი ფასის შეთავაზება: ${offered_price} ₾`;
+        ? `ახალი შეთავაზება გაცვლაზე (+${cash_difference || 0} ₾)`
+        : `ახალი ფასის შეთავაზება: ${offered_price} ₾`;
 
       await adminClient.from("messages").insert({
         conversation_id: chat_id,
@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
     await adminClient.from("notifications").insert({
       user_id: receiver_id,
       type: "SYSTEM_ALERT",
-      title: "ახალი შეთავაზება მცენარეზე! 🤝",
+      title: "ახალი შეთავაზება მცენარეზე",
       content: `თქვენს განცხადებაზე მიღებულია ახალი შეთავაზება. შეამოწმეთ შეტყობინებებში.`,
       link: chat_id ? `/dashboard/messages?conv=${chat_id}` : `/dashboard/messages`,
     });
@@ -189,9 +189,9 @@ export async function PATCH(req: NextRequest) {
     // Send in-chat message status notification
     if (offer.chat_id) {
       let statusMsg = "";
-      if (status === "accepted") statusMsg = "🎉 შეთავაზება მიღებულია! მცენარე დარეზერვდა (RESERVED).";
-      else if (status === "declined") statusMsg = "❌ შეთავაზება უარყოფილია.";
-      else if (status === "countered") statusMsg = "🔄 გაკეთდა კონტრ-შეთავაზება.";
+      if (status === "accepted") statusMsg = "შეთავაზება მიღებულია! მცენარე დარეზერვდა (RESERVED).";
+      else if (status === "declined") statusMsg = "შეთავაზება უარყოფილია.";
+      else if (status === "countered") statusMsg = "გაკეთდა კონტრ-შეთავაზება.";
 
       if (statusMsg) {
         await adminClient.from("messages").insert({

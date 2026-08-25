@@ -63,12 +63,12 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Leaf,
     color: "text-emerald-700 dark:text-emerald-400",
     children: [
-      { id: "monstera", labelKa: "მონსტერა", labelEn: "Monstera", emoji: "🌿" },
-      { id: "philodendron", labelKa: "ფილოდენდრონი", labelEn: "Philodendron", emoji: "🌱" },
-      { id: "anthurium", labelKa: "ანთურიუმი", labelEn: "Anthurium", emoji: "🌺" },
-      { id: "alocasia", labelKa: "ალოკაზია", labelEn: "Alocasia", emoji: "🍃" },
-      { id: "calathea", labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta", emoji: "🌿" },
-      { id: "pothos-scindapsus", labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus", emoji: "🌾" },
+      { id: "monstera", labelKa: "მონსტერა", labelEn: "Monstera", emoji: "" },
+      { id: "philodendron", labelKa: "ფილოდენდრონი", labelEn: "Philodendron", emoji: "" },
+      { id: "anthurium", labelKa: "ანთურიუმი", labelEn: "Anthurium", emoji: "" },
+      { id: "alocasia", labelKa: "ალოკაზია", labelEn: "Alocasia", emoji: "" },
+      { id: "calathea", labelKa: "კალათეა / მარანტა", labelEn: "Calathea / Maranta", emoji: "" },
+      { id: "pothos-scindapsus", labelKa: "პოთოსი / სცინდაპსუსი", labelEn: "Pothos / Scindapsus", emoji: "" },
     ],
   },
   {
@@ -78,8 +78,8 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Flower2,
     color: "text-rose-700 dark:text-rose-400",
     children: [
-      { id: "orchid", labelKa: "ორქიდეა", labelEn: "Orchid", emoji: "🌸" },
-      { id: "bromeliad", labelKa: "ბრომელია", labelEn: "Bromeliad", emoji: "🌺" },
+      { id: "orchid", labelKa: "ორქიდეა", labelEn: "Orchid", emoji: "" },
+      { id: "bromeliad", labelKa: "ბრომელია", labelEn: "Bromeliad", emoji: "" },
     ],
   },
   {
@@ -89,10 +89,10 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: TreeDeciduous,
     color: "text-teal-700 dark:text-teal-400",
     children: [
-      { id: "ficus", labelKa: "ფიკუსი", labelEn: "Ficus", emoji: "🌳" },
-      { id: "palm", labelKa: "პალმა", labelEn: "Palm", emoji: "🌴" },
-      { id: "fern", labelKa: "გვიმრა", labelEn: "Fern", emoji: "🌿" },
-      { id: "outdoor-garden", labelKa: "ბაღის & ეზოს მცენარეები", labelEn: "Outdoor & Garden", emoji: "🌻" },
+      { id: "ficus", labelKa: "ფიკუსი", labelEn: "Ficus", emoji: "" },
+      { id: "palm", labelKa: "პალმა", labelEn: "Palm", emoji: "" },
+      { id: "fern", labelKa: "გვიმრა", labelEn: "Fern", emoji: "" },
+      { id: "outdoor-garden", labelKa: "ბაღის & ეზოს მცენარეები", labelEn: "Outdoor & Garden", emoji: "" },
     ],
   },
   {
@@ -102,9 +102,9 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Sprout,
     color: "text-amber-700 dark:text-amber-400",
     children: [
-      { id: "cactus-succulent", labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulent", emoji: "🌵" },
-      { id: "rare-variegated", labelKa: "იშვიათი & ვარიეგატული მცენარეები", labelEn: "Rare & Variegated", emoji: "✨" },
-      { id: "cutting", labelKa: "კალმები & ფესვიანები", labelEn: "Cuttings & Rooted", emoji: "✂️" },
+      { id: "cactus-succulent", labelKa: "კაქტუსი & სუქულენტი", labelEn: "Cactus & Succulent", emoji: "" },
+      { id: "rare-variegated", labelKa: "იშვიათი & ვარიეგატული მცენარეები", labelEn: "Rare & Variegated", emoji: "" },
+      { id: "cutting", labelKa: "კალმები & ფესვიანები", labelEn: "Cuttings & Rooted", emoji: "️" },
     ],
   },
   {
@@ -114,12 +114,12 @@ const PLANT_CATEGORY_GROUPS: LocalizedCategoryGroup[] = [
     icon: Layers,
     color: "text-slate-800 dark:text-slate-200",
     children: [
-      { id: "pots-ceramic", labelKa: "კერამიკული ქოთნები & სადგამები", labelEn: "Ceramic Pots & Saucers", emoji: "🏺" },
-      { id: "pots-plastic", labelKa: "პლასტიკური & საწარმოო ქოთნები", labelEn: "Plastic & Nursery Pots", emoji: "🪣" },
-      { id: "substrate-soil", labelKa: "სუბსტრატები, გრუნტი & პერლიტი", labelEn: "Substrates, Soil & Perlite", emoji: "🌍" },
-      { id: "fertilizer", labelKa: "სასუქები, ვიტამინები & მოვლა", labelEn: "Fertilizer & Growth Nutrients", emoji: "🧪" },
-      { id: "tools-care", labelKa: "მცენარის მოვლის ხელსაწყოები", labelEn: "Care Tools & Shears", emoji: "🔧" },
-      { id: "lighting-grow", labelKa: "ფიტო-განათება (Grow Light)", labelEn: "Grow Lighting", emoji: "💡" },
+      { id: "pots-ceramic", labelKa: "კერამიკული ქოთნები & სადგამები", labelEn: "Ceramic Pots & Saucers", emoji: "" },
+      { id: "pots-plastic", labelKa: "პლასტიკური & საწარმოო ქოთნები", labelEn: "Plastic & Nursery Pots", emoji: "" },
+      { id: "substrate-soil", labelKa: "სუბსტრატები, გრუნტი & პერლიტი", labelEn: "Substrates, Soil & Perlite", emoji: "" },
+      { id: "fertilizer", labelKa: "სასუქები, ვიტამინები & მოვლა", labelEn: "Fertilizer & Growth Nutrients", emoji: "" },
+      { id: "tools-care", labelKa: "მცენარის მოვლის ხელსაწყოები", labelEn: "Care Tools & Shears", emoji: "" },
+      { id: "lighting-grow", labelKa: "ფიტო-განათება (Grow Light)", labelEn: "Grow Lighting", emoji: "" },
     ],
   },
 ];
@@ -573,7 +573,7 @@ export default function ShopStorefrontPage({
         )}
       </div>
 
-      {/* 🔍 Search Keyword */}
+      {/*  Search Keyword */}
       <FilterSection title={isKa ? "ძებნა" : "Search"} defaultOpen={true}>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -595,7 +595,7 @@ export default function ShopStorefrontPage({
         </div>
       </FilterSection>
 
-      {/* 💰 Price Range */}
+      {/*  Price Range */}
       <FilterSection title={isKa ? "ფასის დიაპაზონი (₾)" : "Price Range (₾)"}>
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2.5">
@@ -876,7 +876,7 @@ export default function ShopStorefrontPage({
                     <>
                       <span>•</span>
                       <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-300">
-                        🚚 {shop.deliveryTerms}
+                         {shop.deliveryTerms}
                       </span>
                     </>
                   )}
@@ -1094,7 +1094,7 @@ export default function ShopStorefrontPage({
               ))}
               {selectedDelivery.map((d) => (
                 <span key={d} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-teal-500/15 text-teal-900 dark:text-teal-200 text-xs font-bold border border-teal-500/30">
-                  {d === "COURIER" ? (isKa ? "🚚 კურიერი" : "🚚 Courier") : d === "MARSHRUTKA" ? (isKa ? "🚐 სამარშრუტო" : "🚐 Intercity") : (isKa ? "📍 ადგილზე" : "📍 Pickup")}
+                  {d === "COURIER" ? (isKa ? " კურიერი" : " Courier") : d === "MARSHRUTKA" ? (isKa ? " სამარშრუტო" : " Intercity") : (isKa ? " ადგილზე" : " Pickup")}
                   <button onClick={() => toggleDelivery(d)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
                 </span>
               ))}

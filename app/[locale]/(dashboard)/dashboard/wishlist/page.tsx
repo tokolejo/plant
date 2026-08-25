@@ -46,7 +46,7 @@ export default function WishlistPage() {
         method: "DELETE",
       });
       if (res.ok) {
-        setNotice(`💔 "${title}" ამოიშალა შენახულებიდან`);
+        setNotice(` "${title}" ამოიშალა შენახულებიდან`);
         setTimeout(() => setNotice(""), 3000);
       }
     } catch {
@@ -87,7 +87,7 @@ export default function WishlistPage() {
         <div className="mb-6 rounded-[18px] bg-primary/10 border border-primary/20 p-3.5 text-xs text-primary font-bold flex items-center justify-between animate-in fade-in">
           <span>{notice}</span>
           <button onClick={() => setNotice("")} className="text-primary hover:underline text-xs cursor-pointer">
-            ✕
+            
           </button>
         </div>
       )}
@@ -114,7 +114,7 @@ export default function WishlistPage() {
           </p>
           <Link href="/listings" className="inline-block pt-2">
             <Button className="rounded-[16px] bg-primary hover:bg-primary-container text-white text-xs font-bold px-6 shadow-ambient">
-              🌿 {isKa ? "მცენარეების დათვალიერება" : "Explore Plants"}
+               {isKa ? "მცენარეების დათვალიერება" : "Explore Plants"}
             </Button>
           </Link>
         </div>
@@ -135,7 +135,7 @@ export default function WishlistPage() {
                   />
                   {item.is_vip && (
                     <Badge className="absolute top-2.5 left-2.5 bg-amber-500 text-white font-black text-[10px] shadow-xs">
-                      👑 VIP
+                       VIP
                     </Badge>
                   )}
                   <button
@@ -153,10 +153,10 @@ export default function WishlistPage() {
                 <div className="space-y-1">
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-[10px] font-bold text-primary uppercase">
-                      {item.item_type === "PLANT" ? "🌿 მცენარე" : "🪴 ინვენტარი"}
+                      {item.item_type === "PLANT" ? " მცენარე" : " ინვენტარი"}
                     </span>
                     <span className="text-[10px] text-muted-foreground">
-                      📍 {item.city || "თბილისი"}
+                       {item.city || "თბილისი"}
                     </span>
                   </div>
 
@@ -176,7 +176,7 @@ export default function WishlistPage() {
               {/* Action Link */}
               <div className="pt-3 mt-3 border-t border-border/50 flex items-center justify-between">
                 <span className="text-[10px] text-muted-foreground truncate">
-                  👤 {item.profiles?.full_name || "გამყიდველი"}
+                   {item.profiles?.full_name || "გამყიდველი"}
                 </span>
                 <Link
                   href={`/listings/${item.id}`}

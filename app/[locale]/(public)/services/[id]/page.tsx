@@ -815,7 +815,7 @@ export default function ServiceDetailPage({
                 className="w-full h-10 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 shadow-2xs"
               >
                 <Sparkles className="w-4 h-4 text-primary" />
-                <span>{isKa ? "📝 შეკვეთის / ვიზიტის დატოვება" : "Send Booking Request"}</span>
+                <span>{isKa ? " შეკვეთის / ვიზიტის დატოვება" : "Send Booking Request"}</span>
               </button>
 
               {/* Icon-Only Share & Action Strip */}

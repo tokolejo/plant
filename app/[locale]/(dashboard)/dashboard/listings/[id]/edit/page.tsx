@@ -490,7 +490,7 @@ export default function EditListingPage() {
       }
 
       setSavedId(savedListingId);
-      setSuccessMsg("✨ ცვლილებები წარმატებით შეინახა!");
+      setSuccessMsg(" ცვლილებები წარმატებით შეინახა!");
       router.refresh();
     } catch (err: any) {
       console.error("Save error:", err);
@@ -598,7 +598,7 @@ export default function EditListingPage() {
               }`}
             >
               <Sprout className="w-4 h-4" />
-              🌿 მცენარე
+               მცენარე
             </button>
 
             <button
@@ -615,7 +615,7 @@ export default function EditListingPage() {
               }`}
             >
               <Layers className="w-4 h-4" />
-              🪴 ინვენტარი & მოვლა
+               ინვენტარი & მოვლა
             </button>
           </div>
 
@@ -638,7 +638,7 @@ export default function EditListingPage() {
                 placeholder={
                   selectedCategoryObj
                     ? `${selectedCategoryObj.emoji} ${selectedCategoryObj.nameKa}`
-                    : "🔎 აირჩიეთ კატეგორია ან ჩაწერეთ სახეობა..."
+                    : " აირჩიეთ კატეგორია ან ჩაწერეთ სახეობა..."
                 }
                 className="w-full pl-10 pr-10 h-11 rounded-[14px] border border-border/80 bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-muted-foreground placeholder:font-medium"
               />
@@ -849,7 +849,7 @@ export default function EditListingPage() {
 
               <div>
                 <label className="text-xs font-bold text-foreground mb-1 block">
-                  💧 მორწყვის გრაფიკი
+                   მორწყვის გრაფიკი
                 </label>
                 <Input
                   value={wateringSchedule}
@@ -861,7 +861,7 @@ export default function EditListingPage() {
 
               <div>
                 <label className="text-xs font-bold text-foreground mb-1 block">
-                  ☀️ განათების მოთხოვნა
+                  ️ განათების მოთხოვნა
                 </label>
                 <Input
                   value={lightRequirement}
@@ -873,7 +873,7 @@ export default function EditListingPage() {
 
               <div>
                 <label className="text-xs font-bold text-foreground mb-1 block">
-                  🌱 მოვლის სირთულე
+                   მოვლის სირთულე
                 </label>
                 <div className="grid grid-cols-3 gap-1.5 h-10">
                   {(["Easy", "Medium", "Expert"] as const).map((lvl) => (
@@ -895,7 +895,7 @@ export default function EditListingPage() {
 
               <div className="sm:col-span-2">
                 <label className="text-xs font-bold text-foreground mb-1 block">
-                  🐾 ტოქსიკურობა (შინაური ცხოველების უსაფრთხოება)
+                   ტოქსიკურობა (შინაური ცხოველების უსაფრთხოება)
                 </label>
                 <Input
                   value={toxicity}
@@ -919,10 +919,10 @@ export default function EditListingPage() {
             <span className="text-xs font-bold text-foreground block mb-1.5">გარიგების ტიპი</span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {[
-                { id: "FIXED", label: "ფიქსირებული", emoji: "💰" },
-                { id: "NEGOTIABLE", label: "შეთანხმებით", emoji: "🤝" },
-                { id: "TRADE", label: "გაცვლა", emoji: "🔄" },
-                { id: "GIFT", label: "გაჩუქება", emoji: "🎁" },
+                { id: "FIXED", label: "ფიქსირებული", emoji: "" },
+                { id: "NEGOTIABLE", label: "შეთანხმებით", emoji: "" },
+                { id: "TRADE", label: "გაცვლა", emoji: "" },
+                { id: "GIFT", label: "გაჩუქება", emoji: "" },
               ].map((t) => (
                 <button
                   key={t.id}
@@ -961,7 +961,7 @@ export default function EditListingPage() {
             <div className="rounded-[18px] bg-amber-500/10 border border-amber-500/20 p-4 space-y-3">
               <div className="flex items-center justify-between flex-wrap gap-1">
                 <span className="text-xs font-bold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
-                  <span>🔄</span> რაში გსურთ გაცვლა? (არჩევითი)
+                  <span></span> რაში გსურთ გაცვლა? (არჩევითი)
                 </span>
                 <span className="text-[10px] text-amber-700/80 dark:text-amber-400 font-medium">
                   შეგიძლიათ დატოვოთ ცარიელი
@@ -989,7 +989,7 @@ export default function EditListingPage() {
                           : "bg-card hover:bg-amber-500/15 text-foreground border-border/70 shadow-2xs"
                       }`}
                     >
-                      {isSelected ? "✓ " : "+ "}
+                      {isSelected ? " " : "+ "}
                       {preset}
                     </button>
                   );
@@ -1038,7 +1038,7 @@ export default function EditListingPage() {
                         onClick={() => addSpecificTag(suggestion)}
                         className="w-full text-left px-3 py-1.5 rounded-[10px] text-xs font-semibold hover:bg-amber-500/15 text-foreground transition-colors cursor-pointer flex items-center justify-between"
                       >
-                        <span>🌿 {suggestion}</span>
+                        <span> {suggestion}</span>
                         <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold">+ დამატება</span>
                       </button>
                     ))}
@@ -1105,9 +1105,9 @@ export default function EditListingPage() {
             <span className="text-xs font-bold text-foreground block mb-1.5">მიწოდების მეთოდები</span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               {[
-                { id: "PICKUP", label: "📍 ადგილზე გატანა" },
-                { id: "COURIER", label: "🚚 საკურიერო მიწოდება" },
-                { id: "MARSHRUTKA", label: "🚐 სამარშრუტო / რეგიონი" },
+                { id: "PICKUP", label: " ადგილზე გატანა" },
+                { id: "COURIER", label: " საკურიერო მიწოდება" },
+                { id: "MARSHRUTKA", label: " სამარშრუტო / რეგიონი" },
               ].map((m) => {
                 const isSelected = deliveryMethods.includes(m.id);
                 return (
@@ -1132,7 +1132,7 @@ export default function EditListingPage() {
           {/* Contact Phone */}
           <div className="border-t border-border/50 pt-3">
             <span className="text-xs font-bold text-foreground mb-1 block">
-              📱 საკონტაქტო ნომერი *
+               საკონტაქტო ნომერი *
             </span>
             <Input
               type="tel"
@@ -1177,7 +1177,7 @@ export default function EditListingPage() {
               }`}
             >
               <Eye className="w-4 h-4" />
-              🟢 აქტიური (ჩანს საიტზე)
+               აქტიური (ჩანს საიტზე)
             </button>
 
             <button
@@ -1190,7 +1190,7 @@ export default function EditListingPage() {
               }`}
             >
               <EyeOff className="w-4 h-4" />
-              🟡 დამალული (საიტზე არ ჩანს)
+               დამალული (საიტზე არ ჩანს)
             </button>
           </div>
         </div>

@@ -4,7 +4,7 @@ export default function LocaleNotFound() {
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center p-4 text-center space-y-4">
       <div className="h-14 w-14 rounded-2xl bg-emerald-500/15 text-emerald-600 flex items-center justify-center text-2xl font-bold">
-        🌱
+        
       </div>
       <h1 className="text-4xl font-extrabold text-foreground">404</h1>
       <p className="text-sm text-muted-foreground">

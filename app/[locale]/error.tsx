@@ -17,7 +17,7 @@ export default function LocaleError({
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center p-4 text-center space-y-4">
       <div className="h-14 w-14 rounded-2xl bg-destructive/15 text-destructive flex items-center justify-center text-2xl font-bold">
-        ⚠️
+        ️
       </div>
       <h1 className="text-2xl font-extrabold text-foreground">
         დაფიქსირდა შეცდომა

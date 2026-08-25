@@ -142,13 +142,13 @@ export default function UserDashboardPage() {
   const getTierLabel = (tier: string) => {
     switch (tier) {
       case "TIER_1":
-        return "🌱 კოლექციონერი (Tier 1)";
+        return " კოლექციონერი (Tier 1)";
       case "TIER_2":
-        return "🌿 პრო ბოტანიკოსი (Tier 2)";
+        return " პრო ბოტანიკოსი (Tier 2)";
       case "TIER_3":
-        return "🪴 ორანჟერეა & შოპი (Tier 3)";
+        return " ორანჟერეა & შოპი (Tier 3)";
       default:
-        return "✨ უფასო ტარიფი (Free)";
+        return " უფასო ტარიფი (Free)";
     }
   };
 
@@ -236,7 +236,7 @@ export default function UserDashboardPage() {
         </div>
       </div>
 
-      {/* 🌿 Virtual Greenhouse & AI Doctor Quick Access Banner */}
+      {/*  Virtual Greenhouse & AI Doctor Quick Access Banner */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         <Link
           href="/dashboard/greenhouse"
@@ -368,7 +368,7 @@ export default function UserDashboardPage() {
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════════ */}
-      {/* 🌿 MY LISTINGS SECTION (ჩემი განცხადებები - კომპაქტური & სია/გრიდი)      */}
+      {/*  MY LISTINGS SECTION (ჩემი განცხადებები - კომპაქტური & სია/გრიდი)      */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       <div id="my-listings" className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-6 shadow-ambient mb-8 scroll-mt-24">
         {/* Header Toolbar */}
@@ -462,7 +462,7 @@ export default function UserDashboardPage() {
           </div>
         ) : (
           /* ═══════════════════════════════════════════════════════════════════
-             ☰ COMPACT LIST VIEW (სია - მინიმალური სივრცის დანაკარგი)
+              COMPACT LIST VIEW (სია - მინიმალური სივრცის დანაკარგი)
              ═══════════════════════════════════════════════════════════════════ */
           <div className="overflow-x-auto">
             <div className="divide-y divide-border/40 min-w-[700px]">
@@ -510,16 +510,16 @@ export default function UserDashboardPage() {
                             onChange={(e) => handleStatusChange(item.id, e.target.value)}
                             className="text-[10.5px] font-bold px-2 py-0.5 rounded-[6px] bg-secondary-container border border-border/70 text-foreground cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary"
                           >
-                            <option value="ACTIVE">🟢 აქტიური</option>
-                            <option value="RESERVED">🟡 დაჯავშნილი</option>
-                            <option value="SOLD">⚪ გაყიდული</option>
-                            <option value="HIDDEN">🔒 დამალული</option>
+                            <option value="ACTIVE"> აქტიური</option>
+                            <option value="RESERVED"> დაჯავშნილი</option>
+                            <option value="SOLD"> გაყიდული</option>
+                            <option value="HIDDEN"> დამალული</option>
                           </select>
                         </div>
 
                         {/* Metrics: Location, Views, Phone Clicks */}
                         <div className="flex items-center gap-2.5 text-[11px] text-muted-foreground mt-1 flex-wrap">
-                          <span>📍 {item.city || "თბილისი"}</span>
+                          <span> {item.city || "თბილისი"}</span>
                           <span>•</span>
                           <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
                             <Eye className="w-3 h-3 text-primary" />
@@ -546,7 +546,7 @@ export default function UserDashboardPage() {
                     <div className="shrink-0 text-right min-w-[80px]">
                       {isGift ? (
                         <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-black">
-                          🎁 უფასო
+                           უფასო
                         </span>
                       ) : isTrade ? (
                         <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-bold">

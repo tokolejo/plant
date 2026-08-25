@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
                   isHealthy: true,
                   plantName: plantHint || "მცენარე",
                   speciesName: result.classification?.suggestions?.[0]?.name || "Houseplant",
-                  diseaseName: "მცენარე ჯანმრთელია! 🌿",
+                  diseaseName: "მცენარე ჯანმრთელია!",
                   probability: healthProb,
                   severity: "low",
                   causes: ["მოვლის ოპტიმალური რეჟიმი", "საკმარისი სინათლე და ტენიანობა"],

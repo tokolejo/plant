@@ -218,7 +218,7 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
 
             <div className="space-y-2">
               <h3 className="text-base font-black text-foreground">
-                {isKa ? "✉️ შეამოწმეთ თქვენი ელ-ფოსტა!" : "✉️ Check your email!"}
+                {isKa ? "️ შეამოწმეთ თქვენი ელ-ფოსტა!" : "️ Check your email!"}
               </h3>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {isKa ? "ვერიფიკაციის ბმული გამოგეგზავნათ მისამართზე:" : "A verification link has been sent to:"}{" "}
@@ -226,8 +226,8 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
               </p>
               <p className="text-[11px] text-muted-foreground/80 bg-secondary-container/70 p-3 rounded-[14px] border border-border/50">
                 {isKa 
-                  ? "💡 გთხოვთ გახსნათ მიღებული წერილი და დააჭიროთ დასტურის ბმულს ანგარიშის გასააქტიურებლად (შეამოწმეთ Spam საქაღალდეც)."
-                  : "💡 Please open the email and click the confirmation link to activate your account (also check your Spam folder)."}
+                  ? " გთხოვთ გახსნათ მიღებული წერილი და დააჭიროთ დასტურის ბმულს ანგარიშის გასააქტიურებლად (შეამოწმეთ Spam საქაღალდეც)."
+                  : " Please open the email and click the confirmation link to activate your account (also check your Spam folder)."}
               </p>
             </div>
 

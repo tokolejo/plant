@@ -292,7 +292,7 @@ export default function ShopSettingsDashboardPage() {
 
             <div className="sm:col-span-2">
               <label className="text-xs font-bold text-muted-foreground block mb-1.5">
-                🖼️ მაღაზიის მთავარი ქავერ ბანერის სურათი (Cover Banner URL)
+                ️ მაღაზიის მთავარი ქავერ ბანერის სურათი (Cover Banner URL)
               </label>
               <input
                 type="url"
@@ -323,7 +323,7 @@ export default function ShopSettingsDashboardPage() {
 
             <div>
               <label className="text-xs font-bold text-muted-foreground block mb-1.5">
-                🚚 მიწოდების პირობები
+                 მიწოდების პირობები
               </label>
               <input
                 type="text"

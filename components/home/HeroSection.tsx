@@ -52,7 +52,7 @@ export function HeroSection() {
     <section className="relative py-5 sm:py-8 border-b border-border/60 bg-surface-cream/30" style={{ overflow: 'visible' }}>
       <div className="container mx-auto px-4 sm:px-6 max-w-4xl">
 
-        {/* 🌟 1. Compact Header */}
+        {/*  1. Compact Header */}
         <div className="text-center mb-4 sm:mb-6 space-y-1">
           <h1 className="text-lg sm:text-2xl lg:text-[26px] font-black tracking-tight text-foreground leading-snug">
             {isKa ? (
@@ -79,7 +79,7 @@ export function HeroSection() {
           </p>
         </div>
 
-        {/* 🔍 2. Sleek Search Box — Clean Modern Card on Mobile, Pill Capsule on Desktop */}
+        {/*  2. Sleek Search Box — Clean Modern Card on Mobile, Pill Capsule on Desktop */}
         <div className="relative max-w-2xl mx-auto z-20" style={{ overflow: 'visible' }}>
           <form
             onSubmit={handleSearch}
@@ -119,7 +119,7 @@ export function HeroSection() {
           </form>
         </div>
 
-        {/* 🏷️ 3. Clean Category / Filter Shortcuts with Icon-Only Expand/Collapse */}
+        {/* ️ 3. Clean Category / Filter Shortcuts with Icon-Only Expand/Collapse */}
         <div className="flex items-center gap-1.5 sm:gap-2 mt-3.5 text-xs overflow-x-auto sm:overflow-visible no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 sm:flex-wrap sm:justify-center">
           <span className="flex items-center gap-1 font-bold text-muted-foreground text-[11px] shrink-0 mr-0.5">
             <TrendingUp className="w-3 h-3 text-primary" />
@@ -144,7 +144,7 @@ export function HeroSection() {
             </button>
           ))}
 
-          {/* 🌟 Icon-Only Expand / Collapse Button */}
+          {/*  Icon-Only Expand / Collapse Button */}
           <button
             type="button"
             onClick={() => setExpandedTags(!expandedTags)}

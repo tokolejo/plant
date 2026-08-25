@@ -89,7 +89,7 @@ export function IsoBoardPreview() {
     <section className="pt-4 sm:pt-6 pb-5 sm:pb-7 bg-surface-cream/40 border-y border-border/60">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         
-        {/* 🌟 1. Compact Header */}
+        {/*  1. Compact Header */}
         <div className="text-center max-w-2xl mx-auto space-y-1 mb-3.5 sm:mb-4">
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
             <Shuffle className="w-3.5 h-3.5" />
@@ -105,7 +105,7 @@ export function IsoBoardPreview() {
           </p>
         </div>
 
-        {/* 🌟 2. Action Buttons & Navigation */}
+        {/*  2. Action Buttons & Navigation */}
         <div className="flex items-center justify-between gap-2 mb-4">
           {/* Centered Actions */}
           <div className="flex-1 flex items-center justify-center gap-2 sm:gap-3">
@@ -150,7 +150,7 @@ export function IsoBoardPreview() {
           )}
         </div>
 
-        {/* 📱 3. Modern Botanical Plant Swap Cards */}
+        {/*  3. Modern Botanical Plant Swap Cards */}
         {tradeListings.length > 0 ? (
           <div
             ref={sliderRef}
@@ -180,7 +180,7 @@ export function IsoBoardPreview() {
                   href={`/listings/${iso.id}`}
                   className="w-[250px] sm:w-[270px] md:w-[285px] lg:w-full shrink-0 lg:shrink snap-start flex flex-col justify-between rounded-[20px] border border-border/80 bg-card overflow-hidden shadow-ambient hover:border-primary/50 hover:shadow-ambient-lg transition-all group select-none cursor-pointer"
                 >
-                  {/* 🌿 1. Clean, 100% Unobstructed Plant Image */}
+                  {/*  1. Clean, 100% Unobstructed Plant Image */}
                   <div className="relative aspect-[4/3] w-full bg-surface-container overflow-hidden">
                     {plantImage ? (
                       <img
@@ -196,7 +196,7 @@ export function IsoBoardPreview() {
                     )}
                   </div>
 
-                  {/* 📝 2. Card Body — All Details Clearly Below Image */}
+                  {/*  2. Card Body — All Details Clearly Below Image */}
                   <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between gap-3">
                     <div className="space-y-2">
                       {/* Status & City Badges Row (Crystal-Clear & Readable) */}

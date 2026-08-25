@@ -96,7 +96,7 @@ export function ListingCard({
 
   // Localized clean title display (strips redundant 'საჩუქარი:' prefixes)
   const rawTitle = isKa ? (titleKa || title || "") : (titleEn || title || "");
-  const displayTitle = rawTitle.replace(/^(\s*🎁\s*(საჩუქარი|gift):?\s*|\s*🎁\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
+  const displayTitle = rawTitle.replace(/^(\s*\s*(საჩუქარი|gift):?\s*|\s*\s*|\s*(საჩუქარი|gift):?\s*)/i, "").trim();
 
   // Clean concise city name for compact badges (strips parenthesized districts e.g. "თბილისი (ჩუღურეთი)" -> "თბილისი")
   const cleanCity = (city || (isKa ? "თბილისი" : "Tbilisi")).replace(/\s*\(.*\)/, "").split(",")[0].trim();

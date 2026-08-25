@@ -100,7 +100,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
     <section className="pt-4 sm:pt-6 pb-8 sm:pb-10">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-        {/* 🏷️ 1. Tabs Row + High-Visibility Desktop Slider Navigation Arrows */}
+        {/* ️ 1. Tabs Row + High-Visibility Desktop Slider Navigation Arrows */}
         <div className="flex items-center justify-between gap-2 mb-4 sm:mb-5">
           <div className="flex-1 flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
             {[
@@ -152,7 +152,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
           </div>
         </div>
 
-        {/* 📱 2. Horizontal Touch-Swipeable Slider */}
+        {/*  2. Horizontal Touch-Swipeable Slider */}
         {filtered.length > 0 ? (
           <div
             ref={sliderRef}
@@ -175,7 +175,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
           </div>
         )}
 
-        {/* 🔗 3. Compact & Refined View All Button */}
+        {/*  3. Compact & Refined View All Button */}
         <div className="flex justify-center items-center mt-5">
           <Link href="/listings">
             <Button

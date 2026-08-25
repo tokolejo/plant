@@ -146,7 +146,7 @@ export default function AdminDashboardPage() {
           const { error } = await supabase.rpc("bulk_delete_listings", { listing_ids: realIds });
           if (error) throw error;
         }
-        showNotice(`🗑️ ${ids.length} განცხადება წარმატებით წაიშალა!`);
+        showNotice(`️ ${ids.length} განცხადება წარმატებით წაიშალა!`);
       } else {
         setListings((prev) =>
           prev.map((l) => selectedIds.has(l.id) ? { ...l, status: action } : l)
@@ -158,12 +158,12 @@ export default function AdminDashboardPage() {
           });
           if (error) throw error;
         }
-        const label = action === "ACTIVE" ? "🟢 გამოჩენილი" : "🟡 დამალული";
-        showNotice(`✅ ${ids.length} განცხადება — ${label}!`);
+        const label = action === "ACTIVE" ? " გამოჩენილი" : " დამალული";
+        showNotice(` ${ids.length} განცხადება — ${label}!`);
       }
       setSelectedIds(new Set());
     } catch (err: any) {
-      showNotice(`❌ შეცდომა: ${err.message}`);
+      showNotice(` შეცდომა: ${err.message}`);
     } finally {
       setBulkLoading(false);
     }
@@ -216,7 +216,7 @@ export default function AdminDashboardPage() {
   const [toast, setToast] = React.useState<{ id: string; type: "success" | "error" | "info"; message: string } | null>(null);
 
   const showNotice = (msg: string, type?: "success" | "error" | "info") => {
-    const isErr = msg.startsWith("❌") || msg.startsWith("🚫") || type === "error";
+    const isErr = msg.startsWith("") || msg.startsWith("") || type === "error";
     const finalType = isErr ? "error" : (type || "success");
     setToast({
       id: Math.random().toString(),
@@ -343,7 +343,7 @@ export default function AdminDashboardPage() {
 
       if (error) {
         console.error("Supabase status update error:", error);
-        showNotice(`❌ შეცდომა სტატუსის განახლებისას: ${error.message}`);
+        showNotice(` შეცდომა სტატუსის განახლებისას: ${error.message}`);
         return;
       }
 
@@ -368,11 +368,11 @@ export default function AdminDashboardPage() {
     }
 
     const labelMap: Record<string, string> = {
-      ACTIVE: "🟢 აქტიური (გამოჩენილი)",
-      HIDDEN: "🟡 დამალული (საიტზე არ ჩანს)",
-      REJECTED: "🔴 დაბლოკილი",
+      ACTIVE: " აქტიური (გამოჩენილი)",
+      HIDDEN: " დამალული (საიტზე არ ჩანს)",
+      REJECTED: " დაბლოკილი",
     };
-    showNotice(`✅ განცხადების (${listingTitle}) სტატუსი შეიცვალა: ${labelMap[newStatus] || newStatus}`);
+    showNotice(` განცხადების (${listingTitle}) სტატუსი შეიცვალა: ${labelMap[newStatus] || newStatus}`);
   };
 
   const deleteListing = async (id: string, title: string) => {
@@ -386,7 +386,7 @@ export default function AdminDashboardPage() {
     if (!id.startsWith("lst-")) {
       const { error } = await supabase.from("listings").delete().eq("id", id);
       if (error) {
-        showNotice(`❌ წაშლის შეცდომა: ${error.message}`);
+        showNotice(` წაშლის შეცდომა: ${error.message}`);
         return;
       }
 
@@ -402,7 +402,7 @@ export default function AdminDashboardPage() {
         },
       });
     }
-    showNotice(`🗑️ განცხადება წარმატებით წაიშალა: "${title}"`);
+    showNotice(`️ განცხადება წარმატებით წაიშალა: "${title}"`);
   };
 
   const updateUserTier = async (id: string, newTier: string) => {
@@ -418,7 +418,7 @@ export default function AdminDashboardPage() {
     if (!id.startsWith("usr-")) {
       const { error } = await supabase.from("profiles").update({ subscription_tier: newTier }).eq("id", id);
       if (error) {
-        showNotice(`❌ შეცდომა: ${error.message}`);
+        showNotice(` შეცდომა: ${error.message}`);
         return;
       }
       logAuditEvent({
@@ -442,7 +442,7 @@ export default function AdminDashboardPage() {
         },
       });
     }
-    showNotice(`✅ ${userName}-ს (${userEmail}) ტარიფი განახლდა: ${oldTier} → ${newTier}`);
+    showNotice(` ${userName}-ს (${userEmail}) ტარიფი განახლდა: ${oldTier} → ${newTier}`);
   };
 
   const updateUserRole = async (id: string, newRole: string) => {
@@ -452,7 +452,7 @@ export default function AdminDashboardPage() {
       currentUserRole !== "SUPER_ADMIN" &&
       currentUser?.email !== "tokolejo@gmail.com"
     ) {
-      showNotice("❌ მხოლოდ Super Admin-ს შეუძლია ადმინისტრატორის ან სუპერ ადმინის როლის მინიჭება!");
+      showNotice(" მხოლოდ Super Admin-ს შეუძლია ადმინისტრატორის ან სუპერ ადმინის როლის მინიჭება!");
       return;
     }
 
@@ -479,7 +479,7 @@ export default function AdminDashboardPage() {
         .eq("id", id);
 
       if (error) {
-        showNotice(`❌ შეცდომა როლის მინიჭებისას: ${error.message}`);
+        showNotice(` შეცდომა როლის მინიჭებისას: ${error.message}`);
         return;
       }
 
@@ -516,7 +516,7 @@ export default function AdminDashboardPage() {
       USER: "USER (მომხმარებელი)",
     };
 
-    showNotice(`✅ ${userName}-ს (${userEmail}) როლი განახლდა: ${oldRole} → ${roleNameKa[newRole] || newRole}`);
+    showNotice(` ${userName}-ს (${userEmail}) როლი განახლდა: ${oldRole} → ${roleNameKa[newRole] || newRole}`);
   };
 
   const updateUserSlug = async (id: string, newSlug: string) => {
@@ -535,7 +535,7 @@ export default function AdminDashboardPage() {
         .update({ custom_slug: cleanSlug })
         .eq("id", id);
       if (error) {
-        showNotice(`❌ შეცდომა სლაგის განახლებისას: ${error.message}`);
+        showNotice(` შეცდომა სლაგის განახლებისას: ${error.message}`);
         return;
       }
 
@@ -558,7 +558,7 @@ export default function AdminDashboardPage() {
         },
       });
     }
-    showNotice(cleanSlug ? `✅ ${userName}-ს Custom Slug განახლდა: /${cleanSlug}` : `✅ ${userName}-ს Custom Slug გასუფთავდა`);
+    showNotice(cleanSlug ? ` ${userName}-ს Custom Slug განახლდა: /${cleanSlug}` : ` ${userName}-ს Custom Slug გასუფთავდა`);
   };
 
   const handlePlanChange = (planId: string, field: keyof SubscriptionPlanItem, value: any) => {
@@ -623,7 +623,7 @@ export default function AdminDashboardPage() {
       newData: duplicatedPlan,
     });
 
-    showNotice(`📋 ტარიფი "${original.nameKa}" დადუბლირდა! შეგიძლიათ შეცვალოთ და შეინახოთ.`);
+    showNotice(` ტარიფი "${original.nameKa}" დადუბლირდა! შეგიძლიათ შეცვალოთ და შეინახოთ.`);
   };
 
   const handleAddFeature = (planId: string, featureText: string) => {
@@ -694,10 +694,10 @@ export default function AdminDashboardPage() {
         targetType: "PLAN",
         newData: { totalPlans: plans.length, tiers: plans.map((p) => p.tier) },
       });
-      showNotice("💎 ტარიფების პარამეტრები წარმატებით შეინახა და აისახა საიტზე!");
+      showNotice(" ტარიფების პარამეტრები წარმატებით შეინახა და აისახა საიტზე!");
       setTimeout(() => setPlansSaved(false), 3500);
     } catch (err: any) {
-      showNotice(`❌ შეცდომა ტარიფების შენახვისას: ${err.message}`);
+      showNotice(` შეცდომა ტარიფების შენახვისას: ${err.message}`);
     }
   };
 
@@ -721,12 +721,12 @@ export default function AdminDashboardPage() {
       oldData: planToDelete,
     });
 
-    showNotice(`🗑️ ტარიფი "${planToDelete.nameKa}" წაიშალა!`);
+    showNotice(`️ ტარიფი "${planToDelete.nameKa}" წაიშალა!`);
   };
 
   const handleCreateNewPlan = async () => {
     if (!newPlanForm.nameKa || !newPlanForm.tier) {
-      showNotice("❌ გთხოვთ შეიყვანოთ ტარიფის ქართული სახელი და უნიკალური კოდი (Tier)!");
+      showNotice(" გთხოვთ შეიყვანოთ ტარიფის ქართული სახელი და უნიკალური კოდი (Tier)!");
       return;
     }
 
@@ -781,13 +781,13 @@ export default function AdminDashboardPage() {
       newData: newPlan,
     });
 
-    showNotice(`🎉 ახალი ტარიფი "${newPlan.nameKa}" წარმატებით შეიქმნა!`);
+    showNotice(` ახალი ტარიფი "${newPlan.nameKa}" წარმატებით შეიქმნა!`);
     setShowNewPlanModal(false);
   };
 
   const handleSeedListingsToAdmin = async () => {
     if (!currentUser) {
-      showNotice("❌ ჯერ გაიარეთ ავტორიზაცია");
+      showNotice(" ჯერ გაიარეთ ავტორიზაცია");
       return;
     }
 
@@ -819,11 +819,11 @@ export default function AdminDashboardPage() {
 
       if (error) throw error;
 
-      showNotice(`🎉 წარმატებით ჩაიწერა ${data.length} სატესტო განცხადება!`);
+      showNotice(` წარმატებით ჩაიწერა ${data.length} სატესტო განცხადება!`);
       loadAdminData();
     } catch (err: any) {
       console.error("Seed error:", err);
-      showNotice(`❌ შეცდომა ჩაწერისას: ${err.message}`);
+      showNotice(` შეცდომა ჩაწერისას: ${err.message}`);
     }
   };
 
@@ -876,11 +876,11 @@ export default function AdminDashboardPage() {
         },
       });
 
-      showNotice(`🚫 ${selectedUserIds.size} მომხმარებელი გაიყინა!`);
+      showNotice(` ${selectedUserIds.size} მომხმარებელი გაიყინა!`);
       setSelectedUserIds(new Set());
       loadAdminData();
     } catch (err: any) {
-      showNotice(`❌ შეცდომა: ${err.message}`);
+      showNotice(` შეცდომა: ${err.message}`);
     } finally {
       setBulkUserLoading(false);
     }
@@ -914,11 +914,11 @@ export default function AdminDashboardPage() {
         },
       });
 
-      showNotice(`💎 ${selectedUserIds.size} მომხმარებელს გაუგრძელდა ტარიფი +${extraDays} დღით!`);
+      showNotice(` ${selectedUserIds.size} მომხმარებელს გაუგრძელდა ტარიფი +${extraDays} დღით!`);
       setSelectedUserIds(new Set());
       loadAdminData();
     } catch (err: any) {
-      showNotice(`❌ შეცდომა: ${err.message}`);
+      showNotice(` შეცდომა: ${err.message}`);
     } finally {
       setBulkUserLoading(false);
     }
@@ -955,7 +955,7 @@ export default function AdminDashboardPage() {
   const handleScrapeAffiliate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!affiliateUrl.trim()) {
-      showNotice("❌ შეიყვანეთ პროდუქტის URL");
+      showNotice(" შეიყვანეთ პროდუქტის URL");
       return;
     }
     setScrapingAffiliate(true);
@@ -974,9 +974,9 @@ export default function AdminDashboardPage() {
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || "სკრეიპინგი ვერ შესრულდა");
       setScrapedPreview(json.data);
-      showNotice("✅ პროდუქტის მონაცემები წარმატებით ამოღებულია!");
+      showNotice(" პროდუქტის მონაცემები წარმატებით ამოღებულია!");
     } catch (err: any) {
-      showNotice(`❌ შეცდომა: ${err.message}`);
+      showNotice(` შეცდომა: ${err.message}`);
     } finally {
       setScrapingAffiliate(false);
     }
@@ -999,12 +999,12 @@ export default function AdminDashboardPage() {
       }).select().single();
 
       if (error) throw error;
-      showNotice(`🎉 პარტნიორი პროდუქტი "${scrapedPreview.productName}" შენახულია!`);
+      showNotice(` პარტნიორი პროდუქტი "${scrapedPreview.productName}" შენახულია!`);
       setScrapedPreview(null);
       setAffiliateUrl("");
       loadAffiliates();
     } catch (err: any) {
-      showNotice(`❌ შენახვის შეცდომა: ${err.message}`);
+      showNotice(` შენახვის შეცდომა: ${err.message}`);
     }
   };
 
@@ -1012,7 +1012,7 @@ export default function AdminDashboardPage() {
     if (!confirm(`წაიშალოს პარტნიორი პროდუქტი: "${name}"?`)) return;
     setAffiliateProducts((prev) => prev.filter((p) => p.id !== id));
     await supabase.from("affiliate_products").delete().eq("id", id);
-    showNotice(`🗑️ პარტნიორი პროდუქტი "${name}" წაიშალა`);
+    showNotice(`️ პარტნიორი პროდუქტი "${name}" წაიშალა`);
   };
 
   const handleToggleAffiliateActive = async (id: string, currentActive: boolean) => {
@@ -1021,7 +1021,7 @@ export default function AdminDashboardPage() {
       prev.map((p) => (p.id === id ? { ...p, is_active: next } : p))
     );
     await supabase.from("affiliate_products").update({ is_active: next }).eq("id", id);
-    showNotice(next ? "🟢 პროდუქტი გააქტიურდა" : "🟡 პროდუქტი დაპაუზდა");
+    showNotice(next ? " პროდუქტი გააქტიურდა" : " პროდუქტი დაპაუზდა");
   };
 
   // ──────────────────────────────────────────────
@@ -1229,9 +1229,9 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status: newStatus, adminNotes: notes }),
       });
-      showNotice(`✅ შეტყობინების სტატუსი განახლდა: ${newStatus}`);
+      showNotice(` შეტყობინების სტატუსი განახლდა: ${newStatus}`);
     } catch (err: any) {
-      showNotice(`❌ შეცდომა: ${err.message}`);
+      showNotice(` შეცდომა: ${err.message}`);
     }
   };
 
@@ -1241,9 +1241,9 @@ export default function AdminDashboardPage() {
     if (selectedFeedbackModal?.id === id) setSelectedFeedbackModal(null);
     try {
       await fetch(`/api/admin/feedback?id=${id}`, { method: "DELETE" });
-      showNotice(`🗑️ შეტყობინება წაიშალა`);
+      showNotice(`️ შეტყობინება წაიშალა`);
     } catch (err: any) {
-      showNotice(`❌ შეცდომა წაშლისას: ${err.message}`);
+      showNotice(` შეცდომა წაშლისას: ${err.message}`);
     }
   };
 
@@ -1293,11 +1293,11 @@ export default function AdminDashboardPage() {
       a.href = url;
       a.download = `plantsale_feedback_${new Date().toISOString().split("T")[0]}.csv`;
       a.click();
-      showNotice("📥 ფიდბექის CSV ექსპორტი ჩამოიტვირთა!");
+      showNotice(" ფიდბექის CSV ექსპორტი ჩამოიტვირთა!");
       return;
     }
     window.open(`/api/admin/export?type=${type}`, "_blank");
-    showNotice(`📥 ${type} ექსპორტის ფაილის გადმოწერა დაიწყო...`);
+    showNotice(` ${type} ექსპორტის ფაილის გადმოწერა დაიწყო...`);
   };
 
   // ──────────────────────────────────────────────
@@ -1519,7 +1519,7 @@ export default function AdminDashboardPage() {
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => { loadAdminData(); showNotice("🔄 მონაცემები გადამოწმდა და განახლდა!"); }}
+              onClick={() => { loadAdminData(); showNotice(" მონაცემები გადამოწმდა და განახლდა!"); }}
               className="h-8 rounded-xl px-2.5 text-xs font-bold gap-1 border-border/80 hover:bg-surface-container cursor-pointer"
               title="მონაცემების განახლება"
             >
@@ -1629,7 +1629,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => { loadAdminData(); showNotice("🔄 მონაცემები გადამოწმდა და განახლდა!"); }}
+                onClick={() => { loadAdminData(); showNotice(" მონაცემები გადამოწმდა და განახლდა!"); }}
                 className="flex-1 sm:flex-none rounded-xl text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer h-9 px-3"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-primary" />
@@ -1638,7 +1638,7 @@ export default function AdminDashboardPage() {
             </div>
           </div>
 
-          {/* 🔍 Search & Filter Bar */}
+          {/*  Search & Filter Bar */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 bg-secondary-container/40 p-4 rounded-[20px] border border-border/60">
             
             {/* Text Search */}
@@ -1669,13 +1669,13 @@ export default function AdminDashboardPage() {
                 className="w-full py-2 px-3 rounded-[12px] border border-border/80 text-xs bg-background font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20"
               >
                 <option value="all">ყველა სტატუსი</option>
-                <option value="ACTIVE">🟢 აქტიური (საიტზე ჩანს)</option>
-                <option value="HIDDEN">🟡 დამალული (არ ჩანს)</option>
-                <option value="REJECTED">🔴 დაბლოკილი</option>
+                <option value="ACTIVE"> აქტიური (საიტზე ჩანს)</option>
+                <option value="HIDDEN"> დამალული (არ ჩანს)</option>
+                <option value="REJECTED"> დაბლოკილი</option>
               </select>
             </div>
 
-            {/* 👤 Searchable Seller / User Combobox */}
+            {/*  Searchable Seller / User Combobox */}
             <div className="relative" ref={sellerDropdownRef}>
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block mb-1">
                 გამყიდველი / უზერი
@@ -1793,8 +1793,8 @@ export default function AdminDashboardPage() {
                   className="w-full py-2 px-2 rounded-[12px] border border-border/80 text-xs bg-background font-semibold focus:outline-none"
                 >
                   <option value="all">ყველა ტიპი</option>
-                  <option value="PLANT">🌿 მცენარე</option>
-                  <option value="INVENTORY">🪴 ინვენტარი</option>
+                  <option value="PLANT"> მცენარე</option>
+                  <option value="INVENTORY"> ინვენტარი</option>
                 </select>
                 <select
                   value={transactionFilter}
@@ -1802,15 +1802,15 @@ export default function AdminDashboardPage() {
                   className="w-full py-2 px-2 rounded-[12px] border border-border/80 text-xs bg-background font-semibold focus:outline-none"
                 >
                   <option value="all">გარიგება</option>
-                  <option value="FIXED">💰 ფასი</option>
-                  <option value="TRADE">🔄 გაცვლა</option>
-                  <option value="GIFT">🎁 საჩუქარი</option>
+                  <option value="FIXED"> ფასი</option>
+                  <option value="TRADE"> გაცვლა</option>
+                  <option value="GIFT"> საჩუქარი</option>
                 </select>
               </div>
             </div>
           </div>
 
-          {/* 📅 Date Filter Presets & Custom Range */}
+          {/*  Date Filter Presets & Custom Range */}
           <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-3 rounded-[16px] border border-border/60">
             <div className="flex items-center gap-1.5 flex-wrap">
               <span className="text-xs font-bold text-muted-foreground flex items-center gap-1 mr-1">
@@ -1822,7 +1822,7 @@ export default function AdminDashboardPage() {
                 { id: "1day", label: "დღეს (1 დღე)" },
                 { id: "1week", label: "ამ კვირაში (7 დღე)" },
                 { id: "1month", label: "ამ თვეში (30 დღე)" },
-                { id: "custom", label: "დიაპაზონი 📅" },
+                { id: "custom", label: "დიაპაზონი " },
               ].map((df) => (
                 <button
                   key={df.id}
@@ -1864,7 +1864,7 @@ export default function AdminDashboardPage() {
           {selectedIds.size > 0 && (
             <div className="flex items-center justify-between gap-3 bg-primary/10 border border-primary/30 rounded-[16px] px-4 py-2.5 animate-in fade-in slide-in-from-top-1">
               <span className="text-xs font-bold text-primary">
-                ✅ {selectedIds.size} განცხადება მონიშნული
+                 {selectedIds.size} განცხადება მონიშნული
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -1906,7 +1906,7 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* 📱 Mobile Listing Cards (< md screens) */}
+          {/*  Mobile Listing Cards (< md screens) */}
           <div className="block md:hidden space-y-3">
             {filteredListings.length === 0 ? (
               <div className="py-10 text-center text-muted-foreground text-xs font-semibold bg-secondary-container/20 rounded-2xl border border-dashed border-border/80">
@@ -1960,26 +1960,26 @@ export default function AdminDashboardPage() {
                           {/* Status Badge */}
                           {isHidden ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-black shrink-0">
-                              🟡 დამალული
+                               დამალული
                             </span>
                           ) : isRejected ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-destructive/15 text-destructive text-[10px] font-black shrink-0">
-                              🔴 დაბლოკილი
+                               დაბლოკილი
                             </span>
                           ) : isDeleted ? (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold shrink-0">
-                              🗑️ წაშლილი
+                              ️ წაშლილი
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-black shrink-0">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              🟢 აქტიური
+                               აქტიური
                             </span>
                           )}
                         </div>
 
                         <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                          <span>📍 {item.city || "თბილისი"}</span>
+                          <span> {item.city || "თბილისი"}</span>
                           <span>•</span>
                           <span className="font-semibold truncate">{item.seller?.fullName || "გამყიდველი"}</span>
                         </div>
@@ -1988,11 +1988,11 @@ export default function AdminDashboardPage() {
                           <div>
                             {item.transactionType === "GIFT" || item.price === 0 ? (
                               <Badge variant="outline" className="text-[10px] font-black border-emerald-500/40 text-emerald-600 bg-emerald-500/5">
-                                🎁 საჩუქარი
+                                 საჩუქარი
                               </Badge>
                             ) : item.transactionType === "TRADE" ? (
                               <Badge variant="outline" className="text-[10px] font-bold border-amber-500/40 text-amber-600 bg-amber-500/5">
-                                🔄 გაცვლა
+                                 გაცვლა
                               </Badge>
                             ) : (
                               <span className="font-black text-foreground text-xs">
@@ -2058,7 +2058,7 @@ export default function AdminDashboardPage() {
             )}
           </div>
 
-          {/* 💻 Desktop Data Table (>= md screens) */}
+          {/*  Desktop Data Table (>= md screens) */}
           <div className="hidden md:block overflow-x-auto rounded-[18px] border border-border/80">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[11px] font-bold select-none">
@@ -2219,7 +2219,7 @@ export default function AdminDashboardPage() {
                                 {item.title}
                               </Link>
                               <span className="text-[10px] text-muted-foreground flex items-center gap-1 truncate">
-                                📍 {item.city || "თბილისი"} {item.address ? `· ${item.address}` : ""}
+                                 {item.city || "თბილისი"} {item.address ? `· ${item.address}` : ""}
                               </span>
                             </div>
                           </div>
@@ -2228,7 +2228,7 @@ export default function AdminDashboardPage() {
                         {/* Type & Plant Category */}
                         <td className="py-3 px-3">
                           <span className="inline-flex items-center gap-1 text-[11px] font-bold text-foreground">
-                            {item.itemType === "PLANT" ? "🌿 მცენარე" : "🪴 ინვენტარი"}
+                            {item.itemType === "PLANT" ? " მცენარე" : " ინვენტარი"}
                           </span>
                           <span className="text-[10px] text-muted-foreground block capitalize">
                             {item.plantCategory || "monstera"}
@@ -2239,11 +2239,11 @@ export default function AdminDashboardPage() {
                         <td className="py-3 px-3">
                           {item.transactionType === "GIFT" || item.price === 0 ? (
                             <Badge variant="outline" className="text-[10px] font-black border-emerald-500/40 text-emerald-600 bg-emerald-500/5">
-                              🎁 საჩუქარი
+                               საჩუქარი
                             </Badge>
                           ) : item.transactionType === "TRADE" ? (
                             <Badge variant="outline" className="text-[10px] font-bold border-amber-500/40 text-amber-600 bg-amber-500/5">
-                              🔄 გაცვლა
+                               გაცვლა
                             </Badge>
                           ) : (
                             <span className="font-black text-foreground text-xs">
@@ -2266,20 +2266,20 @@ export default function AdminDashboardPage() {
                         <td className="py-3 px-3">
                           {isHidden ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-300 text-[10px] font-black">
-                              🟡 დამალული
+                               დამალული
                             </span>
                           ) : isRejected ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-destructive/15 text-destructive text-[10px] font-black">
-                              🔴 დაბლოკილი
+                               დაბლოკილი
                             </span>
                           ) : isDeleted ? (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-[10px] font-bold">
-                              🗑️ წაშლილი
+                              ️ წაშლილი
                             </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-[10px] font-black">
                               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                              🟢 აქტიური
+                               აქტიური
                             </span>
                           )}
                         </td>
@@ -2394,7 +2394,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => { loadAdminData(); showNotice("🔄 მომხმარებლების სია განახლდა!"); }}
+                onClick={() => { loadAdminData(); showNotice(" მომხმარებლების სია განახლდა!"); }}
                 className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5 text-primary" />
@@ -2407,7 +2407,7 @@ export default function AdminDashboardPage() {
           {selectedUserIds.size > 0 && (
             <div className="flex items-center justify-between gap-3 bg-teal-500/10 border border-teal-500/30 rounded-[16px] px-4 py-2.5 animate-in fade-in">
               <span className="text-xs font-bold text-teal-800 dark:text-teal-300">
-                👥 {selectedUserIds.size} მომხმარებელი მონიშნულია
+                 {selectedUserIds.size} მომხმარებელი მონიშნულია
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -2441,7 +2441,7 @@ export default function AdminDashboardPage() {
             </div>
           )}
 
-          {/* 📱 Mobile Users Card List (< md screens) */}
+          {/*  Mobile Users Card List (< md screens) */}
           <div className="grid grid-cols-1 gap-3.5 block md:hidden">
             {users.map((user) => {
               const isSelected = selectedUserIds.has(user.id);
@@ -2526,13 +2526,13 @@ export default function AdminDashboardPage() {
                         onChange={(e) => updateUserRole(user.id, e.target.value)}
                         className="w-full h-8.5 px-2 rounded-[10px] border border-border/80 bg-background text-foreground text-[11px] font-bold focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer shadow-2xs"
                       >
-                        <option value="USER">👤 USER</option>
-                        <option value="PARTNER">🤝 PARTNER</option>
-                        <option value="SUPPORT">🎧 SUPPORT</option>
-                        <option value="MODERATOR">🛡️ MODERATOR</option>
-                        <option value="CONTENT_MANAGER">📝 CONTENT</option>
-                        <option value="FINANCE_ADMIN" disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}>💰 FINANCE</option>
-                        <option value="SUPER_ADMIN" disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}>👑 SUPER ADMIN</option>
+                        <option value="USER"> USER</option>
+                        <option value="PARTNER"> PARTNER</option>
+                        <option value="SUPPORT"> SUPPORT</option>
+                        <option value="MODERATOR">️ MODERATOR</option>
+                        <option value="CONTENT_MANAGER"> CONTENT</option>
+                        <option value="FINANCE_ADMIN" disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}> FINANCE</option>
+                        <option value="SUPER_ADMIN" disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}> SUPER ADMIN</option>
                       </select>
                     </div>
 
@@ -2555,7 +2555,7 @@ export default function AdminDashboardPage() {
             })}
           </div>
 
-          {/* 💻 Desktop Users Data Table (>= md screens) */}
+          {/*  Desktop Users Data Table (>= md screens) */}
           <div className="hidden md:block overflow-x-auto rounded-[18px] border border-border/80">
             <table className="w-full text-left text-xs">
               <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[10px] font-bold select-none">
@@ -2668,22 +2668,22 @@ export default function AdminDashboardPage() {
                           onChange={(e) => updateUserRole(user.id, e.target.value)}
                           className="py-1 px-2.5 rounded-[9px] border border-border/80 bg-background text-foreground text-[11px] font-bold focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary cursor-pointer hover:border-primary/50 shadow-2xs transition-colors"
                         >
-                          <option value="USER">👤 USER (მომხმარებელი)</option>
-                          <option value="PARTNER">🤝 PARTNER (B2B პარტნიორი)</option>
-                          <option value="SUPPORT">🎧 SUPPORT (მხარდაჭერა)</option>
-                          <option value="MODERATOR">🛡️ MODERATOR (მოდერატორი)</option>
-                          <option value="CONTENT_MANAGER">📝 CONTENT MANAGER (კონტენტ მენეჯერი)</option>
+                          <option value="USER"> USER (მომხმარებელი)</option>
+                          <option value="PARTNER"> PARTNER (B2B პარტნიორი)</option>
+                          <option value="SUPPORT"> SUPPORT (მხარდაჭერა)</option>
+                          <option value="MODERATOR">️ MODERATOR (მოდერატორი)</option>
+                          <option value="CONTENT_MANAGER"> CONTENT MANAGER (კონტენტ მენეჯერი)</option>
                           <option 
                             value="FINANCE_ADMIN" 
                             disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}
                           >
-                            💰 FINANCE ADMIN (ფინანსური ადმინი)
+                             FINANCE ADMIN (ფინანსური ადმინი)
                           </option>
                           <option 
                             value="SUPER_ADMIN" 
                             disabled={currentUserRole !== "SUPER_ADMIN" && currentUser?.email !== "tokolejo@gmail.com"}
                           >
-                            👑 SUPER ADMIN (სუპერ ადმინი)
+                             SUPER ADMIN (სუპერ ადმინი)
                           </option>
                         </select>
                       </td>
@@ -2750,7 +2750,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => { loadFeedback(); showNotice("🔄 შეტყობინებები განახლდა!"); }}
+                onClick={() => { loadFeedback(); showNotice(" შეტყობინებები განახლდა!"); }}
                 className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-primary ${loadingFeedback ? "animate-spin" : ""}`} />
@@ -2786,10 +2786,10 @@ export default function AdminDashboardPage() {
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
               {[
                 { id: "ALL", label: "ყველა კატეგორია" },
-                { id: "general", label: "💬 ზოგადი" },
-                { id: "suggestion", label: "💡 იდეა / წინადადება" },
-                { id: "bug", label: "⚠️ ხარვეზის რეპორტი" },
-                { id: "partnership", label: "🤝 პარტნიორობა / B2B" },
+                { id: "general", label: " ზოგადი" },
+                { id: "suggestion", label: " იდეა / წინადადება" },
+                { id: "bug", label: "️ ხარვეზის რეპორტი" },
+                { id: "partnership", label: " პარტნიორობა / B2B" },
               ].map((cat) => {
                 const isSelected = feedbackTypeFilter === cat.id;
                 return (
@@ -2813,9 +2813,9 @@ export default function AdminDashboardPage() {
             <div className="flex items-center gap-1.5 overflow-x-auto pt-1 border-t border-border/40 pb-0.5 no-scrollbar">
               {[
                 { id: "ALL", label: "ყველა სტატუსი" },
-                { id: "NEW", label: "🟢 ახალი" },
-                { id: "READ", label: "🔵 წაკითხული" },
-                { id: "REPLIED", label: "✅ პასუხგაცემული" },
+                { id: "NEW", label: " ახალი" },
+                { id: "READ", label: " წაკითხული" },
+                { id: "REPLIED", label: " პასუხგაცემული" },
               ].map((st) => {
                 const isSelected = feedbackStatusFilter === st.id;
                 return (
@@ -2870,10 +2870,10 @@ export default function AdminDashboardPage() {
                   const isNew = item.status === "NEW";
 
                   const typeLabelMap: Record<string, { label: string; color: string }> = {
-                    general: { label: "💬 ზოგადი კითხვა", color: "bg-blue-500/10 text-blue-800 dark:text-blue-200 border-blue-500/20" },
-                    suggestion: { label: "💡 იდეა / წინადადება", color: "bg-purple-500/10 text-purple-800 dark:text-purple-200 border-purple-500/20" },
-                    bug: { label: "⚠️ ხარვეზის რეპორტი", color: "bg-rose-500/10 text-rose-800 dark:text-rose-200 border-rose-500/20" },
-                    partnership: { label: "🤝 პარტნიორობა / B2B", color: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/20" },
+                    general: { label: " ზოგადი კითხვა", color: "bg-blue-500/10 text-blue-800 dark:text-blue-200 border-blue-500/20" },
+                    suggestion: { label: " იდეა / წინადადება", color: "bg-purple-500/10 text-purple-800 dark:text-purple-200 border-purple-500/20" },
+                    bug: { label: "️ ხარვეზის რეპორტი", color: "bg-rose-500/10 text-rose-800 dark:text-rose-200 border-rose-500/20" },
+                    partnership: { label: " პარტნიორობა / B2B", color: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/20" },
                   };
 
                   const typeInfo = typeLabelMap[item.type] || { label: item.type || "შეტყობინება", color: "bg-secondary-container text-foreground border-border/60" };
@@ -2962,7 +2962,7 @@ export default function AdminDashboardPage() {
                       {/* Admin Notes if present */}
                       {item.admin_notes && (
                         <div className="mb-3 p-2.5 rounded-[12px] bg-amber-500/10 border border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
-                          <span className="font-bold shrink-0">📝 შენიშვნა:</span>
+                          <span className="font-bold shrink-0"> შენიშვნა:</span>
                           <span className="font-medium">{item.admin_notes}</span>
                         </div>
                       )}
@@ -2977,9 +2977,9 @@ export default function AdminDashboardPage() {
                             onChange={(e) => updateFeedbackStatus(item.id, e.target.value)}
                             className="h-8.5 px-2.5 rounded-[10px] border border-border/80 bg-background text-foreground text-xs font-bold focus:outline-none focus:ring-1.5 focus:ring-primary cursor-pointer shadow-2xs"
                           >
-                            <option value="NEW">🟢 ახალი</option>
-                            <option value="READ">🔵 წაკითხული</option>
-                            <option value="REPLIED">✅ პასუხგაცემული</option>
+                            <option value="NEW"> ახალი</option>
+                            <option value="READ"> წაკითხული</option>
+                            <option value="REPLIED"> პასუხგაცემული</option>
                           </select>
                         </div>
 
@@ -3175,7 +3175,7 @@ export default function AdminDashboardPage() {
               {/* Admin Internal Notes Input */}
               <div className="space-y-1.5 pt-2">
                 <span className="text-[10px] font-bold text-foreground uppercase flex items-center gap-1">
-                  <span>📝 შიდა ადმინ ჩანაწერი</span>
+                  <span> შიდა ადმინ ჩანაწერი</span>
                   <span className="text-muted-foreground font-normal">(მხოლოდ ადმინებისთვის)</span>
                 </span>
                 <textarea
@@ -3255,7 +3255,7 @@ export default function AdminDashboardPage() {
           {/* Scraper Input Form */}
           <form onSubmit={handleScrapeAffiliate} className="p-4 rounded-[20px] bg-secondary-container/40 border border-border/60 space-y-3">
             <label className="text-xs font-bold text-foreground block">
-              🔗 პროდუქტის URL სკრეიპინგისთვის
+               პროდუქტის URL სკრეიპინგისთვის
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="sm:col-span-2">
@@ -3301,7 +3301,7 @@ export default function AdminDashboardPage() {
                   onClick={handleSaveAffiliate}
                   className="rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-ambient cursor-pointer"
                 >
-                  💾 ბაზაში შენახვა
+                   ბაზაში შენახვა
                 </Button>
               </div>
 
@@ -3414,7 +3414,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2.5">
                 <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
                   <Activity className="w-5 h-5 text-purple-600" />
-                  <span>📜 სისტემური აუდიტი & დეტალური ლოგები</span>
+                  <span> სისტემური აუდიტი & დეტალური ლოგები</span>
                 </h2>
                 <Badge className="bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold border-purple-300">
                   {filteredAuditLogs.length} / {auditLogs.length} ჩანაწერი
@@ -3441,7 +3441,7 @@ export default function AdminDashboardPage() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => { loadAuditLogs(); showNotice("🔄 აუდიტის ლოგები განახლდა!"); }}
+                onClick={() => { loadAuditLogs(); showNotice(" აუდიტის ლოგები განახლდა!"); }}
                 className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
               >
                 <RefreshCw className={`w-3.5 h-3.5 text-primary ${loadingAudit ? "animate-spin" : ""}`} />
@@ -3459,14 +3459,14 @@ export default function AdminDashboardPage() {
               </span>
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full">
                 {[
-                  { id: "ALL", label: "🌐 ყველა" },
-                  { id: "PLAN", label: "💎 ტარიფები" },
-                  { id: "USER", label: "👥 მომხმარებლები" },
-                  { id: "LISTING", label: "📦 განცხადებები" },
-                  { id: "SUBSCRIPTION", label: "💳 გამოწერა" },
-                  { id: "AFFILIATE", label: "🔗 Affiliate" },
-                  { id: "SECURITY", label: "🛡️ უსაფრთხოება" },
-                  { id: "ERROR", label: "⚠️ შეცდომები" },
+                  { id: "ALL", label: " ყველა" },
+                  { id: "PLAN", label: " ტარიფები" },
+                  { id: "USER", label: " მომხმარებლები" },
+                  { id: "LISTING", label: " განცხადებები" },
+                  { id: "SUBSCRIPTION", label: " გამოწერა" },
+                  { id: "AFFILIATE", label: " Affiliate" },
+                  { id: "SECURITY", label: "️ უსაფრთხოება" },
+                  { id: "ERROR", label: "️ შეცდომები" },
                 ].map((cat) => {
                   const isSelected = auditCategoryFilter === cat.id;
                   return (
@@ -3498,7 +3498,7 @@ export default function AdminDashboardPage() {
                   { id: "today", label: "დღეს" },
                   { id: "7days", label: "ბოლო 7 დღე" },
                   { id: "30days", label: "ბოლო 30 დღე" },
-                  { id: "custom", label: "📅 კალენდარი" },
+                  { id: "custom", label: " კალენდარი" },
                 ].map((p) => {
                   const isSelected = auditDateFilter === p.id;
                   return (
@@ -3695,7 +3695,7 @@ export default function AdminDashboardPage() {
                               ? "bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
                               : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700"
                           }`}>
-                            {isError ? "⚠️" : isPlan ? "💎" : isUser ? "👤" : isListing ? "📦" : "⚡"} {log.action}
+                            {isError ? "️" : isPlan ? "" : isUser ? "" : isListing ? "" : ""} {log.action}
                           </span>
                         </td>
 
@@ -3878,7 +3878,7 @@ export default function AdminDashboardPage() {
               {/* Old Data */}
               <div className="space-y-1.5">
                 <span className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                  🔴 ძველი მონაცემი (Old Data)
+                   ძველი მონაცემი (Old Data)
                 </span>
                 <pre className="p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-[10px] font-mono text-destructive overflow-x-auto max-h-[260px]">
                   {JSON.stringify(selectedAuditLogForDiff.old_data || "არ არის (NULL)", null, 2)}
@@ -3888,7 +3888,7 @@ export default function AdminDashboardPage() {
               {/* New Data */}
               <div className="space-y-1.5">
                 <span className="text-[10px] font-bold uppercase text-emerald-600 flex items-center gap-1">
-                  🟢 ახალი მონაცემი (New Data)
+                   ახალი მონაცემი (New Data)
                 </span>
                 <pre className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 overflow-x-auto max-h-[260px]">
                   {JSON.stringify(selectedAuditLogForDiff.new_data || "არ არის (NULL)", null, 2)}
@@ -3977,7 +3977,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold">
                 {unreadFeedbackCount > 0 ? (
                   <span className="text-amber-700 dark:text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded-md animate-pulse">
-                    🔥 {unreadFeedbackCount} ახალი
+                     {unreadFeedbackCount} ახალი
                   </span>
                 ) : (
                   <span className="text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
@@ -4097,7 +4097,7 @@ export default function AdminDashboardPage() {
               <div className="flex items-center gap-2.5">
                 <h2 className="text-lg font-black text-foreground flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-purple-600" />
-                  <span>💎 ტარიფების & პაკეტების სრული მართვა</span>
+                  <span> ტარიფების & პაკეტების სრული მართვა</span>
                 </h2>
                 <Badge className="bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold border-purple-300">
                   {plans.length} აქტიური ტარიფი
@@ -4116,7 +4116,7 @@ export default function AdminDashboardPage() {
                 onClick={() => {
                   fetchAndSyncDbPlans().then((live) => {
                     if (live && live.length > 0) setPlans(live);
-                    showNotice("🔄 ტარიფები განახლდა მონაცემთა ბაზიდან!");
+                    showNotice(" ტარიფები განახლდა მონაცემთა ბაზიდან!");
                   });
                 }}
                 className="rounded-xl text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"

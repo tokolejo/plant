@@ -31,8 +31,8 @@ export async function PATCH(req: NextRequest) {
       success: true,
       isOnVacation: data.is_on_vacation,
       message: data.is_on_vacation
-        ? "🏖️ თქვენი პროფილი გადავიდა შვებულების რეჟიმში"
-        : "🌱 თქვენი პროფილი გააქტიურდა",
+        ? "თქვენი პროფილი გადავიდა შვებულების რეჟიმში"
+        : "თქვენი პროფილი გააქტიურდა",
     });
   } catch (err: any) {
     console.error("[Vacation Toggle Error]:", err);
