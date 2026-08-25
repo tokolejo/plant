@@ -72,10 +72,13 @@ export function HeroSection() {
             )}
           </h1>
 
-          <p className="text-[11px] sm:text-sm text-muted-foreground font-medium">
-            {isKa
-              ? "საქართველოს პირველი სპეციალიზებული ბოტანიკური მარკეტპლეისი"
-              : "Georgia's First Dedicated Botanical Marketplace"}
+          <p className="text-[11px] sm:text-sm text-muted-foreground font-semibold flex items-center justify-center gap-1.5">
+            <span className="inline-block w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span>
+              {isKa
+                ? "საიტი მუშაობს სატესტო (Beta) რეჟიმში"
+                : "The website is currently operating in Test (Beta) mode"}
+            </span>
           </p>
         </div>
 

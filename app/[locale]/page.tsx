@@ -1,6 +1,7 @@
 import { HeroSection } from "@/components/home/HeroSection";
 import { DiscoveryFeed } from "@/components/home/DiscoveryFeed";
 import { IsoBoardPreview } from "@/components/home/IsoBoardPreview";
+import { ServicesPreview } from "@/components/home/ServicesPreview";
 
 export default function HomePage() {
   return (
@@ -13,6 +14,9 @@ export default function HomePage() {
 
       {/* 3. ISO Match Board */}
       <IsoBoardPreview />
+
+      {/* 4. Gardening & Plant Care Services */}
+      <ServicesPreview />
     </div>
   );
 }

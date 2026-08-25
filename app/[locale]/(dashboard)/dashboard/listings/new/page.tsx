@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { uploadListingImage } from "@/utils/supabase/storage";
@@ -84,19 +85,30 @@ function fileToBase64(file: File): Promise<string> {
 
 export default function CreateListingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = useLocale();
   const isKa = locale !== "en";
   const supabase = createClient();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  // Parse Initial URL Query Params (e.g. ?type=TRADE or ?itemType=INVENTORY)
+  const initialTransParam = (searchParams.get("type") || searchParams.get("trans") || searchParams.get("transactionType") || "").toUpperCase();
+  const initialTrans: "FIXED" | "NEGOTIABLE" | "TRADE" | "GIFT" = 
+    initialTransParam === "TRADE" ? "TRADE" :
+    initialTransParam === "GIFT" ? "GIFT" :
+    initialTransParam === "NEGOTIABLE" ? "NEGOTIABLE" : "FIXED";
+
+  const initialItemParam = (searchParams.get("itemType") || searchParams.get("item") || "").toUpperCase();
+  const initialItem: "PLANT" | "INVENTORY" = initialItemParam === "INVENTORY" ? "INVENTORY" : "PLANT";
+
   // Form State
-  const [itemType, setItemType] = React.useState<"PLANT" | "INVENTORY">("PLANT");
-  const [plantCategory, setPlantCategory] = React.useState("");
+  const [itemType, setItemType] = React.useState<"PLANT" | "INVENTORY">(initialItem);
+  const [plantCategory, setPlantCategory] = React.useState(searchParams.get("category") || "");
   const [categorySearchQuery, setCategorySearchQuery] = React.useState("");
   const [categoryDropdownOpen, setCategoryDropdownOpen] = React.useState(false);
   const categoryWrapperRef = React.useRef<HTMLDivElement>(null);
 
-  const [transactionType, setTransactionType] = React.useState<"FIXED" | "NEGOTIABLE" | "TRADE" | "GIFT">("FIXED");
+  const [transactionType, setTransactionType] = React.useState<"FIXED" | "NEGOTIABLE" | "TRADE" | "GIFT">(initialTrans);
   const [titleKa, setTitleKa] = React.useState("");
   const [titleEn, setTitleEn] = React.useState("");
   const [descKa, setDescKa] = React.useState("");
