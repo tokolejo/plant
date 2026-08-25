@@ -325,6 +325,7 @@ function CreateListingContent() {
         if (matched) {
           setPlantCategory(matched.id);
           setItemType(matched.itemType);
+          setCategorySearchQuery("");
         }
       }
       if (result.itemType) {
@@ -396,6 +397,7 @@ function CreateListingContent() {
         if (matched) {
           setPlantCategory(matched.id);
           setItemType(matched.itemType);
+          setCategorySearchQuery("");
         }
       }
       if (result.itemType) {
@@ -467,6 +469,7 @@ function CreateListingContent() {
         if (matched) {
           setPlantCategory(matched.id);
           setItemType(matched.itemType);
+          setCategorySearchQuery("");
         }
       }
       if (result.itemType) {
