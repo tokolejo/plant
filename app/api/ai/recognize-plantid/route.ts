@@ -1,206 +1,164 @@
 import { NextRequest, NextResponse } from "next/server";
+import { STRUCTURED_CATEGORIES } from "@/lib/categories-data";
 
 export const maxDuration = 45;
 
-const GEORGIAN_PLANT_TRANSLATIONS: Record<string, { ka: string; careDifficulty: "Easy" | "Medium" | "Expert" }> = {
-  monstera: { ka: "მონსტერა", careDifficulty: "Easy" },
-  philodendron: { ka: "ფილოდენდრონი", careDifficulty: "Easy" },
-  anthurium: { ka: "ანთურიუმი", careDifficulty: "Medium" },
-  alocasia: { ka: "ალოკაზია", careDifficulty: "Medium" },
-  ficus: { ka: "ფიკუსი", careDifficulty: "Easy" },
-  sansevieria: { ka: "სანსევიერია (ხანჯალა)", careDifficulty: "Easy" },
-  dracaena: { ka: "დრაცენა", careDifficulty: "Easy" },
-  spathiphyllum: { ka: "სპატიფილუმი (ქალური ბედნიერება)", careDifficulty: "Easy" },
-  epipremnum: { ka: "პოთოსი (ეპიპრემნუმი)", careDifficulty: "Easy" },
-  scindapsus: { ka: "სცინდაპსუსი", careDifficulty: "Easy" },
-  calathea: { ka: "კალათეა", careDifficulty: "Medium" },
-  maranta: { ka: "მარანტა", careDifficulty: "Medium" },
-  phalaenopsis: { ka: "ორქიდეა (ფალენოპსისი)", careDifficulty: "Medium" },
-  orchid: { ka: "ორქიდეა", careDifficulty: "Medium" },
-  crassula: { ka: "კრასულა (ბარაქის ხე)", careDifficulty: "Easy" },
-  echeveria: { ka: "ეჩევერია (სუქულენტი)", careDifficulty: "Easy" },
-  sedum: { ka: "სედუმი", careDifficulty: "Easy" },
-  cactus: { ka: "კაქტუსი", careDifficulty: "Easy" },
-  zamioculcas: { ka: "ზამიოკულკასი (დოლარის ხე)", careDifficulty: "Easy" },
-  hoya: { ka: "ხოია (ცვილის ყვავილი)", careDifficulty: "Medium" },
-  begonia: { ka: "ბეგონია", careDifficulty: "Medium" },
-  syngonium: { ka: "სინგონიუმი", careDifficulty: "Easy" },
-  schefflera: { ka: "შეფლერა", careDifficulty: "Easy" },
-  peperomia: { ka: "პეპერომია", careDifficulty: "Easy" },
-  chlorophytum: { ka: "ქლოროფიტუმი", careDifficulty: "Easy" },
-  bonsai: { ka: "ბონსაი", careDifficulty: "Expert" },
-  fern: { ka: "გვიმრა", careDifficulty: "Medium" },
-  nephrolepis: { ka: "ნეფროლეპისი (გვიმრა)", careDifficulty: "Medium" },
-};
-
-function getGeorgianNameAndCare(scientificName: string, commonNames: string[]) {
-  const s = scientificName.toLowerCase();
-  for (const [key, val] of Object.entries(GEORGIAN_PLANT_TRANSLATIONS)) {
-    if (s.includes(key)) {
-      return val;
-    }
-  }
-  for (const cn of commonNames) {
-    const c = cn.toLowerCase();
-    for (const [key, val] of Object.entries(GEORGIAN_PLANT_TRANSLATIONS)) {
-      if (c.includes(key)) {
-        return val;
-      }
-    }
-  }
-  return { ka: commonNames[0] || scientificName, careDifficulty: "Easy" as const };
-}
-
-function translateWatering(watering: any, bestWatering?: string): string {
-  if (bestWatering) return bestWatering;
-  if (!watering) return "კვირაში 1-ხელ (ნიადაგის შეშრობისას)";
-  if (typeof watering === "string") return watering;
-
-  if (watering.max !== undefined && watering.min !== undefined) {
-    if (watering.min === 1 && watering.max === 1) return "კვირაში 1-ხელ";
-    if (watering.min >= 2) return `${watering.min}-${watering.max} კვირაში 1-ხელ`;
-    return `კვირაში ${watering.min}-${watering.max}-ჯერ`;
-  }
-  return "კვირაში 1-ხელ";
-}
-
-function translateLight(bestLight?: string): string {
-  if (!bestLight) return "კაშკაშა გაფანტული";
-  const l = bestLight.toLowerCase();
-  if (l.includes("direct") && l.includes("sun")) return "კაშკაშა მზის სინათლე";
-  if (l.includes("low") || l.includes("shade")) return "ნახევრად ჩრდილი";
-  if (l.includes("filtered")) return "ფილტრირებული გაფანტული";
-  return "კაშკაშა გაფანტული";
-}
-
-function translateToxicity(toxicity?: string): string {
-  if (!toxicity) return "გადაამოწმეთ";
-  const t = toxicity.toLowerCase();
-  if (t.includes("non-toxic") || t.includes("not toxic") || t.includes("safe")) {
-    return "უსაფრთხოა ცხოველებისთვის (Pet Friendly)";
-  }
-  if (t.includes("toxic") || t.includes("poisonous")) {
-    return "ტოქსიკურია კატებისთვის და ძაღლებისთვის";
-  }
-  return toxicity;
-}
-
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.PLANT_ID_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ success: false, error: "Plant.id API Key is not configured in Environment Variables" }, { status: 500 });
-    }
-
-    let base64Images: string[] = [];
-
     const contentType = req.headers.get("content-type") || "";
+    let base64Image = "";
+    let mimeType = "image/jpeg";
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
       const files = formData.getAll("images") as File[];
-      const single = formData.get("image") as File | null;
-      const allFiles = files.length > 0 ? files : single ? [single] : [];
+      const single = (formData.get("image") || formData.get("file")) as File | null;
+      const target = single || (files.length > 0 ? files[0] : null);
 
-      for (const f of allFiles.slice(0, 3)) {
-        const buffer = await f.arrayBuffer();
-        const b64 = Buffer.from(buffer).toString("base64");
-        const mime = f.type || "image/jpeg";
-        base64Images.push(`data:${mime};base64,${b64}`);
+      if (!target) {
+        return NextResponse.json({ success: false, error: "სურათი ვერ მოიძებნა" }, { status: 400 });
       }
+
+      mimeType = target.type || "image/jpeg";
+      const buffer = await target.arrayBuffer();
+      base64Image = Buffer.from(buffer).toString("base64");
     } else {
       const body = await req.json();
-      if (body.images && Array.isArray(body.images)) {
-        base64Images = body.images;
-      } else if (body.imageBase64) {
-        const mime = body.mimeType || "image/jpeg";
-        base64Images.push(body.imageBase64.startsWith("data:") ? body.imageBase64 : `data:${mime};base64,${body.imageBase64}`);
+      const raw = body.imageBase64 || body.image || "";
+      if (!raw) {
+        return NextResponse.json({ success: false, error: "სურათი ვერ მოიძებნა" }, { status: 400 });
+      }
+      mimeType = body.mimeType || "image/jpeg";
+      base64Image = raw.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
+    }
+
+    const apiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        { success: false, error: "AI API Key არ არის კონფიგურირებული" },
+        { status: 500 }
+      );
+    }
+
+    const categoryListStr = STRUCTURED_CATEGORIES.map((c) => `${c.id} (${c.nameKa} / ${c.nameEn})`).join(", ");
+
+    const prompt = `You are a master botanist and plant specialist in Georgia.
+Look at this plant photo.
+1. Identify the exact botanical species (e.g. Lilium bulbiferum, Monstera, Philodendron, Orchid, Ficus, etc.).
+2. Write an attractive marketplace title and description in Georgian (ქართულად) and English.
+3. Select the best category ID from this taxonomy list:
+[${categoryListStr}]
+4. Provide watering schedule in Georgian, light requirement in Georgian, difficulty ("Easy" | "Medium" | "Expert"), pet toxicity warning, and search tags.
+IMPORTANT: Do NOT suggest any price.
+
+Return ONLY raw JSON (STRICTLY NO markdown, NO codeblocks):
+{
+  "latinName": "Botanical Latin name",
+  "commonName": "ქართული სახელი (მაგ: შროშანი / აზიური ლილია)",
+  "nameKa": "ქართული სახელი",
+  "nameEn": "English common name",
+  "titleKa": "მცენარის სახელი (ლათინური სახელი) — მოკლე სათაური",
+  "titleEn": "English Name (Latin Name) — Listing Title",
+  "descKa": "დეტალური და მიმზიდველი აღწერა ქართულად",
+  "descEn": "Detailed marketplace description in English",
+  "categoryId": "category ID from list",
+  "careDifficulty": "Easy",
+  "light": "კაშკაშა გაფანტული",
+  "watering": "კვირაში 1-2 ჯერ",
+  "toxicity": "ტოქსიკურია კატებისთვის (ან: უსაფრთხოა ცხოველებისთვის)",
+  "tags": ["მცენარე", "ყვავილოვანი", "იშვიათი"]
+}`;
+
+    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash", "gemini-1.5-pro"];
+    let lastError = "";
+
+    for (const model of modelsToTry) {
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-goog-api-key": apiKey,
+            },
+            body: JSON.stringify({
+              contents: [
+                {
+                  parts: [
+                    { text: prompt },
+                    {
+                      inline_data: {
+                        mime_type: mimeType,
+                        data: base64Image,
+                      },
+                    },
+                  ],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.15,
+                topK: 32,
+                topP: 0.95,
+              },
+            }),
+          }
+        );
+
+        const data = await response.json();
+        if (!response.ok) {
+          lastError = data?.error?.message || `HTTP ${response.status}`;
+          continue;
+        }
+
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) continue;
+
+        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) continue;
+
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        let matchedCategory = parsed.categoryId || parsed.category || "other-plant";
+        const validCategory = STRUCTURED_CATEGORIES.find((c) => c.id === matchedCategory);
+        if (!validCategory) {
+          const latin = (parsed.latinName || "").toLowerCase();
+          const autoMatch = STRUCTURED_CATEGORIES.find((c) =>
+            c.keywords.some((k) => latin.includes(k.toLowerCase()))
+          );
+          matchedCategory = autoMatch ? autoMatch.id : "other-plant";
+        }
+
+        return NextResponse.json({
+          success: true,
+          data: {
+            titleKa: parsed.titleKa || parsed.nameKa || "მცენარე",
+            titleEn: parsed.titleEn || parsed.nameEn || "Plant",
+            descKa: parsed.descKa || "",
+            descEn: parsed.descEn || "",
+            botanicalName: parsed.latinName || "",
+            commonName: parsed.commonName || parsed.nameKa || "",
+            category: matchedCategory,
+            itemType: "PLANT",
+            careDifficulty: parsed.careDifficulty || "Easy",
+            light: parsed.light || "კაშკაშა გაფანტული",
+            watering: parsed.watering || "კვირაში 1-2 ჯერ",
+            toxicity: parsed.toxicity || "გადაამოწმეთ",
+            tags: Array.isArray(parsed.tags) ? parsed.tags : ["მცენარე"],
+            confidence_score: 96,
+          },
+        });
+      } catch (err: any) {
+        lastError = err.message || "Failed";
       }
     }
 
-    if (base64Images.length === 0) {
-      return NextResponse.json({ success: false, error: "სურათი ვერ მოიძებნა" }, { status: 400 });
-    }
-
-    // Call Plant.id API v3
-    const plantIdUrl = "https://plant.id/api/v3/identification?details=common_names,url,description,taxonomy,rank,gbif_id,inaturalist_id,image,synonyms,edible_parts,watering,propagation_methods,best_watering,best_light_condition,best_soil_type,toxicity";
-
-    const response = await fetch(plantIdUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Api-Key": apiKey,
-      },
-      body: JSON.stringify({
-        images: base64Images.slice(0, 2),
-        latitude: 41.7151,
-        longitude: 44.8271,
-        similar_images: true,
-      }),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("Plant.id API error:", response.status, errText);
-      return NextResponse.json({ success: false, error: `Plant.id შეცდომა (${response.status}): ${errText}` }, { status: response.status });
-    }
-
-    const data = await response.json();
-    const result = data.result;
-
-    if (!result || !result.classification || !result.classification.suggestions || result.classification.suggestions.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: "მცენარის ამოცნობა ვერ მოხერხდა. გთხოვთ ატვირთოთ უფრო მკაფიო ფოტო.",
-      }, { status: 404 });
-    }
-
-    const bestSuggestion = result.classification.suggestions[0];
-    const scientificName = bestSuggestion.name;
-    const confidence = Math.round((bestSuggestion.probability || 0.9) * 100);
-    const details = bestSuggestion.details || {};
-    const commonNames: string[] = details.common_names || [];
-
-    const geoMatch = getGeorgianNameAndCare(scientificName, commonNames);
-    const primaryCommonName = commonNames[0] || geoMatch.ka || scientificName;
-
-    const titleKa = geoMatch.ka !== scientificName ? `${geoMatch.ka} (${scientificName})` : scientificName;
-    const titleEn = primaryCommonName !== scientificName ? `${primaryCommonName} (${scientificName})` : scientificName;
-
-    const wateringSchedule = translateWatering(details.watering, details.best_watering);
-    const lightRequirement = translateLight(details.best_light_condition);
-    const toxicity = translateToxicity(details.toxicity);
-    const careDifficulty = geoMatch.careDifficulty;
-
-    const tags = Array.from(
-      new Set([
-        geoMatch.ka,
-        primaryCommonName,
-        scientificName.split(" ")[0],
-        "ოთახის მცენარე",
-        ...(commonNames.slice(0, 3)),
-      ].filter(Boolean))
-    );
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        provider: "plant.id",
-        botanical_name: scientificName,
-        common_name: geoMatch.ka || primaryCommonName,
-        title_ka: titleKa,
-        title_en: titleEn,
-        watering_schedule: wateringSchedule,
-        light_requirement: lightRequirement,
-        care_difficulty: careDifficulty,
-        toxicity: toxicity,
-        plantnet_id: `pid_${bestSuggestion.id || scientificName.replace(/\s+/g, "_")}`,
-        confidence_score: confidence,
-        tags: tags,
-        description: details.description?.value || null,
-        similar_images: bestSuggestion.similar_images?.map((s: any) => s.url) || [],
-      },
-    });
+    return NextResponse.json({ success: false, error: lastError || "Plant.id ამოცნობა ვერ მოხერხდა" }, { status: 502 });
   } catch (error: any) {
     console.error("Plant.id identification error:", error);
     return NextResponse.json({ success: false, error: error.message || "Plant.id სერვისთან კავშირი შეწყდა" }, { status: 500 });

@@ -1,63 +1,96 @@
 import { NextRequest, NextResponse } from "next/server";
+import { STRUCTURED_CATEGORIES } from "@/lib/categories-data";
 
-export const maxDuration = 30; // 30 seconds max duration
+export const maxDuration = 45; // 45 seconds max duration for vision analysis
 
 export async function POST(req: NextRequest) {
   try {
-    const { imageBase64, mimeType = "image/jpeg" } = await req.json();
+    let base64Image = "";
+    let mimeType = "image/jpeg";
 
-    if (!imageBase64) {
-      return NextResponse.json(
-        { success: false, error: "სურათის მონაცემები არ არის გადაცემული" },
-        { status: 400 }
-      );
+    const contentType = req.headers.get("content-type") || "";
+
+    if (contentType.includes("multipart/form-data")) {
+      const formData = await req.formData();
+      const file = (formData.get("image") || formData.get("file")) as File | null;
+      const images = formData.getAll("images") as File[];
+      const targetFile = file || (images && images.length > 0 ? images[0] : null);
+
+      if (!targetFile) {
+        return NextResponse.json(
+          { success: false, error: "ფოტო არ არის გადაცემული" },
+          { status: 400 }
+        );
+      }
+
+      mimeType = targetFile.type || "image/jpeg";
+      const buffer = await targetFile.arrayBuffer();
+      base64Image = Buffer.from(buffer).toString("base64");
+    } else {
+      const body = await req.json();
+      const rawBase64 = body.imageBase64 || body.image || "";
+      if (!rawBase64) {
+        return NextResponse.json(
+          { success: false, error: "სურათის მონაცემები არ არის გადაცემული" },
+          { status: 400 }
+        );
+      }
+      mimeType = body.mimeType || "image/jpeg";
+      base64Image = rawBase64.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
     }
 
-    const apiKey = 
-      process.env.GEMINI_API_KEY || 
-      process.env.GOOGLE_GEMINI_API_KEY || 
-      process.env.GOOGLE_API_KEY || 
+    const apiKey =
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
       process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { success: false, error: "Gemini API Key არ არის კონფიგურირებული Vercel-ის Environment Variables-ში" },
+        {
+          success: false,
+          error: "Gemini API Key არ არის კონფიგურირებული გარემოს ცვლადებში (GEMINI_API_KEY)",
+        },
         { status: 500 }
       );
     }
 
-    // Clean base64 string if it has data url prefix
-    const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z+]+;base64,/, "");
+    const categoryListStr = STRUCTURED_CATEGORIES.map((c) => `${c.id} (${c.nameKa} / ${c.nameEn})`).join(", ");
 
-    const prompt = `You are an expert botanist, horticulturist, and plant marketplace copywriter in Georgia.
-Analyze the plant or gardening product shown in the provided photo.
-Identify its exact botanical (Latin) name and common Georgian & English names, health status, and care requirements.
-IMPORTANT: Do NOT estimate or suggest any price.
+    const prompt = `You are a world-class master botanist, horticulturist, and plant marketplace specialist in Georgia.
+Look carefully at the provided plant / flower / garden / gardening item photo.
 
-Return ONLY a raw JSON object (strictly no markdown formatting, no codeblocks, no explanations) adhering exactly to this JSON schema:
+1. Accurately identify the exact plant species, flower, cultivar, or gardening item shown (e.g. Red Lily / Lilium bulbiferum / Asiatic Lily, Monstera deliciosa, Philodendron Pink Princess, Orchid Phalaenopsis, Ficus Lyrata, Ceramic Pot, Substrate Mix, etc.).
+2. Translate and formulate a highly professional, accurate, and appealing marketplace title and description in Georgian (ქართულად) and English.
+3. Determine the closest category ID from this taxonomy list:
+[${categoryListStr}]
+4. Provide accurate botanical care details: watering schedule in Georgian, light requirement in Georgian, difficulty ("Easy" | "Medium" | "Expert"), pet toxicity warning, and search tags.
+IMPORTANT: Do NOT suggest or write any price.
+
+Return ONLY a raw JSON object (STRICTLY NO markdown, NO \`\`\`json codeblocks, NO preamble):
 {
-  "latinName": "Exact botanical Latin name (e.g. Monstera deliciosa, Epipremnum aureum, Ficus lyrata)",
-  "nameKa": "მცენარის ან ნივთის ქართული სახელი (მაგ: მონსტერა დელიციოზა)",
-  "nameEn": "English common name (e.g. Swiss Cheese Plant / Monstera)",
-  "titleKa": "მცენარის ქართული სახელი (ლათინური სახელი) — მოკლე მიმზიდველი სათაური (მაგ: მონსტერა დელიციოზა (Monstera deliciosa) — ჯანსაღი ოთახის მცენარე)",
-  "titleEn": "English Name (Latin Name) — Attractive Listing Title (e.g. Golden Pothos (Epipremnum aureum) — Healthy Houseplant)",
-  "descKa": "ბუნებრივი, დეტალური და მიმზიდველი გაყიდვის აღწერა ქართულად (აღწერე მცენარის მდგომარეობა, ფოთლები, ქოთანი, ზრდის პოტენციალი და მოვლის მოკლე რჩევა)",
-  "descEn": "Natural, detailed and appealing sales description in English (health condition, foliage, pot, growth habits, and quick care advice)",
-  "category": "PLANT",
-  "careLevel": "მარტივი",
-  "light": "ირიბი გაფანტული სინათლე",
-  "watering": "ზომიერი მორწყვა, ნიადაგის გამოშრობისას",
-  "tags": ["მცენარე", "ოთახის ყვავილი", "იშვიათი"]
-}
+  "latinName": "Exact botanical binomial Latin name (e.g. Lilium bulbiferum, Monstera deliciosa, Philodendron erubescens)",
+  "commonName": "მცენარის პოპულარული ქართული სახელი (მაგ: შროშანი / წითელი ლილია, მონსტერა დელიციოზა, ორქიდეა)",
+  "nameKa": "ქართული სახელი",
+  "nameEn": "English common name (e.g. Red Asiatic Lily, Swiss Cheese Plant)",
+  "titleKa": "მცენარის ქართული სახელი (ლათინური სახელი) — მოკლე სათაური (მაგ: შროშანი (Lilium bulbiferum) — ჯანსაღი ყვავილოვანი მცენარე)",
+  "titleEn": "English Title (e.g. Red Asiatic Lily (Lilium bulbiferum) — Healthy Plant)",
+  "descKa": "დეტალური, ცოცხალი და მიმზიდველი აღწერა ქართულად (აღწერე მცენარის ჯანმრთელობა, ყვავილობა/ფოთლები, სიმაღლე, მოვლის რჩევები და სად გრძნობს თავს საუკეთესოდ)",
+  "descEn": "Detailed and attractive marketplace description in English (condition, foliage/blooms, care advice, growth habit)",
+  "categoryId": "the best matching category ID from the taxonomy list above (e.g. outdoor-garden, monstera, philodendron, orchid, cactus-succulent, bonsai, ficus, etc.)",
+  "itemType": "PLANT",
+  "careDifficulty": "Easy",
+  "light": "კაშკაშა გაფანტული / მზის სინათლე",
+  "watering": "კვირაში 1-2 ჯერ (ნიადაგის შეშრობისას)",
+  "toxicity": "ტოქსიკურია კატებისთვის (ან: უსაფრთხოა ცხოველებისთვის / Pet Friendly)",
+  "tags": ["შროშანი", "ლილია", "Lilium", "ბაღის მცენარე", "ყვავილოვანი", "იშვიათი"]
+}`;
 
-Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flower, cactus, tree, bonsai, etc. Use "INVENTORY" if it's a pot, soil/substrate, tool, fertilizer, trellis, lamp, or accessory.`;
-
-    // Multi-model array for automatic failover in case of traffic spikes
     const modelsToTry = [
-      "gemini-1.5-flash",
       "gemini-2.0-flash",
-      "gemini-1.5-pro",
+      "gemini-1.5-flash",
       "gemini-2.5-flash",
+      "gemini-1.5-pro",
     ];
 
     let lastErrorMsg = "";
@@ -80,14 +113,14 @@ Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flow
                     {
                       inline_data: {
                         mime_type: mimeType,
-                        data: cleanBase64,
+                        data: base64Image,
                       },
                     },
                   ],
                 },
               ],
               generationConfig: {
-                temperature: 0.2,
+                temperature: 0.15,
                 topK: 32,
                 topP: 0.95,
               },
@@ -100,7 +133,7 @@ Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flow
         if (!response.ok) {
           lastErrorMsg = data?.error?.message || `HTTP ${response.status}`;
           console.warn(`[Gemini API - ${model}] failed:`, lastErrorMsg);
-          continue; // Try next model
+          continue;
         }
 
         const candidate = data.candidates?.[0];
@@ -111,18 +144,43 @@ Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flow
           continue;
         }
 
-        // Extract JSON object safely even if surrounded by markdown or extra text
         const jsonMatch = rawText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
           lastErrorMsg = "Gemini-მ არ დააბრუნა ვალიდური JSON მონაცემები";
           continue;
         }
 
-        const parsedData = JSON.parse(jsonMatch[0]);
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        // Normalize and validate category
+        let matchedCategory = parsed.categoryId || parsed.category || "other-plant";
+        const validCategory = STRUCTURED_CATEGORIES.find((c) => c.id === matchedCategory);
+        if (!validCategory) {
+          // Attempt fuzzy match on Latin name or tags
+          const latin = (parsed.latinName || "").toLowerCase();
+          const autoMatch = STRUCTURED_CATEGORIES.find((c) =>
+            c.keywords.some((k) => latin.includes(k.toLowerCase()))
+          );
+          matchedCategory = autoMatch ? autoMatch.id : "other-plant";
+        }
 
         return NextResponse.json({
           success: true,
-          data: parsedData,
+          data: {
+            titleKa: parsed.titleKa || parsed.nameKa || "მცენარე",
+            titleEn: parsed.titleEn || parsed.nameEn || "Plant",
+            descKa: parsed.descKa || "",
+            descEn: parsed.descEn || "",
+            botanicalName: parsed.latinName || "",
+            commonName: parsed.commonName || parsed.nameKa || "",
+            category: matchedCategory,
+            itemType: parsed.itemType || (matchedCategory.startsWith("pots") || matchedCategory.startsWith("substrates") || matchedCategory.startsWith("tools") ? "INVENTORY" : "PLANT"),
+            careDifficulty: parsed.careDifficulty || "Easy",
+            light: parsed.light || "კაშკაშა გაფანტული",
+            watering: parsed.watering || "კვირაში 1-ხელ",
+            toxicity: parsed.toxicity || "გადაამოწმეთ",
+            tags: Array.isArray(parsed.tags) ? parsed.tags : ["მცენარე"],
+          },
           modelUsed: model,
         });
       } catch (err: any) {
@@ -131,11 +189,10 @@ Note for 'category': Use "PLANT" if it's a living plant, seedling, cutting, flow
       }
     }
 
-    // Fallback if all attempts failed
     return NextResponse.json(
       {
         success: false,
-        error: lastErrorMsg || "ვერ მოხერხდა AI ანალიზის დასრულება",
+        error: lastErrorMsg || "ვერ მოხერხდა მცენარის AI ანალიზის დასრულება. სცადეთ ხელახლა.",
       },
       { status: 502 }
     );

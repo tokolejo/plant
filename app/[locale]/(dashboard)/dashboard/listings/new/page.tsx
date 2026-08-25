@@ -286,15 +286,15 @@ function CreateListingContent() {
 
       const result = data.data;
 
-      if (result.title_ka || result.titleKa) setTitleKa(result.title_ka || result.titleKa);
-      if (result.title_en || result.titleEn) setTitleEn(result.title_en || result.titleEn);
-      if (result.description_ka || result.descKa) setDescKa(result.description_ka || result.descKa);
-      if (result.description_en || result.descEn) setDescEn(result.description_en || result.descEn);
-      if (result.botanical_name || result.latinName) setBotanicalName(result.botanical_name || result.latinName);
-      if (result.watering_schedule || result.watering) setWateringSchedule(result.watering_schedule || result.watering);
-      if (result.light_requirement || result.light) setLightRequirement(result.light_requirement || result.light);
-      if (result.care_difficulty || result.careLevel) {
-        const diff = (result.care_difficulty || result.careLevel || "").toLowerCase();
+      if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
+      if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
+      if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
+      if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
+      if (result.botanicalName || result.botanical_name || result.latinName) setBotanicalName(result.botanicalName || result.botanical_name || result.latinName);
+      if (result.watering || result.watering_schedule) setWateringSchedule(result.watering || result.watering_schedule);
+      if (result.light || result.light_requirement) setLightRequirement(result.light || result.light_requirement);
+      if (result.careDifficulty || result.care_difficulty || result.careLevel) {
+        const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
         if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
         else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
         else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
@@ -309,6 +309,9 @@ function CreateListingContent() {
           setPlantCategory(matched.id);
           setItemType(matched.itemType);
         }
+      }
+      if (result.itemType) {
+        setItemType(result.itemType);
       }
 
       setAiApplied(true);
@@ -354,15 +357,15 @@ function CreateListingContent() {
 
       const result = data.data;
 
-      if (result.title_ka || result.titleKa) setTitleKa(result.title_ka || result.titleKa);
-      if (result.title_en || result.titleEn) setTitleEn(result.title_en || result.titleEn);
-      if (result.description_ka || result.descKa) setDescKa(result.description_ka || result.descKa);
-      if (result.description_en || result.descEn) setDescEn(result.description_en || result.descEn);
-      if (result.botanical_name || result.latinName) setBotanicalName(result.botanical_name || result.latinName);
-      if (result.watering_schedule || result.watering) setWateringSchedule(result.watering_schedule || result.watering);
-      if (result.light_requirement || result.light) setLightRequirement(result.light_requirement || result.light);
-      if (result.care_difficulty || result.careLevel) {
-        const diff = (result.care_difficulty || result.careLevel || "").toLowerCase();
+      if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
+      if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
+      if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
+      if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
+      if (result.botanicalName || result.botanical_name || result.latinName) setBotanicalName(result.botanicalName || result.botanical_name || result.latinName);
+      if (result.watering || result.watering_schedule) setWateringSchedule(result.watering || result.watering_schedule);
+      if (result.light || result.light_requirement) setLightRequirement(result.light || result.light_requirement);
+      if (result.careDifficulty || result.care_difficulty || result.careLevel) {
+        const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
         if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
         else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
         else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
@@ -377,6 +380,9 @@ function CreateListingContent() {
           setPlantCategory(matched.id);
           setItemType(matched.itemType);
         }
+      }
+      if (result.itemType) {
+        setItemType(result.itemType);
       }
 
       setAiApplied(true);
