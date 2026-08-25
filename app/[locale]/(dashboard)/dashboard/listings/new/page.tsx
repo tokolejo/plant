@@ -258,22 +258,27 @@ function CreateListingContent() {
   // ──────────────────────────────────────────────
   // 1. Google Gemini Flash Vision AI AutoFill
   // ──────────────────────────────────────────────
+  // 1. Google Gemini Flash Vision AI AutoFill
+  // ──────────────────────────────────────────────
+  const [aiStatusMsg, setAiStatusMsg] = React.useState<{ text: string; type: "info" | "success" | "error" } | null>(null);
   const [geminiDetecting, setGeminiDetecting] = React.useState(false);
 
   const handleGeminiAutoFill = async () => {
     if (selectedFiles.length === 0) {
-      setErrorMsg(isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Gemini AI ამოცნობისთვის!" : "Please upload at least 1 photo for Gemini AI!");
-      setTimeout(() => setErrorMsg(""), 3500);
+      setAiStatusMsg({ text: isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო!" : "Please upload at least 1 photo!", type: "error" });
+      setTimeout(() => setAiStatusMsg(null), 3500);
       return;
     }
 
     setGeminiDetecting(true);
     setErrorMsg("");
+    setAiStatusMsg({ text: isKa ? "მიმდინარეობს Gemini AI ანალიზი..." : "Analyzing with Gemini AI...", type: "info" });
 
     try {
       const firstFile = selectedFiles[0];
+      const compressed = await compressImage(firstFile, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
       const formData = new FormData();
-      formData.append("image", firstFile);
+      formData.append("image", compressed);
 
       const res = await fetch("/api/ai/recognize-plant", {
         method: "POST",
@@ -317,10 +322,14 @@ function CreateListingContent() {
 
       setAiApplied(true);
       setShowBotanicalCare(true);
+      setAiStatusMsg({
+        text: isKa ? `✨ წარმატებით ამოიცნო: ${result.titleKa || result.titleEn}` : `✨ Identified: ${result.titleEn || result.titleKa}`,
+        type: "success",
+      });
     } catch (err: any) {
       console.error("Gemini Recognition Error:", err);
-      setErrorMsg(isKa ? `Gemini AI: ${err.message || "სცადეთ ხელახლა"}` : `Gemini AI: ${err.message || "Try again"}`);
-      setTimeout(() => setErrorMsg(""), 5000);
+      const msg = err.message || (isKa ? "სცადეთ ხელახლა" : "Try again");
+      setAiStatusMsg({ text: `⚠️ Gemini AI: ${msg}`, type: "error" });
     } finally {
       setGeminiDetecting(false);
     }
@@ -333,18 +342,20 @@ function CreateListingContent() {
 
   const handlePlantNetAutoFill = async () => {
     if (selectedFiles.length === 0) {
-      setErrorMsg(isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Pl@ntNet ამოცნობისთვის!" : "Please upload at least 1 photo for Pl@ntNet!");
-      setTimeout(() => setErrorMsg(""), 3500);
+      setAiStatusMsg({ text: isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო!" : "Please upload at least 1 photo!", type: "error" });
+      setTimeout(() => setAiStatusMsg(null), 3500);
       return;
     }
 
     setPlantNetDetecting(true);
     setErrorMsg("");
+    setAiStatusMsg({ text: isKa ? "მიმდინარეობს Pl@ntNet ანალიზი..." : "Analyzing with Pl@ntNet...", type: "info" });
 
     try {
       const firstFile = selectedFiles[0];
+      const compressed = await compressImage(firstFile, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
       const formData = new FormData();
-      formData.append("image", firstFile);
+      formData.append("image", compressed);
 
       const res = await fetch("/api/ai/identify-plant", {
         method: "POST",
@@ -388,10 +399,14 @@ function CreateListingContent() {
 
       setAiApplied(true);
       setShowBotanicalCare(true);
+      setAiStatusMsg({
+        text: isKa ? `✨ წარმატებით ამოიცნო: ${result.titleKa || result.titleEn}` : `✨ Identified: ${result.titleEn || result.titleKa}`,
+        type: "success",
+      });
     } catch (err: any) {
       console.error("Pl@ntNet Recognition Error:", err);
-      setErrorMsg(isKa ? `Pl@ntNet: ${err.message || "სცადეთ ხელახლა"}` : `Pl@ntNet: ${err.message || "Try again"}`);
-      setTimeout(() => setErrorMsg(""), 5000);
+      const msg = err.message || (isKa ? "სცადეთ ხელახლა" : "Try again");
+      setAiStatusMsg({ text: `⚠️ Pl@ntNet: ${msg}`, type: "error" });
     } finally {
       setPlantNetDetecting(false);
     }
@@ -404,18 +419,20 @@ function CreateListingContent() {
 
   const handlePlantIdAutoFill = async () => {
     if (selectedFiles.length === 0) {
-      setErrorMsg(isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Plant.id ამოცნობისთვის!" : "Please upload at least 1 photo for Plant.id!");
-      setTimeout(() => setErrorMsg(""), 3500);
+      setAiStatusMsg({ text: isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო!" : "Please upload at least 1 photo!", type: "error" });
+      setTimeout(() => setAiStatusMsg(null), 3500);
       return;
     }
 
     setPlantIdDetecting(true);
     setErrorMsg("");
+    setAiStatusMsg({ text: isKa ? "მიმდინარეობს Plant.id ანალიზი..." : "Analyzing with Plant.id...", type: "info" });
 
     try {
       const firstFile = selectedFiles[0];
+      const compressed = await compressImage(firstFile, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
       const formData = new FormData();
-      formData.append("image", firstFile);
+      formData.append("image", compressed);
 
       const res = await fetch("/api/ai/recognize-plantid", {
         method: "POST",
@@ -459,10 +476,14 @@ function CreateListingContent() {
 
       setAiApplied(true);
       setShowBotanicalCare(true);
+      setAiStatusMsg({
+        text: isKa ? `✨ წარმატებით ამოიცნო: ${result.titleKa || result.titleEn}` : `✨ Identified: ${result.titleEn || result.titleKa}`,
+        type: "success",
+      });
     } catch (err: any) {
       console.error("Plant.id Recognition Error:", err);
-      setErrorMsg(isKa ? `Plant.id: ${err.message || "სცადეთ ხელახლა"}` : `Plant.id: ${err.message || "Try again"}`);
-      setTimeout(() => setErrorMsg(""), 5000);
+      const msg = err.message || (isKa ? "სცადეთ ხელახლა" : "Try again");
+      setAiStatusMsg({ text: `⚠️ Plant.id: ${msg}`, type: "error" });
     } finally {
       setPlantIdDetecting(false);
     }
@@ -911,6 +932,33 @@ const ALL_GEORGIAN_CITIES = [
               </Button>
             </div>
           </div>
+
+          {/* Inline AI Status / Error / Success Banner */}
+          {aiStatusMsg && (
+            <div
+              className={`p-2.5 rounded-[12px] text-xs font-semibold flex items-center justify-between gap-2 transition-all ${
+                aiStatusMsg.type === "error"
+                  ? "bg-destructive/10 text-destructive border border-destructive/20"
+                  : aiStatusMsg.type === "success"
+                  ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20"
+                  : "bg-primary/10 text-primary border border-primary/20 animate-pulse"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                {aiStatusMsg.type === "info" && <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />}
+                {aiStatusMsg.type === "success" && <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />}
+                {aiStatusMsg.type === "error" && <AlertCircle className="w-3.5 h-3.5 text-destructive shrink-0" />}
+                <span>{aiStatusMsg.text}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAiStatusMsg(null)}
+                className="text-muted-foreground hover:text-foreground p-0.5 cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
 
           <input
             ref={fileInputRef}

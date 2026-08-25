@@ -5,6 +5,7 @@ import { useRouter, Link } from "@/i18n/routing";
 import { useParams } from "next/navigation";
 import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
+import { compressImage } from "@/utils/image-compression";
 import { 
   UploadCloud, 
   Trash2, 
@@ -370,6 +371,7 @@ export default function EditListingPage() {
   // ──────────────────────────────────────────────
   // AI AutoFill Handlers
   // ──────────────────────────────────────────────
+  const [aiStatusMsg, setAiStatusMsg] = React.useState<{ text: string; type: "info" | "success" | "error" } | null>(null);
   const [geminiDetecting, setGeminiDetecting] = React.useState(false);
   const [plantIdDetecting, setPlantIdDetecting] = React.useState(false);
   const [plantNetDetecting, setPlantNetDetecting] = React.useState(false);
@@ -421,22 +423,25 @@ export default function EditListingPage() {
   const handleGeminiAutoFill = async () => {
     const file = await getTargetFileForAi();
     if (!file) {
-      setErrorMsg("გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო AI ამოცნობისთვის!");
-      setTimeout(() => setErrorMsg(""), 3500);
+      setAiStatusMsg({ text: "გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო AI ამოცნობისთვის!", type: "error" });
+      setTimeout(() => setAiStatusMsg(null), 3500);
       return;
     }
     setGeminiDetecting(true);
     setErrorMsg("");
+    setAiStatusMsg({ text: "მიმდინარეობს Gemini AI ანალიზი...", type: "info" });
     try {
+      const compressed = await compressImage(file, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", compressed);
       const res = await fetch("/api/ai/recognize-plant", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Gemini ამოცნობა ვერ მოხერხდა");
       applyAiResult(data.data);
+      setAiStatusMsg({ text: `✨ წარმატებით ამოიცნო: ${data.data.titleKa || data.data.titleEn}`, type: "success" });
     } catch (err: any) {
-      setErrorMsg(`Gemini AI: ${err.message || "სცადეთ ხელახლა"}`);
-      setTimeout(() => setErrorMsg(""), 5000);
+      const msg = err.message || "სცადეთ ხელახლა";
+      setAiStatusMsg({ text: `⚠️ Gemini AI: ${msg}`, type: "error" });
     } finally {
       setGeminiDetecting(false);
     }
@@ -445,22 +450,25 @@ export default function EditListingPage() {
   const handlePlantIdAutoFill = async () => {
     const file = await getTargetFileForAi();
     if (!file) {
-      setErrorMsg("გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო Plant.id ამოცნობისთვის!");
-      setTimeout(() => setErrorMsg(""), 3500);
+      setAiStatusMsg({ text: "გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო Plant.id ამოცნობისთვის!", type: "error" });
+      setTimeout(() => setAiStatusMsg(null), 3500);
       return;
     }
     setPlantIdDetecting(true);
     setErrorMsg("");
+    setAiStatusMsg({ text: "მიმდინარეობს Plant.id ანალიზი...", type: "info" });
     try {
+      const compressed = await compressImage(file, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", compressed);
       const res = await fetch("/api/ai/recognize-plantid", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Plant.id ამოცნობა ვერ მოხერხდა");
       applyAiResult(data.data);
+      setAiStatusMsg({ text: `✨ წარმატებით ამოიცნო: ${data.data.titleKa || data.data.titleEn}`, type: "success" });
     } catch (err: any) {
-      setErrorMsg(`Plant.id: ${err.message || "სცადეთ ხელახლა"}`);
-      setTimeout(() => setErrorMsg(""), 5000);
+      const msg = err.message || "სცადეთ ხელახლა";
+      setAiStatusMsg({ text: `⚠️ Plant.id: ${msg}`, type: "error" });
     } finally {
       setPlantIdDetecting(false);
     }
@@ -469,22 +477,25 @@ export default function EditListingPage() {
   const handlePlantNetAutoFill = async () => {
     const file = await getTargetFileForAi();
     if (!file) {
-      setErrorMsg("გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო Pl@ntNet ამოცნობისთვის!");
-      setTimeout(() => setErrorMsg(""), 3500);
+      setAiStatusMsg({ text: "გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო Pl@ntNet ამოცნობისთვის!", type: "error" });
+      setTimeout(() => setAiStatusMsg(null), 3500);
       return;
     }
     setPlantNetDetecting(true);
     setErrorMsg("");
+    setAiStatusMsg({ text: "მიმდინარეობს Pl@ntNet ანალიზი...", type: "info" });
     try {
+      const compressed = await compressImage(file, { maxDimension: 1200, quality: 0.82, mimeType: "image/jpeg" });
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", compressed);
       const res = await fetch("/api/ai/identify-plant", { method: "POST", body: formData });
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.error || "Pl@ntNet ამოცნობა ვერ მოხერხდა");
       applyAiResult(data.data);
+      setAiStatusMsg({ text: `✨ წარმატებით ამოიცნო: ${data.data.titleKa || data.data.titleEn}`, type: "success" });
     } catch (err: any) {
-      setErrorMsg(`Pl@ntNet: ${err.message || "სცადეთ ხელახლა"}`);
-      setTimeout(() => setErrorMsg(""), 5000);
+      const msg = err.message || "სცადეთ ხელახლა";
+      setAiStatusMsg({ text: `⚠️ Pl@ntNet: ${msg}`, type: "error" });
     } finally {
       setPlantNetDetecting(false);
     }
