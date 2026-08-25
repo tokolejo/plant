@@ -794,9 +794,15 @@ export default function EditListingPage() {
 
           <div className="space-y-3">
             <div>
-              <span className="text-xs font-bold text-foreground block mb-1">სათაური (ქართულად) *</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-foreground block">სათაური (ქართულად) *</span>
+                <span className="text-[10px] text-muted-foreground font-semibold">
+                  {titleKa.length} / 80
+                </span>
+              </div>
               <Input
                 value={titleKa}
+                maxLength={80}
                 onChange={(e) => setTitleKa(e.target.value)}
                 placeholder="მაგ: Monstera Deliciosa (ვარიეგატა)"
                 className="rounded-[14px] font-semibold text-xs sm:text-sm h-10"
@@ -805,9 +811,15 @@ export default function EditListingPage() {
             </div>
 
             <div>
-              <span className="text-xs font-bold text-foreground block mb-1">სათაური (ინგლისურად / ლათინურად)</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-foreground block">სათაური (ინგლისურად / ლათინურად)</span>
+                <span className="text-[10px] text-muted-foreground font-semibold">
+                  {titleEn.length} / 80
+                </span>
+              </div>
               <Input
                 value={titleEn}
+                maxLength={80}
                 onChange={(e) => setTitleEn(e.target.value)}
                 placeholder="მაგ: Monstera Deliciosa Variegata"
                 className="rounded-[14px] text-xs sm:text-sm h-10"
@@ -815,9 +827,15 @@ export default function EditListingPage() {
             </div>
 
             <div>
-              <span className="text-xs font-bold text-foreground block mb-1">დეტალური აღწერა</span>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-foreground block">დეტალური აღწერა</span>
+                <span className="text-[10px] text-muted-foreground font-semibold">
+                  {descKa.length} / 1500
+                </span>
+              </div>
               <textarea
                 value={descKa}
+                maxLength={1500}
                 onChange={(e) => setDescKa(e.target.value)}
                 placeholder="დაწერეთ მცენარის მდგომარეობა, სიმაღლე, მოვლის თავისებურებები..."
                 className="w-full rounded-[16px] border border-input bg-background p-3 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary min-h-[90px]"

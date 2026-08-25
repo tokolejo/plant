@@ -612,11 +612,17 @@ export default function ProfileEditPage() {
 
                 {/* Bio / Description */}
                 <div>
-                  <label className="text-xs font-black text-foreground block mb-1">
-                    {isKa ? "ჩემ შესახებ / აღწერა" : "About Me / Bio"}
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-black text-foreground block">
+                      {isKa ? "ჩემ შესახებ / აღწერა" : "About Me / Bio"}
+                    </label>
+                    <span className="text-[10px] text-muted-foreground font-semibold">
+                      {bio.length} / 500
+                    </span>
+                  </div>
                   <textarea
                     rows={3}
+                    maxLength={500}
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="მოკლედ მოგვიყევით თქვენს მცენარეებზე, გამოცდილებაზე ან სანერგეზე..."

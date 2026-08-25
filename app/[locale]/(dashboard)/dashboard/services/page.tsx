@@ -535,9 +535,15 @@ export default function DashboardServicesPage() {
 
             <form onSubmit={handleSaveService} className="space-y-3.5 overflow-y-auto flex-1 p-1">
               <div>
-                <label className="text-xs font-bold text-foreground block mb-1">სათაური *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-foreground block">სათაური *</label>
+                  <span className="text-[10px] text-muted-foreground font-semibold">
+                    {formTitle.length} / 80
+                  </span>
+                </div>
                 <Input
                   required
+                  maxLength={80}
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   placeholder="მაგ: ხეხილის პროფესიონალური გასხვლა და შეწამვლა"
@@ -623,10 +629,16 @@ export default function DashboardServicesPage() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-foreground block mb-1">აღწერა & პირობები *</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs font-bold text-foreground block">აღწერა & პირობები *</label>
+                  <span className="text-[10px] text-muted-foreground font-semibold">
+                    {formDescription.length} / 1500
+                  </span>
+                </div>
                 <textarea
                   rows={3}
                   required
+                  maxLength={1500}
                   value={formDescription}
                   onChange={(e) => setFormDescription(e.target.value)}
                   placeholder="აღწერეთ თქვენი გამოცდილება, გამოყენებული ტექნიკა და მომსახურების პირობები..."

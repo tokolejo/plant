@@ -857,12 +857,18 @@ const ALL_GEORGIAN_CITIES = [
 
           {/* Title Input */}
           <div className="space-y-1">
-            <label className="text-[11px] font-bold text-foreground block">
-              {isKa ? "სათაური *" : "Listing Title *"}
-            </label>
+            <div className="flex items-center justify-between">
+              <label className="text-[11px] font-bold text-foreground block">
+                {isKa ? "სათაური *" : "Listing Title *"}
+              </label>
+              <span className="text-[10px] text-muted-foreground font-semibold">
+                {(isKa ? titleKa : (titleEn || titleKa)).length} / 80
+              </span>
+            </div>
             <Input
               type="text"
               required
+              maxLength={80}
               value={isKa ? titleKa : (titleEn || titleKa)}
               onChange={(e) => {
                 if (isKa) {
@@ -1013,14 +1019,14 @@ const ALL_GEORGIAN_CITIES = [
               <label className="text-[11px] font-bold text-foreground block">
                 {isKa ? "აღწერა *" : "Description *"}
               </label>
-              <span className="text-[10px] text-muted-foreground">
-                {(isKa ? descKa : descEn).length} / 2500
+              <span className="text-[10px] text-muted-foreground font-semibold">
+                {(isKa ? descKa : (descEn || descKa)).length} / 1500
               </span>
             </div>
             <textarea
               required
               rows={4}
-              maxLength={2500}
+              maxLength={1500}
               value={isKa ? descKa : (descEn || descKa)}
               onChange={(e) => {
                 if (isKa) {
