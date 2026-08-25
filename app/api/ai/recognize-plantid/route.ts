@@ -87,7 +87,10 @@ function translateToxicity(toxicity?: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.PLANT_ID_API_KEY || "nEPcYl6jCMNvBtBYDGfGci734wCRFxSNR1oGTY4suxvnijBWgf";
+    const apiKey = process.env.PLANT_ID_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ success: false, error: "Plant.id API Key is not configured in Environment Variables" }, { status: 500 });
+    }
 
     let base64Images: string[] = [];
 

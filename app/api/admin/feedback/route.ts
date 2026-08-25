@@ -44,13 +44,32 @@ let memoryFeedbackStore: any[] = [
   },
 ];
 
+async function verifyAdminUser(supabase: any) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { authorized: false, status: 401, error: "Unauthorized" };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("is_admin, role")
+    .eq("id", user.id)
+    .single();
+
+  const isSuperAdmin = user.email === "tokolejo@gmail.com";
+  const hasAdminAccess = isSuperAdmin || profile?.is_admin || profile?.role === "SUPER_ADMIN" || profile?.role === "MODERATOR";
+
+  if (!hasAdminAccess) {
+    return { authorized: false, status: 403, error: "Forbidden: Admin privileges required" };
+  }
+
+  return { authorized: true, user, profile };
+}
+
 export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const auth = await verifyAdminUser(supabase);
+    if (!auth.authorized) {
+      return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
     }
 
     const { searchParams } = new URL(req.url);
@@ -123,10 +142,9 @@ export async function GET(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const auth = await verifyAdminUser(supabase);
+    if (!auth.authorized) {
+      return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
     }
 
     const body = await req.json();
@@ -172,10 +190,9 @@ export async function PATCH(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    const auth = await verifyAdminUser(supabase);
+    if (!auth.authorized) {
+      return NextResponse.json({ success: false, error: auth.error }, { status: auth.status });
     }
 
     const { searchParams } = new URL(req.url);

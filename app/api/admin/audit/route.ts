@@ -13,6 +13,20 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check Admin status
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin, role")
+      .eq("id", user.id)
+      .single();
+
+    const isSuperAdmin = user.email === "tokolejo@gmail.com";
+    const hasAdminAccess = isSuperAdmin || profile?.is_admin || profile?.role === "SUPER_ADMIN" || profile?.role === "MODERATOR";
+
+    if (!hasAdminAccess) {
+      return NextResponse.json({ success: false, error: "Forbidden: Admin privileges required" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") || "300");
 

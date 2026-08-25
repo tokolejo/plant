@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Tier 1: Check if Plant.id Health API is available
-    const plantIdKey = process.env.PLANT_ID_API_KEY || "nEPcYl6jCMNvBtBYDGfGci734wCRFxSNR1oGTY4suxvnijBWgf";
+    const plantIdKey = process.env.PLANT_ID_API_KEY;
 
     if (base64Image && plantIdKey) {
       try {

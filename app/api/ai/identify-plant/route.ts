@@ -228,7 +228,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "No image uploaded" }, { status: 400 });
     }
 
-    const apiKey = process.env.PLANTNET_API_KEY || "2b10Dskv0e8zWjR0LSmW8v2wP";
+    const apiKey = process.env.PLANTNET_API_KEY || process.env.NEXT_PUBLIC_PLANTNET_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ success: false, error: "Pl@ntNet API Key is not configured in Environment Variables" }, { status: 500 });
+    }
     const plantNetFormData = new FormData();
 
     for (const f of filesToProcess.slice(0, 4)) {
