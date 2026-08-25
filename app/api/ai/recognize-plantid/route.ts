@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { lookupBotanicalTaxon } from "@/lib/botanical-dictionary";
+import { resolveIntelligentBotanicalTaxon } from "@/lib/botanical-resolver";
 
 export const maxDuration = 45;
 
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
     const best = result.classification.suggestions[0];
     const scientificName = best.name || "Unknown plant";
     const commonNames: string[] = best.details?.common_names || [];
-    const taxon = lookupBotanicalTaxon(scientificName, commonNames);
+    const taxon = await resolveIntelligentBotanicalTaxon(scientificName, commonNames);
 
     const titleKa = taxon.ka || scientificName;
     const titleEn = commonNames[0] || taxon.en || scientificName;

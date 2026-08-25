@@ -13,19 +13,32 @@ export type PlantCategoryId =
   | "philodendron"
   | "anthurium"
   | "alocasia"
-  | "calathea"
+  | "syngonium"
   | "pothos-scindapsus"
+  | "aglaonema"
+  | "spathiphyllum"
+  | "dieffenbachia"
+  | "calathea"
   | "rare-aroid"
-  // Flowering
+  // Flowering & Exotic
   | "orchid"
   | "bromeliad"
-  // Trees & Ficus
+  | "hoya"
+  | "begonia"
+  | "carnivorous"
+  // Trees & Palms
   | "ficus"
   | "palm"
+  | "dracaena-cordyline"
+  | "bonsai"
+  | "citrus-fruit"
   | "fern"
   | "outdoor-garden"
-  // Cactus & Rare
+  // Cactus & Succulents & Rare
   | "cactus-succulent"
+  | "sansevieria"
+  | "zz-plant"
+  | "euphorbia"
   | "rare-variegated"
   | "cutting"
   // Inventory
@@ -35,6 +48,7 @@ export type PlantCategoryId =
   | "fertilizer"
   | "tools-care"
   | "lighting-grow"
+  | "seeds-bulbs"
   // Catch-all
   | "other-plant"
   | "other-inventory";
@@ -57,50 +71,63 @@ export interface CategoryGroupDef {
 export const CATEGORY_GROUPS: CategoryGroupDef[] = [
   {
     id: "aroids",
-    labelKa: "აროიდები",
+    labelKa: "აროიდები & ფოთლოვანი",
     emoji: "",
     colorClass: "text-emerald-600 dark:text-emerald-400",
     children: [
-      { id: "monstera", labelKa: "Monstera", emoji: "" },
-      { id: "philodendron", labelKa: "Philodendron", emoji: "" },
-      { id: "anthurium", labelKa: "Anthurium", emoji: "" },
-      { id: "alocasia", labelKa: "Alocasia / Colocasia", emoji: "" },
-      { id: "calathea", labelKa: "Calathea / Maranta", emoji: "" },
-      { id: "pothos-scindapsus", labelKa: "Pothos / Scindapsus", emoji: "" },
+      { id: "monstera", labelKa: "მონსტერა (Monstera)", emoji: "" },
+      { id: "philodendron", labelKa: "ფილოდენდრონი (Philodendron)", emoji: "" },
+      { id: "anthurium", labelKa: "ანთურიუმი (Anthurium)", emoji: "" },
+      { id: "alocasia", labelKa: "ალოკაზია (Alocasia)", emoji: "" },
+      { id: "syngonium", labelKa: "სინგონიუმი (Syngonium)", emoji: "" },
+      { id: "pothos-scindapsus", labelKa: "პოთოსი & სცინდაპსუსი", emoji: "" },
+      { id: "aglaonema", labelKa: "აგლაონემა (Aglaonema)", emoji: "" },
+      { id: "spathiphyllum", labelKa: "სპატიფილუმი (ქალური ბედნიერება)", emoji: "" },
+      { id: "dieffenbachia", labelKa: "დიფენბახია (Dieffenbachia)", emoji: "" },
+      { id: "calathea", labelKa: "კალათეა & მარანტა", emoji: "" },
       { id: "rare-aroid", labelKa: "იშვიათი აროიდები", emoji: "" },
     ],
   },
   {
-    id: "flowering",
-    labelKa: "ყვავილოვანი",
-    emoji: "",
-    colorClass: "text-rose-500 dark:text-rose-400",
-    children: [
-      { id: "orchid", labelKa: "ორქიდეები", emoji: "" },
-      { id: "bromeliad", labelKa: "ბრომელიადები", emoji: "" },
-    ],
-  },
-  {
-    id: "trees",
-    labelKa: "ხეები & ფიკუსები",
-    emoji: "",
-    colorClass: "text-teal-600 dark:text-teal-400",
-    children: [
-      { id: "ficus", labelKa: "Ficus (ფიკუსი)", emoji: "" },
-      { id: "palm", labelKa: "პალმები", emoji: "" },
-      { id: "fern", labelKa: "გვიმრები", emoji: "" },
-      { id: "outdoor-garden", labelKa: "ბაღის მცენარეები", emoji: "" },
-    ],
-  },
-  {
     id: "cactus-rare",
-    labelKa: "კაქტუსი & იშვიათები",
+    labelKa: "კაქტუსები & სუქულენტები",
     emoji: "",
     colorClass: "text-amber-600 dark:text-amber-400",
     children: [
       { id: "cactus-succulent", labelKa: "კაქტუსი & სუქულენტი", emoji: "" },
+      { id: "sansevieria", labelKa: "სანსევიერია / ხანჯალა", emoji: "" },
+      { id: "zz-plant", labelKa: "ზამიოკულკასი / დოლარის ხე", emoji: "" },
+      { id: "euphorbia", labelKa: "ეუფორბია / რძიანა", emoji: "" },
       { id: "rare-variegated", labelKa: "ვარიეგატი & იშვიათი", emoji: "" },
+      { id: "carnivorous", labelKa: "მწერიჭამია მცენარეები", emoji: "" },
       { id: "cutting", labelKa: "კალმები & ფესვიანები", emoji: "" },
+    ],
+  },
+  {
+    id: "trees",
+    labelKa: "ხეები, პალმები & ფიკუსები",
+    emoji: "",
+    colorClass: "text-teal-600 dark:text-teal-400",
+    children: [
+      { id: "ficus", labelKa: "ფიკუსი (Ficus)", emoji: "" },
+      { id: "palm", labelKa: "პალმები (Palm)", emoji: "" },
+      { id: "dracaena-cordyline", labelKa: "დრაცენა & კორდილინა", emoji: "" },
+      { id: "bonsai", labelKa: "ბონსაი (Bonsai)", emoji: "" },
+      { id: "citrus-fruit", labelKa: "ციტრუსი & ხეხილი", emoji: "" },
+      { id: "fern", labelKa: "გვიმრები (Fern)", emoji: "" },
+      { id: "outdoor-garden", labelKa: "ბაღისა & გარე მცენარეები", emoji: "" },
+    ],
+  },
+  {
+    id: "flowering",
+    labelKa: "ყვავილოვანი & ეგზოტიკა",
+    emoji: "",
+    colorClass: "text-rose-500 dark:text-rose-400",
+    children: [
+      { id: "orchid", labelKa: "ორქიდეები (Orchid)", emoji: "" },
+      { id: "hoya", labelKa: "ხოია (ცვილისებრი სურო)", emoji: "" },
+      { id: "begonia", labelKa: "ბეგონია (Begonia)", emoji: "" },
+      { id: "bromeliad", labelKa: "ბრომელიადები", emoji: "" },
     ],
   },
   {
@@ -113,8 +140,9 @@ export const CATEGORY_GROUPS: CategoryGroupDef[] = [
       { id: "pots-plastic", labelKa: "პლასტიკური ქოთნები", emoji: "" },
       { id: "substrate-soil", labelKa: "სუბსტრატი & გრუნტი", emoji: "" },
       { id: "fertilizer", labelKa: "სასუქები & პრეპარატები", emoji: "" },
-      { id: "tools-care", labelKa: "ხელსაწყოები", emoji: "" },
+      { id: "tools-care", labelKa: "ხელსაწყოები & მოვლა", emoji: "" },
       { id: "lighting-grow", labelKa: "Grow Light / განათება", emoji: "" },
+      { id: "seeds-bulbs", labelKa: "თესლები & ბოლქვები", emoji: "" },
     ],
   },
   {
