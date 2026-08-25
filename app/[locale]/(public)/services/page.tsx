@@ -564,32 +564,8 @@ function GardeningServicesCatalogContent() {
   );
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8 pb-28 sm:pb-12">
-      {/* 1. Header Hero Banner (Identical to Marketplace) */}
-      <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-2xl">
-          <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
-            {isKa ? "მებაღეობის & გამწვანების სერვისები" : "Gardening & Greening Services"}
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            {isKa
-              ? "იპოვეთ გამოცდილი მებაღეები, ხეების მესხველელები, ლანდშაფტის დიზაინერები და სარწყავი სისტემების ოსტატები მთელი საქართველოს მასშტაბით."
-              : "Discover experienced garden specialists, tree pruners, landscape architects, and irrigation experts across Georgia."}
-          </p>
-        </div>
-
-        <Link href="/dashboard/services">
-          <Button
-            type="button"
-            className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-6 gap-2 shadow-ambient cursor-pointer shrink-0"
-          >
-            <Plus className="w-4 h-4" />
-            <span>{isKa ? "სერვისის დამატება" : "Add Service"}</span>
-          </Button>
-        </Link>
-      </div>
-
-      {/* 2. Horizontal Scroll Category Slider with Nav Arrows & "ყველა" Button */}
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl space-y-6 pb-28 sm:pb-12">
+      {/* Horizontal Scroll Category Slider with Nav Arrows & "ყველა" Button */}
       <div className="relative group/cats">
         <div className="flex items-center justify-between gap-2">
           {/* Left Scroll Arrow */}

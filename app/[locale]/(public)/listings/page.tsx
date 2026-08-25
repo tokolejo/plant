@@ -511,6 +511,14 @@ function ListingsCatalogContent() {
   const plantsCount = React.useMemo(() => allListings.filter((l) => l.itemType === "PLANT").length, [allListings]);
   const inventoryCount = React.useMemo(() => allListings.filter((l) => l.itemType === "INVENTORY").length, [allListings]);
 
+  // Ref for the item-type horizontal scroll bar (matches Services category slider)
+  const typeScrollRef = React.useRef<HTMLDivElement>(null);
+  const scrollTypes = (dir: "left" | "right") => {
+    if (typeScrollRef.current) {
+      typeScrollRef.current.scrollBy({ left: dir === "left" ? -200 : 200, behavior: "smooth" });
+    }
+  };
+
   const toggleCategory = (cat: PlantCategory | string) => {
     setSelectedCategories((prev) =>
       prev.includes(cat as any) ? prev.filter((c) => c !== cat) : [...prev, cat as any]
@@ -947,81 +955,146 @@ function ListingsCatalogContent() {
   );
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-10 max-w-7xl space-y-8 pb-28 sm:pb-12">
-      {/* 1. Header Hero Banner (Identical to Services layout) */}
-      <div className="rounded-[28px] bg-gradient-to-r from-emerald-600/10 via-primary/10 to-teal-500/10 border border-border/80 p-6 sm:p-8 shadow-ambient flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="space-y-2 max-w-2xl">
-          <h1 className="text-2xl sm:text-4xl font-black text-foreground tracking-tight">
-            {isKa ? "მცენარეები & ბაღის ინვენტარი" : "Plants & Garden Marketplace"}
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            {isKa
-              ? "შეიძინეთ, გაცვალეთ ან გააჩუქეთ ოთახის და ეზოს მცენარეები, იშვიათი კოლექციები, ქოთნები და ორგანული სასუქები."
-              : "Buy, trade, and discover houseplants, rare botanical specimens, pots, substrates, and care supplies."}
-          </p>
-        </div>
-
-        <Link href="/dashboard/listings/new">
-          <Button
+    <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8 max-w-7xl space-y-6 pb-28 sm:pb-12">
+      {/* Horizontal Scroll Category Slider with Nav Arrows & "ყველა" Button (Identical to Services) */}
+      <div className="relative group/cats">
+        <div className="flex items-center justify-between gap-2">
+          {/* Left Scroll Arrow */}
+          <button
             type="button"
-            className="rounded-[16px] bg-primary hover:bg-primary/90 text-white font-black text-xs sm:text-sm h-12 px-6 gap-2 shadow-ambient cursor-pointer shrink-0"
+            onClick={() => scrollTypes("left")}
+            className="hidden sm:flex h-9 w-9 rounded-full border border-border/80 bg-card hover:bg-surface-container items-center justify-center text-foreground transition-all shadow-2xs hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+            title={isKa ? "მარცხნივ" : "Scroll Left"}
           >
-            <Plus className="w-4 h-4" />
-            <span>{isKa ? "განცხადების დამატება" : "Add Listing"}</span>
-          </Button>
-        </Link>
-      </div>
+            <ChevronLeft className="w-4 h-4" />
+          </button>
 
-      {/* Top Toolbar: Switcher Tabs + Mobile Controls Bar */}
-      <div className="space-y-3 mb-5">
-        {/* Row 1: Item Type Switcher Tabs (All -> Plants -> Inventory) */}
-        <div className="w-full">
-          <div className="grid grid-cols-3 gap-1 p-1 rounded-[16px] bg-secondary-container/70 border border-border/60 w-full">
+          {/* Scrollable Track */}
+          <div
+            ref={typeScrollRef}
+            className="flex items-center gap-2 overflow-x-auto scroll-smooth no-scrollbar py-1 flex-1 px-0.5"
+          >
             {/* 1. All */}
             <button
               type="button"
               onClick={() => handleItemTypeChange("ALL")}
-              className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
-                itemTypeFilter === "ALL"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                itemTypeFilter === "ALL" && selectedCategories.length === 0
+                  ? "bg-primary text-white border-primary shadow-xs scale-102"
+                  : "bg-card hover:bg-surface-container text-foreground border-border/80"
               }`}
             >
-              <span>{isKa ? "ყველა" : "All"}</span>
-              <span className="text-[10px] opacity-80 font-mono">({allListings.length})</span>
+              <Sprout className={`w-3.5 h-3.5 ${itemTypeFilter === "ALL" && selectedCategories.length === 0 ? "text-white" : "text-primary"}`} />
+              <span>{isKa ? "ყველა განცხადება" : "All Listings"}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  itemTypeFilter === "ALL" && selectedCategories.length === 0
+                    ? "bg-white/20 text-white"
+                    : "bg-secondary-container text-muted-foreground"
+                }`}
+              >
+                {allListings.length}
+              </span>
             </button>
 
             {/* 2. Plants */}
             <button
               type="button"
               onClick={() => handleItemTypeChange("PLANT")}
-              className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
-                itemTypeFilter === "PLANT"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                itemTypeFilter === "PLANT" && selectedCategories.length === 0
+                  ? "bg-primary text-white border-primary shadow-xs scale-102"
+                  : "bg-card hover:bg-surface-container text-foreground border-border/80"
               }`}
             >
-              <Sprout className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
+              <Leaf className={`w-3.5 h-3.5 ${itemTypeFilter === "PLANT" && selectedCategories.length === 0 ? "text-white" : "text-emerald-600"}`} />
               <span>{isKa ? "მცენარეები" : "Plants"}</span>
-              <span className="text-[10px] opacity-80 font-mono">({plantsCount})</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  itemTypeFilter === "PLANT" && selectedCategories.length === 0
+                    ? "bg-white/20 text-white"
+                    : "bg-secondary-container text-muted-foreground"
+                }`}
+              >
+                {plantsCount}
+              </span>
             </button>
 
             {/* 3. Inventory */}
             <button
               type="button"
               onClick={() => handleItemTypeChange("INVENTORY")}
-              className={`flex items-center justify-center gap-1 sm:gap-1.5 py-2 px-1 rounded-[12px] text-xs font-bold transition-all cursor-pointer whitespace-nowrap text-center ${
-                itemTypeFilter === "INVENTORY"
-                  ? "bg-primary text-white shadow-xs"
-                  : "text-muted-foreground hover:text-foreground"
+              className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                itemTypeFilter === "INVENTORY" && selectedCategories.length === 0
+                  ? "bg-primary text-white border-primary shadow-xs scale-102"
+                  : "bg-card hover:bg-surface-container text-foreground border-border/80"
               }`}
             >
-              <Layers className="w-3.5 h-3.5 shrink-0 hidden sm:inline" />
-              <span>{isKa ? "ინვენტარი" : "Supplies"}</span>
-              <span className="text-[10px] opacity-80 font-mono">({inventoryCount})</span>
+              <Layers className={`w-3.5 h-3.5 ${itemTypeFilter === "INVENTORY" && selectedCategories.length === 0 ? "text-white" : "text-amber-600"}`} />
+              <span>{isKa ? "ინვენტარი & მოვლა" : "Care & Supplies"}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  itemTypeFilter === "INVENTORY" && selectedCategories.length === 0
+                    ? "bg-white/20 text-white"
+                    : "bg-secondary-container text-muted-foreground"
+                }`}
+              >
+                {inventoryCount}
+              </span>
             </button>
+
+            {/* Category Groups */}
+            {PLANT_CATEGORY_GROUPS.map((group) => {
+              const IconComp = group.icon || Sprout;
+              const groupCatIds = group.children.map((c) => c.id as string);
+              const isGroupActive = group.children.some((c) => selectedCategories.includes(c.id));
+              const groupCount = allListings.filter((l) => groupCatIds.includes(l.plantCategory || l.plant_category)).length;
+
+              return (
+                <button
+                  key={group.id}
+                  type="button"
+                  onClick={() => {
+                    if (group.id === "inventory") {
+                      handleItemTypeChange("INVENTORY");
+                    } else {
+                      setItemTypeFilter("PLANT");
+                      setSelectedCategories(group.children.map((c) => c.id));
+                      setOpenSections((prev) => ({ ...prev, categories: true }));
+                      setOpenGroups((prev) => ({ ...prev, [group.id]: true }));
+                    }
+                  }}
+                  className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                    isGroupActive
+                      ? "bg-primary text-white border-primary shadow-xs scale-102"
+                      : "bg-card hover:bg-surface-container text-foreground border-border/80"
+                  }`}
+                >
+                  <IconComp className={`w-3.5 h-3.5 ${isGroupActive ? "text-white" : "text-emerald-600"}`} />
+                  <span>{isKa ? group.labelKa : group.labelEn}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                      isGroupActive ? "bg-white/20 text-white" : "bg-secondary-container text-muted-foreground"
+                    }`}
+                  >
+                    {groupCount}
+                  </span>
+                </button>
+              );
+            })}
           </div>
+
+          {/* Right Scroll Arrow */}
+          <button
+            type="button"
+            onClick={() => scrollTypes("right")}
+            className="hidden sm:flex h-9 w-9 rounded-full border border-border/80 bg-card hover:bg-surface-container items-center justify-center text-foreground transition-all shadow-2xs hover:scale-105 active:scale-95 shrink-0 cursor-pointer"
+            title={isKa ? "მარჯვნივ" : "Scroll Right"}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
+      </div>
 
         {/* Row 2 (Mobile Only Action Bar): Filters Button + Page Size + Grid/List Mode */}
         <div className="flex lg:hidden items-center justify-between gap-2">
@@ -1092,7 +1165,6 @@ function ListingsCatalogContent() {
             </div>
           </div>
         </div>
-      </div>
 
       {/* Active Filter Chips */}
       {(selectedCategories.length > 0 || selectedTrans.length > 0 || selectedDelivery.length > 0) && (
