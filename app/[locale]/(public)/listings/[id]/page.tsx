@@ -50,7 +50,7 @@ import { formatPrice } from "@/lib/utils";
 import { getBotanicalCareDetails } from "@/lib/botanical-care";
 import { ReviewsSkeleton, RecommendedInventorySkeleton } from "@/components/common/DetailSkeletons";
 import { submitReviewAction } from "@/app/actions/reviews";
-import { toggleWishlistAction } from "@/app/actions/listings";
+import { toggleWishlistAction, addToGreenhouseAction } from "@/app/actions/listings";
 
 // ─── Social Platform Icons ──────────────────────────────────────────────────
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -591,29 +591,21 @@ export default function ListingDetailPage({
 
     setAddingToGreenhouse(true);
     try {
-      const now = new Date();
-      const nextWaterDate = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-      const { error } = await supabase.from("user_plants").insert({
-        user_id: currentUser.id,
-        listing_id: listing.id,
+      const res = await addToGreenhouseAction({
+        listingId: listing.id,
         name: displayTitle,
-        species_name: careInfo?.speciesName || careInfo?.latinName || null,
-        room_location: "მისაღები",
-        watering_frequency_days: 7,
-        last_watered_at: now.toISOString(),
-        next_watering_at: nextWaterDate.toISOString(),
-        image_url: images[0] || null,
-        notes: `შეძენილია Plant.ge-დან (${listing.seller?.fullName || "სელერი"})`,
+        speciesName: careInfo?.speciesName || careInfo?.latinName || null,
+        roomLocation: "მისაღები",
+        wateringFrequencyDays: 7,
+        imageUrl: images[0] || null,
+        notes: `დამატებულია Plant.ge-დან (${listing.seller?.fullName || "სელერი"})`,
       });
 
-      if (!error) {
-        setGreenhouseAdded(true);
-        setWishlistNotice(isKa ? `მცენარე „${displayTitle}“ დაემატა თქვენს ორანჟერეაში!` : `Added "${displayTitle}" to your Greenhouse!`);
-        setTimeout(() => setWishlistNotice(""), 4000);
-      }
+      setGreenhouseAdded(true);
+      setWishlistNotice(isKa ? `მცენარე „${displayTitle}“ დაემატა თქვენს ორანჟერეაში!` : `Added "${displayTitle}" to your Greenhouse!`);
+      setTimeout(() => setWishlistNotice(""), 4000);
     } catch (err) {
-      console.error(err);
+      console.error("Error adding plant to greenhouse:", err);
     } finally {
       setAddingToGreenhouse(false);
     }

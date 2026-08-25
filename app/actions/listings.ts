@@ -136,3 +136,60 @@ export async function deleteListingAction(listingId: string): Promise<ActionResu
     return { success: false, error: err?.message || "შეცდომა განცხადების წაშლისას" };
   }
 }
+
+/**
+ * Server Action to add plant from listing into User's Greenhouse
+ */
+export async function addToGreenhouseAction(params: {
+  listingId?: string | null;
+  name: string;
+  speciesName?: string | null;
+  roomLocation?: string;
+  wateringFrequencyDays?: number;
+  imageUrl?: string | null;
+  notes?: string | null;
+}): Promise<ActionResult> {
+  try {
+    const supabase = await createClient();
+    const { data: { user }, error: authErr } = await supabase.auth.getUser();
+
+    if (authErr || !user) {
+      return { success: false, error: "გთხოვთ გაიაროთ ავტორიზაცია" };
+    }
+
+    const isValidUuid = (val?: string | null) => 
+      Boolean(val && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(val));
+
+    const safeListingId = isValidUuid(params.listingId) ? params.listingId : null;
+    const now = new Date();
+    const days = params.wateringFrequencyDays || 7;
+    const nextWaterDate = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+
+    const { data, error } = await supabase
+      .from("user_plants")
+      .insert({
+        user_id: user.id,
+        listing_id: safeListingId,
+        name: params.name,
+        species_name: params.speciesName || null,
+        room_location: params.roomLocation || "მისაღები",
+        watering_frequency_days: days,
+        last_watered_at: now.toISOString(),
+        next_watering_at: nextWaterDate.toISOString(),
+        image_url: params.imageUrl || null,
+        notes: params.notes || null,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.warn("Error adding plant to greenhouse:", error);
+      return { success: false, error: error.message };
+    }
+
+    revalidatePath("/dashboard/greenhouse");
+    return { success: true, data };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "შეცდომა მცენარის დამატებისას" };
+  }
+}
