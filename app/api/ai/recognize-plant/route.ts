@@ -87,10 +87,10 @@ Return ONLY a raw JSON object (STRICTLY NO markdown, NO \`\`\`json codeblocks, N
 }`;
 
     const modelsToTry = [
-      "gemini-1.5-flash",
-      "gemini-2.0-flash",
-      "gemini-1.5-flash-8b",
-      "gemini-2.5-flash",
+      "gemini-3.6-flash",
+      "gemini-3.5-flash-lite",
+      "gemini-flash-latest",
+      "gemini-3.7-flash",
     ];
 
     let lastErrorMsg = "";
@@ -98,12 +98,11 @@ Return ONLY a raw JSON object (STRICTLY NO markdown, NO \`\`\`json codeblocks, N
     for (const model of modelsToTry) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              "x-goog-api-key": apiKey,
             },
             body: JSON.stringify({
               contents: [
