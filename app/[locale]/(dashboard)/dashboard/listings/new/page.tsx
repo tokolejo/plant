@@ -83,7 +83,7 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export default function CreateListingPage() {
+function CreateListingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const locale = useLocale();
@@ -1306,5 +1306,24 @@ const ALL_GEORGIAN_CITIES = [
 
       </form>
     </div>
+  );
+}
+
+export default function CreateListingPage() {
+  const locale = useLocale();
+  const isKa = locale !== "en";
+  return (
+    <React.Suspense
+      fallback={
+        <div className="container mx-auto px-4 py-24 flex flex-col items-center justify-center text-center space-y-3 min-h-[50vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-xs text-muted-foreground font-medium">
+            {isKa ? "იტვირთება..." : "Loading..."}
+          </p>
+        </div>
+      }
+    >
+      <CreateListingContent />
+    </React.Suspense>
   );
 }
