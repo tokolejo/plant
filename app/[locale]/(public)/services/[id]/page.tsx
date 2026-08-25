@@ -152,6 +152,13 @@ export default function ServiceDetailPage({
     setTimeout(() => setReviewNotice(""), 4000);
   };
 
+  // Scroll to top immediately upon entering page
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" as any });
+    }
+  }, [serviceId]);
+
   React.useEffect(() => {
     async function loadService() {
       try {

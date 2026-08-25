@@ -1096,76 +1096,6 @@ function ListingsCatalogContent() {
         </div>
       </div>
 
-        {/* Row 2 (Mobile Only Action Bar): Filters Button + Page Size + Grid/List Mode */}
-        <div className="flex lg:hidden items-center justify-between gap-2">
-          {/* Left: Mobile Filter Toggle Button */}
-          <button
-            type="button"
-            onClick={() => setMobileFilterOpen(!mobileFilterOpen)}
-            className="flex items-center gap-2 h-9 px-3.5 rounded-[14px] border border-border/80 bg-card text-xs font-bold text-foreground shadow-2xs hover:bg-surface-container transition-all cursor-pointer shrink-0"
-          >
-            <SlidersHorizontal className="w-4 h-4 text-primary" />
-            <span>{isKa ? "ფილტრები" : "Filters"}</span>
-            {activeFilterCount > 0 && (
-              <span className="w-5 h-5 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-
-          {/* Right: Page Size & Grid/List Mode Toggle */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            {/* Page Size Selector */}
-            <div className="relative inline-flex items-center">
-              <select
-                value={pageSize}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setPageSize(val);
-                  setVisibleCount(val);
-                }}
-                className="h-9 pl-2.5 pr-6 rounded-[12px] bg-card border border-border/80 text-xs font-bold text-foreground hover:bg-surface-container transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
-                title={isKa ? "რაოდენობა" : "Items per page"}
-              >
-                <option value={20}>20</option>
-                <option value={40}>40</option>
-                <option value={60}>60</option>
-                <option value={80}>80</option>
-                <option value={100}>100</option>
-              </select>
-              <ChevronDown className="w-3 h-3 text-muted-foreground absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none opacity-70" />
-            </div>
-
-            {/* Grid / List View Toggle */}
-            <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-[12px] p-0.5 shadow-2xs h-9">
-              <button
-                type="button"
-                onClick={() => setViewMode("grid")}
-                className={`h-7.5 w-7.5 rounded-[8px] flex items-center justify-center transition-all cursor-pointer ${
-                  viewMode === "grid"
-                    ? "bg-primary text-white shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
-                }`}
-                title={isKa ? "გრიდის ხედი" : "Grid View"}
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode("list")}
-                className={`h-7.5 w-7.5 rounded-[8px] flex items-center justify-center transition-all cursor-pointer ${
-                  viewMode === "list"
-                    ? "bg-primary text-white shadow-xs"
-                    : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
-                }`}
-                title={isKa ? "სიის ხედი" : "List View"}
-              >
-                <List className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-        </div>
-
       {/* Active Filter Chips */}
       {(selectedCategories.length > 0 || selectedTrans.length > 0 || selectedDelivery.length > 0) && (
         <div className="flex flex-wrap gap-2 mb-5">
@@ -1244,7 +1174,7 @@ function ListingsCatalogContent() {
         </div>
       )}
 
-      <div className="flex gap-6 lg:gap-7">
+      <div className="flex gap-6 lg:gap-7 items-start">
         {/* Sidebar — Desktop */}
         <aside className="hidden lg:block w-76 sm:w-80 shrink-0 relative z-30">
           <div className="sticky top-20 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient overflow-visible relative z-30">
@@ -1253,9 +1183,9 @@ function ListingsCatalogContent() {
         </aside>
 
         {/* Results Column */}
-        <div className="flex-1 min-w-0">
-          {/* Top Sorting Pill Bar (Mobile & Desktop) */}
-          <div className="mb-4 flex items-center justify-between gap-2">
+        <div className="flex-1 min-w-0 space-y-4">
+          {/* Controls Bar: Sort Pills (Left) + Mobile Filter & Page Size & Grid/List (Right) */}
+          <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
             {/* Sort Buttons (Smooth horizontal pill bar) */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar w-full sm:w-auto pb-0.5">
               {[
@@ -1288,6 +1218,7 @@ function ListingsCatalogContent() {
                 return (
                   <button
                     key={opt.id}
+                    type="button"
                     onClick={() => handleSortClick(opt.id)}
                     className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
                       isActive
@@ -1308,8 +1239,23 @@ function ListingsCatalogContent() {
               })}
             </div>
 
-            {/* Desktop Only: Page Size Selector & View Mode Switcher */}
-            <div className="hidden lg:flex items-center gap-2 shrink-0">
+            {/* Right: Mobile Filter Button (lg:hidden) + Page Size Selector & View Mode Switcher */}
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+              {/* Mobile Filter Toggle (hidden on desktop!) */}
+              <button
+                type="button"
+                onClick={() => setMobileFilterOpen(true)}
+                className="lg:hidden flex items-center gap-1.5 h-8.5 px-3 rounded-xl border border-border/70 bg-card text-xs font-bold text-foreground shadow-2xs hover:bg-surface-container transition-all cursor-pointer"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                <span>{isKa ? "ფილტრები" : "Filters"}</span>
+                {activeFilterCount > 0 && (
+                  <span className="w-4.5 h-4.5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
               {/* Page Size Selector Dropdown */}
               <div className="relative inline-flex items-center">
                 <select

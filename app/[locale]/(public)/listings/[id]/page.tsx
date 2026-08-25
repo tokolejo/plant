@@ -260,6 +260,13 @@ export default function ListingDetailPage({
   // ── Dynamic Affiliate Cross-Selling Offers ──
   const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>(RECOMMENDED_INVENTORY);
 
+  // Scroll to top immediately upon entering page
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" as any });
+    }
+  }, [id]);
+
   // Fetch real listing & track view from Supabase
   React.useEffect(() => {
     async function loadRealListing() {

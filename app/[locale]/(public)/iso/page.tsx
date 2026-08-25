@@ -1031,25 +1031,47 @@ function IsoCatalogContent() {
         {/* Results Column */}
         <div className="lg:col-span-3 space-y-4">
 
-          {/* Row 2: Filters button + Page Size + Grid/List toggle — identical to Marketplace */}
-          <div className="flex items-center justify-between gap-2">
-            {/* Left: Mobile Filter Toggle */}
-            <button
-              type="button"
-              onClick={() => setMobileFilterOpen(true)}
-              className="flex items-center gap-2 h-9 px-3.5 rounded-[14px] border border-border/80 bg-card text-xs font-bold text-foreground shadow-2xs hover:bg-surface-container transition-all cursor-pointer shrink-0"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-primary" />
-              <span>{isKa ? "ფილტრები" : "Filters"}</span>
-              {activeFilterCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-primary text-white text-[11px] font-black flex items-center justify-center">
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
+          {/* Controls Bar: Sort Pills (Left) + Mobile Filter & Page Size & Grid/List (Right) */}
+          <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+            {/* Left: Sort Pills */}
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 w-full sm:w-auto">
+              {[
+                { id: "nearest", labelKa: "ახლოს", labelEn: "Nearest", isActive: sortBy === "nearest" },
+                { id: "views", labelKa: "პოპულარული", labelEn: "Popular", isActive: sortBy === "views" },
+                { id: "newest", labelKa: "უახლესი", labelEn: "Newest", isActive: sortBy === "newest" },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => handleSortClick(opt.id)}
+                  className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                    opt.isActive
+                      ? "bg-primary text-white shadow-xs scale-[1.02]"
+                      : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
+                  }`}
+                >
+                  {isKa ? opt.labelKa : opt.labelEn}
+                </button>
+              ))}
+            </div>
 
-            {/* Right: Page Size & Grid/List Mode Toggle */}
-            <div className="flex items-center gap-1.5 shrink-0">
+            {/* Right: Mobile Filter Button (lg:hidden) + Page Size & Grid/List Mode Toggle */}
+            <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+              {/* Mobile Filter Toggle */}
+              <button
+                type="button"
+                onClick={() => setMobileFilterOpen(true)}
+                className="lg:hidden flex items-center gap-1.5 h-8.5 px-3 rounded-xl border border-border/70 bg-card text-xs font-bold text-foreground shadow-2xs hover:bg-surface-container transition-all cursor-pointer"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                <span>{isKa ? "ფილტრები" : "Filters"}</span>
+                {activeFilterCount > 0 && (
+                  <span className="w-4.5 h-4.5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">
+                    {activeFilterCount}
+                  </span>
+                )}
+              </button>
+
               {/* Page Size Selector */}
               <div className="relative inline-flex items-center">
                 <select
@@ -1059,7 +1081,7 @@ function IsoCatalogContent() {
                     setPageSize(val);
                     setVisibleCount(val);
                   }}
-                  className="h-9 pl-2.5 pr-6 rounded-[12px] bg-card border border-border/80 text-xs font-bold text-foreground hover:bg-surface-container transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
+                  className="h-8.5 pl-2.5 pr-6 rounded-xl bg-card border border-border/70 text-xs font-bold text-foreground hover:bg-surface-container hover:border-primary/40 transition-all cursor-pointer appearance-none focus:outline-none focus:ring-1.5 focus:ring-primary shadow-2xs"
                   title={isKa ? "რაოდენობა" : "Items per page"}
                 >
                   <option value={20}>20</option>
@@ -1072,11 +1094,11 @@ function IsoCatalogContent() {
               </div>
 
               {/* Grid / List View Toggle */}
-              <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-[12px] p-0.5 shadow-2xs h-9">
+              <div className="flex items-center gap-0.5 bg-card border border-border/80 rounded-xl p-0.5 shadow-2xs">
                 <button
                   type="button"
                   onClick={() => setViewMode("grid")}
-                  className={`h-7.5 w-7.5 rounded-[8px] flex items-center justify-center transition-all cursor-pointer ${
+                  className={`p-1.5 rounded-[8px] transition-all cursor-pointer ${
                     viewMode === "grid"
                       ? "bg-primary text-white shadow-xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
@@ -1088,7 +1110,7 @@ function IsoCatalogContent() {
                 <button
                   type="button"
                   onClick={() => setViewMode("list")}
-                  className={`h-7.5 w-7.5 rounded-[8px] flex items-center justify-center transition-all cursor-pointer ${
+                  className={`p-1.5 rounded-[8px] transition-all cursor-pointer ${
                     viewMode === "list"
                       ? "bg-primary text-white shadow-xs"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-container"
@@ -1099,28 +1121,6 @@ function IsoCatalogContent() {
                 </button>
               </div>
             </div>
-          </div>
-
-          {/* Row 3: Sort Pills — identical to Marketplace */}
-          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
-            {[
-              { id: "nearest", labelKa: "ახლოს", labelEn: "Nearest", isActive: sortBy === "nearest" },
-              { id: "views", labelKa: "პოპულარული", labelEn: "Popular", isActive: sortBy === "views" },
-              { id: "newest", labelKa: "უახლესი", labelEn: "Newest", isActive: sortBy === "newest" },
-            ].map((opt) => (
-              <button
-                key={opt.id}
-                type="button"
-                onClick={() => handleSortClick(opt.id)}
-                className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                  opt.isActive
-                    ? "bg-primary text-white shadow-xs scale-[1.02]"
-                    : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
-                }`}
-              >
-                {isKa ? opt.labelKa : opt.labelEn}
-              </button>
-            ))}
           </div>
 
           {/* Results Listings */}
