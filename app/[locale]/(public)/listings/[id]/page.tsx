@@ -48,6 +48,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { getBotanicalCareDetails } from "@/lib/botanical-care";
+import { ReviewsSkeleton, RecommendedInventorySkeleton } from "@/components/common/DetailSkeletons";
+import { submitReviewAction } from "@/app/actions/reviews";
+import { toggleWishlistAction } from "@/app/actions/listings";
 
 // ─── Social Platform Icons ──────────────────────────────────────────────────
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -383,14 +386,17 @@ export default function ListingDetailPage({
     }
     const nextState = !inWishlist;
     setInWishlist(nextState);
-    setWishlistNotice(nextState ? "️ დაემატა რჩეულებში!" : " ამოიშალა რჩეულებიდან");
+    setWishlistNotice(
+      nextState
+        ? isKa ? "დაემატა რჩეულებში" : "Added to wishlist"
+        : isKa ? "მოიხსნა რჩეულებიდან" : "Removed from wishlist"
+    );
     setTimeout(() => setWishlistNotice(""), 3000);
     try {
-      await fetch("/api/wishlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ listingId: id }),
-      });
+      const res = await toggleWishlistAction(id);
+      if (!res.success && res.error) {
+        setInWishlist(!nextState);
+      }
     } catch {
       setInWishlist(!nextState);
     }
@@ -537,7 +543,7 @@ export default function ListingDetailPage({
     router.push(`/dashboard/messages?listing=${listing.id}&seller=${listing.seller.id}`);
   };
 
-  const handleReviewSubmit = (e: React.FormEvent) => {
+  const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) {
       setAuthModalOpen(true);
@@ -554,9 +560,23 @@ export default function ListingDetailPage({
     };
 
     setReviews([newRev, ...reviews]);
+    const commentToSend = newComment.trim();
     setNewComment("");
     setReviewSubmitted(true);
     setTimeout(() => setReviewSubmitted(false), 4000);
+
+    if (listing?.seller?.id) {
+      try {
+        await submitReviewAction({
+          sellerId: listing.seller.id,
+          listingId: listing.id,
+          rating: newRating,
+          comment: commentToSend,
+        });
+      } catch (err) {
+        console.warn("Review action sync:", err);
+      }
+    }
   };
 
   const [greenhouseAdded, setGreenhouseAdded] = React.useState(false);
