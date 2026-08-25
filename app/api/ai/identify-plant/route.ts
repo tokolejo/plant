@@ -1,153 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
-import { STRUCTURED_CATEGORIES } from "@/lib/categories-data";
+import { lookupBotanicalTaxon } from "@/lib/botanical-dictionary";
 
 export const maxDuration = 45;
 
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.PLANTNET_API_KEY || process.env.NEXT_PUBLIC_PLANTNET_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json({ success: false, error: "Pl@ntNet API Key არ არის კონფიგურირებული გარემოს ცვლადებში" }, { status: 500 });
+    }
+
     const formData = await req.formData();
     const imageFiles = formData.getAll("images") as File[];
     const singleImage = (formData.get("image") || formData.get("file")) as File | null;
-
     const targetFile = singleImage || (imageFiles && imageFiles.length > 0 ? imageFiles[0] : null);
 
     if (!targetFile) {
       return NextResponse.json({ success: false, error: "ფოტო არ არის ატვირთული" }, { status: 400 });
     }
 
-    const mimeType = targetFile.type || "image/jpeg";
-    const buffer = await targetFile.arrayBuffer();
-    const base64Image = Buffer.from(buffer).toString("base64");
+    const plantNetFormData = new FormData();
+    plantNetFormData.append("images", targetFile, targetFile.name || "plant.jpg");
+    plantNetFormData.append("organs", "auto");
 
-    const apiKey =
-      process.env.GEMINI_API_KEY ||
-      process.env.GOOGLE_GEMINI_API_KEY ||
-      process.env.GOOGLE_API_KEY ||
-      process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    const plantNetUrl = `https://my-api.plantnet.org/v2/identify/all?api-key=${apiKey}&lang=en`;
 
-    if (!apiKey) {
-      return NextResponse.json(
-        { success: false, error: "AI API Key არ არის კონფიგურირებული გარემოს ცვლადებში" },
-        { status: 500 }
-      );
+    const resp = await fetch(plantNetUrl, {
+      method: "POST",
+      body: plantNetFormData,
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      console.warn("Pl@ntNet API error:", resp.status, errText);
+      return NextResponse.json({ success: false, error: `Pl@ntNet API შეცდომა (${resp.status})` }, { status: resp.status });
     }
 
-    const categoryListStr = STRUCTURED_CATEGORIES.map((c) => `${c.id} (${c.nameKa} / ${c.nameEn})`).join(", ");
+    const plantNetData = await resp.json();
 
-    const prompt = `You are a master botanist and plant marketplace expert in Georgia.
-Look at the attached plant / garden photo.
-1. Identify the exact botanical species / cultivar (e.g. Lilium bulbiferum / Red Lily, Monstera deliciosa, Philodendron Pink Princess, Phalaenopsis Orchid, Ficus, Rose, Succulent, etc.).
-2. Generate an attractive marketplace title and description in Georgian (ქართულად) and English.
-3. Select the best category ID from this taxonomy list:
-[${categoryListStr}]
-4. Provide watering schedule in Georgian, light requirement in Georgian, difficulty ("Easy" | "Medium" | "Expert"), pet toxicity warning, and search tags.
-IMPORTANT: Do NOT suggest or write any price.
-
-Return ONLY raw JSON (STRICTLY NO markdown, NO codeblocks, NO preamble):
-{
-  "latinName": "Botanical Latin name (e.g. Lilium bulbiferum, Monstera deliciosa)",
-  "commonName": "მცენარის ქართული სახელი (მაგ: შროშანი / აზიური ლილია)",
-  "nameKa": "ქართული სახელი",
-  "nameEn": "English common name",
-  "titleKa": "მცენარის სახელი (ლათინური სახელი) — მოკლე სათაური",
-  "titleEn": "English Name (Latin Name) — Listing Title",
-  "descKa": "დეტალური, მიმზიდველი და ცოცხალი აღწერა ქართულად (მდგომარეობა, ყვავილობა/ფოთლები, მოვლა)",
-  "descEn": "Detailed and appealing sales description in English",
-  "categoryId": "best matching category ID from the list above",
-  "careDifficulty": "Easy",
-  "light": "კაშკაშა გაფანტული",
-  "watering": "კვირაში 1-2 ჯერ",
-  "toxicity": "ტოქსიკურია კატებისთვის (ან: უსაფრთხოა ცხოველებისთვის / Pet Friendly)",
-  "tags": ["მცენარე", "ყვავილოვანი", "იშვიათი"]
-}`;
-
-    const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-2.5-flash", "gemini-1.5-pro"];
-    let lastError = "";
-
-    for (const model of modelsToTry) {
-      try {
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-goog-api-key": apiKey,
-            },
-            body: JSON.stringify({
-              contents: [
-                {
-                  parts: [
-                    { text: prompt },
-                    {
-                      inline_data: {
-                        mime_type: mimeType,
-                        data: base64Image,
-                      },
-                    },
-                  ],
-                },
-              ],
-              generationConfig: {
-                temperature: 0.15,
-                topK: 32,
-                topP: 0.95,
-              },
-            }),
-          }
-        );
-
-        const data = await response.json();
-        if (!response.ok) {
-          lastError = data?.error?.message || `HTTP ${response.status}`;
-          continue;
-        }
-
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!rawText) continue;
-
-        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) continue;
-
-        const parsed = JSON.parse(jsonMatch[0]);
-
-        let matchedCategory = parsed.categoryId || parsed.category || "other-plant";
-        const validCategory = STRUCTURED_CATEGORIES.find((c) => c.id === matchedCategory);
-        if (!validCategory) {
-          const latin = (parsed.latinName || "").toLowerCase();
-          const autoMatch = STRUCTURED_CATEGORIES.find((c) =>
-            c.keywords.some((k) => latin.includes(k.toLowerCase()))
-          );
-          matchedCategory = autoMatch ? autoMatch.id : "other-plant";
-        }
-
-        return NextResponse.json({
-          success: true,
-          data: {
-            titleKa: parsed.titleKa || parsed.nameKa || "მცენარე",
-            titleEn: parsed.titleEn || parsed.nameEn || "Plant",
-            descKa: parsed.descKa || "",
-            descEn: parsed.descEn || "",
-            botanicalName: parsed.latinName || "",
-            commonName: parsed.commonName || parsed.nameKa || "",
-            category: matchedCategory,
-            itemType: "PLANT",
-            careDifficulty: parsed.careDifficulty || "Easy",
-            light: parsed.light || "კაშკაშა გაფანტული",
-            watering: parsed.watering || "კვირაში 1-2 ჯერ",
-            toxicity: parsed.toxicity || "გადაამოწმეთ",
-            tags: Array.isArray(parsed.tags) ? parsed.tags : ["მცენარე"],
-            confidence_score: 95,
-          },
-        });
-      } catch (err: any) {
-        lastError = err.message || "Failed";
-      }
+    if (!plantNetData.results || plantNetData.results.length === 0) {
+      return NextResponse.json({ success: false, error: "Pl@ntNet-მა მცენარე ვერ ამოიცნო" }, { status: 404 });
     }
 
-    return NextResponse.json({ success: false, error: lastError || "ამოცნობა ვერ მოხერხდა" }, { status: 502 });
+    const best = plantNetData.results[0];
+    const species = best.species;
+    const scientificName = species?.scientificNameWithoutAuthor || species?.scientificName || "Unknown species";
+    const commonNames: string[] = species?.commonNames || [];
+    const taxon = lookupBotanicalTaxon(scientificName, commonNames);
+
+    const titleKa = `${taxon.ka} (${scientificName})`;
+    const titleEn = `${commonNames[0] || taxon.en} (${scientificName})`;
+
+    const descKa = `${taxon.ka} (${scientificName}) — ჯანსაღი და ხარისხიანი მცენარე. იდეალურია სახლის, აივნისა თუ ბაღისთვის.\n\n🌱 მოვლის მოკლე რჩევა:\n• მორწყვა: ${taxon.wateringKa}\n• განათება: ${taxon.lightKa}\n• სირთულე: ${taxon.difficulty === "Easy" ? "მარტივი" : taxon.difficulty === "Medium" ? "საშუალო" : "რთული"}\n• ტოქსიკურობა: ${taxon.toxicityKa}`;
+    const descEn = `${commonNames[0] || taxon.en} (${scientificName}) — Healthy and well-established plant.\n\n🌱 Care Tips:\n• Watering: ${taxon.wateringEn}\n• Light: ${taxon.lightEn}\n• Difficulty: ${taxon.difficulty}\n• Pet safety: ${taxon.toxicityEn}`;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        titleKa,
+        titleEn,
+        descKa,
+        descEn,
+        botanicalName: scientificName,
+        commonName: taxon.ka,
+        category: taxon.categoryId,
+        itemType: "PLANT",
+        watering: taxon.wateringKa,
+        light: taxon.lightKa,
+        careDifficulty: taxon.difficulty,
+        toxicity: taxon.toxicityKa,
+        tags: Array.from(new Set([...taxon.tags, scientificName.split(" ")[0]])),
+        confidence_score: Math.round((best.score || 0.9) * 100),
+      },
+    });
   } catch (error: any) {
-    console.error("Botanical identification error:", error);
-    return NextResponse.json({ success: false, error: error.message || "Failed to identify plant" }, { status: 500 });
+    console.error("Pl@ntNet error:", error);
+    return NextResponse.json({ success: false, error: error.message || "Pl@ntNet შეცდომა" }, { status: 500 });
   }
 }

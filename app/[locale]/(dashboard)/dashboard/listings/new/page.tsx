@@ -28,7 +28,8 @@ import {
   Coins,
   Handshake,
   ShieldAlert,
-  Info
+  Info,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -255,7 +256,78 @@ function CreateListingContent() {
   };
 
   // ──────────────────────────────────────────────
-  // 1. Pl@ntNet Botanical AI Identification
+  // 1. Google Gemini Flash Vision AI AutoFill
+  // ──────────────────────────────────────────────
+  const [geminiDetecting, setGeminiDetecting] = React.useState(false);
+
+  const handleGeminiAutoFill = async () => {
+    if (selectedFiles.length === 0) {
+      setErrorMsg(isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო Gemini AI ამოცნობისთვის!" : "Please upload at least 1 photo for Gemini AI!");
+      setTimeout(() => setErrorMsg(""), 3500);
+      return;
+    }
+
+    setGeminiDetecting(true);
+    setErrorMsg("");
+
+    try {
+      const firstFile = selectedFiles[0];
+      const formData = new FormData();
+      formData.append("image", firstFile);
+
+      const res = await fetch("/api/ai/recognize-plant", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || (isKa ? "Gemini AI-ით ამოცნობა ვერ მოხერხდა" : "Gemini identification failed"));
+      }
+
+      const result = data.data;
+
+      if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
+      if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
+      if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
+      if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
+      if (result.botanicalName || result.botanical_name || result.latinName) setBotanicalName(result.botanicalName || result.botanical_name || result.latinName);
+      if (result.watering || result.watering_schedule) setWateringSchedule(result.watering || result.watering_schedule);
+      if (result.light || result.light_requirement) setLightRequirement(result.light || result.light_requirement);
+      if (result.careDifficulty || result.care_difficulty || result.careLevel) {
+        const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
+        if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
+        else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
+        else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
+      }
+      if (result.toxicity) setToxicity(result.toxicity);
+      if (result.tags && Array.isArray(result.tags)) {
+        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
+      }
+      if (result.category) {
+        const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
+        if (matched) {
+          setPlantCategory(matched.id);
+          setItemType(matched.itemType);
+        }
+      }
+      if (result.itemType) {
+        setItemType(result.itemType);
+      }
+
+      setAiApplied(true);
+      setShowBotanicalCare(true);
+    } catch (err: any) {
+      console.error("Gemini Recognition Error:", err);
+      setErrorMsg(isKa ? `Gemini AI: ${err.message || "სცადეთ ხელახლა"}` : `Gemini AI: ${err.message || "Try again"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setGeminiDetecting(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // 2. Pl@ntNet Botanical AI Identification
   // ──────────────────────────────────────────────
   const [plantNetDetecting, setPlantNetDetecting] = React.useState(false);
 
@@ -326,7 +398,7 @@ function CreateListingContent() {
   };
 
   // ──────────────────────────────────────────────
-  // 2. Plant.id v3 Botanical AI Identification
+  // 3. Plant.id v3 Botanical AI Identification
   // ──────────────────────────────────────────────
   const [plantIdDetecting, setPlantIdDetecting] = React.useState(false);
 
@@ -758,14 +830,40 @@ const ALL_GEORGIAN_CITIES = [
               {isKa ? "2. ფოტოები (2 - 5 ფოტო) *" : "2. Photos (2 - 5 photos) *"}
             </label>
 
-            {/* Pl@ntNet and Plant.id AI Recognition Buttons */}
+            {/* Gemini AI, Plant.id, and Pl@ntNet AI Recognition Buttons */}
             <div className="flex items-center gap-1.5 flex-wrap">
+              {/* Gemini AI Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={selectedFiles.length === 0 || geminiDetecting || plantIdDetecting || plantNetDetecting}
+                onClick={handleGeminiAutoFill}
+                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                  selectedFiles.length > 0 && !geminiDetecting
+                    ? "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30 hover:bg-purple-500/20"
+                    : "hover:bg-surface-container"
+                }`}
+              >
+                {geminiDetecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    <span>Gemini AI...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Gemini AI</span>
+                  </>
+                )}
+              </Button>
+
               {/* Plant.id Button */}
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={selectedFiles.length === 0 || plantIdDetecting || plantNetDetecting}
+                disabled={selectedFiles.length === 0 || plantIdDetecting || plantNetDetecting || geminiDetecting}
                 onClick={handlePlantIdAutoFill}
                 className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
                   selectedFiles.length > 0 && !plantIdDetecting
@@ -791,7 +889,7 @@ const ALL_GEORGIAN_CITIES = [
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={selectedFiles.length === 0 || plantNetDetecting || plantIdDetecting}
+                disabled={selectedFiles.length === 0 || plantNetDetecting || plantIdDetecting || geminiDetecting}
                 onClick={handlePlantNetAutoFill}
                 className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
                   selectedFiles.length > 0 && !plantNetDetecting

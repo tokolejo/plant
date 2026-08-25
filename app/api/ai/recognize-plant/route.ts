@@ -87,10 +87,10 @@ Return ONLY a raw JSON object (STRICTLY NO markdown, NO \`\`\`json codeblocks, N
 }`;
 
     const modelsToTry = [
-      "gemini-2.0-flash",
       "gemini-1.5-flash",
+      "gemini-2.0-flash",
+      "gemini-1.5-flash-8b",
       "gemini-2.5-flash",
-      "gemini-1.5-pro",
     ];
 
     let lastErrorMsg = "";
@@ -120,9 +120,10 @@ Return ONLY a raw JSON object (STRICTLY NO markdown, NO \`\`\`json codeblocks, N
                 },
               ],
               generationConfig: {
-                temperature: 0.15,
-                topK: 32,
-                topP: 0.95,
+                temperature: 0.1,
+                maxOutputTokens: 550,
+                topK: 20,
+                topP: 0.9,
               },
             }),
           }

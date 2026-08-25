@@ -27,7 +27,8 @@ import {
   Save,
   Search,
   ChevronDown,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -363,6 +364,129 @@ export default function EditListingPage() {
       setTradeTags([...tradeTags, trimmed]);
       setTagInput("");
       setShowTagAutocomplete(false);
+    }
+  };
+
+  // ──────────────────────────────────────────────
+  // AI AutoFill Handlers
+  // ──────────────────────────────────────────────
+  const [geminiDetecting, setGeminiDetecting] = React.useState(false);
+  const [plantIdDetecting, setPlantIdDetecting] = React.useState(false);
+  const [plantNetDetecting, setPlantNetDetecting] = React.useState(false);
+
+  const getTargetFileForAi = async (): Promise<File | null> => {
+    if (newFiles.length > 0) return newFiles[0];
+    if (existingImages.length > 0) {
+      try {
+        const resp = await fetch(existingImages[0]);
+        const blob = await resp.blob();
+        return new File([blob], "plant.jpg", { type: blob.type || "image/jpeg" });
+      } catch (err) {
+        console.warn("Failed to fetch existing image blob for AI:", err);
+      }
+    }
+    return null;
+  };
+
+  const applyAiResult = (result: any) => {
+    if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
+    if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
+    if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
+    if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
+    if (result.botanicalName || result.botanical_name || result.latinName) setBotanicalName(result.botanicalName || result.botanical_name || result.latinName);
+    if (result.watering || result.watering_schedule) setWateringSchedule(result.watering || result.watering_schedule);
+    if (result.light || result.light_requirement) setLightRequirement(result.light || result.light_requirement);
+    if (result.careDifficulty || result.care_difficulty || result.careLevel) {
+      const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
+      if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
+      else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
+      else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
+    }
+    if (result.toxicity) setToxicity(result.toxicity);
+    if (result.tags && Array.isArray(result.tags)) {
+      setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
+    }
+    if (result.category) {
+      const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
+      if (matched) {
+        setPlantCategory(matched.id);
+        setItemType(matched.itemType);
+      }
+    }
+    if (result.itemType) {
+      setItemType(result.itemType);
+    }
+  };
+
+  const handleGeminiAutoFill = async () => {
+    const file = await getTargetFileForAi();
+    if (!file) {
+      setErrorMsg("გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო AI ამოცნობისთვის!");
+      setTimeout(() => setErrorMsg(""), 3500);
+      return;
+    }
+    setGeminiDetecting(true);
+    setErrorMsg("");
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/ai/recognize-plant", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Gemini ამოცნობა ვერ მოხერხდა");
+      applyAiResult(data.data);
+    } catch (err: any) {
+      setErrorMsg(`Gemini AI: ${err.message || "სცადეთ ხელახლა"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setGeminiDetecting(false);
+    }
+  };
+
+  const handlePlantIdAutoFill = async () => {
+    const file = await getTargetFileForAi();
+    if (!file) {
+      setErrorMsg("გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო Plant.id ამოცნობისთვის!");
+      setTimeout(() => setErrorMsg(""), 3500);
+      return;
+    }
+    setPlantIdDetecting(true);
+    setErrorMsg("");
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/ai/recognize-plantid", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Plant.id ამოცნობა ვერ მოხერხდა");
+      applyAiResult(data.data);
+    } catch (err: any) {
+      setErrorMsg(`Plant.id: ${err.message || "სცადეთ ხელახლა"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setPlantIdDetecting(false);
+    }
+  };
+
+  const handlePlantNetAutoFill = async () => {
+    const file = await getTargetFileForAi();
+    if (!file) {
+      setErrorMsg("გთხოვთ ატვირთოთ მინიმუმ 1 ფოტო Pl@ntNet ამოცნობისთვის!");
+      setTimeout(() => setErrorMsg(""), 3500);
+      return;
+    }
+    setPlantNetDetecting(true);
+    setErrorMsg("");
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("/api/ai/identify-plant", { method: "POST", body: formData });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.error || "Pl@ntNet ამოცნობა ვერ მოხერხდა");
+      applyAiResult(data.data);
+    } catch (err: any) {
+      setErrorMsg(`Pl@ntNet: ${err.message || "სცადეთ ხელახლა"}`);
+      setTimeout(() => setErrorMsg(""), 5000);
+    } finally {
+      setPlantNetDetecting(false);
     }
   };
 
@@ -715,13 +839,88 @@ export default function EditListingPage() {
 
         {/* 2. Photos Section */}
         <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
             <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
               2. ფოტოები ({existingImages.length + newFiles.length} / 6)
             </label>
-            <span className="text-[11px] text-muted-foreground font-medium">
-              პირველი ფოტო არის მთავარი
-            </span>
+
+            {/* AI Recognition Buttons */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={existingImages.length + newFiles.length === 0 || geminiDetecting || plantIdDetecting || plantNetDetecting}
+                onClick={handleGeminiAutoFill}
+                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                  existingImages.length + newFiles.length > 0 && !geminiDetecting
+                    ? "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30 hover:bg-purple-500/20"
+                    : "hover:bg-surface-container"
+                }`}
+              >
+                {geminiDetecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    <span>Gemini AI...</span>
+                  </>
+                ) : (
+                  <>
+                    <Zap className="w-3.5 h-3.5 text-purple-600" />
+                    <span>Gemini AI</span>
+                  </>
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={existingImages.length + newFiles.length === 0 || plantIdDetecting || plantNetDetecting || geminiDetecting}
+                onClick={handlePlantIdAutoFill}
+                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                  existingImages.length + newFiles.length > 0 && !plantIdDetecting
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
+                    : "hover:bg-surface-container"
+                }`}
+              >
+                {plantIdDetecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    <span>Plant.id...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Plant.id</span>
+                  </>
+                )}
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={existingImages.length + newFiles.length === 0 || plantNetDetecting || plantIdDetecting || geminiDetecting}
+                onClick={handlePlantNetAutoFill}
+                className={`rounded-[10px] text-xs font-bold gap-1.5 h-8 border-border/80 transition-all cursor-pointer ${
+                  existingImages.length + newFiles.length > 0 && !plantNetDetecting
+                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
+                    : "hover:bg-surface-container"
+                }`}
+              >
+                {plantNetDetecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary" />
+                    <span>Pl@ntNet...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sprout className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Pl@ntNet</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
