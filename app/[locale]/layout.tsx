@@ -7,7 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 import { MobileBottomNav } from "@/components/common/MobileBottomNav";
-import { Analytics } from "@vercel/analytics/react";
+import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 
