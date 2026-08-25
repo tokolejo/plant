@@ -25,6 +25,34 @@ export function IsoBoardPreview() {
   const [totalCount, setTotalCount] = React.useState<number>(0);
   const [loading, setLoading] = React.useState(true);
 
+  const sliderRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(true);
+
+  // Update scroll navigation arrow states
+  const updateScrollState = () => {
+    if (!sliderRef.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
+    setCanScrollLeft(scrollLeft > 10);
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+  };
+
+  React.useEffect(() => {
+    const slider = sliderRef.current;
+    if (slider) {
+      slider.addEventListener("scroll", updateScrollState, { passive: true });
+      updateScrollState();
+      return () => slider.removeEventListener("scroll", updateScrollState);
+    }
+  }, [tradeListings]);
+
+  const scrollSlider = (direction: "left" | "right") => {
+    if (!sliderRef.current) return;
+    const containerWidth = sliderRef.current.clientWidth;
+    const scrollAmount = direction === "left" ? -containerWidth * 0.75 : containerWidth * 0.75;
+    sliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
+
   React.useEffect(() => {
     async function loadTradeListings() {
       try {
@@ -45,7 +73,7 @@ export function IsoBoardPreview() {
           .order("created_at", { ascending: false });
 
         if (data && data.length > 0 && !error) {
-          setTradeListings(data.slice(0, 4));
+          setTradeListings(data.slice(0, 10));
           setTotalCount(count || data.length);
         } else {
           setTradeListings([]);
@@ -65,7 +93,7 @@ export function IsoBoardPreview() {
     <section className="pt-4 sm:pt-6 pb-8 sm:pb-10 bg-surface-cream/40 border-y border-border/60">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         
-        {/* 1. Compact Header + Post Request CTA */}
+        {/* 1. Header + Slider Navigation Arrows */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-5">
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
@@ -82,18 +110,36 @@ export function IsoBoardPreview() {
             </p>
           </div>
 
-          <Link href="/dashboard/listings/new?trans=TRADE" className="self-start sm:self-auto shrink-0">
-            <Button className="gap-1.5 rounded-[12px] sm:rounded-[14px] bg-primary hover:bg-primary-container text-white text-xs sm:text-sm font-black h-9 sm:h-10 px-4 shadow-ambient cursor-pointer">
-              <PlusCircle className="w-4 h-4" />
-              <span>{isKa ? "+ მოთხოვნა" : "+ Post Request"}</span>
-            </Button>
-          </Link>
+          {/* Slider Navigation Arrows */}
+          <div className="hidden sm:flex items-center gap-2 shrink-0 self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => scrollSlider("left")}
+              disabled={!canScrollLeft}
+              aria-label={isKa ? "წინა" : "Previous"}
+              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "წინა" : "Previous"}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollSlider("right")}
+              disabled={!canScrollRight}
+              aria-label={isKa ? "შემდეგი" : "Next"}
+              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+              title={isKa ? "შემდეგი" : "Next"}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
-        {/* 2. Modern 1-Row Plant Swap Cards (Exactly 4 Cards on Desktop) */}
+        {/* 2. Modern 1-Row Plant Swap Cards Slider */}
         {tradeListings.length > 0 ? (
           <div
-            className="flex lg:grid lg:grid-cols-4 gap-3 sm:gap-4 overflow-x-auto lg:overflow-visible scroll-smooth snap-x snap-mandatory no-scrollbar pb-1 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+            ref={sliderRef}
+            className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
           >
             {tradeListings.map((iso) => {
               const userName = iso.profiles?.full_name || (isKa ? "მებაღე" : "Grower");
@@ -117,7 +163,7 @@ export function IsoBoardPreview() {
                 <Link
                   key={iso.id}
                   href={`/listings/${iso.id}`}
-                  className="w-[250px] sm:w-[270px] md:w-[285px] lg:w-full shrink-0 lg:shrink snap-start flex flex-col justify-between rounded-[20px] border border-border/80 bg-card overflow-hidden shadow-ambient hover:border-primary/50 hover:shadow-ambient-lg transition-all group select-none cursor-pointer"
+                  className="w-[240px] sm:w-[260px] md:w-[280px] lg:w-[calc(25%-12px)] shrink-0 snap-start flex flex-col justify-between rounded-[20px] border border-border/80 bg-card overflow-hidden shadow-ambient hover:border-primary/50 hover:shadow-ambient-lg transition-all group select-none cursor-pointer"
                 >
                   {/*  1. Clean, 100% Unobstructed Plant Image */}
                   <div className="relative aspect-[4/3] w-full bg-surface-container overflow-hidden">
