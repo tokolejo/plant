@@ -307,16 +307,26 @@ function CreateListingContent() {
       if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
       if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
       if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
-      if (result.botanicalName || result.botanical_name || result.latinName) setBotanicalName(result.botanicalName || result.botanical_name || result.latinName);
-      if (result.watering || result.watering_schedule) setWateringSchedule(result.watering || result.watering_schedule);
-      if (result.light || result.light_requirement) setLightRequirement(result.light || result.light_requirement);
+      
+      const latin = result.botanicalName || result.botanical_name || result.latinName;
+      if (latin) setBotanicalName(latin);
+
+      const watering = isKa ? (result.watering || result.wateringKa) : (result.wateringEn || result.watering);
+      if (watering) setWateringSchedule(watering);
+
+      const light = isKa ? (result.light || result.lightKa) : (result.lightEn || result.light);
+      if (light) setLightRequirement(light);
+
       if (result.careDifficulty || result.care_difficulty || result.careLevel) {
         const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
         if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
         else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
         else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
       }
-      if (result.toxicity) setToxicity(result.toxicity);
+      
+      const tox = isKa ? (result.toxicity || result.toxicityKa) : (result.toxicityEn || result.toxicity);
+      if (tox) setToxicity(tox);
+
       if (result.tags && Array.isArray(result.tags)) {
         setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
       }
@@ -379,16 +389,26 @@ function CreateListingContent() {
       if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
       if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
       if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
-      if (result.botanicalName || result.botanical_name || result.latinName) setBotanicalName(result.botanicalName || result.botanical_name || result.latinName);
-      if (result.watering || result.watering_schedule) setWateringSchedule(result.watering || result.watering_schedule);
-      if (result.light || result.light_requirement) setLightRequirement(result.light || result.light_requirement);
+      
+      const latin = result.botanicalName || result.botanical_name || result.latinName;
+      if (latin) setBotanicalName(latin);
+
+      const watering = isKa ? (result.watering || result.wateringKa) : (result.wateringEn || result.watering);
+      if (watering) setWateringSchedule(watering);
+
+      const light = isKa ? (result.light || result.lightKa) : (result.lightEn || result.light);
+      if (light) setLightRequirement(light);
+
       if (result.careDifficulty || result.care_difficulty || result.careLevel) {
         const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
         if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
         else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
         else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
       }
-      if (result.toxicity) setToxicity(result.toxicity);
+      
+      const tox = isKa ? (result.toxicity || result.toxicityKa) : (result.toxicityEn || result.toxicity);
+      if (tox) setToxicity(tox);
+
       if (result.tags && Array.isArray(result.tags)) {
         setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
       }
@@ -451,16 +471,25 @@ function CreateListingContent() {
       if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
       if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
       if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
-      if (result.botanicalName || result.botanical_name || result.latinName) setBotanicalName(result.botanicalName || result.botanical_name || result.latinName);
-      if (result.watering || result.watering_schedule) setWateringSchedule(result.watering || result.watering_schedule);
-      if (result.light || result.light_requirement) setLightRequirement(result.light || result.light_requirement);
+      
+      const latin = result.botanicalName || result.botanical_name || result.latinName;
+      if (latin) setBotanicalName(latin);
+
+      const watering = isKa ? (result.watering || result.wateringKa) : (result.wateringEn || result.watering);
+      if (watering) setWateringSchedule(watering);
+
+      const light = isKa ? (result.light || result.lightKa) : (result.lightEn || result.light);
+      if (light) setLightRequirement(light);
+
       if (result.careDifficulty || result.care_difficulty || result.careLevel) {
         const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
         if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
         else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
         else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
       }
-      if (result.toxicity) setToxicity(result.toxicity);
+      
+      const tox = isKa ? (result.toxicity || result.toxicityKa) : (result.toxicityEn || result.toxicity);
+      if (tox) setToxicity(tox);
       if (result.tags && Array.isArray(result.tags)) {
         setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
       }

@@ -61,11 +61,11 @@ export async function POST(req: NextRequest) {
 Rules:
 1. "titleKa": ONLY the plant name in Georgian (e.g. "შროშანი", "მონსტერა დელიციოზა", "ფიკუსი ელასტიკა"). STRICTLY NO care tips or extra sentences in the title.
 2. "titleEn": ONLY the English plant name (e.g. "Lily", "Monstera Deliciosa", "Rubber Tree").
-3. "descKa": Brief 1-sentence visual description only (NO watering/care tips here). E.g. "ჯანსაღი, ხასხასა ფოთლებით გამორჩეული დეკორატიული მცენარე."
-4. "descEn": Brief 1-sentence visual description only.
-5. "latinName": Exact botanical binomial Latin name (e.g. "Monstera deliciosa").
+3. "descKa": Brief 1-sentence visual description in Georgian only (NO watering/care tips here). E.g. "ჯანსაღი, ხასხასა ფოთლებით გამორჩეული დეკორატიული მცენარე."
+4. "descEn": Brief 1-sentence visual description in English only.
+5. "latinName": Exact botanical binomial Latin name (e.g. "Monstera deliciosa", "Crassula ovata"). ALWAYS in Latin.
 6. "categoryId": closest ID from: [${categoryListStr}].
-7. Botanical fields: "careDifficulty" ("Easy"|"Medium"|"Expert"), "light" (in Georgian, e.g. "კაშკაშა გაფანტული"), "watering" (in Georgian, e.g. "კვირაში 1-ხელ"), "toxicity" (in Georgian, e.g. "უსაფრთხოა ცხოველებისთვის" ან "ტოქსიკურია კატებისთვის"), "tags" (array of 3-5 strings).
+7. Botanical fields: "careDifficulty" ("Easy"|"Medium"|"Expert"), "light" (Georgian), "lightEn" (English), "watering" (Georgian), "wateringEn" (English), "toxicity" (Georgian), "toxicityEn" (English), "tags" (array of 3-5 strings).
 
 Return ONLY raw JSON (no markdown):
 {
@@ -77,8 +77,11 @@ Return ONLY raw JSON (no markdown):
   "categoryId": "category-id",
   "careDifficulty": "Easy",
   "light": "კაშკაშა გაფანტული",
+  "lightEn": "Bright indirect light",
   "watering": "კვირაში 1-ხელ",
+  "wateringEn": "Weekly when topsoil dries",
   "toxicity": "უსაფრთხოა ცხოველებისთვის",
+  "toxicityEn": "Non-toxic to pets",
   "tags": ["ტეგი1", "ტეგი2", "ტეგი3"]
 }`;
 
@@ -173,8 +176,14 @@ Return ONLY raw JSON (no markdown):
             itemType: parsed.itemType || (matchedCategory.startsWith("pots") || matchedCategory.startsWith("substrates") || matchedCategory.startsWith("tools") ? "INVENTORY" : "PLANT"),
             careDifficulty: parsed.careDifficulty || "Easy",
             light: parsed.light || "კაშკაშა გაფანტული",
+            lightKa: parsed.light || "კაშკაშა გაფანტული",
+            lightEn: parsed.lightEn || "Bright indirect light",
             watering: parsed.watering || "კვირაში 1-ხელ",
+            wateringKa: parsed.watering || "კვირაში 1-ხელ",
+            wateringEn: parsed.wateringEn || "Weekly when topsoil dries",
             toxicity: parsed.toxicity || "გადაამოწმეთ",
+            toxicityKa: parsed.toxicity || "გადაამოწმეთ",
+            toxicityEn: parsed.toxicityEn || "Check toxicity",
             tags: Array.isArray(parsed.tags) ? parsed.tags : ["მცენარე"],
           },
           modelUsed: model,
