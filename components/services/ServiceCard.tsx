@@ -57,105 +57,113 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
   const catLabel = CATEGORY_LABELS[service.category]?.[isKa ? "ka" : "en"] || service.category;
   const primaryImage = service.portfolio_images?.[0] || "https://images.unsplash.com/photo-1558904541-efa8c4a08931?w=600&auto=format&fit=crop&q=80";
 
-  // LIST VIEW LAYOUT
+  // Clean concise city name matching ListingCard format
+  const cleanCity = (service.city || (isKa ? "თბილისი" : "Tbilisi"))
+    .replace(/\s*\(.*\)/, "")
+    .split("&")[0]
+    .split(",")[0]
+    .trim();
+
+  // ─── LIST VIEW LAYOUT ──────────────────────────────────────────────────────
   if (variant === "list") {
     return (
-      <div className="group relative flex flex-col sm:flex-row bg-card border border-border/80 hover:border-primary/50 rounded-[22px] overflow-hidden shadow-2xs hover:shadow-ambient transition-all duration-300">
-        {/* Left: Image Container */}
+      <div className="relative flex flex-col sm:flex-row items-stretch overflow-hidden rounded-[20px] bg-card border border-border shadow-2xs hover:border-primary/50 transition-all">
+        {/* Left Image */}
         <Link
           href={`/services/${service.id}`}
-          className="relative sm:w-64 h-48 sm:h-auto shrink-0 overflow-hidden bg-surface-container block"
+          className="relative w-full sm:w-48 md:w-56 shrink-0 aspect-[4/3] sm:aspect-auto overflow-hidden bg-surface-container block"
         >
           <Image
             src={primaryImage}
             alt={service.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 640px) 100vw, 256px"
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, 240px"
           />
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-            <span className="px-2.5 py-0.5 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-black border border-white/20 flex items-center gap-1">
-              <CatIcon className="w-3 h-3 text-emerald-400" />
+
+          {/* Badge on Image */}
+          <div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 z-10">
+            <span className="backdrop-blur-md bg-background/90 text-primary text-[10px] font-bold px-2 py-0.5 rounded-[8px] border border-border/40 flex items-center gap-1">
+              <CatIcon className="w-3 h-3 text-primary" />
               <span>{catLabel}</span>
             </span>
           </div>
 
           {service.portfolio_images && service.portfolio_images.length > 1 && (
-            <div className="absolute bottom-2.5 right-2.5 z-10">
-              <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1">
-                <Camera className="w-3 h-3" />
-                <span>{service.portfolio_images.length}</span>
-              </span>
+            <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white flex items-center gap-1">
+              <Camera className="w-2.5 h-2.5" />
+              <span>{service.portfolio_images.length}</span>
             </div>
           )}
         </Link>
 
-        {/* Right: Content */}
-        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
-          <div className="space-y-2">
-            {/* Provider & City Row */}
-            <div className="flex items-center justify-between gap-2">
-              <Link 
-                href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
-                className="flex items-center gap-2 min-w-0 hover:text-primary transition-colors group/prov"
-              >
-                {service.provider_avatar ? (
-                  <img
-                    src={service.provider_avatar}
-                    alt={service.provider_name}
-                    className="h-7 w-7 rounded-full object-cover border border-border shrink-0 group-hover/prov:ring-2 group-hover/prov:ring-primary/40 transition-all"
-                  />
-                ) : (
-                  <div className="h-7 w-7 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[11px] shrink-0 group-hover/prov:bg-primary group-hover/prov:text-white transition-all">
-                    {service.provider_name.charAt(0)}
-                  </div>
-                )}
-                <span className="text-xs font-black text-foreground group-hover/prov:text-primary truncate">
-                  {service.provider_name}
+        {/* Right Content */}
+        <div className="flex flex-1 flex-col p-3.5 sm:p-4 justify-between">
+          <div>
+            {/* Top row: price and city */}
+            <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="flex items-baseline gap-1">
+                <span className="text-lg sm:text-xl font-black tracking-tight text-primary dark:text-emerald-400">
+                  {service.price_from} ₾
                 </span>
-                {service.is_verified && (
-                  <span title={isKa ? "ვერიფიცირებული ოსტატი" : "Verified Specialist"}>
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  </span>
-                )}
-              </Link>
+                <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                  / {service.price_unit}
+                </span>
+              </div>
 
-              <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold shrink-0">
-                <Star className="w-3.5 h-3.5 fill-amber-500" />
-                <span>{service.rating.toFixed(1)}</span>
-                <span className="text-muted-foreground font-normal">({service.reviews_count})</span>
+              {/* Location */}
+              <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-200 bg-surface-container px-2 py-0.5 rounded-[6px] font-bold border border-border/50 shrink-0">
+                <MapPin className="w-3 h-3 text-primary" />
+                <span>{cleanCity}</span>
               </div>
             </div>
 
-            {/* Title & Description */}
-            <Link href={`/services/${service.id}`} className="block group-hover:text-primary transition-colors">
-              <h3 className="text-sm sm:text-base font-black text-foreground leading-snug line-clamp-1">
+            {/* Title */}
+            <Link href={`/services/${service.id}`} className="block">
+              <h3 className="text-sm sm:text-base font-bold text-foreground line-clamp-2 leading-snug mb-2 hover:text-primary transition-colors">
                 {service.title}
               </h3>
             </Link>
 
+            {/* Description Snippet */}
             <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
               {service.description}
             </p>
           </div>
 
-          {/* Bottom Pricing */}
-          <div className="pt-2 border-t border-border/50 flex items-center justify-between gap-3">
-            <div>
-              <span className="text-[10px] font-bold text-muted-foreground uppercase block">
-                {isKa ? "საწყისი ფასი" : "Price From"}
-              </span>
-              <div className="flex items-baseline gap-1">
-                <span className="text-lg font-black text-emerald-700 dark:text-emerald-300">
-                  {service.price_from} ₾
-                </span>
-                <span className="text-xs text-muted-foreground">/ {service.price_unit}</span>
+          {/* Bottom Provider Info */}
+          <div className="mt-3 flex items-center justify-between border-t border-border/40 pt-2.5 text-xs">
+            <Link
+              href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
+              className="flex items-center gap-1.5 font-bold text-slate-700 dark:text-slate-300 hover:text-primary transition-colors truncate max-w-[140px]"
+            >
+              <div className="relative h-5 w-5 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[10px]">
+                {service.provider_avatar ? (
+                  <Image src={service.provider_avatar} alt={service.provider_name} fill className="rounded-full object-cover" />
+                ) : (
+                  service.provider_name.charAt(0).toUpperCase()
+                )}
               </div>
-            </div>
+              <span className="truncate">{service.provider_name}</span>
+              {service.is_verified && (
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              )}
+            </Link>
 
-            <div className="flex items-center gap-1 text-[11px] text-muted-foreground font-bold bg-secondary-container/50 px-2.5 py-1 rounded-[8px]">
-              <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-              <span>{service.city}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black flex items-center gap-0.5">
+                <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                <span>{service.rating.toFixed(1)}</span>
+                <span className="text-muted-foreground font-normal">({service.reviews_count})</span>
+              </span>
+
+              <Link
+                href={`/services/${service.id}`}
+                className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:text-primary-container px-2.5 py-1 rounded-[8px] bg-primary/10 hover:bg-primary/20 transition-colors"
+              >
+                <span>{isKa ? "ნახვა" : "View"}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Link>
             </div>
           </div>
         </div>
@@ -163,111 +171,94 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
     );
   }
 
-  // COMPACT & NORMAL GRID VIEW LAYOUT
+  // ─── COMPACT GRID VIEW (100% UNIFIED WITH LISTINGCARD & MARKET) ───────────
   return (
-    <div className="group relative flex flex-col justify-between bg-card border border-border/80 hover:border-primary/50 rounded-[24px] overflow-hidden shadow-2xs hover:shadow-ambient transition-all duration-300">
-      {/* Top Media & Badges */}
-      <div className="space-y-3 p-4 sm:p-5">
-        <Link
-          href={`/services/${service.id}`}
-          className="relative w-full h-48 rounded-[18px] overflow-hidden bg-surface-container block border border-border/60"
-        >
-          <Image
-            src={primaryImage}
-            alt={service.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 768px) 100vw, 33vw"
-          />
-          {/* Top Badges */}
-          <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 z-10">
-            <span className="px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-black border border-white/20 flex items-center gap-1">
-              <CatIcon className="w-3 h-3 text-emerald-400" />
-              <span>{catLabel}</span>
-            </span>
-          </div>
+    <div className="relative flex flex-col overflow-hidden rounded-[18px] bg-card border border-border shadow-2xs hover:border-primary/40 hover:shadow-ambient transition-all duration-300">
+      {/* Top Image — Edge-to-Edge 4:3 Ratio */}
+      <Link href={`/services/${service.id}`} className="relative aspect-[4/3] w-full overflow-hidden bg-surface-container block">
+        <Image
+          src={primaryImage}
+          alt={service.title}
+          fill
+          className="object-cover"
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+        />
 
-          <div className="absolute top-2.5 right-2.5 z-10">
-            <span className="px-2.5 py-1 rounded-full bg-black/65 backdrop-blur-md text-white text-[10px] font-bold border border-white/20 flex items-center gap-1">
-              <MapPin className="w-3 h-3 text-emerald-400" />
-              <span>{service.city}</span>
-            </span>
-          </div>
+        {/* Category Badge Top Left */}
+        <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
+          <span className="backdrop-blur-md bg-background/90 text-primary border border-border/40 text-[10px] font-bold px-2 py-0.5 rounded-[7px] flex items-center gap-1 shadow-2xs">
+            <CatIcon className="w-3 h-3 text-primary" />
+            <span>{catLabel}</span>
+          </span>
+        </div>
 
-          {service.portfolio_images && service.portfolio_images.length > 1 && (
-            <div className="absolute bottom-2.5 right-2.5 z-10">
-              <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1">
-                <Camera className="w-3 h-3" />
-                <span>{service.portfolio_images.length}</span>
+        {/* Photo Count Bottom Right */}
+        {service.portfolio_images && service.portfolio_images.length > 1 && (
+          <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white flex items-center gap-1">
+            <Camera className="w-2.5 h-2.5" />
+            <span>{service.portfolio_images.length}</span>
+          </div>
+        )}
+      </Link>
+
+      {/* Content Section — Compact & Tight Matching ListingCard */}
+      <div className="flex flex-1 flex-col p-2.5 sm:p-3">
+        {/* Price & Location Row — No-wrap Layout */}
+        <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
+          <div className="shrink-0 flex items-center gap-1 whitespace-nowrap">
+            <div className="inline-flex items-baseline gap-1 whitespace-nowrap">
+              <span className="text-base sm:text-lg font-black tracking-tight text-primary dark:text-emerald-400 whitespace-nowrap">
+                {service.price_from} ₾
+              </span>
+              <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                / {service.price_unit}
               </span>
             </div>
-          )}
+          </div>
+
+          {/* Clean City with High Contrast */}
+          <span 
+            className="text-[11px] text-slate-700 dark:text-slate-200 font-bold truncate shrink-0 max-w-[85px] text-right"
+            title={service.city}
+          >
+            {cleanCity}
+          </span>
+        </div>
+
+        {/* Title — Strict 2 lines clamp */}
+        <Link href={`/services/${service.id}`} className="mb-2 block">
+          <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold text-foreground leading-snug min-h-[32px] hover:text-primary transition-colors">
+            {service.title}
+          </h3>
         </Link>
 
-        {/* Provider Profile Header */}
-        <div className="flex items-center justify-between gap-2">
+        {/* Bottom Specialist / Provider Row */}
+        <div className="mt-auto border-t border-border/40 pt-2 flex items-center justify-between gap-1 text-[11px]">
           <Link
             href={service.provider_slug ? `/shops/${service.provider_slug}` : (service.provider_id ? `/shops/${service.provider_id}` : `/shops/${encodeURIComponent(service.provider_name.toLowerCase().replace(/\s+/g, "-"))}`)}
-            className="flex items-center gap-2.5 min-w-0 hover:text-primary transition-colors group/prov"
+            className="flex items-center gap-1.5 truncate text-slate-700 dark:text-slate-300 hover:text-primary transition-colors font-bold"
           >
-            {service.provider_avatar ? (
-              <img
-                src={service.provider_avatar}
-                alt={service.provider_name}
-                className="h-8 w-8 rounded-full object-cover border border-border shrink-0 shadow-2xs group-hover/prov:ring-2 group-hover/prov:ring-primary/40 transition-all"
-              />
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-xs shrink-0 group-hover/prov:bg-primary group-hover/prov:text-white transition-all">
-                {service.provider_name.charAt(0)}
-              </div>
-            )}
-
-            <div className="min-w-0">
-              <div className="flex items-center gap-1">
-                <span className="text-xs font-black text-foreground group-hover/prov:text-primary truncate">
-                  {service.provider_name}
-                </span>
-                {service.is_verified && (
-                  <span title={isKa ? "ვერიფიცირებული ოსტატი" : "Verified Specialist"}>
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  </span>
-                )}
-              </div>
+            <div className="relative h-4.5 w-4.5 shrink-0 rounded-full bg-primary/10 text-primary flex items-center justify-center font-black text-[9px]">
+              {service.provider_avatar ? (
+                <Image src={service.provider_avatar} alt={service.provider_name} fill className="rounded-full object-cover" />
+              ) : (
+                service.provider_name.charAt(0).toUpperCase()
+              )}
             </div>
+            <span className="truncate max-w-[90px]">{service.provider_name}</span>
+            {service.is_verified && (
+              <span title={isKa ? "ვერიფიცირებული ოსტატი" : "Verified Specialist"} className="text-emerald-600 dark:text-emerald-400 shrink-0">
+                <ShieldCheck className="w-3 h-3" />
+              </span>
+            )}
           </Link>
 
-          <div className="flex items-center gap-1 text-[11px] text-amber-500 font-bold shrink-0">
-            <Star className="w-3.5 h-3.5 fill-amber-500" />
-            <span>{service.rating.toFixed(1)}</span>
-            <span className="text-muted-foreground font-normal">({service.reviews_count})</span>
-          </div>
-        </div>
-
-        {/* Service Title & Desc */}
-        <div>
-          <Link href={`/services/${service.id}`} className="block group-hover:text-primary transition-colors">
-            <h3 className="text-sm font-black text-foreground leading-snug line-clamp-2">
-              {service.title}
-            </h3>
-          </Link>
-          <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2 leading-relaxed">
-            {service.description}
-          </p>
-        </div>
-      </div>
-
-      {/* Bottom: Pricing */}
-      <div className="p-4 sm:p-5 pt-0">
-        <div className="pt-3 border-t border-border/50 flex items-baseline justify-between">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            {isKa ? "საწყისი ფასი" : "Starting Price"}
-          </span>
-          <div className="text-right">
-            <span className="text-base font-black text-emerald-700 dark:text-emerald-300">
-              {service.price_from} ₾
+          {service.rating ? (
+            <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black shrink-0 flex items-center gap-0.5">
+              <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+              <span>{service.rating.toFixed(1)}</span>
             </span>
-            <span className="text-xs text-muted-foreground ml-1">/ {service.price_unit}</span>
-          </div>
+          ) : null}
         </div>
       </div>
     </div>
