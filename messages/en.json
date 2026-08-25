@@ -21,7 +21,7 @@
     "plants": "Plants",
     "map": "Map",
     "inventory": "Inventory",
-    "iso": "Find Plants",
+    "iso": "Plant Swap & Requests",
     "shops": "Shops",
     "pricing": "Pricing",
     "faq": "FAQ",
@@ -30,18 +30,18 @@
   "Listing": {
     "type": "Type",
     "plant": "Plant",
-    "inventory": "Inventory",
+    "inventory": "Inventory & Pots",
     "transaction": "Transaction Type",
     "fixed": "Fixed Price",
     "negotiable": "Negotiable",
     "trade": "Trade / Swap",
-    "gift": "Free Gift / Giveaway",
-    "delivery": "Delivery Options",
-    "pickup": "Pick-up",
+    "gift": "Free Giveaway",
+    "delivery": "Delivery Methods",
+    "pickup": "Local Pickup",
     "courier": "Courier Delivery",
-    "marshrutka": "Marshrutka Delivery",
+    "marshrutka": "Regional Transport / Minibus",
     "imagesHint": "Upload between 2 and 5 photos",
     "tradeLookingFor": "Looking to trade for",
-    "submit": "Post Listing"
+    "submit": "Publish Listing"
   }
 }
