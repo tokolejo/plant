@@ -1252,18 +1252,6 @@ export default function ListingDetailPage({
 
             {/* Actions & Share */}
             <div className="space-y-2 pt-1 border-t border-border/40">
-              {/* Primary Buy Now / Escrow Online Payment Button (if price > 0) */}
-              {listing.price > 0 && listing.transactionType !== "GIFT" && (
-                <button
-                  type="button"
-                  onClick={() => setCheckoutModalOpen(true)}
-                  className="w-full h-11 px-4 rounded-[12px] font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition-all cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/25 shadow-xs hover:scale-[1.01] active:scale-[0.99]"
-                >
-                  <CreditCard className="w-4 h-4 shrink-0" />
-                  <span>{isKa ? "ონლაინ ყიდვა & Escrow გარანტია" : "Buy Online with Escrow"}</span>
-                </button>
-              )}
-
               {/* Primary Phone Reveal & Dial (Centered, Compact & Non-Stretched) */}
               <button
                 type="button"
@@ -1668,6 +1656,45 @@ export default function ListingDetailPage({
               <ListingCard {...simItem} variant="compact" />
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          STICKY MOBILE DIRECT CONTACT BAR (Instant 1-Tap Phone & WhatsApp)
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/80 bg-card/95 backdrop-blur-xl p-2.5 pb-safe shadow-ambient">
+        <div className="flex items-center justify-between gap-2 max-w-lg mx-auto">
+          <div className="flex flex-col min-w-0 pr-1">
+            <span className="text-[10px] text-muted-foreground font-semibold truncate">
+              {listing.seller?.fullName || "გამყიდველი"}
+            </span>
+            <span className="text-sm font-black text-primary truncate">
+              {listing.price > 0 ? `${listing.price} ₾` : isKa ? "საჩუქარი" : "Free"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* WhatsApp */}
+            <a
+              href={directWaChatUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1 bg-[#25D366] text-white shadow-2xs active:scale-95 transition-transform"
+            >
+              <WhatsAppIcon className="w-4 h-4" />
+              <span>WhatsApp</span>
+            </a>
+
+            {/* Direct Phone Reveal & Dial */}
+            <button
+              type="button"
+              onClick={handlePhoneAction}
+              className="h-9.5 px-3.5 rounded-[11px] font-black text-xs flex items-center justify-center gap-1.5 bg-primary text-white shadow-ambient active:scale-95 transition-transform"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>{showPhone ? cleanPhoneDigits : isKa ? "დარეკვა" : "Call"}</span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -989,7 +989,46 @@ export default function ServiceDetailPage({
       )}
 
       {/* ══════════════════════════════════════════════════════════════════════
-          4. Rich Online Booking & Live Cost Estimator Modal
+          4. Sticky Mobile Direct Contact Bar (Instant 1-Tap Phone & WhatsApp)
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/80 bg-card/95 backdrop-blur-xl p-2.5 pb-safe shadow-ambient">
+        <div className="flex items-center justify-between gap-2 max-w-lg mx-auto">
+          <div className="flex flex-col min-w-0 pr-1">
+            <span className="text-[10px] text-muted-foreground font-semibold truncate">
+              {service.provider_name || "სპეციალისტი"}
+            </span>
+            <span className="text-sm font-black text-primary truncate">
+              {service.price_from} ₾ <span className="text-[10px] font-normal text-muted-foreground">/ {isKa ? "დან" : "from"}</span>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* WhatsApp */}
+            <a
+              href={directWaChatUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1 bg-[#25D366] text-white shadow-2xs active:scale-95 transition-transform"
+            >
+              <WhatsAppIcon className="w-4 h-4" />
+              <span>WhatsApp</span>
+            </a>
+
+            {/* Direct Phone Reveal & Dial */}
+            <button
+              type="button"
+              onClick={handlePhoneAction}
+              className="h-9.5 px-3.5 rounded-[11px] font-black text-xs flex items-center justify-center gap-1.5 bg-primary text-white shadow-ambient active:scale-95 transition-transform"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>{showPhone ? formattedFullPhone : isKa ? "დარეკვა" : "Call"}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          5. Rich Online Booking & Live Cost Estimator Modal
       ══════════════════════════════════════════════════════════════════════ */}
       <ServiceBookingModal
         isOpen={inquiryModalOpen}

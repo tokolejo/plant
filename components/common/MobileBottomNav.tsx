@@ -23,6 +23,10 @@ export function MobileBottomNav() {
   const isListingsActive = pathname.startsWith("/listings");
   const isMapActive = pathname === "/map";
 
+  // Hide global navigation on single listing/service detail pages to allow 1-tap contact bar
+  const isDetailPage = /^\/(listings|services)\/[^/]+$/.test(pathname);
+  if (isDetailPage) return null;
+
   return (
     <>
       <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/70 bg-card/95 backdrop-blur-xl pb-safe">
