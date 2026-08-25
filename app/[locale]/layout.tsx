@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/common/Header";
 import { Footer } from "@/components/common/Footer";
 import { MobileBottomNav } from "@/components/common/MobileBottomNav";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "../globals.css";
 
 export const viewport: Viewport = {
@@ -157,6 +158,7 @@ export default async function LocaleLayout({
             <MobileBottomNav />
           </ThemeProvider>
         </NextIntlClientProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
