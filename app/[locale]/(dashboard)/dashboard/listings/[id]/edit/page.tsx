@@ -521,6 +521,84 @@ export default function EditListingPage() {
     }
   };
 
+  // ──────────────────────────────────────────────
+  // GPS & Address Autocomplete Handlers
+  // ──────────────────────────────────────────────
+  const [gpsLoading, setGpsLoading] = React.useState(false);
+  const [latitude, setLatitude] = React.useState<number | null>(null);
+  const [longitude, setLongitude] = React.useState<number | null>(null);
+  const [addressSuggestions, setAddressSuggestions] = React.useState<any[]>([]);
+  const [showAddressSuggestions, setShowAddressSuggestions] = React.useState(false);
+  const [isSearchingAddress, setIsSearchingAddress] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!address || address.length < 2) {
+      setAddressSuggestions([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingAddress(true);
+        const res = await fetch(`/api/geo/autocomplete?q=${encodeURIComponent(address)}&city=${encodeURIComponent(city)}&locale=ka`);
+        const data = await res.json();
+        if (data && data.results && data.results.length > 0) {
+          setAddressSuggestions(data.results);
+        }
+      } catch (err) {
+        console.warn("Autocomplete error:", err);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [address, city]);
+
+  const handleGpsLocation = () => {
+    if (!navigator.geolocation) {
+      setErrorMsg("თქვენს ბრაუზერს არ აქვს GPS მხარდაჭერა.");
+      return;
+    }
+    setGpsLoading(true);
+    setErrorMsg("");
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setLatitude(lat);
+          setLongitude(lng);
+
+          const res = await fetch("/api/geo/reverse", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ latitude: lat, longitude: lng, locale: "ka" }),
+          });
+
+          const data = await res.json();
+          if (data && data.success) {
+            if (data.city) setCity(data.city);
+            if (data.street || data.address) setAddress(data.street || data.address);
+          } else {
+            throw new Error(data?.error || "Geocoding failed");
+          }
+        } catch (err: any) {
+          console.error("GPS Reverse Geocode Error:", err);
+          setErrorMsg("მისამართის ამოცნობა ვერ მოხერხდა, გთხოვთ შეიყვანოთ ხელით.");
+        } finally {
+          setGpsLoading(false);
+        }
+      },
+      () => {
+        setGpsLoading(false);
+        setErrorMsg("GPS წვდომა უარყოფილია. გთხოვთ ბრაუზერში დაუშვათ ლოკაცია.");
+        setTimeout(() => setErrorMsg(""), 4000);
+      },
+      { timeout: 10000, maximumAge: 30000, enableHighAccuracy: true }
+    );
+  };
+
   // Form Submit Handler
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1313,9 +1391,22 @@ export default function EditListingPage() {
 
         {/* 5. Location & Delivery */}
         <div className="rounded-[24px] border border-border/80 bg-card p-5 shadow-sm space-y-4">
-          <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
-            5. მდებარეობა & მიწოდება
-          </label>
+          <div className="flex items-center justify-between gap-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground block">
+              5. მდებარეობა & მიწოდება
+            </label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleGpsLocation}
+              disabled={gpsLoading}
+              className="h-8 px-3 rounded-[10px] text-xs font-bold gap-1.5 border-primary/30 bg-primary/5 text-primary hover:bg-primary/10 transition-all cursor-pointer shrink-0"
+            >
+              <Navigation className={`w-3.5 h-3.5 ${gpsLoading ? "animate-spin" : ""}`} />
+              <span>{gpsLoading ? "ძიება..." : "ჩემი ლოკაცია"}</span>
+            </Button>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -1337,14 +1428,60 @@ export default function EditListingPage() {
               </select>
             </div>
 
-            <div>
-              <span className="text-xs font-bold text-foreground block mb-1">მისამართი / უბანი</span>
-              <Input
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="მაგ: ვაკე, ჭავჭავაძის 37"
-                className="rounded-[14px] text-xs sm:text-sm h-10"
-              />
+            <div className="space-y-1 relative">
+              <span className="text-xs font-bold text-foreground block mb-1">ქუჩა & სახლის ნომერი</span>
+              <div className="relative">
+                <Input
+                  value={address}
+                  onChange={(e) => {
+                    setAddress(e.target.value);
+                    setShowAddressSuggestions(true);
+                  }}
+                  onFocus={() => {
+                    if (addressSuggestions.length > 0) setShowAddressSuggestions(true);
+                  }}
+                  placeholder="მაგ: მერაბ მამარდაშვილის ქუჩა 22"
+                  className="rounded-[14px] text-xs sm:text-sm h-10 pr-8"
+                />
+                {isSearchingAddress && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground absolute right-3 top-3.5" />
+                )}
+              </div>
+
+              {/* Autocomplete Suggestions Dropdown */}
+              {showAddressSuggestions && addressSuggestions.length > 0 && (
+                <div className="absolute z-30 left-0 right-0 top-[66px] bg-popover border border-border/80 rounded-[14px] shadow-lg overflow-hidden py-1 max-h-56 overflow-y-auto animate-in fade-in zoom-in-95">
+                  {addressSuggestions.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => {
+                        setAddress(item.address || item.formatted);
+                        if (item.lat && item.lng) {
+                          setLatitude(item.lat);
+                          setLongitude(item.lng);
+                        }
+                        if (item.city) setCity(item.city);
+                        setShowAddressSuggestions(false);
+                      }}
+                      className="w-full px-3 py-2 text-left hover:bg-surface-container flex items-start gap-2 text-xs transition-colors cursor-pointer border-b border-border/30 last:border-0"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-bold text-foreground">{item.address}</div>
+                        <div className="text-[10px] text-muted-foreground">{item.formatted}</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {latitude && longitude && (
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 pt-1 animate-in fade-in">
+                  <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>ზუსტი ლოკაცია დაფიქსირებულია</span>
+                </p>
+              )}
             </div>
           </div>
 

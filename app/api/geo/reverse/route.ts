@@ -81,38 +81,15 @@ export async function POST(req: NextRequest) {
     let detectedCity = "თბილისი";
     let detectedStreet = "";
     let houseNumber = "";
+    let districtName = "";
+    let fullAddressLine = "";
 
-    // 1. LocationIQ (100% Free 5,000 requests/day)
-    const locationIqKey = process.env.LOCATIONIQ_API_KEY || process.env.NEXT_PUBLIC_LOCATIONIQ_API_KEY;
-    if (locationIqKey && !detectedStreet) {
-      try {
-        const liqRes = await fetch(
-          `https://us1.locationiq.com/v1/reverse?key=${locationIqKey}&lat=${lat}&lon=${lng}&format=json&accept-language=${isKa ? "ka" : "en"}`
-        );
-        const liqData = await liqRes.json();
-        if (liqData && liqData.address) {
-          const a = liqData.address;
-          const rawCity = (a.city || a.town || a.village || a.municipality || a.county || a.state || "").toLowerCase();
-          for (const [k, v] of Object.entries(GEORGIAN_CITY_MAP)) {
-            if (rawCity.includes(k)) {
-              detectedCity = v;
-              break;
-            }
-          }
-          detectedStreet = a.road || a.pedestrian || a.street || a.neighbourhood || "";
-          if (a.house_number) houseNumber = a.house_number;
-        }
-      } catch (err) {
-        console.error("LocationIQ error:", err);
-      }
-    }
-
-    // 2. Geoapify (100% Free 3,000 requests/day)
+    // ─── 1. Geoapify (High precision building & house number in Georgia) ───
     const geoapifyKey = process.env.GEOAPIFY_API_KEY || process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
-    if (geoapifyKey && (!detectedStreet || !houseNumber)) {
+    if (geoapifyKey) {
       try {
         const geoRes = await fetch(
-          `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&apiKey=${geoapifyKey}&lang=${isKa ? "ka" : "en"}`
+          `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lng}&type=building&apiKey=${geoapifyKey}&lang=${isKa ? "ka" : "en"}`
         );
         const geoData = await geoRes.json();
         const feat = geoData.features?.[0]?.properties;
@@ -128,78 +105,54 @@ export async function POST(req: NextRequest) {
           }
           if (feat.street) detectedStreet = feat.street;
           if (feat.housenumber) houseNumber = feat.housenumber;
+          if (feat.district || feat.suburb || feat.quarter) {
+            districtName = feat.district || feat.suburb || feat.quarter;
+          }
+          if (feat.address_line1) fullAddressLine = feat.address_line1;
         }
       } catch (err) {
-        console.error("Geoapify error:", err);
+        console.error("Geoapify reverse error:", err);
       }
     }
 
-    // 3. Mapbox Geocoding (100% Free 100,000 requests/month)
-    const mapboxToken = process.env.MAPBOX_ACCESS_TOKEN || process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-    if (mapboxToken && (!detectedStreet || !houseNumber)) {
+    // ─── 2. LocationIQ (Fallback / Verification) ───
+    const locationIqKey = process.env.LOCATIONIQ_API_KEY || process.env.NEXT_PUBLIC_LOCATIONIQ_API_KEY;
+    if (locationIqKey && (!detectedStreet || !houseNumber)) {
       try {
-        const mbRes = await fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxToken}&language=${isKa ? "ka" : "en"}&types=address,poi`
+        const liqRes = await fetch(
+          `https://us1.locationiq.com/v1/reverse?key=${locationIqKey}&lat=${lat}&lon=${lng}&format=json&addressdetails=1&normalizeaddress=1&accept-language=${isKa ? "ka" : "en"}`
         );
-        const mbData = await mbRes.json();
-        const feat = mbData.features?.[0];
-        if (feat) {
-          if (feat.text) detectedStreet = feat.text;
-          if (feat.address) houseNumber = feat.address;
-        }
-      } catch (err) {
-        console.error("Mapbox Geocode error:", err);
-      }
-    }
-
-    // 4. Yandex Maps Geocoder API (1,000 free requests/day)
-    const yandexKey = process.env.YANDEX_MAPS_API_KEY || process.env.NEXT_PUBLIC_YANDEX_MAPS_API_KEY;
-    if (yandexKey && (!detectedStreet || !houseNumber)) {
-      try {
-        const yRes = await fetch(
-          `https://geocode-maps.yandex.ru/1.x/?apikey=${yandexKey}&geocode=${lng},${lat}&format=json&lang=ka_GE`
-        );
-        const yData = await yRes.json();
-        const member = yData.response?.GeoObjectCollection?.featureMember?.[0]?.GeoObject;
-        if (member) {
-          const meta = member.metaDataProperty?.GeocoderMetaData?.AddressDetails?.Country;
-          const locality = meta?.AdministrativeArea?.Locality;
-          const thoroughfare = locality?.Thoroughfare;
-          if (thoroughfare?.ThoroughfareName) detectedStreet = thoroughfare.ThoroughfareName;
-          if (thoroughfare?.Premise?.PremiseNumber) houseNumber = thoroughfare.Premise.PremiseNumber;
-        }
-      } catch (err) {
-        console.error("Yandex Geocode error:", err);
-      }
-    }
-
-    // 5. Google Maps Geocoding API (if Google Key is provided)
-    const googleKey = process.env.GOOGLE_MAPS_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    if (googleKey && (!detectedStreet || !houseNumber)) {
-      try {
-        const gRes = await fetch(
-          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&language=${isKa ? "ka" : "en"}&key=${googleKey}`
-        );
-        const gData = await gRes.json();
-        if (gData.status === "OK" && gData.results?.[0]) {
-          const res = gData.results[0];
-          for (const c of res.address_components) {
-            if (c.types.includes("street_number")) houseNumber = c.long_name;
-            if (c.types.includes("route")) detectedStreet = c.long_name;
-            if (c.types.includes("locality")) detectedCity = c.long_name;
+        const liqData = await liqRes.json();
+        if (liqData && liqData.address) {
+          const a = liqData.address;
+          const rawCity = (a.city || a.town || a.village || a.municipality || a.county || a.state || "").toLowerCase();
+          for (const [k, v] of Object.entries(GEORGIAN_CITY_MAP)) {
+            if (rawCity.includes(k)) {
+              detectedCity = v;
+              break;
+            }
+          }
+          if (!detectedStreet && (a.road || a.pedestrian || a.street)) {
+            detectedStreet = a.road || a.pedestrian || a.street;
+          }
+          if (!houseNumber && a.house_number) {
+            houseNumber = a.house_number;
+          }
+          if (!districtName && (a.neighbourhood || a.quarter || a.suburb)) {
+            districtName = a.neighbourhood || a.quarter || a.suburb;
           }
         }
       } catch (err) {
-        console.error("Google Geocoding error:", err);
+        console.error("LocationIQ reverse error:", err);
       }
     }
 
-    // 6. OpenStreetMap / Nominatim (Free, no key required)
-    if (!detectedStreet) {
+    // ─── 3. OpenStreetMap / Nominatim (Free Open Data with zoom=18 building level) ───
+    if (!detectedStreet || !houseNumber) {
       try {
         const osmRes = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=${isKa ? "ka" : "en"}`,
-          { headers: { "User-Agent": "PlantApp/2.0" } }
+          { headers: { "User-Agent": "PlantSaleGE/2.0" } }
         );
         const osmData = await osmRes.json();
         if (osmData && osmData.address) {
@@ -212,52 +165,47 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          detectedStreet = a.road || a.pedestrian || a.street || a.avenue || a.path || a.neighbourhood || a.suburb || "";
-          if (a.house_number) {
-            houseNumber = a.house_number;
+          if (!detectedStreet && (a.road || a.pedestrian || a.street || a.avenue || a.path)) {
+            detectedStreet = a.road || a.pedestrian || a.street || a.avenue || a.path;
+          }
+          if (!houseNumber && (a.house_number || a.building)) {
+            houseNumber = a.house_number || a.building;
+          }
+          if (!districtName && (a.neighbourhood || a.suburb || a.quarter)) {
+            districtName = a.neighbourhood || a.suburb || a.quarter;
           }
         }
       } catch (err) {
-        console.error("Nominatim error:", err);
+        console.error("Nominatim reverse error:", err);
       }
     }
 
-    // 7. Photon Reverse Geocoding for nearest building number
-    if (!houseNumber) {
-      try {
-        const photonRes = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}`);
-        const photonData = await photonRes.json();
-        const p = photonData.features?.[0]?.properties;
-        if (p?.housenumber) {
-          houseNumber = p.housenumber;
-        }
-        if (!detectedStreet && p?.street) {
-          detectedStreet = p.street;
-        }
-      } catch {
-        // Ignore photon fallback error
-      }
+    // ─── 4. Assemble Exact Street Address ───
+    let finalStreet = "";
+
+    if (fullAddressLine && houseNumber) {
+      finalStreet = fullAddressLine;
+    } else if (detectedStreet) {
+      finalStreet = houseNumber ? `${detectedStreet} ${houseNumber}` : detectedStreet;
     }
 
-    // Construct clean street and full address string
-    let streetAddress = "";
-    if (detectedStreet) {
-      streetAddress = houseNumber ? `${detectedStreet} №${houseNumber}` : detectedStreet;
-    }
-
-    let formattedAddress = "";
-    if (streetAddress) {
-      formattedAddress = `${detectedCity}, ${streetAddress}`;
+    let finalFullAddress = "";
+    if (finalStreet) {
+      finalFullAddress = districtName && !finalStreet.includes(districtName)
+        ? `${detectedCity}, ${districtName}, ${finalStreet}`
+        : `${detectedCity}, ${finalStreet}`;
     } else {
-      formattedAddress = detectedCity;
+      finalFullAddress = detectedCity;
     }
 
     return NextResponse.json({
       success: true,
       city: detectedCity,
-      street: streetAddress,
-      address: streetAddress || formattedAddress,
-      fullAddress: formattedAddress,
+      street: finalStreet || detectedStreet,
+      address: finalStreet || detectedStreet || finalFullAddress,
+      houseNumber: houseNumber || undefined,
+      district: districtName || undefined,
+      fullAddress: finalFullAddress,
       latitude: lat,
       longitude: lng,
     });
