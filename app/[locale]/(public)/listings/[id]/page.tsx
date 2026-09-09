@@ -42,7 +42,8 @@ import {
   Copy,
   Check,
   Eye,
-  Navigation
+  Navigation,
+  Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -778,14 +779,14 @@ export default function ListingDetailPage({
             RIGHT COLUMN: Pricing, Contacts, Seller Profile & Feedback/Reviews
         ══════════════════════════════════════════════════════════════════════ */}
         <div className="lg:col-span-5 space-y-4">
-          {/* Main Info Card */}
+          {/* Main Info Card (Variant 1: Clean & Elevated) */}
           <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3.5">
-            {/* Title & Clickable Category / Type Badges */}
-            <div>
-              <div className="flex flex-wrap items-center gap-2 mb-2.5">
+            {/* Top Row: Category Tags + Quick Top-Right Icon Actions (Wishlist & Share & Copy) */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-1.5 min-w-0">
                 {/* 1. Item Type Tag (Clickable) */}
                 <Link href={`/listings?type=${listing.itemType}`}>
-                  <Badge className="rounded-[8px] bg-secondary-container text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-border/50 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5 flex items-center">
+                  <Badge className="rounded-full bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-primary/25 text-[11px] font-bold cursor-pointer gap-1 py-0.5 px-2.5 flex items-center">
                     {listing.itemType === "PLANT" ? (
                       <>
                         <Sprout className="w-3 h-3 text-primary" />
@@ -800,7 +801,7 @@ export default function ListingDetailPage({
                 {/* 2. Specific Plant / Inventory Category Tag (Clickable) */}
                 {categoryInfo && (
                   <Link href={`/listings?category=${encodeURIComponent(rawCat || "")}`}>
-                    <Badge className="rounded-[8px] bg-primary/10 text-primary hover:bg-primary/20 hover:scale-105 transition-all border border-primary/30 text-[11px] font-bold cursor-pointer gap-1.5 py-1 px-2.5">
+                    <Badge variant="secondary" className="rounded-full bg-secondary-container/80 text-foreground hover:bg-secondary hover:scale-105 transition-all border border-border/50 text-[11px] font-semibold cursor-pointer py-0.5 px-2.5">
                       <span>{categoryInfo.label}</span>
                     </Badge>
                   </Link>
@@ -809,166 +810,202 @@ export default function ListingDetailPage({
                 {/* 3. Transaction Type Tag (Clickable) */}
                 {listing.transactionType === "GIFT" && (
                   <Link href="/listings?trans=GIFT">
-                    <Badge className="rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/25 hover:scale-105 transition-all border border-emerald-500/30 font-bold text-[11px] cursor-pointer py-1 px-2.5">
+                    <Badge className="rounded-full bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/25 transition-all border border-emerald-500/30 font-bold text-[11px] cursor-pointer py-0.5 px-2.5">
                       {isKa ? "უფასო" : "Free"}
                     </Badge>
                   </Link>
                 )}
                 {listing.transactionType === "TRADE" && (
                   <Link href="/listings?trans=TRADE">
-                    <Badge className="rounded-[8px] bg-amber-500/15 text-amber-800 dark:text-amber-300 hover:bg-amber-500/25 hover:scale-105 transition-all border border-amber-500/30 font-bold text-[11px] cursor-pointer py-1 px-2.5">
+                    <Badge className="rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 hover:bg-amber-500/25 transition-all border border-amber-500/30 font-bold text-[11px] cursor-pointer py-0.5 px-2.5">
                       {isKa ? "გაცვლა" : "Trade / Swap"}
                     </Badge>
                   </Link>
                 )}
                 {listing.transactionType === "NEGOTIABLE" && (
                   <Link href="/listings?trans=NEGOTIABLE">
-                    <Badge variant="secondary" className="rounded-[8px] text-[11px] font-bold hover:bg-secondary hover:scale-105 transition-all border border-border/50 cursor-pointer py-1 px-2.5">
+                    <Badge variant="secondary" className="rounded-full text-[11px] font-bold hover:bg-secondary transition-all border border-border/50 cursor-pointer py-0.5 px-2.5">
                       {isKa ? "შეთანხმებით" : "Negotiable"}
                     </Badge>
                   </Link>
                 )}
                 {listing.transactionType === "FIXED" && (
                   <Link href="/listings?trans=FIXED">
-                    <Badge variant="secondary" className="rounded-[8px] text-[11px] font-bold hover:bg-secondary hover:scale-105 transition-all border border-border/50 cursor-pointer py-1 px-2.5">
+                    <Badge variant="secondary" className="rounded-full text-[11px] font-bold hover:bg-secondary transition-all border border-border/50 cursor-pointer py-0.5 px-2.5">
                       {isKa ? "იყიდება" : "For Sale"}
                     </Badge>
                   </Link>
                 )}
               </div>
 
-              <h1 className="text-base sm:text-lg font-extrabold text-foreground leading-snug">
+              {/* Quick Actions (Wishlist & Share & Copy) - Clean & Compact in top right */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleToggleWishlist}
+                  className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                    inWishlist
+                      ? "bg-rose-500 text-white border-rose-500 shadow-xs"
+                      : "bg-secondary-container hover:bg-secondary text-muted-foreground hover:text-rose-500 border-border/60"
+                  }`}
+                  title={inWishlist ? (isKa ? "შენახულია რჩეულებში" : "Saved in wishlist") : (isKa ? "სურვილების სიაში დამატება" : "Add to wishlist")}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${inWishlist ? "fill-current" : ""}`} />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShareModalOpen(true)}
+                  className="w-8 h-8 rounded-full border border-border/60 bg-secondary-container hover:bg-secondary text-muted-foreground hover:text-foreground flex items-center justify-center transition-all cursor-pointer"
+                  title={isKa ? "გაზიარება" : "Share"}
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCopyLink}
+                  title={copiedLink ? (isKa ? "დაკოპირდა!" : "Copied!") : (isKa ? "ლინკის კოპირება" : "Copy Link")}
+                  className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                    copiedLink
+                      ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
+                      : "bg-secondary-container hover:bg-secondary text-muted-foreground hover:text-foreground border-border/60"
+                  }`}
+                >
+                  {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+            </div>
+
+            {/* Title & Location */}
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight leading-snug">
                 {displayTitle}
               </h1>
 
-              <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground font-medium flex-wrap">
+              <div className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground font-medium flex-wrap">
+                <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                 <Link
                   href={`/listings?city=${encodeURIComponent(listing.city)}`}
-                  className="hover:text-primary font-bold text-foreground transition-colors inline-flex items-center gap-1"
+                  className="hover:text-primary font-bold text-foreground transition-colors"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span>{listing.city}</span>
+                  {listing.city}
                 </Link>
                 {listing.address && (
                   <>
                     <span>•</span>
-                    <span className="text-foreground font-bold">{listing.address}</span>
+                    <span className="text-foreground font-semibold">{listing.address}</span>
                   </>
                 )}
-                {/* Google Maps Directions Button */}
+                <span>•</span>
+                {/* Google Maps Directions Link */}
                 <a
                   href={googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-800 bg-emerald-500/10 hover:bg-emerald-500/20 px-2 py-0.5 rounded-[7px] border border-emerald-500/30 transition-colors cursor-pointer shadow-2xs"
+                  className="text-emerald-700 dark:text-emerald-400 hover:underline font-bold inline-flex items-center gap-0.5 text-[11px] shrink-0"
                   title={isKa ? "მარშრუტის გახსნა Google Maps-ში" : "Open directions in Google Maps"}
                 >
-                  <Navigation className="w-3 h-3 text-emerald-600" />
-                  <span>{isKa ? "მარშრუტი (Google Maps)" : "Directions (Google Maps)"}</span>
-                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                  <span>Maps ↗</span>
                 </a>
               </div>
             </div>
 
-            {/* Price & Status Row */}
-            <div className="rounded-[14px] bg-secondary-container/60 border border-border/50 px-3.5 py-2.5 flex items-center justify-between">
+            {/* Price & Status Row (Clean & Elevated - no bulky box) */}
+            <div className="pt-3 pb-3 border-y border-border/50 flex items-center justify-between">
               {listing.transactionType === "GIFT" || listing.price === 0 || !listing.price ? (
-                <span className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-                  <span>{isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}</span>
+                <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">
+                  {isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}
                 </span>
               ) : listing.transactionType === "TRADE" ? (
-                <span className="text-base sm:text-lg font-black text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                  <RefreshCw className="w-4 h-4" />
+                <span className="text-xl sm:text-2xl font-black text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                  <RefreshCw className="w-5 h-5" />
                   <span>{isKa ? "მხოლოდ გაცვლა" : "Trade Only"}</span>
                 </span>
               ) : (
                 <div className="flex items-baseline gap-1.5">
-                  <span className="text-xl sm:text-2xl font-black text-foreground tracking-tight">
+                  <span className="text-2xl sm:text-3xl font-black text-foreground tracking-tight">
                     {formatPrice(listing.price, "₾", isKa)}
                   </span>
                   {listing.transactionType === "NEGOTIABLE" && (
-                    <span className="text-xs text-slate-700 dark:text-slate-300 font-bold">
+                    <span className="text-xs text-muted-foreground font-bold">
                       {isKa ? "(შეთანხმებით)" : "(Negotiable)"}
                     </span>
                   )}
                 </div>
               )}
 
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-card border border-border/50 px-2.5 py-1 rounded-[7px] shadow-2xs">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 {isKa ? "აქტიური" : "Active"}
               </span>
             </div>
 
-            {/* Delivery Methods (All 3 on single compact line with dimmed inactives) */}
-            <div className="grid grid-cols-3 gap-1.5 text-center">
-              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[10.5px] sm:text-[11px] transition-all ${
-                listing.deliveryMethods?.includes("PICKUP")
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
-                  : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
-              }`}>
-                <MapPin className="w-3 h-3 shrink-0" />
-                <span className="whitespace-nowrap">{isKa ? "ადგილიდან" : "Pickup"}</span>
-              </div>
+            {/* Delivery Methods (Clean Horizontal Tags) */}
+            <div className="flex items-center gap-2 text-xs flex-wrap">
+              <span className="text-muted-foreground text-[11px] font-semibold">{isKa ? "მიწოდება:" : "Delivery:"}</span>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                  listing.deliveryMethods?.includes("PICKUP")
+                    ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+                    : "text-muted-foreground/40 line-through opacity-50"
+                }`}>
+                  {listing.deliveryMethods?.includes("PICKUP") ? "✓ " : ""}{isKa ? "ადგილიდან" : "Pickup"}
+                </span>
 
-              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[10.5px] sm:text-[11px] transition-all ${
-                listing.deliveryMethods?.includes("COURIER")
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
-                  : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
-              }`}>
-                <Truck className="w-3 h-3 shrink-0" />
-                <span className="whitespace-nowrap">{isKa ? "კურიერი" : "Courier"}</span>
-              </div>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                  listing.deliveryMethods?.includes("COURIER")
+                    ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+                    : "text-muted-foreground/40 line-through opacity-50"
+                }`}>
+                  {listing.deliveryMethods?.includes("COURIER") ? "✓ " : ""}{isKa ? "კურიერი" : "Courier"}
+                </span>
 
-              <div className={`flex items-center justify-center gap-1 py-1.5 px-1 rounded-[8px] border text-[10px] sm:text-[11px] transition-all ${
-                listing.deliveryMethods?.includes("MARSHRUTKA")
-                  ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 font-bold shadow-2xs"
-                  : "border-border/30 bg-muted/20 text-muted-foreground/40 opacity-40"
-              }`}>
-                <Truck className="w-3 h-3 shrink-0" />
-                <span className="whitespace-nowrap">{isKa ? "სამარშრუტო" : "Intercity"}</span>
+                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold transition-all ${
+                  listing.deliveryMethods?.includes("MARSHRUTKA")
+                    ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300"
+                    : "text-muted-foreground/40 line-through opacity-50"
+                }`}>
+                  {listing.deliveryMethods?.includes("MARSHRUTKA") ? "✓ " : ""}{isKa ? "სამარშრუტო" : "Intercity"}
+                </span>
               </div>
             </div>
 
-            {/* Actions & Share */}
-            <div className="space-y-2 pt-1 border-t border-border/40">
-              {/* Primary Phone Reveal & Dial (Centered, Compact & Non-Stretched) */}
+            {/* Primary Actions Group */}
+            <div className="space-y-2.5 pt-1">
+              {/* Primary Phone Reveal & Dial */}
               <button
                 type="button"
                 onClick={handlePhoneAction}
-                className={`w-full h-11 px-4 rounded-[12px] font-bold flex items-center justify-center gap-2.5 transition-all cursor-pointer shadow-xs ${
-                  showPhone
-                    ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20"
-                    : "bg-primary hover:bg-primary/90 text-white shadow-primary/20"
-                }`}
+                className="w-full h-11 px-4 rounded-[14px] font-bold flex items-center justify-center gap-2.5 bg-emerald-700 hover:bg-emerald-800 text-white transition-all cursor-pointer shadow-xs"
               >
-                <Phone className="w-4 h-4 shrink-0" />
+                <Phone className="w-4 h-4 shrink-0 text-emerald-200" />
                 <span className="text-sm font-black tracking-wider">
                   {showPhone ? formattedFullPhone : maskedPhone}
                 </span>
-                <span className="text-[10.5px] px-2 py-0.5 rounded-[6px] bg-white/20 font-black ml-0.5">
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-emerald-900/60 text-emerald-100 font-black ml-0.5">
                   {showPhone ? (isKa ? "დარეკვა" : "Call") : (isKa ? "ნახვა" : "Show")}
                 </span>
               </button>
 
-              {/* Chat & WhatsApp Row */}
+              {/* Chat & WhatsApp Row (50/50 Split) */}
               <div className="grid grid-cols-2 gap-2">
                 <a
                   href={directWaChatUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1.5 bg-[#25D366] hover:bg-[#1EBE5D] text-white shadow-2xs transition-all cursor-pointer"
+                  className="h-9.5 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-1.5 border border-[#25D366]/40 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] dark:text-[#25D366] transition-colors cursor-pointer"
                 >
-                  <WhatsAppIcon className="w-4 h-4" />
+                  <WhatsAppIcon className="w-3.5 h-3.5 fill-current" />
                   <span>WhatsApp</span>
                 </a>
 
                 <button
                   type="button"
                   onClick={handleChatClick}
-                  className="h-9.5 px-3 rounded-[11px] font-bold text-xs flex items-center justify-center gap-1.5 bg-secondary-container hover:bg-secondary text-foreground border border-border/50 transition-all cursor-pointer"
+                  className="h-9.5 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-1.5 border border-border/60 bg-secondary-container/50 hover:bg-secondary-container text-foreground transition-colors cursor-pointer"
                 >
-                  <MessageSquare className="w-4 h-4 text-primary" />
+                  <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
                   <span>{isKa ? "Live ჩატი" : "Live Chat"}</span>
                 </button>
               </div>
@@ -978,102 +1015,40 @@ export default function ListingDetailPage({
                 type="button"
                 disabled={addingToGreenhouse || greenhouseAdded}
                 onClick={handleAddToGreenhouse}
-                className={`w-full h-10 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer border ${
+                className={`w-full h-9 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
                   greenhouseAdded
                     ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 cursor-default"
-                    : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 shadow-2xs"
+                    : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
                 }`}
               >
                 {greenhouseAdded ? (
                   <>
-                    <Check className="w-4 h-4 text-emerald-600" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{isKa ? "ორანჟერეაშია" : "In Your Greenhouse"}</span>
                   </>
                 ) : (
                   <>
-                    <Sprout className="w-4 h-4 text-emerald-600" />
+                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
                     <span>{isKa ? "ჩემს ორანჟერეაში დამატება" : "Add to My Greenhouse"}</span>
                   </>
                 )}
               </button>
+            </div>
 
-              {/* Wishlist Notice */}
-              {wishlistNotice && (
-                <div className="rounded-[12px] bg-primary/10 border border-primary/30 p-2 text-center text-xs text-primary font-bold animate-in fade-in">
-                  {wishlistNotice}
-                </div>
-              )}
-
-              {/* Icon-Only Share & Wishlist Strip */}
-              <div className="pt-2 flex items-center justify-between gap-2">
-                <button
-                  type="button"
-                  onClick={handleToggleWishlist}
-                  className={`h-8 px-3 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer border ${
-                    inWishlist
-                      ? "bg-rose-500 text-white border-rose-500 shadow-xs"
-                      : "bg-secondary-container hover:bg-secondary text-foreground border-border/60 hover:text-rose-500"
-                  }`}
-                  title={inWishlist ? "შენახულია რჩეულებში" : "სურვილების სიაში დამატება"}
-                >
-                  <Heart className={`w-3.5 h-3.5 ${inWishlist ? "fill-current" : ""}`} />
-                  <span>{inWishlist ? (isKa ? "შენახულია" : "Saved") : (isKa ? "შენახვა" : "Wishlist")}</span>
-                </button>
-
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setShareModalOpen(true)}
-                    className="h-8 px-2.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 text-xs font-bold flex items-center gap-1 transition-all cursor-pointer"
-                    title={isKa ? "სოციალურ ქსელებში გაზიარება" : "Share on Social Media"}
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span>{isKa ? "გაზიარება" : "Share"}</span>
-                  </button>
-
-                  <a
-                    href={shareFbUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={isKa ? "Facebook-ზე გაზიარება" : "Share on Facebook"}
-                    className="w-8 h-8 rounded-full bg-[#1877F2]/10 hover:bg-[#1877F2] text-[#1877F2] hover:text-white border border-[#1877F2]/20 flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    <FacebookIcon className="w-3.5 h-3.5" />
-                  </a>
-
-                  <a
-                    href={shareWaUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={isKa ? "WhatsApp-ში გაზიარება" : "Share on WhatsApp"}
-                    className="w-8 h-8 rounded-full bg-[#25D366]/10 hover:bg-[#25D366] text-[#25D366] hover:text-white border border-[#25D366]/20 flex items-center justify-center transition-all cursor-pointer"
-                  >
-                    <WhatsAppIcon className="w-3.5 h-3.5" />
-                  </a>
-
-                  <button
-                    type="button"
-                    onClick={handleCopyLink}
-                    title={copiedLink ? (isKa ? "დაკოპირდა!" : "Copied!") : (isKa ? "ლინკის კოპირება" : "Copy Link")}
-                    className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
-                      copiedLink
-                        ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
-                        : "bg-secondary-container hover:bg-secondary text-foreground border-border/60"
-                    }`}
-                  >
-                    {copiedLink ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
+            {/* Wishlist Notice */}
+            {wishlistNotice && (
+              <div className="rounded-[12px] bg-primary/10 border border-primary/30 p-2 text-center text-xs text-primary font-bold animate-in fade-in">
+                {wishlistNotice}
               </div>
+            )}
 
-              {/* Bottom Metadata */}
-              <div className="pt-2 flex items-center justify-between text-[10.5px] text-muted-foreground font-medium border-t border-border/30">
-                <span>ID: {listing.id.slice(0, 8)}...</span>
-                <span className="flex items-center gap-1">
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>{listing.viewsCount || 100}+ {isKa ? "ნახვა" : "views"}</span>
-                </span>
-              </div>
+            {/* Bottom Metadata */}
+            <div className="pt-2.5 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground font-medium">
+              <span>ID: {listing.id.slice(0, 8)}...</span>
+              <span className="flex items-center gap-1">
+                <Eye className="w-3.5 h-3.5" />
+                <span>{listing.viewsCount || 100}+ {isKa ? "ნახვა" : "views"}</span>
+              </span>
             </div>
           </div>
 
