@@ -262,6 +262,7 @@ export default function ListingDetailPage({
 
   // ── Dynamic Affiliate Cross-Selling Offers ──
   const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>(RECOMMENDED_INVENTORY);
+  const [activeTab, setActiveTab] = React.useState<"care" | "description" | "reviews" | "inventory">("care");
 
   // Scroll to top immediately upon entering page
   React.useEffect(() => {
@@ -771,319 +772,6 @@ export default function ListingDetailPage({
               </div>
             )}
           </div>
-
-          {/* Dynamic Plant Care / Inventory Specifications Card */}
-          {listing.itemType === "INVENTORY" || listing.item_type === "INVENTORY" ? (
-            <div className="rounded-[24px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
-              <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
-                <Boxes className="w-4 h-4 text-primary" />
-                {isKa ? "ინვენტარის მახასიათებლები" : "Inventory Specifications"}
-              </h3>
-
-              <div className="divide-y divide-border/40 rounded-[16px] bg-secondary-container/30 border border-border/50 overflow-hidden">
-                {/* 1. ტიპი */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Boxes className="w-4 h-4 text-primary shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "ტიპი:" : "Type:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {categoryInfo?.label || (isKa ? "პრემიუმ ინვენტარი" : "Equipment")}
-                  </span>
-                </div>
-
-                {/* 2. მდგომარეობა */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "მდგომარეობა:" : "Condition:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 text-right">
-                    {isKa ? "ახალი / უხმარი" : "Brand New"}
-                  </span>
-                </div>
-
-                {/* 3. დანიშნულება */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Sprout className="w-4 h-4 text-blue-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "დანიშნულება:" : "Intended For:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? "ოთახის & ბაღის" : "Indoor & Garden"}
-                  </span>
-                </div>
-
-                {/* 4. მიწოდება */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Truck className="w-4 h-4 text-purple-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "მიწოდება:" : "Packaging:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? "დაცული შეფუთვა" : "Safe Package"}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-[24px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
-                  <Sprout className="w-4 h-4 text-primary" />
-                  {isKa ? "მცენარის მოვლის მაჩვენებლები" : "Plant Care Guidelines"}
-                </h3>
-                {careInfo.scientificFamily && (
-                  <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5">
-                    <Sprout className="w-3.5 h-3.5" />
-                    <span>{careInfo.scientificFamily}</span>
-                  </span>
-                )}
-              </div>
-
-              {/* Single unified sequential card rows */}
-              <div className="divide-y divide-border/40 rounded-[16px] bg-secondary-container/30 border border-border/50 overflow-hidden">
-                {/* 1. განათება */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Sun className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "განათება:" : "Lighting:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? careInfo.lightKa : careInfo.lightEn}
-                  </span>
-                </div>
-
-                {/* 2. მორწყვა */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Droplets className="w-4 h-4 text-teal-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "მორწყვა:" : "Watering:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? careInfo.wateringKa : careInfo.wateringEn}
-                  </span>
-                </div>
-
-                {/* 3. სუბსტრატი / გრუნტი */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Boxes className="w-4 h-4 text-primary shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "სუბსტრატი / გრუნტი:" : "Soil / Substrate:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? careInfo.soilKa : careInfo.soilEn}
-                  </span>
-                </div>
-
-                {/* 4. ტემპერატურა */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Thermometer className="w-4 h-4 text-rose-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "ტემპერატურა:" : "Temperature:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? careInfo.tempKa : careInfo.tempEn}
-                  </span>
-                </div>
-
-                {/* 5. ტენიანობა */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <Sparkles className="w-4 h-4 text-blue-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "ტენიანობა:" : "Humidity:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? careInfo.humidityKa : careInfo.humidityEn}
-                  </span>
-                </div>
-
-                {/* 6. მოვლის სირთულე */}
-                <div className="flex items-center justify-between gap-3 p-3 sm:px-4 hover:bg-secondary-container/50 transition-colors">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span className="text-xs sm:text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                      {isKa ? "მოვლის სირთულე:" : "Care Level:"}
-                    </span>
-                  </div>
-                  <span className="text-xs sm:text-sm font-bold text-foreground text-right">
-                    {isKa ? careInfo.careLevelKa : careInfo.careLevelEn}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Description Card */}
-          <div className="rounded-[20px] border border-border/80 bg-card p-3.5 sm:p-4 shadow-ambient space-y-2">
-            <h3 className="text-xs sm:text-sm font-bold text-foreground">
-              {isKa ? "აღწერა და დეტალები" : "Description & Details"}
-            </h3>
-            <p className="text-xs sm:text-[13px] text-muted-foreground leading-relaxed whitespace-pre-line">
-              {(isKa ? (listing.descriptionKa || listing.description) : (listing.descriptionEn || listing.description)) || (
-                isKa 
-                  ? `${displayTitle} — ჯანსაღი მცენარე განვითარებული ფესვთა სისტემით. გაზრდილია იდეალურ პირობებში, სპეციალურ სუბსტრატში. არ საჭიროებს გადარგვას უახლოესი 6 თვე.`
-                  : `${displayTitle} — Healthy botanical specimen with established root system. Grown in optimal conditions with premium substrate. No repotting needed for 6 months.`
-              )}
-            </p>
-
-            {/* Trade Preferences if Swap */}
-            {listing.transactionType === "TRADE" && listing.tradePreferences && listing.tradePreferences.length > 0 && (
-              <div className="mt-2.5 rounded-[12px] bg-amber-500/10 border border-amber-500/20 p-2.5">
-                <p className="text-xs font-bold text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-600" /> 
-                  {isKa ? "იცვლება შემდეგ მცენარეებში:" : "Looking to trade for:"}
-                </p>
-                <div className="flex flex-wrap gap-1">
-                  {listing.tradePreferences.map((tag: string, idx: number) => (
-                    <span key={idx} className="rounded-[6px] bg-card px-2 py-0.5 text-xs font-bold text-foreground border border-border/60 shadow-2xs">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ══════════════════════════════════════════════════════════════════════
-               RECOMMENDED PARTNER RETAILER INVENTORY (Domino, Gorgia, Agrohub, etc.)
-              Crystal Clear Store Badges & Clean Readable Typography
-          ══════════════════════════════════════════════════════════════════════ */}
-          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-4.5 shadow-ambient space-y-3">
-            {/* Header with Store Badges & Navigation Arrows */}
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
-                  <ShoppingBag className="w-4 h-4 text-primary" />
-                  {isKa ? "რეკომენდებული ინვენტარი ამ მცენარისთვის" : "Recommended Care & Supplies"}
-                </h3>
-                <p className="text-[11px] text-muted-foreground">
-                  {isKa 
-                    ? "პარტნიორი აგრო და სამშენებლო ჰიპერმარკეტების შეთავაზებები"
-                    : "Curated offers from partner garden centers & retailers"}
-                </p>
-              </div>
-
-              {/* Navigation Arrows */}
-              <div className="flex items-center gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => scrollInventory("left")}
-                  className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                  title={isKa ? "წინა შეთავაზებები" : "Previous offers"}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollInventory("right")}
-                  className="h-7 w-7 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                  title={isKa ? "შემდეგი შეთავაზებები" : "Next offers"}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Scrollable Track — Dynamic Affiliate Offers with Click Tracking */}
-            <div
-              ref={inventoryScrollRef}
-              className="flex gap-2.5 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-1 pt-0.5"
-            >
-              {affiliateOffers.map((item) => (
-                <div
-                  key={item.id}
-                  className="snap-start group relative flex flex-col justify-between w-[calc(50%-5px)] sm:w-[calc(33.333%-6.7px)] shrink-0 overflow-hidden rounded-[14px] border border-border/70 bg-background/95 hover:border-primary/50 transition-all p-2.5 shadow-2xs hover:shadow-sm"
-                >
-                  {/* Photo & High-Contrast Store Badge */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[10px] bg-surface-container mb-2">
-                    <Image
-                      src={item.image}
-                      alt={isKa ? item.titleKa : item.titleEn}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    {/* Clear, High-Contrast Store Pill */}
-                    <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-[6px] shadow-md backdrop-blur-sm bg-black/80 border border-white/20">
-                      <span className="text-[11px] leading-none">{item.shopLogo}</span>
-                      <span className="text-[11px] font-black text-white tracking-tight">
-                        {item.shopBadge}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] text-muted-foreground font-semibold block leading-tight">
-                        {isKa ? item.categoryKa : item.categoryEn}
-                      </span>
-                      <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug my-1 min-h-[32px]">
-                        {isKa ? item.titleKa : item.titleEn}
-                      </h4>
-                    </div>
-
-                    <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between gap-1.5">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-black text-primary dark:text-emerald-400">
-                          {item.price} ₾
-                        </span>
-                        <span className="text-[10px] font-extrabold text-foreground tracking-tight truncate max-w-[75px]">
-                          {item.shopName}
-                        </span>
-                      </div>
-
-                      {item.isExternal ? (
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => {
-                            if (item.id && !item.id.startsWith("rec-")) {
-                              fetch("/api/affiliate/click", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ affiliateId: item.id, targetUrl: item.link }),
-                              }).catch(() => {});
-                            }
-                          }}
-                          className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[7px] bg-primary/10 transition-colors border border-primary/20"
-                        >
-                          <span>{isKa ? "მაღაზია" : "Store"}</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      ) : (
-                        <Link
-                          href={item.link}
-                          className="inline-flex items-center text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[7px] bg-primary/10 transition-colors border border-primary/20"
-                        >
-                          {isKa ? "ნახვა" : "View"}
-                        </Link>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
         {/* ══════════════════════════════════════════════════════════════════════
@@ -1503,36 +1191,282 @@ export default function ListingDetailPage({
             )}
           </div>
 
-          {/* ══════════════════════════════════════════════════════════════════════
-              ⭐⭐ SELLER REVIEWS & FEEDBACK (Right Column — Under Seller Card)
-          ══════════════════════════════════════════════════════════════════════ */}
-          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-ambient space-y-3">
-            <div className="flex items-center justify-between border-b border-border/40 pb-2.5">
-              <h3 className="text-xs sm:text-sm font-bold text-foreground flex items-center gap-1.5">
-                <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                {isKa ? "გამყიდველის შეფასებები & რევიუები" : "Seller Ratings & Reviews"}
-              </h3>
-              <span className="text-[11px] font-bold text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
-                 4.9 ({reviews.length})
+        </div>
+      </div>
+
+      {/* ══════════════════════════════════════════════════════════════════════
+          VERSION C: TABBED DETAILS MODULE (Care, Description, Reviews, Inventory)
+      ══════════════════════════════════════════════════════════════════════ */}
+      <div className="mt-8 rounded-[24px] border border-border/80 bg-card p-4 sm:p-6 shadow-ambient space-y-6">
+        {/* Tab Navigation Buttons */}
+        <div className="flex items-center gap-2 border-b border-border/60 pb-3.5 overflow-x-auto no-scrollbar">
+          <button
+            type="button"
+            onClick={() => setActiveTab("care")}
+            className={`px-4 py-2.5 rounded-[14px] text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+              activeTab === "care"
+                ? "bg-primary text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
+            }`}
+          >
+            <Sprout className="w-4 h-4" />
+            <span>
+              {listing.itemType === "INVENTORY" || listing.item_type === "INVENTORY"
+                ? (isKa ? "ინვენტარის მახასიათებლები" : "Specifications")
+                : (isKa ? "მცენარის მოვლის მაჩვენებლები" : "Plant Care Guidelines")}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("description")}
+            className={`px-4 py-2.5 rounded-[14px] text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+              activeTab === "description"
+                ? "bg-primary text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>{isKa ? "აღწერა და დეტალები" : "Description & Details"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("reviews")}
+            className={`px-4 py-2.5 rounded-[14px] text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+              activeTab === "reviews"
+                ? "bg-primary text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
+            }`}
+          >
+            <Star className="w-4 h-4" />
+            <span>{isKa ? `შეფასებები & რევიუები (${reviews.length})` : `Reviews (${reviews.length})`}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("inventory")}
+            className={`px-4 py-2.5 rounded-[14px] text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+              activeTab === "inventory"
+                ? "bg-primary text-white shadow-xs"
+                : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
+            }`}
+          >
+            <ShoppingBag className="w-4 h-4" />
+            <span>{isKa ? `რეკომენდებული ინვენტარი (${affiliateOffers.length})` : `Recommended Supplies (${affiliateOffers.length})`}</span>
+          </button>
+        </div>
+
+        {/* TAB 1: PLANT CARE / INVENTORY SPECS */}
+        {activeTab === "care" && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {listing.itemType === "INVENTORY" || listing.item_type === "INVENTORY" ? (
+              <div className="space-y-3">
+                <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
+                  <Boxes className="w-4 h-4 text-primary" />
+                  {isKa ? "ინვენტარის მახასიათებლები" : "Inventory Specifications"}
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  <div className="p-3.5 rounded-[16px] bg-secondary-container/40 border border-border/50 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">{isKa ? "ტიპი:" : "Type:"}</span>
+                    <span className="text-xs font-bold text-foreground">{categoryInfo?.label || (isKa ? "პრემიუმ ინვენტარი" : "Equipment")}</span>
+                  </div>
+                  <div className="p-3.5 rounded-[16px] bg-secondary-container/40 border border-border/50 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">{isKa ? "მდგომარეობა:" : "Condition:"}</span>
+                    <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{isKa ? "ახალი / უხმარი" : "Brand New"}</span>
+                  </div>
+                  <div className="p-3.5 rounded-[16px] bg-secondary-container/40 border border-border/50 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">{isKa ? "დანიშნულება:" : "Intended For:"}</span>
+                    <span className="text-xs font-bold text-foreground">{isKa ? "ოთახის & ბაღის" : "Indoor & Garden"}</span>
+                  </div>
+                  <div className="p-3.5 rounded-[16px] bg-secondary-container/40 border border-border/50 flex items-center justify-between">
+                    <span className="text-xs font-semibold text-muted-foreground">{isKa ? "მიწოდება:" : "Packaging:"}</span>
+                    <span className="text-xs font-bold text-foreground">{isKa ? "დაცული შეფუთვა" : "Safe Package"}</span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-border/40">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold">
+                      🌱
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-extrabold text-foreground">
+                        {isKa ? "მცენარის მოვლის მაჩვენებლები" : "Plant Care Guidelines"}
+                      </h3>
+                      <p className="text-[11px] text-muted-foreground">
+                        {isKa ? "ოპტიმალური გარემო და ბოტანიკური რეკომენდაციები" : "Optimal conditions & botanical guidelines"}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {careInfo.scientificFamily && (
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center gap-1.5">
+                        <Sprout className="w-3.5 h-3.5" />
+                        <span>{careInfo.scientificFamily}</span>
+                      </span>
+                    )}
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/20">
+                      Garden Flora
+                    </span>
+                  </div>
+                </div>
+
+                {/* 6 Responsive Care Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                  {/* 1. განათება */}
+                  <div className="p-4 rounded-[16px] bg-amber-500/5 hover:bg-amber-500/10 border border-amber-500/20 transition-colors flex items-start gap-3.5">
+                    <div className="p-2 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0">
+                      <Sun className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-muted-foreground block">{isKa ? "განათება" : "Lighting"}</span>
+                      <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5">{isKa ? careInfo.lightKa : careInfo.lightEn}</span>
+                    </div>
+                  </div>
+
+                  {/* 2. მორწყვა */}
+                  <div className="p-4 rounded-[16px] bg-teal-500/5 hover:bg-teal-500/10 border border-teal-500/20 transition-colors flex items-start gap-3.5">
+                    <div className="p-2 rounded-xl bg-teal-500/15 text-teal-600 dark:text-teal-400 shrink-0">
+                      <Droplets className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-muted-foreground block">{isKa ? "მორწყვა" : "Watering"}</span>
+                      <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5">{isKa ? careInfo.wateringKa : careInfo.wateringEn}</span>
+                    </div>
+                  </div>
+
+                  {/* 3. სუბსტრატი */}
+                  <div className="p-4 rounded-[16px] bg-secondary-container/40 hover:bg-secondary-container/60 border border-border/60 transition-colors flex items-start gap-3.5">
+                    <div className="p-2 rounded-xl bg-primary/15 text-primary shrink-0">
+                      <Boxes className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-muted-foreground block">{isKa ? "სუბსტრატი / გრუნტი" : "Soil / Substrate"}</span>
+                      <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5">{isKa ? careInfo.soilKa : careInfo.soilEn}</span>
+                    </div>
+                  </div>
+
+                  {/* 4. ტემპერატურა */}
+                  <div className="p-4 rounded-[16px] bg-rose-500/5 hover:bg-rose-500/10 border border-rose-500/20 transition-colors flex items-start gap-3.5">
+                    <div className="p-2 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400 shrink-0">
+                      <Thermometer className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-muted-foreground block">{isKa ? "ტემპერატურა" : "Temperature"}</span>
+                      <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5">{isKa ? careInfo.tempKa : careInfo.tempEn}</span>
+                    </div>
+                  </div>
+
+                  {/* 5. ტენიანობა */}
+                  <div className="p-4 rounded-[16px] bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/20 transition-colors flex items-start gap-3.5">
+                    <div className="p-2 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 shrink-0">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-muted-foreground block">{isKa ? "ტენიანობა" : "Humidity"}</span>
+                      <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5">{isKa ? careInfo.humidityKa : careInfo.humidityEn}</span>
+                    </div>
+                  </div>
+
+                  {/* 6. მოვლის სირთულე */}
+                  <div className="p-4 rounded-[16px] bg-emerald-500/5 hover:bg-emerald-500/10 border border-emerald-500/20 transition-colors flex items-start gap-3.5">
+                    <div className="p-2 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 shrink-0">
+                      <ShieldCheck className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs font-semibold text-muted-foreground block">{isKa ? "მოვლის სირთულე" : "Care Level"}</span>
+                      <span className="text-xs sm:text-sm font-bold text-foreground block mt-0.5">{isKa ? careInfo.careLevelKa : careInfo.careLevelEn}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Quick Description excerpt at bottom of Care tab */}
+            <div className="pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted-foreground">
+              <span className="line-clamp-1">{listing.descriptionKa || listing.description}</span>
+              <button
+                type="button"
+                onClick={() => setActiveTab("description")}
+                className="text-primary font-bold hover:underline shrink-0 ml-3 cursor-pointer"
+              >
+                {isKa ? "სრული აღწერა →" : "Full description →"}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: DESCRIPTION & DETAILS */}
+        {activeTab === "description" && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <h3 className="text-sm sm:text-base font-bold text-foreground">
+              {isKa ? "აღწერა და დეტალები" : "Description & Details"}
+            </h3>
+            <p className="text-xs sm:text-[13.5px] text-muted-foreground leading-relaxed whitespace-pre-line max-w-4xl">
+              {(isKa ? (listing.descriptionKa || listing.description) : (listing.descriptionEn || listing.description)) || (
+                isKa 
+                  ? `${displayTitle} — ჯანსაღი მცენარე განვითარებული ფესვთა სისტემით. გაზრდილია იდეალურ პირობებში, სპეციალურ სუბსტრატში. არ საჭიროებს გადარგვას უახლოესი 6 თვე.`
+                  : `${displayTitle} — Healthy botanical specimen with established root system. Grown in optimal conditions with premium substrate. No repotting needed for 6 months.`
+              )}
+            </p>
+
+            {/* Trade Preferences if Swap */}
+            {listing.transactionType === "TRADE" && listing.tradePreferences && listing.tradePreferences.length > 0 && (
+              <div className="mt-4 rounded-[14px] bg-amber-500/10 border border-amber-500/20 p-3 max-w-xl">
+                <p className="text-xs font-bold text-amber-800 dark:text-amber-300 mb-1.5 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-600" /> 
+                  {isKa ? "იცვლება შემდეგ მცენარეებში:" : "Looking to trade for:"}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {listing.tradePreferences.map((tag: string, idx: number) => (
+                    <span key={idx} className="rounded-[8px] bg-card px-2.5 py-1 text-xs font-bold text-foreground border border-border/60 shadow-2xs">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: REVIEWS & RATINGS */}
+        {activeTab === "reviews" && (
+          <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between border-b border-border/40 pb-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  {isKa ? "გამყიდველის შეფასებები & რევიუები" : "Seller Ratings & Reviews"}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {isKa ? "მყიდველების რეალური შეფასებები და გამოცდილება" : "Real buyer reviews and feedback"}
+                </p>
+              </div>
+              <span className="text-xs font-bold text-amber-600 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                ★ 4.9 ({reviews.length})
               </span>
             </div>
 
             {/* Review Input Form */}
-            <form onSubmit={handleReviewSubmit} className="space-y-2 bg-surface-container/50 p-2.5 rounded-[14px] border border-border/40">
+            <form onSubmit={handleReviewSubmit} className="space-y-2.5 bg-surface-container/50 p-3.5 rounded-[16px] border border-border/40 max-w-2xl">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-foreground">
+                <span className="text-xs font-bold text-foreground">
                   {isKa ? "დაწერეთ შეფასება:" : "Write a review:"}
                 </span>
-                <div className="flex items-center gap-0.5">
+                <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
                       key={star}
                       type="button"
                       onClick={() => setNewRating(star)}
-                      className="p-0.5 hover:scale-110 transition-transform"
+                      className="p-0.5 hover:scale-110 transition-transform cursor-pointer"
                     >
                       <Star
-                        className={`w-3.5 h-3.5 ${
+                        className={`w-4 h-4 ${
                           star <= newRating ? "fill-amber-400 text-amber-400" : "text-border"
                         }`}
                       />
@@ -1541,7 +1475,7 @@ export default function ListingDetailPage({
                 </div>
               </div>
 
-              <div className="flex gap-1.5">
+              <div className="flex gap-2">
                 <input
                   type="text"
                   value={newComment}
@@ -1551,49 +1485,166 @@ export default function ListingDetailPage({
                       ? (isKa ? "გაუზიარეთ თქვენი შთაბეჭდილება მყიდველებს..." : "Share your feedback with other buyers...")
                       : (isKa ? "შეფასების დასატოვებლად გაიარეთ ავტორიზაცია..." : "Sign in to leave a review...")
                   }
-                  className="w-full rounded-[8px] border border-input bg-background px-2.5 py-1 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-[10px] border border-input bg-background px-3 py-2 text-xs text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <Button
                   type="submit"
                   size="sm"
-                  className="rounded-[8px] bg-primary hover:bg-primary-container text-white text-xs font-bold shrink-0 gap-1 h-7 px-2.5"
+                  className="rounded-[10px] bg-primary hover:bg-primary-container text-white text-xs font-bold shrink-0 gap-1.5 h-9 px-4 cursor-pointer"
                 >
                   <Send className="w-3 h-3" />
+                  <span>{isKa ? "გაგზავნა" : "Submit"}</span>
                 </Button>
               </div>
 
               {reviewSubmitted && (
-                <p className="text-[10px] text-primary font-semibold flex items-center gap-1">
+                <p className="text-xs text-primary font-semibold flex items-center gap-1">
                   <CheckCircle2 className="w-3 h-3" /> {isKa ? "შეფასება წარმატებით გამოქვეყნდა!" : "Review submitted successfully!"}
                 </p>
               )}
             </form>
 
-            {/* Reviews List */}
-            <div className="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
+            {/* Reviews Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
               {reviews.map((rev) => (
-                <div key={rev.id} className="border-b border-border/40 pb-2 last:border-b-0">
-                  <div className="flex items-center justify-between mb-0.5">
-                    <div className="flex items-center gap-1.5">
-                      <div className="h-4.5 w-4.5 rounded-full bg-secondary-container text-primary font-bold text-[9px] flex items-center justify-center">
+                <div key={rev.id} className="p-3.5 rounded-[14px] bg-surface-container/30 border border-border/40 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-6 w-6 rounded-full bg-secondary-container text-primary font-bold text-[10px] flex items-center justify-center">
                         {rev.reviewerName.charAt(0)}
                       </div>
-                      <span className="text-[11px] font-bold text-foreground">{rev.reviewerName}</span>
+                      <span className="text-xs font-bold text-foreground">{rev.reviewerName}</span>
                     </div>
-                    <div className="flex items-center gap-0.5 text-[9.5px] text-amber-500 font-bold">
-                      <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                    <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                       <span>{rev.rating}</span>
-                      <span className="text-muted-foreground ml-1 font-normal">({rev.createdAt})</span>
+                      <span className="text-muted-foreground ml-1 text-[11px] font-normal">({rev.createdAt})</span>
                     </div>
                   </div>
-                  <p className="text-[11px] text-muted-foreground pl-6 leading-relaxed">
+                  <p className="text-xs text-muted-foreground pl-8 leading-relaxed">
                     {rev.comment}
                   </p>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
+
+        {/* TAB 4: RECOMMENDED INVENTORY */}
+        {activeTab === "inventory" && (
+          <div className="space-y-4 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between gap-2 border-b border-border/40 pb-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-foreground flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-primary" />
+                  {isKa ? "რეკომენდებული ინვენტარი ამ მცენარისთვის" : "Recommended Care & Supplies"}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {isKa 
+                    ? "პარტნიორი აგრო და სამშენებლო ჰიპერმარკეტების შეთავაზებები (Gorgia • Domino)"
+                    : "Curated offers from partner garden centers & retailers"}
+                </p>
+              </div>
+
+              {/* Navigation Arrows */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => scrollInventory("left")}
+                  className="h-8 w-8 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                  title={isKa ? "წინა" : "Previous"}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollInventory("right")}
+                  className="h-8 w-8 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                  title={isKa ? "შემდეგი" : "Next"}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Track */}
+            <div
+              ref={inventoryScrollRef}
+              className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1"
+            >
+              {affiliateOffers.map((item) => (
+                <div
+                  key={item.id}
+                  className="snap-start group relative flex flex-col justify-between w-[200px] sm:w-[220px] shrink-0 overflow-hidden rounded-[16px] border border-border/70 bg-background hover:border-primary/50 transition-all p-3 shadow-2xs hover:shadow-sm"
+                >
+                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] bg-surface-container mb-2">
+                    <Image
+                      src={item.image}
+                      alt={isKa ? item.titleKa : item.titleEn}
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-[6px] shadow-md backdrop-blur-sm bg-black/80 border border-white/20">
+                      <span className="text-[11px] font-black text-white tracking-tight">
+                        {item.shopBadge}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between">
+                    <div>
+                      <span className="text-[10px] text-muted-foreground font-semibold block leading-tight">
+                        {isKa ? item.categoryKa : item.categoryEn}
+                      </span>
+                      <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug my-1 min-h-[32px]">
+                        {isKa ? item.titleKa : item.titleEn}
+                      </h4>
+                    </div>
+
+                    <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between gap-1.5">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black text-primary dark:text-emerald-400">
+                          {item.price} ₾
+                        </span>
+                        <span className="text-[10px] font-extrabold text-foreground tracking-tight truncate max-w-[75px]">
+                          {item.shopName}
+                        </span>
+                      </div>
+
+                      {item.isExternal ? (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => {
+                            if (item.id && !item.id.startsWith("rec-")) {
+                              fetch("/api/affiliate/click", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ affiliateId: item.id, targetUrl: item.link }),
+                              }).catch(() => {});
+                            }
+                          }}
+                          className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[8px] bg-primary/10 transition-colors border border-primary/20"
+                        >
+                          <span>{isKa ? "მაღაზია" : "Store"}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      ) : (
+                        <Link
+                          href={item.link}
+                          className="inline-flex items-center text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[8px] bg-primary/10 transition-colors border border-primary/20"
+                        >
+                          {isKa ? "ნახვა" : "View"}
+                        </Link>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
