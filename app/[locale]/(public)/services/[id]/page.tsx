@@ -34,9 +34,7 @@ import {
   Check, 
   Award,
   Heart,
-  Copy,
-  ExternalLink,
-  Navigation
+  Copy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -391,7 +389,7 @@ export default function ServiceDetailPage({
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                     <div className="p-3.5 rounded-[16px] border border-border/60 bg-secondary-container/30 space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-teal-500/15 text-teal-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                           <Clock className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-xs font-black text-foreground">{isKa ? "სამუშაო საათები" : "Working Hours"}</span>
@@ -402,7 +400,7 @@ export default function ServiceDetailPage({
 
                     <div className="p-3.5 rounded-[16px] border border-border/60 bg-secondary-container/30 space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-emerald-500/15 text-emerald-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                           <MapPin className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-xs font-black text-foreground">{isKa ? "მომსახურების არეალი" : "Coverage Area"}</span>
@@ -413,7 +411,7 @@ export default function ServiceDetailPage({
 
                     <div className="p-3.5 rounded-[16px] border border-border/60 bg-secondary-container/30 space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-rose-500/15 text-rose-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
                           <ShieldCheck className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-xs font-black text-foreground">{isKa ? "გარანტია & ხარისხი" : "Quality & Safety"}</span>
@@ -424,7 +422,7 @@ export default function ServiceDetailPage({
 
                     <div className="p-3.5 rounded-[16px] border border-border/60 bg-secondary-container/30 space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-blue-500/15 text-blue-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                           <Award className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-xs font-black text-foreground">{isKa ? "გამოცდილება" : "Experience"}</span>
@@ -439,7 +437,7 @@ export default function ServiceDetailPage({
 
                     <div className="p-3.5 rounded-[16px] border border-border/60 bg-secondary-container/30 space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-amber-500/15 text-amber-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 flex items-center justify-center shrink-0">
                           <Sparkles className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-xs font-black text-foreground">{isKa ? "პირველადი შეფასება" : "Consultation"}</span>
@@ -450,7 +448,7 @@ export default function ServiceDetailPage({
 
                     <div className="p-3.5 rounded-[16px] border border-border/60 bg-secondary-container/30 space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-full bg-purple-500/15 text-purple-600 flex items-center justify-center shrink-0">
+                        <div className="w-7 h-7 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
                           <Wrench className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-xs font-black text-foreground">{isKa ? "აღჭურვილობა" : "Equipment"}</span>
@@ -681,45 +679,48 @@ export default function ServiceDetailPage({
 
               {/* DIRECT CONTACT BLOCK: PHONE & WHATSAPP */}
               <div className="pt-1 space-y-2.5">
-                {/* 1. Direct Phone Call (Large, High-Contrast) */}
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (!showPhone) {
-                      setShowPhone(true);
-                    } else {
-                      window.location.href = `tel:${cleanPhoneDigits}`;
-                    }
-                  }}
-                  className="w-full h-12 rounded-[14px] bg-primary hover:bg-primary/90 text-white font-black text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer transition-all active:scale-[0.99]"
-                >
-                  <Phone className="w-4 h-4 shrink-0" />
-                  <span>{showPhone ? rawPhone : (isKa ? `დარეკვა: ${maskedPhone}` : `Call: ${maskedPhone}`)}</span>
-                </Button>
-
-                {/* 2. Direct WhatsApp (Official Green) */}
-                {waUrl ? (
-                  <a
-                    href={waUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full h-12 rounded-[14px] bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer transition-all active:scale-[0.99]"
-                  >
-                    <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
-                    <span>{isKa ? "WhatsApp-ში მიწერა & შეთანხმება" : "Chat on WhatsApp"}</span>
-                  </a>
-                ) : (
+                {/* Contact buttons visible only on desktop (mobile uses fixed bottom sticky bar) */}
+                <div className="hidden lg:block lg:space-y-2.5">
+                  {/* 1. Direct Phone Call (Large, High-Contrast) */}
                   <Button
                     type="button"
-                    disabled
-                    className="w-full h-12 rounded-[14px] bg-[#25D366]/60 text-white font-black text-sm opacity-60 flex items-center justify-center gap-2.5"
+                    onClick={() => {
+                      if (!showPhone) {
+                        setShowPhone(true);
+                      } else {
+                        window.location.href = `tel:${cleanPhoneDigits}`;
+                      }
+                    }}
+                    className="w-full h-12 rounded-[14px] bg-primary hover:bg-primary/90 text-white font-black text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer transition-all active:scale-[0.99]"
                   >
-                    <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
-                    <span>WhatsApp</span>
+                    <Phone className="w-4 h-4 shrink-0" />
+                    <span>{showPhone ? rawPhone : (isKa ? `დარეკვა: ${maskedPhone}` : `Call: ${maskedPhone}`)}</span>
                   </Button>
-                )}
 
-                {/* Optional Online Estimator */}
+                  {/* 2. Direct WhatsApp (Official Green) */}
+                  {waUrl ? (
+                    <a
+                      href={waUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="w-full h-12 rounded-[14px] bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer transition-all active:scale-[0.99]"
+                    >
+                      <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
+                      <span>{isKa ? "WhatsApp-ში მიწერა & შეთანხმება" : "Chat on WhatsApp"}</span>
+                    </a>
+                  ) : (
+                    <Button
+                      type="button"
+                      disabled
+                      className="w-full h-12 rounded-[14px] bg-[#25D366]/60 text-white font-black text-sm opacity-60 flex items-center justify-center gap-2.5"
+                    >
+                      <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
+                      <span>WhatsApp</span>
+                    </Button>
+                  )}
+                </div>
+
+                {/* Optional Online Estimator (Visible across all breakpoints) */}
                 <Button
                   type="button"
                   variant="outline"

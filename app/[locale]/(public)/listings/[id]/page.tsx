@@ -22,8 +22,6 @@ import {
   Thermometer, 
   Sparkles, 
   ShieldCheck,
-  ShoppingBag,
-  Clock,
   Phone
 } from "lucide-react";
 
