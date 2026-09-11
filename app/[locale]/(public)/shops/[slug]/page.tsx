@@ -20,6 +20,8 @@ import {
   Sprout, 
   Share2, 
   Check, 
+  Copy,
+  Globe, 
   ChevronLeft, 
   ChevronDown, 
   ChevronUp, 
@@ -839,9 +841,16 @@ export default function ShopStorefrontPage({
                     <span className="text-muted-foreground font-normal">({shop.totalReviews} {isKa ? "შეფასება" : "reviews"})</span>
                   </div>
                   <span>•</span>
-                  <span className="font-mono text-[11px] text-muted-foreground truncate max-w-[220px]">
-                    plantio.ge/{shop.customSlug || decodedSlug}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={copyShopLink}
+                    className="inline-flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded-lg bg-surface-container/80 border border-border/80 hover:bg-surface-container text-foreground cursor-pointer transition-colors"
+                    title={isKa ? "ბმულის დაკოპირება" : "Copy shop link"}
+                  >
+                    <Globe className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+                    <span>/{shop.customSlug || decodedSlug}</span>
+                    {copied ? <Check className="w-3 h-3 text-emerald-600 ml-1" /> : <Copy className="w-3 h-3 text-muted-foreground ml-1" />}
+                  </button>
                   {shop.workingHours && (
                     <>
                       <span>•</span>

@@ -116,14 +116,14 @@ export default function ShopsDirectoryPage() {
             name: p.shop_name || p.full_name || "Plant Shop",
             slug: p.custom_slug || p.id,
             avatarUrl: p.avatar_url || undefined,
-            bannerUrl: p.banner_url || undefined,
+            bannerUrl: p.shop_banner_url || p.banner_url || undefined,
             city: p.city || "თბილისი",
             rating: p.average_rating || 5.0,
             totalReviews: p.total_reviews || 1,
-            verified: true,
+            verified: Boolean(p.is_verified || p.is_verified_shop),
             tier: p.subscription_tier || "TIER_2",
-            descriptionKa: p.bio || "ოფიციალური ბოტანიკური მაღაზია Plantio.ge-ზე",
-            descriptionEn: p.bio || "Official botanical nursery on Plantio.ge",
+            descriptionKa: p.bio || "ოფიციალური ბოტანიკური მაღაზია",
+            descriptionEn: p.bio || "Official botanical nursery",
             plantsCount: 0,
             tags: ["Plants", "Verified Shop"]
           }));

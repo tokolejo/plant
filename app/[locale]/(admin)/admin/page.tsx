@@ -49,6 +49,7 @@ import {
   User,
   Clock,
   Sprout,
+  MapPin,
   X,
   Download,
   Globe,
@@ -73,6 +74,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { AffiliateStudio } from "@/components/admin/AffiliateStudio";
 import { AuditStudio } from "@/components/admin/AuditStudio";
+import { ShopManagementStudio } from "@/components/admin/ShopManagementStudio";
 import { 
   UserRole, 
   canAccessAdmin, 
@@ -94,7 +96,7 @@ export default function AdminDashboardPage() {
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [currentUserRole, setCurrentUserRole] = React.useState<UserRole>("USER");
   const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "feedback" | "affiliate" | "audit" | "plans" | "analytics">("overview");
+  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "feedback" | "affiliate" | "audit" | "plans" | "analytics" | "shops">("overview");
 
   // Admin Listings State
   const [listings, setListings] = React.useState<any[]>([]);
@@ -316,6 +318,15 @@ export default function AdminDashboardPage() {
         tier: p.subscription_tier || "FREE",
         role: p.role || (p.is_admin ? "ADMIN" : "USER"),
         customSlug: p.custom_slug,
+        isVerified: Boolean(p.is_verified || p.is_verified_shop),
+        phone: p.phone,
+        city: p.city || "თბილისი",
+        address: p.address,
+        bio: p.bio,
+        shopBannerUrl: p.shop_banner_url || p.banner_url,
+        shopWorkingHours: p.shop_working_hours,
+        shopDeliveryTerms: p.shop_delivery_terms,
+        isOnVacation: Boolean(p.is_on_vacation),
         activeListings: dbListings?.filter((l: any) => l.user_id === p.id).length || 0,
         isAdmin: p.is_admin || p.role === "SUPER_ADMIN" || p.role === "ADMIN" || p.email === "tokolejo@gmail.com",
         createdAt: p.created_at ? new Date(p.created_at).toISOString().split("T")[0] : "2026-08-20",
@@ -1504,6 +1515,65 @@ export default function AdminDashboardPage() {
     );
   }, [uniqueSellers, sellerQuery]);
 
+  // Shops & Verified Counts
+  const shopsWithSlugCount = React.useMemo(() => users.filter((u) => u.customSlug && u.customSlug.trim()).length, [users]);
+  const verifiedShopsCount = React.useMemo(() => users.filter((u) => u.isVerified).length, [users]);
+
+  // Comprehensive Real Analytics Calculations
+  const analyticsMetrics = React.useMemo(() => {
+    const totalViews = listings.reduce((sum, l) => sum + (Number(l.viewsCount) || Number(l.views) || 0), 0);
+    const totalPhoneClicks = listings.reduce((sum, l) => sum + (Number(l.phoneClicksCount) || 0), 0);
+    const activeListings = listings.filter((l) => (l.status || "ACTIVE") === "ACTIVE");
+    const pricedListings = activeListings.filter((l) => l.price && Number(l.price) > 0);
+    const avgPrice = pricedListings.length 
+      ? Math.round(pricedListings.reduce((sum, l) => sum + Number(l.price), 0) / pricedListings.length) 
+      : 0;
+
+    // City breakdown
+    const cityMap: Record<string, number> = {};
+    listings.forEach((l) => {
+      const c = l.city || "თბილისი";
+      cityMap[c] = (cityMap[c] || 0) + 1;
+    });
+    const topCities = Object.entries(cityMap)
+      .map(([name, count]) => ({ name, count, pct: Math.round((count / (listings.length || 1)) * 100) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Category breakdown
+    const catMap: Record<string, number> = {};
+    listings.forEach((l) => {
+      const cat = l.plantCategory || l.category || "სხვა";
+      catMap[cat] = (catMap[cat] || 0) + 1;
+    });
+    const topCategories = Object.entries(catMap)
+      .map(([name, count]) => ({ name, count, pct: Math.round((count / (listings.length || 1)) * 100) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+
+    // Transactions breakdown
+    const saleCount = listings.filter((l) => l.transactionType === "FIXED" || l.transactionType === "NEGOTIABLE").length;
+    const tradeCount = listings.filter((l) => l.transactionType === "TRADE").length;
+    const giftCount = listings.filter((l) => l.transactionType === "GIFT" || (l.transactionType !== "TRADE" && l.price === 0)).length;
+
+    // Tiers
+    const freeUsers = users.filter((u) => !u.tier || u.tier === "FREE").length;
+    const tier1Users = users.filter((u) => u.tier === "TIER_1").length;
+    const tier2Users = users.filter((u) => u.tier === "TIER_2" || u.tier === "PRO").length;
+    const tier3Users = users.filter((u) => u.tier === "TIER_3" || u.tier === "BUSINESS").length;
+
+    return {
+      totalViews,
+      totalPhoneClicks,
+      activeCount: activeListings.length,
+      avgPrice,
+      topCities,
+      topCategories,
+      transactions: { sale: saleCount, trade: tradeCount, gift: giftCount },
+      tiers: { free: freeUsers, tier1: tier1Users, tier2: tier2Users, tier3: tier3Users },
+    };
+  }, [listings, users]);
+
   // If not admin/moderator
   if (isAdmin === false && !canAccessAdmin(currentUserRole, currentUser?.email)) {
     return (
@@ -1583,6 +1653,7 @@ export default function AdminDashboardPage() {
             {[
               { id: "overview", label: "მიმოხილვა", icon: LayoutDashboard, visible: true },
               { id: "listings", label: "განცხადებები", icon: Layers, count: listings.length, visible: canModerate(currentUserRole, currentUser?.email) },
+              { id: "shops", label: "შოპები & URL", icon: Store, count: shopsWithSlugCount, visible: canManageUsers(currentUserRole, currentUser?.email) },
               { id: "users", label: "მომხმარებლები", icon: Users, count: users.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
               { 
                 id: "feedback", 
@@ -3301,30 +3372,43 @@ export default function AdminDashboardPage() {
         </div>
       )}
 
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {/* TAB: SHOPS & CUSTOM URL STUDIO                                        */}
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      {activeTab === "shops" && (
+        <ShopManagementStudio
+          users={users}
+          listings={listings}
+          currentUserId={currentUser?.id}
+          onRefreshData={loadAdminData}
+          showNotice={showNotice}
+        />
+      )}
+
 
 
       {/* Tab 1: Overview Dashboard */}
       {activeTab === "overview" && (
-        <div className="space-y-6">
-          {/* KPI Metrics Summary Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="space-y-4 sm:space-y-5">
+          {/* KPI Metrics Summary Grid - Compact & Responsive */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
             {/* KPI 1: Listings */}
             <div 
               onClick={() => setActiveTab("listings")}
-              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-emerald-500/[0.04] border border-border/80 shadow-xs hover:border-emerald-500/40 transition-all cursor-pointer group"
+              className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-card via-card to-emerald-500/[0.05] border border-border/80 shadow-2xs hover:border-emerald-500/40 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                   განცხადებები
                 </span>
-                <div className="h-8 w-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Layers className="w-4 h-4" />
+                <div className="h-7 w-7 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Layers className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-foreground">{listings.length}</p>
-              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold">
-                <span className="text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
-                  {listings.filter((l) => l.status === "ACTIVE").length} აქტიური
+              <p className="text-xl sm:text-2xl font-black text-foreground">{listings.length}</p>
+              <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-bold flex-wrap">
+                <span className="text-emerald-700 dark:text-emerald-300 bg-emerald-500/15 px-1.5 py-0.5 rounded-md">
+                  {listings.filter((l) => (l.status || "ACTIVE") === "ACTIVE").length} აქტიური
                 </span>
                 <span className="text-muted-foreground">
                   {listings.filter((l) => l.status === "HIDDEN").length} დამალული
@@ -3332,151 +3416,424 @@ export default function AdminDashboardPage() {
               </div>
             </div>
 
-            {/* KPI 2: Users */}
+            {/* KPI 2: Custom URL Shops */}
             <div 
-              onClick={() => setActiveTab("users")}
-              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-teal-500/[0.04] border border-border/80 shadow-xs hover:border-teal-500/40 transition-all cursor-pointer group"
+              onClick={() => setActiveTab("shops")}
+              className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-card via-card to-indigo-500/[0.05] border border-border/80 shadow-2xs hover:border-indigo-500/40 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  მომხმარებლები
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Custom URL შოპები
                 </span>
-                <div className="h-8 w-8 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Users className="w-4 h-4" />
+                <div className="h-7 w-7 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Store className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-foreground">{users.length}</p>
-              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-muted-foreground">
-                <span>{users.filter((u) => u.isAdmin).length} ადმინი</span>
-                <span>•</span>
-                <span>{users.filter((u) => u.tier && u.tier !== "FREE").length} PRO შოპი</span>
+              <p className="text-xl sm:text-2xl font-black text-foreground">{shopsWithSlugCount}</p>
+              <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-bold text-indigo-600 dark:text-indigo-400">
+                <span className="bg-indigo-500/10 px-1.5 py-0.5 rounded-md">
+                  {verifiedShopsCount} ვერიფიცირებული
+                </span>
+                <span>მართვა →</span>
               </div>
             </div>
 
-            {/* KPI 3: Feedback & Messages */}
+            {/* KPI 3: Users */}
             <div 
-              onClick={() => setActiveTab("feedback")}
-              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-amber-500/[0.04] border border-border/80 shadow-xs hover:border-amber-500/40 transition-all cursor-pointer group"
+              onClick={() => setActiveTab("users")}
+              className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-card via-card to-teal-500/[0.05] border border-border/80 shadow-2xs hover:border-teal-500/40 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  შეტყობინებები
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  მომხმარებლები
                 </span>
-                <div className="h-8 w-8 rounded-xl bg-amber-500/10 text-amber-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <MessageSquare className="w-4 h-4" />
+                <div className="h-7 w-7 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <Users className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-foreground">{feedbackList.length}</p>
-              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold">
-                {unreadFeedbackCount > 0 ? (
-                  <span className="text-amber-700 dark:text-amber-300 bg-amber-500/20 px-1.5 py-0.5 rounded-md animate-pulse">
-                     {unreadFeedbackCount} ახალი
-                  </span>
-                ) : (
-                  <span className="text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">
-                    ყველა წაკითხულია
-                  </span>
-                )}
+              <p className="text-xl sm:text-2xl font-black text-foreground">{users.length}</p>
+              <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-bold text-muted-foreground flex-wrap">
+                <span>{users.filter((u) => u.isAdmin).length} ადმინი</span>
+                <span>•</span>
+                <span className="text-teal-600 dark:text-teal-400">{users.filter((u) => u.tier && u.tier !== "FREE").length} Pro შოპი</span>
               </div>
             </div>
 
             {/* KPI 4: Plans & Pricing */}
             <div 
               onClick={() => setActiveTab("plans")}
-              className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-card to-purple-500/[0.04] border border-border/80 shadow-xs hover:border-purple-500/40 transition-all cursor-pointer group"
+              className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-br from-card via-card to-purple-500/[0.05] border border-border/80 shadow-2xs hover:border-purple-500/40 transition-all cursor-pointer group"
             >
-              <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                  ტარიფები
+              <div className="flex items-center justify-between gap-1.5 mb-1.5">
+                <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                  ტარიფები & ფასები
                 </span>
-                <div className="h-8 w-8 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <CreditCard className="w-4 h-4" />
+                <div className="h-7 w-7 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <CreditCard className="w-3.5 h-3.5" />
                 </div>
               </div>
-              <p className="text-2xl sm:text-3xl font-black text-foreground">{plans.length}</p>
-              <div className="flex items-center gap-1.5 mt-2 text-[10px] font-bold text-purple-600 dark:text-purple-400">
-                <span>მართვა და რედაქტირება →</span>
+              <p className="text-xl sm:text-2xl font-black text-foreground">{plans.length}</p>
+              <div className="flex items-center gap-1.5 mt-1.5 text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                <span>კონფიგურაცია →</span>
               </div>
             </div>
           </div>
 
-          {/* Quick Management Tiles */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-            <div className="rounded-2xl sm:rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                  <Store className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">Custom URL შოპები</h3>
-                  <p className="text-[11px] text-muted-foreground">ვერიფიცირებული მაღაზიები</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Tier 2/3 მაღაზიებს აქვთ <strong className="text-foreground">plantio.ge/username</strong> ტიპის მისამართი.
-              </p>
-              <Link href="/shops" className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-bold pt-1">
-                მაღაზიების კატალოგი <ExternalLink className="w-3.5 h-3.5" />
-              </Link>
+          {/* Quick Real Insights Strip */}
+          <div className="p-3 rounded-2xl bg-surface-container/60 border border-border/70 flex items-center justify-between gap-3 text-xs flex-wrap">
+            <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+              <span className="flex items-center gap-1.5 font-bold text-foreground">
+                <Eye className="w-3.5 h-3.5 text-primary" />
+                <span>{analyticsMetrics.totalViews.toLocaleString()} ნახვა</span>
+              </span>
+              <span className="flex items-center gap-1.5 font-bold text-foreground">
+                <Phone className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{analyticsMetrics.totalPhoneClicks.toLocaleString()} ზარი</span>
+              </span>
+              <span className="flex items-center gap-1.5 font-bold text-foreground">
+                <Tag className="w-3.5 h-3.5 text-amber-600" />
+                <span>საშუალო ფასი: ~{analyticsMetrics.avgPrice} ₾</span>
+              </span>
+              <span className="flex items-center gap-1.5 font-bold text-muted-foreground">
+                <MapPin className="w-3.5 h-3.5 text-rose-500" />
+                <span>ტოპ ქალაქი: {analyticsMetrics.topCities[0]?.name || "თბილისი"} ({analyticsMetrics.topCities[0]?.pct || 65}%)</span>
+              </span>
             </div>
 
-            <div className="rounded-2xl sm:rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-600 flex items-center justify-center">
-                  <CreditCard className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">ტარიფები & ფასები</h3>
-                  <p className="text-[11px] text-muted-foreground">ფასების კონფიგურაცია</p>
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                შეცვალეთ ნებისმიერი ტარიფის ფასი, ლიმიტი — ცვლილება მაშინვე აისახება /pricing გვერდზე.
-              </p>
-              <Button size="sm" onClick={() => setActiveTab("plans")} className="rounded-xl text-xs font-bold gap-1 bg-primary text-white cursor-pointer h-8">
-                ტარიფების რედაქტირება <ArrowRight className="w-3.5 h-3.5" />
-              </Button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("analytics")}
+              className="text-xs font-black text-primary hover:underline flex items-center gap-1 cursor-pointer"
+            >
+              <span>სრული ანალიტიკა</span>
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          </div>
+
+          {/* Quick Action Command Hub - Compact, Functional & High-Density */}
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between px-1">
+              <h3 className="text-xs font-black uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span>სწრაფი მართვის ცენტრი</span>
+              </h3>
+              <span className="text-[10.5px] text-muted-foreground font-semibold">
+                1-კლიკით გადასვლა & მართვა
+              </span>
             </div>
 
-            <div className="rounded-2xl sm:rounded-3xl border border-border/80 bg-card p-5 sm:p-6 shadow-xs space-y-3">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
-                  <Sprout className="w-4 h-4" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
+              {/* Tile 1: Custom URL Shops Studio */}
+              <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs hover:border-indigo-500/40 transition-all flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Store className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate">Custom URL შოპები</h4>
+                    <p className="text-[10.5px] text-muted-foreground truncate">
+                      {shopsWithSlugCount} აქტიური სლაგი • {verifiedShopsCount} ვერიფიცირებული
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">სატესტო მცენარეები</h3>
-                  <p className="text-[11px] text-muted-foreground">ადმინის პროფილზე ჩაწერა</p>
-                </div>
+                <Button 
+                  size="sm" 
+                  onClick={() => setActiveTab("shops")}
+                  className="h-7.5 px-2.5 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shrink-0 gap-1 cursor-pointer shadow-2xs"
+                >
+                  <span>მართვა</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Button>
               </div>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                ჩაწერეთ ყველა სატესტო მცენარე (Monstera, Pink Princess, Ficus და ა.შ.) რეალურ Supabase ბაზაში.
-              </p>
-              <Button size="sm" onClick={handleSeedListingsToAdmin} className="rounded-xl text-xs font-bold gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer h-8 shadow-xs">
-                <Sparkles className="w-3.5 h-3.5" /> ჩაწერა ჩემს პროფილზე
-              </Button>
+
+              {/* Tile 2: Plans & Pricing */}
+              <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs hover:border-purple-500/40 transition-all flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <CreditCard className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate">ტარიფები & ფასები</h4>
+                    <p className="text-[10.5px] text-muted-foreground truncate">
+                      {plans.length} ტარიფი • ფასების კონფიგურაცია
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={() => setActiveTab("plans")}
+                  className="h-7.5 px-2.5 rounded-lg text-xs font-bold bg-purple-600 hover:bg-purple-700 text-white shrink-0 gap-1 cursor-pointer shadow-2xs"
+                >
+                  <span>ტარიფები</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Button>
+              </div>
+
+              {/* Tile 3: Seed Real Test Plants */}
+              <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs hover:border-emerald-500/40 transition-all flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Sprout className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate">სატესტო მცენარეები</h4>
+                    <p className="text-[10.5px] text-muted-foreground truncate">
+                      მონსტერა, ფიკუსი, კალათეა ბაზაში
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={handleSeedListingsToAdmin}
+                  className="h-7.5 px-2.5 rounded-lg text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shrink-0 gap-1 cursor-pointer shadow-2xs"
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>ჩაწერა</span>
+                </Button>
+              </div>
+
+              {/* Tile 4: System Audit Studio */}
+              <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs hover:border-sky-500/40 transition-all flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <FileText className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate">სისტემური აუდიტი</h4>
+                    <p className="text-[10.5px] text-muted-foreground truncate">
+                      {auditLogs.length} მოვლენა • ცვლილებების ისტორია
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={() => setActiveTab("audit")}
+                  className="h-7.5 px-2.5 rounded-lg text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shrink-0 gap-1 cursor-pointer shadow-2xs"
+                >
+                  <span>ლოგები</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Button>
+              </div>
+
+              {/* Tile 5: Live Analytics */}
+              <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs hover:border-amber-500/40 transition-all flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <BarChart3 className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate">ცოცხალი სტატისტიკა</h4>
+                    <p className="text-[10.5px] text-muted-foreground truncate">
+                      {analyticsMetrics.totalViews.toLocaleString()} ნახვა • ქალაქები
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  onClick={() => setActiveTab("analytics")}
+                  className="h-7.5 px-2.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shrink-0 gap-1 cursor-pointer shadow-2xs"
+                >
+                  <span>ანალიტიკა</span>
+                  <ArrowRight className="w-3 h-3" />
+                </Button>
+              </div>
+
+              {/* Tile 6: Public Store Directory Preview */}
+              <div className="p-3.5 rounded-2xl bg-card border border-border/80 shadow-2xs hover:border-primary/40 transition-all flex items-center justify-between gap-3 group">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                    <Globe className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-foreground truncate">მაღაზიების ვიტრინა</h4>
+                    <p className="text-[10.5px] text-muted-foreground truncate">
+                      გახსენით /shops კატალოგი
+                    </p>
+                  </div>
+                </div>
+                <a 
+                  href="/ka/shops" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className="h-7.5 px-2.5 rounded-lg text-xs font-bold bg-primary hover:bg-primary/90 text-white inline-flex items-center gap-1 shrink-0 cursor-pointer shadow-2xs"
+                >
+                  <span>ვიტრინა</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Tab Analytics */}
+      {/* Tab Analytics - Full Live Calculations */}
       {activeTab === "analytics" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-              <span className="text-xs font-bold text-muted-foreground uppercase block mb-1">ჯამური ნახვები</span>
-              <p className="text-3xl font-black text-foreground">12,847</p>
-              <span className="text-[10px] text-primary font-bold mt-1 block">+18.5% ამ კვირაში</span>
+        <div className="space-y-4 sm:space-y-5">
+          {/* Top Real Metrics Strip */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3.5">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/80 shadow-2xs">
+              <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                ჯამური ნახვები
+              </span>
+              <p className="text-xl sm:text-2xl font-black text-foreground">
+                {analyticsMetrics.totalViews.toLocaleString()}
+              </p>
+              <span className="text-[10.5px] text-emerald-600 dark:text-emerald-400 font-bold mt-0.5 block">
+                განცხადებების რეალური ნახვები
+              </span>
             </div>
-            <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-              <span className="text-xs font-bold text-muted-foreground uppercase block mb-1">ახალი რეგისტრაციები</span>
-              <p className="text-3xl font-black text-foreground">{users.length}</p>
-              <span className="text-[10px] text-muted-foreground mt-1 block">აქტიური მომხმარებლები</span>
+
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/80 shadow-2xs">
+              <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                ზარები / კონტაქტი
+              </span>
+              <p className="text-xl sm:text-2xl font-black text-foreground">
+                {analyticsMetrics.totalPhoneClicks.toLocaleString()}
+              </p>
+              <span className="text-[10.5px] text-indigo-600 dark:text-indigo-400 font-bold mt-0.5 block">
+                ტელეფონზე დაკლიკება
+              </span>
             </div>
-            <div className="rounded-[22px] border border-border/80 bg-card p-5 shadow-ambient">
-              <span className="text-xs font-bold text-muted-foreground uppercase block mb-1">ყველაზე პოპ. ქალაქი</span>
-              <p className="text-2xl font-black text-foreground">თბილისი</p>
-              <span className="text-[10px] text-muted-foreground mt-1 block">განცხადებების 68%</span>
+
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/80 shadow-2xs">
+              <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                საშუალო ფასი
+              </span>
+              <p className="text-xl sm:text-2xl font-black text-foreground">
+                {analyticsMetrics.avgPrice} ₾
+              </p>
+              <span className="text-[10.5px] text-amber-600 dark:text-amber-400 font-bold mt-0.5 block">
+                ფასიანი განცხადებების მიხედვით
+              </span>
+            </div>
+
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-card border border-border/80 shadow-2xs">
+              <span className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase block mb-1">
+                აქტიური მარაგი
+              </span>
+              <p className="text-xl sm:text-2xl font-black text-foreground">
+                {analyticsMetrics.activeCount}
+              </p>
+              <span className="text-[10.5px] text-teal-600 dark:text-teal-400 font-bold mt-0.5 block">
+                გამოქვეყნებული მცენარე
+              </span>
+            </div>
+          </div>
+
+          {/* Detailed Distribution Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+            {/* Top Categories */}
+            <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <h4 className="text-xs sm:text-sm font-black text-foreground flex items-center gap-1.5">
+                  <Sprout className="w-4 h-4 text-emerald-600" />
+                  <span>ტოპ კატეგორიები ბაზარზე</span>
+                </h4>
+                <span className="text-[11px] text-muted-foreground font-bold">რაოდენობა</span>
+              </div>
+              <div className="space-y-2">
+                {analyticsMetrics.topCategories.map((cat) => (
+                  <div key={cat.name} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="capitalize text-foreground">{cat.name}</span>
+                      <span className="text-muted-foreground">{cat.count} ({cat.pct}%)</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+                      <div 
+                        className="h-full bg-emerald-500 rounded-full transition-all duration-500" 
+                        style={{ width: `${Math.min(cat.pct * 1.5, 100)}%` }} 
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* City Distribution */}
+            <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <h4 className="text-xs sm:text-sm font-black text-foreground flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-rose-600" />
+                  <span>გეოგრაფიული განაწილება</span>
+                </h4>
+                <span className="text-[11px] text-muted-foreground font-bold">წილი</span>
+              </div>
+              <div className="space-y-2">
+                {analyticsMetrics.topCities.map((city) => (
+                  <div key={city.name} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs font-bold">
+                      <span className="text-foreground">{city.name}</span>
+                      <span className="text-muted-foreground">{city.count} განცხადება ({city.pct}%)</span>
+                    </div>
+                    <div className="w-full h-1.5 rounded-full bg-surface-container overflow-hidden">
+                      <div 
+                        className="h-full bg-rose-500 rounded-full transition-all duration-500" 
+                        style={{ width: `${Math.min(city.pct * 1.3, 100)}%` }} 
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Transaction Types Breakdown */}
+            <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <h4 className="text-xs sm:text-sm font-black text-foreground flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-indigo-600" />
+                  <span>გარიგების ფორმა</span>
+                </h4>
+                <span className="text-[11px] text-muted-foreground font-bold">განცხადებები</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-surface-container/60 border border-border/60">
+                  <span className="text-[10px] font-bold text-muted-foreground block">გაყიდვა</span>
+                  <p className="text-base sm:text-lg font-black text-foreground mt-0.5">
+                    {analyticsMetrics.transactions.sale}
+                  </p>
+                </div>
+                <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
+                  <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 block">გაცვლა</span>
+                  <p className="text-base sm:text-lg font-black text-indigo-700 dark:text-indigo-300 mt-0.5">
+                    {analyticsMetrics.transactions.trade}
+                  </p>
+                </div>
+                <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 block">საჩუქარი/უფასო</span>
+                  <p className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-300 mt-0.5">
+                    {analyticsMetrics.transactions.gift}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Subscription Tiers Breakdown */}
+            <div className="p-4 rounded-2xl bg-card border border-border/80 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <h4 className="text-xs sm:text-sm font-black text-foreground flex items-center gap-1.5">
+                  <Crown className="w-4 h-4 text-purple-600" />
+                  <span>საბონენტო ტარიფები</span>
+                </h4>
+                <span className="text-[11px] text-muted-foreground font-bold">მომხმარებლები</span>
+              </div>
+              <div className="grid grid-cols-4 gap-1.5 text-center">
+                <div className="p-2 rounded-xl bg-surface-container/60 border border-border/60">
+                  <span className="text-[9.5px] font-bold text-muted-foreground block">Free</span>
+                  <p className="text-sm font-black text-foreground mt-0.5">{analyticsMetrics.tiers.free}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  <span className="text-[9.5px] font-bold text-purple-700 dark:text-purple-300 block">Tier 1</span>
+                  <p className="text-sm font-black text-purple-700 dark:text-purple-300 mt-0.5">{analyticsMetrics.tiers.tier1}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-purple-500/15 border border-purple-500/30">
+                  <span className="text-[9.5px] font-bold text-purple-700 dark:text-purple-300 block">Tier 2</span>
+                  <p className="text-sm font-black text-purple-700 dark:text-purple-300 mt-0.5">{analyticsMetrics.tiers.tier2}</p>
+                </div>
+                <div className="p-2 rounded-xl bg-purple-500/20 border border-purple-500/40">
+                  <span className="text-[9.5px] font-bold text-purple-700 dark:text-purple-300 block">Tier 3</span>
+                  <p className="text-sm font-black text-purple-700 dark:text-purple-300 mt-0.5">{analyticsMetrics.tiers.tier3}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
