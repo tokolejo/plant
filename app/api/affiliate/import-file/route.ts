@@ -59,6 +59,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია" }, { status: 401 });
     }
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin, role")
+      .eq("id", user.id)
+      .single();
+
+    const isAdm = user.email === "tokolejo@gmail.com" || profile?.is_admin === true || profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN";
+    if (!isAdm) {
+      return NextResponse.json({ success: false, error: "წვდომა შეზღუდულია: საჭიროა ადმინისტრატორის უფლებები" }, { status: 403 });
+    }
+
     const contentType = req.headers.get("content-type") || "";
     let productsToInsert: any[] = [];
     let defaultPartnerName = "Partner Store";

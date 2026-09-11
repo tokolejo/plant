@@ -112,6 +112,11 @@ export async function POST(req: NextRequest) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    // Require authentication for all scrape operations (prevents open SSRF proxy abuse)
+    if (!user) {
+      return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია" }, { status: 401 });
+    }
+
     // Verify User & Admin permissions if saving
     const body = await req.json();
     const { url, autoSave = false, partnerName: customPartnerName, partnerId, commissionPct = 0, category: customCategory } = body;
@@ -270,6 +275,17 @@ export async function POST(req: NextRequest) {
     if (autoSave) {
       if (!user) {
         return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია ბაზაში შესანახად" }, { status: 401 });
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_admin, role")
+        .eq("id", user.id)
+        .single();
+
+      const isAdm = user.email === "tokolejo@gmail.com" || profile?.is_admin === true || profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN";
+      if (!isAdm) {
+        return NextResponse.json({ success: false, error: "წვდომა შეზღუდულია: საჭიროა ადმინისტრატორის უფლებები" }, { status: 403 });
       }
 
       const adminClient = createAdminClient();

@@ -146,6 +146,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია" }, { status: 401 });
     }
 
+    // Admin-only: only admins can add affiliate partners
+    const { data: profile } = await supabase.from("profiles").select("role, is_admin").eq("id", user.id).single();
+    const isAdmin = user.email === "tokolejo@gmail.com" || profile?.is_admin === true || profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN";
+    if (!isAdmin) {
+      return NextResponse.json({ success: false, error: "მხოლოდ ადმინისტრატორს შეუძლია პარტნიორის დამატება" }, { status: 403 });
+    }
+
     const body = await req.json();
     const { name, website_url, badge_color, referral_param_template, commission_rate } = body;
 
@@ -218,6 +225,13 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია" }, { status: 401 });
     }
 
+    // Admin-only
+    const { data: profile } = await supabase.from("profiles").select("role, is_admin").eq("id", user.id).single();
+    const isAdmin = user.email === "tokolejo@gmail.com" || profile?.is_admin === true || profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN";
+    if (!isAdmin) {
+      return NextResponse.json({ success: false, error: "მხოლოდ ადმინისტრატორს შეუძლია პარტნიორის წაშლა" }, { status: 403 });
+    }
+
     const { searchParams } = new URL(req.url);
     const id = searchParams.get("id");
     const slug = searchParams.get("slug");
@@ -266,6 +280,13 @@ export async function PATCH(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია" }, { status: 401 });
+    }
+
+    // Admin-only
+    const { data: profile } = await supabase.from("profiles").select("role, is_admin").eq("id", user.id).single();
+    const isAdmin = user.email === "tokolejo@gmail.com" || profile?.is_admin === true || profile?.role === "ADMIN" || profile?.role === "SUPER_ADMIN";
+    if (!isAdmin) {
+      return NextResponse.json({ success: false, error: "მხოლოდ ადმინისტრატორს შეუძლია პარტნიორის რედაქტირება" }, { status: 403 });
     }
 
     const body = await req.json();

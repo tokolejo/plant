@@ -56,52 +56,7 @@ const CATEGORIES = [
   { id: "CONTEST", label: "ფოტო-კონკურსი", icon: Trophy },
 ];
 
-const SEED_POSTS: CommunityPost[] = [
-  {
-    id: "post-1",
-    author_name: "ნინო ჩხეიძე",
-    author_avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80",
-    category: "SHOWCASE",
-    title: "ჩემი Philodendron Pink Princess-ის ახალი, ვარდისფერი ფოთოლი",
-    content: "3 თვე ველოდი ამ ფოთოლს. კაშკაშა გაფანტულმა სინათლემ და ტენიანობის მომატებამ საოცარი ვარიეგაცია მისცა!",
-    image_url: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?auto=format&fit=crop&w=800&q=80",
-    upvotes_count: 34,
-    comments_count: 6,
-    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    comments: [
-      { id: "c1", author_name: "გიორგი", content: "საოცარი ფერია! რა სასუქს აძლევ?", created_at: "2 საათის წინ" },
-      { id: "c2", author_name: "ნინო ჩხეიძე", content: "თხევად ბიო-ჰუმუსს თვეში 2-ჯერ", created_at: "1 საათის წინ" },
-    ],
-  },
-  {
-    id: "post-2",
-    author_name: "ლაშა მებუკე",
-    author_avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-    category: "QA",
-    title: "რატომ უყვითლდება მონსტერას ქვედა ფოთლები?",
-    content: "კვირაში ერთხელ ვრწყავ, ნიადაგის ზედაპირი მშრალი ჩანს, მაგრამ ფოთლის კიდეები გაყვითლდა და დარბილდა. მირჩიეთ რამე.",
-    image_url: "https://images.unsplash.com/photo-1617576683096-00fc8eecb3af?auto=format&fit=crop&w=800&q=80",
-    upvotes_count: 19,
-    comments_count: 8,
-    created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-    comments: [
-      { id: "c3", author_name: "მარიამი", content: "ფესვების შემოწმება მოგიწევს, სავარაუდოდ ქოთნის ძირში დგება წყალი. გადარგე პერლიტიან ნიადაგში!", created_at: "5 საათის წინ" },
-    ],
-  },
-  {
-    id: "post-3",
-    author_name: "სალომე კ.",
-    author_avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80",
-    category: "SWAP",
-    title: "გავცვლი დაფესვიანებულ სინგონიუმს (Syngonium Albo) ფილოდენდრონის ტოტზე",
-    content: "თბილისი, ვაკე/საბურთალო. ჯანმრთელი, აქტიურად მზარდი 2-ფოთლიანი კალამი. შემეხმიანეთ პირადში ან WhatsApp-ზე.",
-    image_url: "https://images.unsplash.com/photo-1598880940371-c756e015fea1?auto=format&fit=crop&w=800&q=80",
-    upvotes_count: 22,
-    comments_count: 4,
-    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-    comments: [],
-  },
-];
+const SEED_POSTS: CommunityPost[] = [];
 
 export default function CommunityPage() {
   const locale = useLocale();
@@ -127,8 +82,29 @@ export default function CommunityPage() {
   const [submitting, setSubmitting] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
+  const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
+  const [checkingAuth, setCheckingAuth] = React.useState(true);
+
   React.useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      setUser(user);
+      if (user) {
+        const isSuper = user.email === "tokolejo@gmail.com";
+        if (isSuper) {
+          setIsAdmin(true);
+        } else {
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("is_admin, role")
+            .eq("id", user.id)
+            .single();
+          setIsAdmin(prof?.is_admin === true || prof?.role === "ADMIN" || prof?.role === "SUPER_ADMIN");
+        }
+      } else {
+        setIsAdmin(false);
+      }
+      setCheckingAuth(false);
+    });
 
     async function loadDbPosts() {
       try {
@@ -137,11 +113,13 @@ export default function CommunityPage() {
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (!error && data && data.length > 0) {
-          setPosts([...data, ...SEED_POSTS]);
+        if (!error && data) {
+          setPosts(data);
+        } else {
+          setPosts([]);
         }
       } catch (err) {
-        console.warn("Using seed posts:", err);
+        setPosts([]);
       }
     }
     loadDbPosts();
@@ -267,6 +245,40 @@ export default function CommunityPage() {
       return true;
     });
   }, [posts, selectedCategory, searchQuery]);
+
+  if (checkingAuth) {
+    return (
+      <div className="container mx-auto px-4 py-24 text-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+        <p className="text-xs text-muted-foreground font-bold">{isKa ? "იტვირთება..." : "Loading..."}</p>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-24 max-w-md text-center space-y-4">
+        <div className="w-16 h-16 rounded-2xl bg-secondary-container text-primary flex items-center justify-center mx-auto shadow-xs">
+          <Users className="w-8 h-8" />
+        </div>
+        <h1 className="text-xl font-black text-foreground tracking-tight">
+          {isKa ? "კომუნა დროებით მიუწვდომელია" : "Community Temporarily Offline"}
+        </h1>
+        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+          {isKa
+            ? "მწვანე კომუნის განყოფილება დროებით დაკეტილია რეკონსტრუქციისა და განახლებისთვის. მალე დაგიბრუნდებით!"
+            : "The green community section is undergoing updates and maintenance. We will be back soon!"}
+        </p>
+        <div className="pt-2">
+          <Link href="/">
+            <Button className="rounded-xl bg-primary hover:bg-primary/90 text-white text-xs font-bold px-6 cursor-pointer">
+              {isKa ? "მთავარ გვერდზე დაბრუნება" : "Back to Home"}
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 sm:px-6 py-8 sm:py-12 max-w-4xl space-y-8">

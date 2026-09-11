@@ -148,11 +148,6 @@ export function Footer() {
                 </li>
               )}
               <li>
-                <Link href="/community" className="hover:text-primary transition-colors">
-                  {isKa ? "მწვანე კომუნა" : "Community"}
-                </Link>
-              </li>
-              <li>
                 <Link href="/services?category=LANDSCAPE" className="hover:text-primary transition-colors">
                   {isKa ? "ლანდშაფტის დიზაინი" : "Landscape Design"}
                 </Link>

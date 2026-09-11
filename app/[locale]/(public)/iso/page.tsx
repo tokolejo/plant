@@ -308,13 +308,7 @@ function IsoCatalogContent() {
           (l) => l.transactionType === "TRADE" || l.transactionType === "GIFT" || (l.tradePreferences && l.tradePreferences.length > 0)
         );
 
-        const listToUse = tradesOnly.length > 0
-          ? tradesOnly
-          : merged.map((item, i) => ({
-              ...item,
-              transactionType: i % 2 === 0 ? "TRADE" : "GIFT",
-              tradePreferences: item.tradePreferences?.length ? item.tradePreferences : ["Monstera", "Ficus", "სუკულენტი"],
-            }));
+        const listToUse = tradesOnly;
 
         const localized = listToUse.map((item: any) => ({
           ...item,
