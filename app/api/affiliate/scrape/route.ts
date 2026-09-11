@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { detectAffiliateCategory, detectAffiliateTags } from "@/lib/affiliate-tagger";
 
 export const maxDuration = 30;
 
@@ -113,7 +114,7 @@ export async function POST(req: NextRequest) {
 
     // Verify User & Admin permissions if saving
     const body = await req.json();
-    const { url, autoSave = false, partnerName: customPartnerName, commissionPct = 0 } = body;
+    const { url, autoSave = false, partnerName: customPartnerName, partnerId, commissionPct = 0, category: customCategory } = body;
 
     if (!url || typeof url !== "string") {
       return NextResponse.json({ success: false, error: "გთხოვთ მიუთითოთ პროდუქტის ვალიდური URL" }, { status: 400 });
@@ -217,10 +218,12 @@ export async function POST(req: NextRequest) {
 
     const partnerName = customPartnerName || extractDomainName(url);
     const combinedText = `${productName} ${description} ${partnerName}`;
-    const matchingTags = detectMatchingTags(combinedText);
+    const matchingTags = detectAffiliateTags(productName, description);
+    const category = customCategory || detectAffiliateCategory(productName, description);
 
     const scrapedData = {
       partnerName,
+      partnerId: partnerId || null,
       productName: productName.replace(/\s+/g, " ").slice(0, 200),
       description: description.replace(/\s+/g, " ").slice(0, 500),
       imageUrl: ogImage || null,
@@ -228,6 +231,7 @@ export async function POST(req: NextRequest) {
       price: price && !isNaN(price) ? price : null,
       currency: currency || "GEL",
       commissionPct: Number(commissionPct) || 0,
+      category,
       matchingTags,
       isActive: true,
     };
@@ -245,6 +249,7 @@ export async function POST(req: NextRequest) {
         .from("affiliate_products")
         .insert({
           partner_name: scrapedData.partnerName,
+          partner_id: scrapedData.partnerId,
           product_name: scrapedData.productName,
           description: scrapedData.description,
           image_url: scrapedData.imageUrl,
@@ -252,6 +257,7 @@ export async function POST(req: NextRequest) {
           price: scrapedData.price,
           currency: scrapedData.currency,
           commission_pct: scrapedData.commissionPct,
+          category: scrapedData.category,
           matching_tags: scrapedData.matchingTags,
           is_active: true,
         })

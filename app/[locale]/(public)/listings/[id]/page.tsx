@@ -53,6 +53,7 @@ import { ReviewsSkeleton, RecommendedInventorySkeleton } from "@/components/comm
 import { submitReviewAction } from "@/app/actions/reviews";
 import { toggleWishlistAction, addToGreenhouseAction } from "@/app/actions/listings";
 import { usePlatformSettings } from "@/lib/platform-settings";
+import { detectAffiliateTags, appendReferralParam } from "@/lib/affiliate-tagger";
 
 // ─── Social Platform Icons ──────────────────────────────────────────────────
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -297,7 +298,9 @@ export default function ListingDetailPage({
           .single();
 
         if (dbRow && !error) {
-          setListing(formatDbListing(dbRow, dbRow.profiles));
+          const formatted = formatDbListing(dbRow, dbRow.profiles);
+          setListing(formatted);
+          loadAffiliateOffers(formatted);
         }
 
         // Fire background view tracking
@@ -330,29 +333,59 @@ export default function ListingDetailPage({
     });
 
     // Load active affiliate products from DB matching plant category/supplies
-    async function loadAffiliateOffers() {
+    async function loadAffiliateOffers(targetListing?: any) {
       try {
         const { data: affData, error: affErr } = await supabase
           .from("affiliate_products")
           .select("*")
           .eq("is_active", true)
-          .limit(10);
+          .limit(40);
 
         if (!affErr && affData && affData.length > 0) {
-          const mapped = affData.map((a) => ({
-            id: a.id,
-            titleKa: a.product_name,
-            titleEn: a.product_name,
-            categoryKa: a.matching_tags?.[0] || "ინვენტარი",
-            categoryEn: a.matching_tags?.[0] || "Supplies",
-            price: a.price || 25,
-            image: a.image_url || "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600",
-            shopName: a.partner_name || "პარტნიორი",
-            shopBadge: a.partner_name || "პარტნიორი",
-            shopLogo: "",
-            link: a.product_url,
-            isExternal: true,
-          }));
+          const lTitle = targetListing?.title || targetListing?.titleKa || "";
+          const lDesc = targetListing?.description || targetListing?.descriptionKa || "";
+          const lCategory = targetListing?.category || targetListing?.categoryKa || "";
+          const listingTags = detectAffiliateTags(lTitle, `${lDesc} ${lCategory}`);
+
+          // Score products: higher score for matching tags and categories
+          const scored = affData.map((a: any) => {
+            let score = 1;
+            const aTags = Array.isArray(a.matching_tags) ? a.matching_tags : [];
+            for (const t of aTags) {
+              if (listingTags.some((lt) => lt.toLowerCase() === String(t).toLowerCase())) {
+                score += 8;
+              }
+            }
+            if (lTitle.toLowerCase().includes(a.category?.toLowerCase() || "___")) {
+              score += 5;
+            }
+            return { item: a, score };
+          });
+
+          scored.sort((x, y) => y.score - x.score);
+
+          const mapped = scored.slice(0, 15).map(({ item: a }) => {
+            const partnerBadge = a.partner_name || "პარტნიორი";
+            const refTemplate = "?ref=plantge";
+            const finalLink = appendReferralParam(a.product_url, refTemplate);
+
+            return {
+              id: a.id,
+              titleKa: a.product_name,
+              titleEn: a.product_name,
+              categoryKa: a.category || a.matching_tags?.[0] || "ინვენტარი",
+              categoryEn: a.category || a.matching_tags?.[0] || "Supplies",
+              price: a.price || 25,
+              image: a.image_url || "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600",
+              shopName: a.partner_name || "პარტნიორი",
+              shopBadge: partnerBadge,
+              link: finalLink,
+              rawLink: a.product_url,
+              referralParam: refTemplate,
+              isExternal: true,
+            };
+          });
+
           setAffiliateOffers([...mapped, ...RECOMMENDED_INVENTORY]);
         }
       } catch {
@@ -1589,7 +1622,11 @@ export default function ListingDetailPage({
                               fetch("/api/affiliate/click", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ affiliateId: item.id, targetUrl: item.link }),
+                                body: JSON.stringify({
+                                  affiliateId: item.id,
+                                  targetUrl: item.link,
+                                  referralParam: item.referralParam || "?ref=plantge"
+                                }),
                               }).catch(() => {});
                             }
                           }}
