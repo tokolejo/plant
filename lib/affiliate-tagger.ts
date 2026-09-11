@@ -15,8 +15,8 @@ export const AFFILIATE_CATEGORIES: AffiliateCategoryDefinition[] = [
     nameKa: "ქოთნები & კაშპო",
     nameEn: "Pots & Planters",
     keywords: [
-      "ქოთანი", "კაშპო", "კერამიკა", "თიხის", "პლასტმასის ქოთანი", "დამკიდი ქოთანი",
-      "ლარნაკი", "სადგამი", "pot", "planter", "saucer", "ceramic pot"
+      "ქოთანი", "ქოთნები", "კაშპო", "კერამიკა", "თიხის", "პლასტმასის ქოთანი", "დამკიდი", "საკიდით",
+      "საკიდი", "ლარნაკი", "სადგამი", "საჩითილე", "pot", "planter", "saucer", "ceramic pot"
     ],
   },
   {
@@ -25,7 +25,7 @@ export const AFFILIATE_CATEGORIES: AffiliateCategoryDefinition[] = [
     nameEn: "Soil & Substrates",
     keywords: [
       "სუბსტრატი", "მიწა", "გრუნტი", "ტორფი", "პერლიტი", "ვერმიკულიტი", "დრენაჟი",
-      "კერამზიტი", "ფიჭვის ქერქი", "ქოქოსის", "სფაგნუმი", "soil", "peat", "perlite", "bark", "moss"
+      "კერამზიტი", "ფიჭვის ქერქი", "ქერქი", "ქოქოსის", "ქოქოსი", "სფაგნუმი", "ნახშირი", "soil", "peat", "perlite", "bark", "moss"
     ],
   },
   {
@@ -34,7 +34,7 @@ export const AFFILIATE_CATEGORIES: AffiliateCategoryDefinition[] = [
     nameEn: "Fertilizers & Care",
     keywords: [
       "სასუქი", "ვიტამინი", "ბიოჰუმუსი", "სტიმულატორი", "ფესვის", "მავნებლების",
-      "ფუნგიციდი", "ინსექტიციდი", "ფოთლოვანი", "fertilizer", "nutrient", "stimulator", "feed"
+      "ფუნგიციდი", "ინსექტიციდი", "ფოთლოვანი", "ორგანული", "მინერალური", "fertilizer", "nutrient", "stimulator", "feed"
     ],
   },
   {

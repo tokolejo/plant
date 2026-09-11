@@ -81,6 +81,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
   const [catUrl, setCatUrl] = React.useState("");
   const [catPartner, setCatPartner] = React.useState("Domino");
   const [catLimit, setCatLimit] = React.useState(30);
+  const [catCategoryOverride, setCatCategoryOverride] = React.useState("AUTO");
   const [scrapingCat, setScrapingCat] = React.useState(false);
   const [scrapedCatItems, setScrapedCatItems] = React.useState<any[]>([]);
   const [selectedCatIndices, setSelectedCatIndices] = React.useState<Set<number>>(new Set());
@@ -210,6 +211,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
           categoryUrl: catUrl.trim(),
           partnerName: catPartner,
           limit: catLimit,
+          categoryOverride: catCategoryOverride !== "AUTO" ? catCategoryOverride : undefined,
           autoSave: false,
         }),
       });
@@ -229,6 +231,28 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
     } finally {
       setScrapingCat(false);
     }
+  };
+
+  const handleUpdateItemCategoryInPreview = (index: number, newCategory: string) => {
+    setScrapedCatItems((prev) =>
+      prev.map((item, i) => (i === index ? { ...item, category: newCategory } : item))
+    );
+  };
+
+  const handleUpdateProductCategory = async (id: string, newCategory: string) => {
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, category: newCategory } : p))
+    );
+    await supabase.from("affiliate_products").update({ category: newCategory }).eq("id", id);
+    showNotice(`კატეგორია განახლდა: "${newCategory}"`);
+  };
+
+  const handleBatchDeleteByStore = async (storeName: string) => {
+    const count = partnerStats[storeName]?.count || 0;
+    if (!confirm(`ნამდვილად გსურთ წაშალოთ "${storeName}"-ის ყველა (${count}) პროდუქტი?`)) return;
+    setProducts((prev) => prev.filter((p) => p.partner_name.toLowerCase() !== storeName.toLowerCase()));
+    await supabase.from("affiliate_products").delete().ilike("partner_name", storeName);
+    showNotice(`"${storeName}"-ის ყველა პროდუქტი წაიშალა`);
   };
 
   // ─── Handler: Save Selected Category Items ───
@@ -606,22 +630,23 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5">
-              <div className="md:col-span-6">
+              <div className="md:col-span-4">
                 <input
                   type="url"
                   required
                   value={catUrl}
                   onChange={(e) => setCatUrl(e.target.value)}
-                  placeholder="https://domino.com.ge/ka/garden/pots-and-planters/..."
+                  placeholder="https://gorgia.ge/... ან https://domino.com.ge/..."
                   className="w-full h-10 px-3.5 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
                 />
               </div>
 
-              <div className="md:col-span-3">
+              <div className="md:col-span-2">
                 <select
                   value={catPartner}
                   onChange={(e) => setCatPartner(e.target.value)}
                   className="w-full h-10 px-3 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
+                  title="პარტნიორი მაღაზია"
                 >
                   {partners.map((p) => (
                     <option key={p.id} value={p.name}>
@@ -631,15 +656,33 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                 </select>
               </div>
 
+              <div className="md:col-span-3">
+                <select
+                  value={catCategoryOverride}
+                  onChange={(e) => setCatCategoryOverride(e.target.value)}
+                  className="w-full h-10 px-2.5 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
+                  title="კატეგორიის მინიჭება"
+                >
+                  <option value="AUTO">🎯 ავტომატური ამოცნობა</option>
+                  {AFFILIATE_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.nameKa}>
+                      {c.nameKa}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div className="md:col-span-3 flex gap-2">
                 <select
                   value={catLimit}
                   onChange={(e) => setCatLimit(Number(e.target.value))}
-                  className="w-24 h-10 px-2 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
+                  className="w-20 h-10 px-2 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
+                  title="რაოდენობის ლიმიტი"
                 >
-                  <option value={15}>15 ცალი</option>
-                  <option value={30}>30 ცალი</option>
-                  <option value={50}>50 ცალი</option>
+                  <option value={15}>15 ც</option>
+                  <option value={30}>30 ც</option>
+                  <option value={50}>50 ც</option>
+                  <option value={100}>100 ც</option>
                 </select>
 
                 <Button
@@ -648,7 +691,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                   className="flex-1 h-10 rounded-[12px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-ambient cursor-pointer"
                 >
                   {scrapingCat ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  <span>{scrapingCat ? "მიმდინარეობს..." : "ამოღება"}</span>
+                  <span>{scrapingCat ? "ამოღება..." : "ამოღება"}</span>
                 </Button>
               </div>
             </div>
@@ -734,9 +777,22 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
 
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex items-center justify-between gap-1">
-                          <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">
-                            {item.category}
-                          </span>
+                          <select
+                            value={item.category || "ქოთნები & კაშპო"}
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleUpdateItemCategoryInPreview(idx, e.target.value);
+                            }}
+                            className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 rounded px-1.5 py-0.5 cursor-pointer focus:outline-none"
+                            title="კატეგორიის შეცვლა"
+                          >
+                            {AFFILIATE_CATEGORIES.map((c) => (
+                              <option key={c.id} value={c.nameKa}>
+                                {c.nameKa}
+                              </option>
+                            ))}
+                          </select>
                           {item.price && (
                             <span className="text-xs font-black text-primary">
                               {item.price} ₾
@@ -1175,6 +1231,69 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
           </div>
         </div>
 
+        {/* Store Chips / Quick Filters */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <button
+            type="button"
+            onClick={() => setSelectedPartnerFilter("ALL")}
+            className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              selectedPartnerFilter === "ALL"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-surface-container text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span>ყველა</span>
+            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-background/20 font-black">
+              {products.length}
+            </span>
+          </button>
+
+          {partners.map((p) => {
+            const count = partnerStats[p.name]?.count || 0;
+            const isSelected = selectedPartnerFilter.toLowerCase() === p.name.toLowerCase();
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => setSelectedPartnerFilter(isSelected ? "ALL" : p.name)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isSelected
+                    ? "text-white shadow-sm"
+                    : "bg-surface-container text-muted-foreground hover:text-foreground"
+                }`}
+                style={isSelected ? { backgroundColor: p.badge_color } : {}}
+              >
+                <span>{p.name}</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-black/25 font-black">
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Selected Store Actions Banner */}
+        {selectedPartnerFilter !== "ALL" && (
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-[14px] bg-secondary-container/30 border border-border/70 text-xs">
+            <div className="flex items-center gap-2">
+              <Store className="w-4 h-4 text-primary" />
+              <span className="font-bold text-foreground">
+                მაღაზია: <span className="text-primary font-black">{selectedPartnerFilter}</span> (ნაპოვნია {filteredProducts.length} პროდუქტი)
+              </span>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => handleBatchDeleteByStore(selectedPartnerFilter)}
+              className="h-7 rounded-[8px] text-destructive hover:bg-destructive/10 border-destructive/30 text-xs font-bold gap-1 cursor-pointer self-start sm:self-auto"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>ამ მაღაზიის ყველა პროდუქტის წაშლა ({partnerStats[selectedPartnerFilter]?.count || 0})</span>
+            </Button>
+          </div>
+        )}
+
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-10 rounded-[20px] border border-dashed border-border/80 bg-surface-container/20">
@@ -1219,9 +1338,18 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                           >
                             {p.partner_name}
                           </span>
-                          <span className="text-[10px] font-bold text-muted-foreground">
-                            {p.category || "ინვენტარი"}
-                          </span>
+                          <select
+                            value={p.category || "ქოთნები & კაშპო"}
+                            onChange={(e) => handleUpdateProductCategory(p.id, e.target.value)}
+                            className="text-[10px] font-bold bg-surface-container border border-border/70 rounded px-1.5 py-0.5 text-foreground cursor-pointer focus:outline-none max-w-[125px] truncate"
+                            title="კატეგორიის შეცვლა"
+                          >
+                            {AFFILIATE_CATEGORIES.map((c) => (
+                              <option key={c.id} value={c.nameKa}>
+                                {c.nameKa}
+                              </option>
+                            ))}
+                          </select>
                         </div>
 
                         <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-tight mt-1" title={p.product_name}>
