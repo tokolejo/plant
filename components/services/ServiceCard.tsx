@@ -19,7 +19,8 @@ import {
   Phone, 
   MessageSquare, 
   Camera,
-  ChevronRight
+  ChevronRight,
+  Heart
 } from "lucide-react";
 import { type GardeningServiceItem } from "@/lib/mock-services";
 import { Button } from "@/components/ui/button";
@@ -45,7 +46,7 @@ const CATEGORY_LABELS: Record<string, { ka: string; en: string }> = {
 };
 
 export interface ServiceCardProps {
-  service: GardeningServiceItem;
+  service: GardeningServiceItem & { distanceKm?: number; phone?: string; whatsapp?: string };
   variant?: "compact" | "list" | "normal";
 }
 
@@ -70,6 +71,32 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
     .split("&")[0]
     .split(",")[0]
     .trim();
+
+  // Distance label
+  const distLabel = service.distanceKm !== undefined 
+    ? (service.distanceKm < 1 
+        ? (isKa ? `${Math.round(service.distanceKm * 1000)} მ` : `${Math.round(service.distanceKm * 1000)} m`) 
+        : (isKa ? `${service.distanceKm} კმ` : `${service.distanceKm} km`)) 
+    : undefined;
+
+  // Wishlist toggle state
+  const [isWishlisted, setIsWishlisted] = React.useState(false);
+
+  const handleWishlistClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const nextState = !isWishlisted;
+    setIsWishlisted(nextState);
+    try {
+      await fetch("/api/wishlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId: service.id }),
+      });
+    } catch {
+      setIsWishlisted(!nextState);
+    }
+  };
 
   // ─── LIST VIEW LAYOUT ──────────────────────────────────────────────────────
   if (variant === "list") {
@@ -97,6 +124,20 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
             </span>
           </div>
 
+          {/* Wishlist Heart Button Top Right */}
+          <button
+            type="button"
+            onClick={handleWishlistClick}
+            className={`absolute top-2.5 right-2.5 z-20 h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-xs ${
+              isWishlisted
+                ? "bg-rose-500 text-white"
+                : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
+            }`}
+            title={isWishlisted ? (isKa ? "რჩეულებიდან ამოშლა" : "Remove from favorites") : (isKa ? "რჩეულებში დამატება" : "Add to favorites")}
+          >
+            <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current" : ""}`} />
+          </button>
+
           {service.portfolio_images && service.portfolio_images.length > 1 && (
             <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white flex items-center gap-1">
               <Camera className="w-2.5 h-2.5" />
@@ -111,6 +152,9 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
             {/* Top row: price and city */}
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex items-baseline gap-1">
+                <span className="text-[11px] font-bold text-muted-foreground mr-0.5">
+                  {isKa ? "დან" : "from"}
+                </span>
                 <span className="text-lg sm:text-xl font-black tracking-tight text-primary dark:text-emerald-400">
                   {service.price_from} ₾
                 </span>
@@ -123,6 +167,9 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
               <div className="flex items-center gap-1 text-xs text-slate-700 dark:text-slate-200 bg-surface-container px-2 py-0.5 rounded-[6px] font-bold border border-border/50 shrink-0">
                 <MapPin className="w-3 h-3 text-primary" />
                 <span>{cleanCity}</span>
+                {distLabel && (
+                  <span className="text-primary font-black ml-1">({distLabel})</span>
+                )}
               </div>
             </div>
 
@@ -158,12 +205,33 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
               )}
             </Link>
 
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black flex items-center gap-0.5">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] text-amber-600 dark:text-amber-400 font-black flex items-center gap-0.5 mr-1">
                 <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
                 <span>{service.rating.toFixed(1)}</span>
                 <span className="text-muted-foreground font-normal">({service.reviews_count})</span>
               </span>
+
+              {service.phone && (
+                <a
+                  href={`tel:${service.phone}`}
+                  className="p-1.5 rounded-[8px] border border-border/60 bg-surface-container hover:bg-primary/10 hover:text-primary text-foreground transition-colors"
+                  title={isKa ? "დარეკვა" : "Call"}
+                >
+                  <Phone className="w-3.5 h-3.5" />
+                </a>
+              )}
+              {service.whatsapp && (
+                <a
+                  href={`https://wa.me/${service.whatsapp.replace(/[^0-9]/g, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-[8px] border border-border/60 bg-surface-container hover:bg-emerald-500/10 hover:text-emerald-600 text-foreground transition-colors"
+                  title="WhatsApp"
+                >
+                  <MessageSquare className="w-3.5 h-3.5" />
+                </a>
+              )}
 
               <Link
                 href={`/services/${service.id}`}
@@ -201,6 +269,28 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
           </span>
         </div>
 
+        {/* Wishlist Heart Button Top Right */}
+        <button
+          type="button"
+          onClick={handleWishlistClick}
+          className={`absolute top-2 right-2 z-20 h-7.5 w-7.5 rounded-full backdrop-blur-md flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-xs ${
+            isWishlisted
+              ? "bg-rose-500 text-white"
+              : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
+          }`}
+          title={isWishlisted ? (isKa ? "რჩეულებიდან ამოშლა" : "Remove from favorites") : (isKa ? "რჩეულებში დამატება" : "Add to favorites")}
+        >
+          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-current" : ""}`} />
+        </button>
+
+        {/* Distance Badge bottom left */}
+        {distLabel && (
+          <div className="absolute bottom-2 left-2 z-10 rounded-[6px] bg-black/70 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-bold text-white flex items-center gap-1">
+            <MapPin className="w-2.5 h-2.5 text-primary" />
+            <span>{distLabel}</span>
+          </div>
+        )}
+
         {/* Photo Count Bottom Right */}
         {service.portfolio_images && service.portfolio_images.length > 1 && (
           <div className="absolute bottom-2 right-2 z-10 rounded-[6px] bg-black/60 backdrop-blur-md px-1.5 py-0.5 text-[9px] font-semibold text-white flex items-center gap-1">
@@ -216,6 +306,9 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
         <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
           <div className="shrink-0 flex items-center gap-1 whitespace-nowrap">
             <div className="inline-flex items-baseline gap-1 whitespace-nowrap">
+              <span className="text-[10px] font-bold text-muted-foreground">
+                {isKa ? "დან" : "from"}
+              </span>
               <span className="text-base sm:text-lg font-black tracking-tight text-primary dark:text-emerald-400 whitespace-nowrap">
                 {service.price_from} ₾
               </span>

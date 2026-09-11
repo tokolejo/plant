@@ -13,6 +13,7 @@ import {
   type ServiceCategory 
 } from "@/lib/mock-services";
 import { createClient } from "@/utils/supabase/client";
+import { calculateDistanceKm } from "@/lib/utils";
 import {
   SlidersHorizontal,
   X,
@@ -113,7 +114,10 @@ function GardeningServicesCatalogContent() {
   const [searchQ, setSearchQ] = React.useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = React.useState<string>(searchParams.get("category") || "ALL");
   const [selectedCity, setSelectedCity] = React.useState<string>(searchParams.get("city") || "მთელი საქართველო");
-  const [userCoords, setUserCoords] = React.useState<[number, number] | null>(null);
+  const [userCoords, setUserCoords] = React.useState<[number, number] | null>([41.7116, 44.7554]);
+  const [gpsActive, setGpsActive] = React.useState(false);
+  const [gpsLoading, setGpsLoading] = React.useState(false);
+
   const [priceRange, setPriceRange] = React.useState<[number, number]>([
     Number(searchParams.get("minPrice")) || 0,
     Number(searchParams.get("maxPrice")) || 500,
@@ -124,21 +128,37 @@ function GardeningServicesCatalogContent() {
   const [pageSize, setPageSize] = React.useState<number>(20);
   const [visibleCount, setVisibleCount] = React.useState<number>(20);
 
-  // Horizontal Category Slider Ref & Handler
+  // Auto request GPS position on mount
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserCoords([pos.coords.latitude, pos.coords.longitude]);
+          setGpsActive(true);
+        },
+        () => {
+          // keep default Tbilisi center
+        },
+        { timeout: 8000 }
+      );
+    }
+  }, []);
+
+  // Horizontal Category Slider Ref & Handler (200px scroll step matching listings)
   const categoryScrollRef = React.useRef<HTMLDivElement>(null);
   const scrollCategories = (direction: "left" | "right") => {
     if (categoryScrollRef.current) {
-      const scrollAmount = direction === "left" ? -280 : 280;
+      const scrollAmount = direction === "left" ? -200 : 200;
       categoryScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
     }
   };
 
-  // Accordion Section States (Search, Location, Price, Category, Verified)
+  // Accordion Section States (Search open by default, other sections collapsed matching listings)
   const [openSections, setOpenSections] = React.useState({
     search: true,
-    location: true,
+    location: false,
     price: false,
-    category: false, // Collapsed by default
+    category: false,
     verified: false,
   });
 
@@ -236,7 +256,35 @@ function GardeningServicesCatalogContent() {
   };
 
   const handleSortClick = (type: string) => {
-    if (type === "newest") {
+    if (type === "nearest") {
+      if (!gpsActive) {
+        setGpsLoading(true);
+        if (typeof window !== "undefined" && navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              setUserCoords([pos.coords.latitude, pos.coords.longitude]);
+              setGpsActive(true);
+              setGpsLoading(false);
+              setSortBy("nearest");
+              updateQueryParams({ sort: "nearest" });
+            },
+            () => {
+              setGpsLoading(false);
+              setSortBy("nearest");
+              updateQueryParams({ sort: "nearest" });
+            },
+            { timeout: 8000 }
+          );
+        } else {
+          setGpsLoading(false);
+          setSortBy("nearest");
+          updateQueryParams({ sort: "nearest" });
+        }
+      } else {
+        setSortBy("nearest");
+        updateQueryParams({ sort: "nearest" });
+      }
+    } else if (type === "newest") {
       setSortBy("newest");
       updateQueryParams({ sort: "newest" });
     } else if (type === "rating") {
@@ -264,9 +312,23 @@ function GardeningServicesCatalogContent() {
     (priceRange[0] > 0 || priceRange[1] < 500 ? 1 : 0) +
     (verifiedOnly ? 1 : 0);
 
-  // Filter & Sort Logic
+  // Filter & Sort Logic with Distance calculation
   const filteredServices = React.useMemo(() => {
     return services
+      .map((srv) => {
+        let dist: number | undefined = undefined;
+        if (userCoords) {
+          const cityInfo = GEORGIA_CITIES.find(
+            (c) => c.nameKa === srv.city || c.nameEn.toLowerCase() === srv.city.toLowerCase()
+          );
+          const sLat = (srv as any).lat || (srv as any).latitude || cityInfo?.lat;
+          const sLng = (srv as any).lng || (srv as any).longitude || cityInfo?.lng;
+          if (sLat && sLng) {
+            dist = calculateDistanceKm(userCoords[0], userCoords[1], sLat, sLng);
+          }
+        }
+        return { ...srv, distanceKm: dist };
+      })
       .filter((srv) => {
         // 1. Search Query
         if (searchQ.trim()) {
@@ -284,7 +346,7 @@ function GardeningServicesCatalogContent() {
           return false;
         }
 
-        // 3. City Filter
+        // 3. City Filter (Bypass if GPS location selected)
         if (
           selectedCity !== "მთელი საქართველო" &&
           !selectedCity.includes("ჩემი ლოკაცია") &&
@@ -308,12 +370,20 @@ function GardeningServicesCatalogContent() {
         return true;
       })
       .sort((a, b) => {
+        if (sortBy === "nearest") {
+          return (a.distanceKm ?? 999) - (b.distanceKm ?? 999);
+        }
         if (sortBy === "price-asc") return a.price_from - b.price_from;
         if (sortBy === "price-desc") return b.price_from - a.price_from;
         if (sortBy === "rating") return b.rating - a.rating;
         return 0; // newest
       });
-  }, [services, searchQ, selectedCategory, selectedCity, priceRange, verifiedOnly, sortBy]);
+  }, [services, searchQ, selectedCategory, selectedCity, priceRange, verifiedOnly, sortBy, userCoords]);
+
+  // Reset pagination when filters, sort, search, or city change
+  React.useEffect(() => {
+    setVisibleCount(pageSize);
+  }, [pageSize, sortBy, searchQ, selectedCategory, selectedCity, priceRange, verifiedOnly]);
 
   const paginatedServices = React.useMemo(() => {
     return filteredServices.slice(0, visibleCount);
@@ -649,74 +719,112 @@ function GardeningServicesCatalogContent() {
         </div>
       </div>
 
-      {/* 3. Main Catalog Grid (Sidebar + Results) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Desktop Sticky Sidebar (3 cols) */}
-        <div className="hidden lg:block lg:col-span-3 sticky top-24 space-y-6">
-          <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs">
-            {SidebarContent}
-          </div>
-        </div>
-
-        {/* Results Area (9 cols) */}
-        <div className="lg:col-span-9 space-y-5">
-          {/* Active Filter Chips Strip */}
-          {activeFilterCount > 0 && (
-            <div className="flex flex-wrap items-center gap-2 p-3 rounded-[16px] bg-secondary-container/40 border border-border/60">
-              <span className="text-[11px] font-black text-muted-foreground uppercase mr-1">
-                {isKa ? "აქტიური ფილტრები:" : "Active Filters:"}
-              </span>
-
-              {searchQ && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-primary/10 text-primary text-xs font-bold border border-primary/20">
-                  <span>ძებნა: "{searchQ}"</span>
-                  <button onClick={() => { setSearchQ(""); updateQueryParams({ q: null }); }} className="hover:opacity-75 cursor-pointer"><X className="w-3 h-3" /></button>
-                </span>
-              )}
-
-              {selectedCategory !== "ALL" && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-primary/10 text-primary text-xs font-bold border border-primary/20">
-                  <span>{SERVICE_CATEGORIES.find((c) => c.id === selectedCategory)?.[isKa ? "labelKa" : "labelEn"]}</span>
-                  <button onClick={() => handleCategorySelect("ALL")} className="hover:opacity-75 cursor-pointer"><X className="w-3 h-3" /></button>
-                </span>
-              )}
-
-              {selectedCity && selectedCity !== "მთელი საქართველო" && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-primary/10 text-primary text-xs font-bold border border-primary/20">
-                  <span>{selectedCity}</span>
-                  <button onClick={() => { setSelectedCity("მთელი საქართველო"); updateQueryParams({ city: null }); }} className="hover:opacity-75 cursor-pointer"><X className="w-3 h-3" /></button>
-                </span>
-              )}
-
-              {(priceRange[0] > 0 || priceRange[1] < 500) && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-primary/10 text-primary text-xs font-bold border border-primary/20">
-                  <span>{priceRange[0]}₾ – {priceRange[1]}₾</span>
-                  <button onClick={() => { setPriceRange([0, 500]); updateQueryParams({ minPrice: null, maxPrice: null }); }} className="hover:opacity-75 cursor-pointer"><X className="w-3 h-3" /></button>
-                </span>
-              )}
-
-              {verifiedOnly && (
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-500/30">
-                  <span>{isKa ? "ვერიფიცირებული" : "Verified"}</span>
-                  <button onClick={() => { setVerifiedOnly(false); updateQueryParams({ verified: null }); }} className="hover:opacity-75 cursor-pointer"><X className="w-3 h-3" /></button>
-                </span>
-              )}
-
+      {/* Active Filter Chips Strip — Floating above catalog columns */}
+      {activeFilterCount > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {searchQ && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-foreground text-xs font-bold border border-border shadow-2xs">
+              <span className="text-muted-foreground">{isKa ? "ძებნა:" : "Search:"}</span>
+              <span>"{searchQ}"</span>
               <button
                 type="button"
-                onClick={handleResetFilters}
-                className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors ml-auto cursor-pointer"
+                onClick={() => { setSearchQ(""); updateQueryParams({ q: null }); }}
+                className="hover:text-primary transition-colors cursor-pointer"
               >
-                {isKa ? "ყველას გასუფთავება" : "Clear All"}
+                <X className="w-3.5 h-3.5" />
               </button>
-            </div>
+            </span>
           )}
 
+          {selectedCategory !== "ALL" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-foreground text-xs font-bold border border-border shadow-2xs">
+              <span className="text-muted-foreground">{isKa ? "კატეგორია:" : "Category:"}</span>
+              <span>{SERVICE_CATEGORIES.find((c) => c.id === selectedCategory)?.[isKa ? "labelKa" : "labelEn"]}</span>
+              <button
+                type="button"
+                onClick={() => handleCategorySelect("ALL")}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+
+          {selectedCity && selectedCity !== "მთელი საქართველო" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-foreground text-xs font-bold border border-border shadow-2xs">
+              <span className="text-muted-foreground">{isKa ? "ქალაქი:" : "City:"}</span>
+              <span>{selectedCity}</span>
+              <button
+                type="button"
+                onClick={() => { setSelectedCity("მთელი საქართველო"); updateQueryParams({ city: null }); }}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+
+          {(priceRange[0] > 0 || priceRange[1] < 500) && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-foreground text-xs font-bold border border-border shadow-2xs">
+              <span className="text-muted-foreground">{isKa ? "ფასი:" : "Price:"}</span>
+              <span>{priceRange[0]}₾ – {priceRange[1]}₾</span>
+              <button
+                type="button"
+                onClick={() => { setPriceRange([0, 500]); updateQueryParams({ minPrice: null, maxPrice: null }); }}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+
+          {verifiedOnly && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/30 shadow-2xs">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>{isKa ? "ვერიფიცირებული" : "Verified"}</span>
+              <button
+                type="button"
+                onClick={() => { setVerifiedOnly(false); updateQueryParams({ verified: null }); }}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors ml-auto cursor-pointer"
+          >
+            {isKa ? "გასუფთავება" : "Clear All"}
+          </button>
+        </div>
+      )}
+
+      {/* Main Catalog Shell: Flex + Sticky Sidebar (Identical to Marketplace) */}
+      <div className="flex gap-6 lg:gap-7 items-start">
+        {/* Desktop Sticky Sidebar */}
+        <aside className="hidden lg:block w-76 sm:w-80 shrink-0 relative z-30">
+          <div className="sticky top-20 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient overflow-visible relative z-30">
+            {SidebarContent}
+          </div>
+        </aside>
+
+        {/* Results Column */}
+        <div className="flex-1 min-w-0 space-y-4">
           {/* Controls Bar: Sort Pills (Left) + Mobile Filter & Page Size & Grid/List (Right) */}
           <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
             {/* Left: Sort Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 w-full sm:w-auto">
               {[
+                { 
+                  id: "nearest", 
+                  labelKa: "ახლოს", 
+                  labelEn: "Nearest", 
+                  isActive: sortBy === "nearest",
+                  loading: gpsLoading
+                },
                 { id: "newest", labelKa: "უახლესი", labelEn: "Newest", isActive: sortBy === "newest" },
                 { id: "rating", labelKa: "პოპულარული", labelEn: "Popular", isActive: sortBy === "rating" },
                 {
@@ -730,13 +838,14 @@ function GardeningServicesCatalogContent() {
                   key={opt.id}
                   type="button"
                   onClick={() => handleSortClick(opt.id)}
-                  className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
                     opt.isActive
                       ? "bg-primary text-white shadow-xs scale-[1.02]"
                       : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
                   }`}
                 >
-                  {isKa ? opt.labelKa : opt.labelEn}
+                  {opt.loading && <Loader2 className="w-3 h-3 animate-spin" />}
+                  <span>{isKa ? opt.labelKa : opt.labelEn}</span>
                 </button>
               ))}
             </div>
@@ -811,29 +920,31 @@ function GardeningServicesCatalogContent() {
 
           {/* Cards Grid / List Output */}
           {filteredServices.length === 0 ? (
-            <div className="py-20 rounded-[28px] border border-dashed border-border/80 bg-card/60 text-center space-y-4">
-              <Sprout className="w-12 h-12 text-muted-foreground/40 mx-auto" />
-              <h3 className="text-base sm:text-lg font-bold text-foreground">
-                {isKa ? "სერვისები ვერ მოიძებნა" : "No services found"}
+            <div className="rounded-[24px] border border-dashed border-border/80 bg-card/60 p-14 text-center shadow-ambient">
+              <Sparkles className="w-10 h-10 text-primary mx-auto mb-3" />
+              <h3 className="text-base sm:text-lg font-black text-foreground mb-1">
+                {isKa ? "სერვისები ვერ მოიძებნა" : "No Services Found"}
               </h3>
-              <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              <p className="text-xs text-muted-foreground max-w-sm mx-auto mb-4">
                 {isKa
                   ? "სცადეთ შეცვალოთ ფილტრის პარამეტრები ან ლოკაცია."
                   : "Try modifying your filter options or selecting a different city."}
               </p>
               <Button
-                type="button"
+                variant="outline"
+                size="sm"
                 onClick={handleResetFilters}
-                className="rounded-[12px] bg-primary text-white text-xs font-bold h-9 px-4 cursor-pointer"
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border cursor-pointer hover:bg-surface-container"
               >
-                {isKa ? "ფილტრების გასუფთავება" : "Reset Filters"}
+                <RotateCcw className="w-4 h-4" />
+                <span>{isKa ? "ფილტრების გასუფთავება" : "Reset Filters"}</span>
               </Button>
             </div>
           ) : (
             <div
               className={
                 viewMode === "grid"
-                  ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
+                  ? "grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-3 sm:gap-4"
                   : "flex flex-col gap-4"
               }
             >
@@ -867,62 +978,43 @@ function GardeningServicesCatalogContent() {
         </div>
       </div>
 
-      {/* Mobile Sticky Floating Filter Trigger */}
-      <div className="fixed bottom-6 right-6 lg:hidden z-40">
-        <Button
-          type="button"
-          onClick={() => setMobileFiltersOpen(true)}
-          className="rounded-full h-12 px-5 bg-primary hover:bg-primary/90 text-white font-black text-xs shadow-ambient flex items-center gap-2 cursor-pointer"
-        >
-          <SlidersHorizontal className="w-4 h-4" />
-          <span>{isKa ? "ფილტრები" : "Filters"}</span>
-          {activeFilterCount > 0 && (
-            <span className="w-5 h-5 rounded-full bg-white text-primary text-[10px] font-black flex items-center justify-center">
-              {activeFilterCount}
-            </span>
-          )}
-        </Button>
-      </div>
-
-      {/* Mobile Filter Sheet Drawer (Exact Match with Listings) */}
+      {/* Mobile Filter Sheet Drawer (Exact Match with Listings & z-[120]) */}
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-50 flex items-end lg:hidden animate-in fade-in">
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-xs"
-            onClick={() => setMobileFiltersOpen(false)}
-          />
-          <div className="relative w-full max-h-[85vh] overflow-y-auto rounded-t-[28px] bg-card border-t border-border p-5 space-y-4 shadow-ambient">
-            <div className="flex items-center justify-between pb-3 border-b border-border/60">
-              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4 text-primary" />
-                {isKa ? "ფილტრები" : "Filters"}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setMobileFiltersOpen(false)}
-                className="h-8 w-8 rounded-full bg-surface-container flex items-center justify-center text-muted-foreground"
-              >
-                <X className="w-4 h-4" />
-              </button>
+        <div 
+          className="fixed inset-0 z-[120] lg:hidden bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 flex flex-col justify-end"
+          onClick={() => setMobileFiltersOpen(false)}
+        >
+          <div 
+            className="w-full bg-card rounded-t-[28px] border-t border-border/80 p-5 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4 animate-in slide-in-from-bottom duration-250"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Swipe Handle & Header */}
+            <div>
+              <div className="w-10 h-1.5 rounded-full bg-border mx-auto mb-3" />
+              <div className="flex items-center justify-between pb-3 border-b border-border/80">
+                <h3 className="font-extrabold text-base text-foreground flex items-center gap-2">
+                  <SlidersHorizontal className="w-4 h-4 text-primary" />
+                  <span>{isKa ? "ფილტრები" : "Filters"}</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="p-1.5 rounded-full hover:bg-surface-container text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {SidebarContent}
 
-            <div className="pt-3 border-t border-border/60 flex items-center gap-2">
+            <div className="pt-3 border-t border-border/80 sticky bottom-0 bg-card">
               <Button
                 type="button"
-                variant="outline"
-                onClick={handleResetFilters}
-                className="flex-1 rounded-[12px] text-xs font-bold"
-              >
-                {isKa ? "გასუფთავება" : "Clear"}
-              </Button>
-              <Button
-                type="button"
+                className="w-full h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-black text-xs cursor-pointer shadow-ambient"
                 onClick={() => setMobileFiltersOpen(false)}
-                className="flex-1 rounded-[12px] bg-primary text-white text-xs font-black"
               >
-                {isKa ? `შედეგების ჩვენება (${filteredServices.length})` : `Show Results (${filteredServices.length})`}
+                {isKa ? `შედეგების ნახვა (${filteredServices.length})` : `Show Results (${filteredServices.length})`}
               </Button>
             </div>
           </div>

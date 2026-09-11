@@ -245,6 +245,19 @@ export function ListingCard({
                 </span>
               )}
             </div>
+
+            {/* Trade Preferences / ISO Seeking */}
+            {(tradePreferences?.length > 0 || transactionType === "TRADE") && (
+              <div className="flex items-center gap-1.5 mb-2 text-xs">
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-500/20 max-w-full truncate">
+                  <RefreshCw className="w-3 h-3 shrink-0 text-indigo-600 dark:text-indigo-400" />
+                  <span className="shrink-0">{isKa ? "ვეძებ გაცვლაში:" : "Seeking:"}</span>
+                  <span className="font-semibold truncate">
+                    {tradePreferences?.length > 0 ? tradePreferences.join(", ") : (isKa ? "ნებისმიერი შეთავაზება" : "Open to offers")}
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Bottom Seller info & Action link */}
@@ -392,11 +405,22 @@ export function ListingCard({
         </div>
 
         {/* Title */}
-        <Link href={`/listings/${id}`} className="mb-2 block">
+        <Link href={`/listings/${id}`} className="mb-1 block">
           <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold text-foreground leading-snug min-h-[32px]">
             {displayTitle}
           </h3>
         </Link>
+
+        {/* Trade Preferences Pill for Grid View */}
+        {(tradePreferences?.length > 0 || transactionType === "TRADE") && (
+          <div className="mb-1.5 flex items-center gap-1 text-[10px] text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded-[5px] border border-indigo-500/20 max-w-full truncate font-bold">
+            <RefreshCw className="w-2.5 h-2.5 shrink-0 text-indigo-600 dark:text-indigo-400" />
+            <span className="shrink-0">{isKa ? "ვეძებ:" : "ISO:"}</span>
+            <span className="truncate font-medium">
+              {tradePreferences?.length > 0 ? tradePreferences.join(", ") : (isKa ? "შეთავაზება" : "Offers")}
+            </span>
+          </div>
+        )}
 
         {/* Bottom Mini-Seller Row with High Contrast */}
         <div className="mt-auto border-t border-border/40 pt-2 flex items-center justify-between gap-1 text-[11px]">

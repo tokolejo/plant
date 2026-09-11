@@ -33,7 +33,8 @@ import {
   Gift,
   Plus,
   PlusCircle,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -147,19 +148,19 @@ function FilterSection({
         className="w-full flex items-center justify-between py-1 text-left group cursor-pointer"
       >
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-amber-600 transition-colors">
+          <span className="text-xs font-bold uppercase tracking-wider text-foreground group-hover:text-primary transition-colors">
             {title}
           </span>
           {badgeCount > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-amber-600 text-white text-[10px] font-black">
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1.5 rounded-full bg-primary text-white text-[10px] font-black">
               {badgeCount}
             </span>
           )}
         </div>
         {isOpen ? (
-          <ChevronUp className="w-4 h-4 text-muted-foreground group-hover:text-amber-600 transition-colors" />
+          <ChevronUp className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-amber-600 transition-colors" />
+          <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
         )}
       </button>
       {isOpen && <div className="pt-2 pb-1 animate-in fade-in duration-150">{children}</div>}
@@ -367,6 +368,7 @@ function IsoCatalogContent() {
 
   // Derived active filter count
   const activeFilterCount =
+    (searchQ.trim() ? 1 : 0) +
     selectedCategories.length +
     selectedTrans.length +
     selectedDelivery.length +
@@ -972,11 +974,102 @@ function IsoCatalogContent() {
         </div>
       </div>
 
-      {/* Main Grid Layout (Sidebar + Results) */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+      {/* Active Filter Chips Strip — Floating above catalog columns */}
+      {activeFilterCount > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          {searchQ && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-foreground text-xs font-bold border border-border shadow-2xs">
+              <span className="text-muted-foreground">{isKa ? "ძიება:" : "Search:"}</span>
+              <span>"{searchQ}"</span>
+              <button
+                type="button"
+                onClick={() => setSearchQ("")}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+
+          {selectedCity && selectedCity !== "მთელი საქართველო" && (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-foreground text-xs font-bold border border-border shadow-2xs">
+              <span className="text-muted-foreground">{isKa ? "ქალაქი:" : "City:"}</span>
+              <span>{selectedCity}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedCity("მთელი საქართველო")}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          )}
+
+          {selectedCategories.map((catId) => (
+            <span
+              key={catId}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-secondary-container text-primary text-xs font-bold border border-primary/20 shadow-2xs"
+            >
+              <span>{catId}</span>
+              <button
+                type="button"
+                onClick={() => toggleCategory(catId)}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          ))}
+
+          {selectedTrans.map((tr) => (
+            <span
+              key={tr}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-secondary-container text-primary text-xs font-bold border border-primary/20 shadow-2xs"
+            >
+              <span>{tr === "TRADE" ? (isKa ? "გაცვლა" : "Trade") : (isKa ? "გაჩუქება" : "Gift")}</span>
+              <button
+                type="button"
+                onClick={() => setSelectedTrans((prev) => prev.filter((x) => x !== tr))}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          ))}
+
+          {selectedDelivery.map((del) => (
+            <span
+              key={del}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-[10px] bg-card text-foreground text-xs font-bold border border-border shadow-2xs"
+            >
+              <span>{del === "PICKUP" ? (isKa ? "ადგილზე" : "Pickup") : del === "COURIER" ? (isKa ? "კურიერი" : "Courier") : (isKa ? "სამარშრუტო" : "Transit")}</span>
+              <button
+                type="button"
+                onClick={() => toggleDelivery(del)}
+                className="hover:text-primary transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          ))}
+
+          <button
+            type="button"
+            onClick={resetAll}
+            className="text-xs font-bold text-muted-foreground hover:text-primary transition-colors ml-auto cursor-pointer"
+          >
+            {isKa ? "გასუფთავება" : "Clear All"}
+          </button>
+        </div>
+      )}
+
+      {/* Main Shell (Sidebar + Results) — Identical to Marketplace */}
+      <div className="flex gap-6 lg:gap-7 items-start">
         {/* Desktop Sidebar */}
-        <aside className="hidden lg:block lg:col-span-1 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient sticky top-20">
-          {SidebarContent}
+        <aside className="hidden lg:block w-76 sm:w-80 shrink-0 relative z-30">
+          <div className="sticky top-20 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient overflow-visible relative z-30">
+            {SidebarContent}
+          </div>
         </aside>
 
         {/* Mobile Filter Bottom Sheet */}
@@ -1023,14 +1116,20 @@ function IsoCatalogContent() {
         )}
 
         {/* Results Column */}
-        <div className="lg:col-span-3 space-y-4">
+        <div className="flex-1 min-w-0 space-y-4">
 
           {/* Controls Bar: Sort Pills (Left) + Mobile Filter & Page Size & Grid/List (Right) */}
           <div className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
             {/* Left: Sort Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5 w-full sm:w-auto">
               {[
-                { id: "nearest", labelKa: "ახლოს", labelEn: "Nearest", isActive: sortBy === "nearest" },
+                { 
+                  id: "nearest", 
+                  labelKa: "ახლოს", 
+                  labelEn: "Nearest", 
+                  isActive: sortBy === "nearest",
+                  loading: gpsLoading
+                },
                 { id: "views", labelKa: "პოპულარული", labelEn: "Popular", isActive: sortBy === "views" },
                 { id: "newest", labelKa: "უახლესი", labelEn: "Newest", isActive: sortBy === "newest" },
               ].map((opt) => (
@@ -1038,13 +1137,14 @@ function IsoCatalogContent() {
                   key={opt.id}
                   type="button"
                   onClick={() => handleSortClick(opt.id)}
-                  className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                  className={`shrink-0 px-3 sm:px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${
                     opt.isActive
                       ? "bg-primary text-white shadow-xs scale-[1.02]"
                       : "bg-card border border-border/70 text-foreground hover:bg-surface-container hover:border-primary/40"
                   }`}
                 >
-                  {isKa ? opt.labelKa : opt.labelEn}
+                  {opt.loading && <Loader2 className="w-3 h-3 animate-spin" />}
+                  <span>{isKa ? opt.labelKa : opt.labelEn}</span>
                 </button>
               ))}
             </div>
@@ -1126,7 +1226,7 @@ function IsoCatalogContent() {
             </div>
           ) : sortedListings.length === 0 ? (
             <div className="rounded-[24px] border border-dashed border-border/80 bg-card/60 p-14 text-center shadow-ambient space-y-3">
-              <Shuffle className="w-10 h-10 text-indigo-600 mx-auto mb-2" />
+              <Shuffle className="w-10 h-10 text-primary mx-auto mb-2" />
               <h3 className="font-bold text-lg text-foreground">
                 {isKa ? "გასაცვლელი მცენარე ვერ მოიძებნა" : "No plant trade listings found"}
               </h3>
@@ -1137,7 +1237,7 @@ function IsoCatalogContent() {
                 variant="outline"
                 size="sm"
                 onClick={resetAll}
-                className="rounded-[12px] text-xs font-bold gap-1.5 border-border"
+                className="rounded-[12px] text-xs font-bold gap-1.5 border-border cursor-pointer hover:bg-surface-container"
               >
                 <RotateCcw className="w-4 h-4" /> {isKa ? "ფილტრების გასუფთავება" : "Reset Filters"}
               </Button>
@@ -1162,7 +1262,7 @@ function IsoCatalogContent() {
               <Button
                 type="button"
                 onClick={() => setVisibleCount((prev) => prev + pageSize)}
-                className="h-11 px-8 rounded-[16px] bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-ambient gap-2 hover:scale-[1.02] transition-all cursor-pointer"
+                className="h-11 px-8 rounded-[16px] bg-primary hover:bg-primary/90 text-white text-xs sm:text-sm font-bold shadow-ambient gap-2 hover:scale-[1.02] transition-all cursor-pointer"
               >
                 <ChevronDown className="w-4 h-4" />
                 <span>{isKa ? "მეტის ნახვა" : "Load More"}</span>
