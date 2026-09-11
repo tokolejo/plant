@@ -52,6 +52,7 @@ import { getBotanicalCareDetails } from "@/lib/botanical-care";
 import { ReviewsSkeleton, RecommendedInventorySkeleton } from "@/components/common/DetailSkeletons";
 import { submitReviewAction } from "@/app/actions/reviews";
 import { toggleWishlistAction, addToGreenhouseAction } from "@/app/actions/listings";
+import { usePlatformSettings } from "@/lib/platform-settings";
 
 // ─── Social Platform Icons ──────────────────────────────────────────────────
 function WhatsAppIcon({ className }: { className?: string }) {
@@ -245,6 +246,7 @@ export default function ListingDetailPage({
 }) {
   const locale = useLocale();
   const isKa = locale !== "en";
+  const { greenhouseEnabled } = usePlatformSettings();
   const router = useRouter();
   const supabase = createClient();
   const [listing, setListing] = React.useState<any>(null);
@@ -1000,28 +1002,30 @@ export default function ListingDetailPage({
               </a>
 
               {/* 1-Click Greenhouse Bridge */}
-              <button
-                type="button"
-                disabled={addingToGreenhouse || greenhouseAdded}
-                onClick={handleAddToGreenhouse}
-                className={`w-full h-9 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
-                  greenhouseAdded
-                    ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 cursor-default"
-                    : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
-                }`}
-              >
-                {greenhouseAdded ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{isKa ? "ორანჟერეაშია" : "In Your Greenhouse"}</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>{isKa ? "ჩემს ორანჟერეაში დამატება" : "Add to My Greenhouse"}</span>
-                  </>
-                )}
-              </button>
+              {greenhouseEnabled && (
+                <button
+                  type="button"
+                  disabled={addingToGreenhouse || greenhouseAdded}
+                  onClick={handleAddToGreenhouse}
+                  className={`w-full h-9 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-1.5 transition-colors cursor-pointer border ${
+                    greenhouseAdded
+                      ? "bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 border-emerald-500/30 cursor-default"
+                      : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-500/30"
+                  }`}
+                >
+                  {greenhouseAdded ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{isKa ? "ორანჟერეაშია" : "In Your Greenhouse"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{isKa ? "ჩემს ორანჟერეაში დამატება" : "Add to My Greenhouse"}</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
 
             {/* Wishlist Notice */}

@@ -9,10 +9,12 @@ import {
   MapPin,
   Mail,
 } from "lucide-react";
+import { usePlatformSettings } from "@/lib/platform-settings";
 
 export function Footer() {
   const locale = useLocale();
   const isKa = locale !== "en";
+  const { greenhouseEnabled } = usePlatformSettings();
 
   return (
     <footer className="w-full border-t border-border/70 bg-surface-container-lowest/80 dark:bg-card/40 mt-0 sm:mt-6 lg:mt-10 pb-20 lg:pb-8 transition-colors">
@@ -138,11 +140,13 @@ export function Footer() {
                   {isKa ? "AI მცენარეთა ექიმი" : "AI Plant Doctor"}
                 </Link>
               </li>
-              <li>
-                <Link href="/dashboard/greenhouse" className="hover:text-primary transition-colors">
-                  {isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}
-                </Link>
-              </li>
+              {greenhouseEnabled && (
+                <li>
+                  <Link href="/dashboard/greenhouse" className="hover:text-primary transition-colors">
+                    {isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}
+                  </Link>
+                </li>
+              )}
               <li>
                 <Link href="/community" className="hover:text-primary transition-colors">
                   {isKa ? "მწვანე კომუნა" : "Community"}

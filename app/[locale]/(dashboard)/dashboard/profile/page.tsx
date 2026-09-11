@@ -38,12 +38,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { usePlatformSettings } from "@/lib/platform-settings";
 
 type ProfileTab = "general" | "social" | "security" | "notifications";
 
 export default function ProfileEditPage() {
   const locale = useLocale();
   const isKa = locale !== "en";
+  const { greenhouseEnabled } = usePlatformSettings();
   const supabase = createClient();
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -317,13 +319,15 @@ export default function ProfileEditPage() {
         </div>
 
         <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
-          <Link
-            href="/dashboard/greenhouse"
-            className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-3.5 py-2 rounded-[12px] border border-emerald-500/20 transition-all cursor-pointer"
-          >
-            <Sprout className="w-4 h-4 text-emerald-600" />
-            <span>{isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}</span>
-          </Link>
+          {greenhouseEnabled && (
+            <Link
+              href="/dashboard/greenhouse"
+              className="inline-flex items-center gap-1.5 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 px-3.5 py-2 rounded-[12px] border border-emerald-500/20 transition-all cursor-pointer"
+            >
+              <Sprout className="w-4 h-4 text-emerald-600" />
+              <span>{isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}</span>
+            </Link>
+          )}
 
           {customSlug && (
             <Link

@@ -47,9 +47,12 @@ interface DiagnosisData {
   recommendedProducts: { name: string; query: string; category: string }[];
 }
 
+import { usePlatformSettings } from "@/lib/platform-settings";
+
 export default function PlantDoctorPage() {
   const locale = useLocale();
   const isKa = locale !== "en";
+  const { greenhouseEnabled } = usePlatformSettings();
   const supabase = createClient();
   const router = useRouter();
 
@@ -310,28 +313,30 @@ export default function PlantDoctorPage() {
               )}
             </div>
 
-            <Button
-              type="button"
-              disabled={addedToGreenhouse}
-              onClick={handleAddToGreenhouse}
-              className={`rounded-[14px] text-xs font-black gap-2 h-10 px-4 cursor-pointer shadow-xs transition-all ${
-                addedToGreenhouse
-                  ? "bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 cursor-default"
-                  : "bg-primary hover:bg-primary/90 text-white"
-              }`}
-            >
-              {addedToGreenhouse ? (
-                <>
-                  <Check className="w-4 h-4 text-emerald-600" />
-                  <span>ორანჟერეაშია</span>
-                </>
-              ) : (
-                <>
-                  <Sprout className="w-4 h-4" />
-                  <span>ორანჟერეაში დამატება</span>
-                </>
-              )}
-            </Button>
+            {greenhouseEnabled && (
+              <Button
+                type="button"
+                disabled={addedToGreenhouse}
+                onClick={handleAddToGreenhouse}
+                className={`rounded-[14px] text-xs font-black gap-2 h-10 px-4 cursor-pointer shadow-xs transition-all ${
+                  addedToGreenhouse
+                    ? "bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 cursor-default"
+                    : "bg-primary hover:bg-primary/90 text-white"
+                }`}
+              >
+                {addedToGreenhouse ? (
+                  <>
+                    <Check className="w-4 h-4 text-emerald-600" />
+                    <span>ორანჟერეაშია</span>
+                  </>
+                ) : (
+                  <>
+                    <Sprout className="w-4 h-4" />
+                    <span>ორანჟერეაში დამატება</span>
+                  </>
+                )}
+              </Button>
+            )}
           </div>
 
           {/* Causes & Symptoms Grid */}

@@ -32,10 +32,12 @@ import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { NotificationDropdown } from "./NotificationDropdown";
 import { Heart, BarChart3 } from "lucide-react";
+import { usePlatformSettings } from "@/lib/platform-settings";
 
 export function Header() {
   const locale = useLocale();
   const isKa = locale !== "en";
+  const { greenhouseEnabled } = usePlatformSettings();
   const t = useTranslations("Common");
   const navT = useTranslations("Navigation");
   const pathname = usePathname();
@@ -262,11 +264,13 @@ export function Header() {
                         {isKa ? "კაბინეტი" : "Dashboard"}
                       </Link>
 
-                      <Link href="/dashboard/greenhouse" onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-black bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors">
-                        <Sprout className="w-4 h-4 text-emerald-600" />
-                        {isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}
-                      </Link>
+                      {greenhouseEnabled && (
+                        <Link href="/dashboard/greenhouse" onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-black bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors">
+                          <Sprout className="w-4 h-4 text-emerald-600" />
+                          {isKa ? "ჩემი ორანჟერეა" : "My Greenhouse"}
+                        </Link>
+                      )}
 
                       <Link href="/dashboard/seller" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20 transition-colors">

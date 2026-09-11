@@ -36,9 +36,11 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
+import { usePlatformSettings } from "@/lib/platform-settings";
 
 export default function UserDashboardPage() {
   const supabase = createClient();
+  const { greenhouseEnabled } = usePlatformSettings();
   const [copied, setCopied] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState<"ALL" | "ACTIVE" | "GIFT" | "TRADE">("ALL");
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -236,28 +238,30 @@ export default function UserDashboardPage() {
         </div>
       </div>
 
-      {/*  Virtual Greenhouse & AI Doctor Quick Access Banner */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        <Link
-          href="/dashboard/greenhouse"
-          className="p-4 sm:p-5 rounded-[22px] bg-gradient-to-br from-emerald-500/10 via-card to-emerald-500/5 border border-emerald-500/30 hover:border-emerald-500/60 shadow-xs hover:shadow-ambient transition-all group flex items-center justify-between gap-3 cursor-pointer"
-        >
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div className="h-11 w-11 rounded-[14px] bg-emerald-600 text-white flex items-center justify-center font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
-              <Sprout className="w-5 h-5" />
-            </div>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-black text-foreground">ჩემი ვირტუალური ორანჟერეა</h3>
-                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-black">NEW</span>
+      {/* 🌿 Virtual Greenhouse & AI Doctor Quick Access Banner */}
+      <div className={`grid gap-4 mb-8 ${greenhouseEnabled ? "grid-cols-1 md:grid-cols-2" : "grid-cols-1"}`}>
+        {greenhouseEnabled && (
+          <Link
+            href="/dashboard/greenhouse"
+            className="p-4 sm:p-5 rounded-[22px] bg-gradient-to-br from-emerald-500/10 via-card to-emerald-500/5 border border-emerald-500/30 hover:border-emerald-500/60 shadow-xs hover:shadow-ambient transition-all group flex items-center justify-between gap-3 cursor-pointer"
+          >
+            <div className="flex items-center gap-3.5 min-w-0">
+              <div className="h-11 w-11 rounded-[14px] bg-emerald-600 text-white flex items-center justify-center font-black shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                <Sprout className="w-5 h-5" />
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                მცენარეების კოლექცია, მორწყვის კალენდარი & შეხსენებები
-              </p>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-black text-foreground">ჩემი ვირტუალური ორანჟერეა</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-black">NEW</span>
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                  მცენარეების კოლექცია, მორწყვის კალენდარი & შეხსენებები
+                </p>
+              </div>
             </div>
-          </div>
-          <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform shrink-0" />
-        </Link>
+            <ArrowRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform shrink-0" />
+          </Link>
+        )}
 
         <Link
           href="/plant-doctor"

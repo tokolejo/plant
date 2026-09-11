@@ -6,6 +6,13 @@ import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS } from "@/lib/mock-data";
 import { formatDbListing } from "@/lib/listings-service";
 import { getStoredPlans, saveStoredPlans, fetchAndSyncDbPlans, SubscriptionPlanItem, DEFAULT_PLANS } from "@/lib/plans-store";
+import { 
+  usePlatformSettings, 
+  updatePlatformSettingsViaApi, 
+  PlatformSettings, 
+  DEFAULT_PLATFORM_SETTINGS,
+  fetchAndSyncPlatformSettings
+} from "@/lib/platform-settings";
 import { logAuditEvent } from "@/lib/audit-logger";
 import { 
   ShieldCheck, 
@@ -13,6 +20,7 @@ import {
   Layers, 
   Sparkles, 
   Eye, 
+  Rocket, 
   EyeOff,
   Trash2, 
   CheckCircle, 
@@ -211,6 +219,34 @@ export default function AdminDashboardPage() {
       }
     });
   }, []);
+
+  // Platform Launch Settings & Feature Flags State
+  const [platformSettings, setPlatformSettings] = React.useState<PlatformSettings>(DEFAULT_PLATFORM_SETTINGS);
+  const [savingPlatformSettings, setSavingPlatformSettings] = React.useState(false);
+
+  React.useEffect(() => {
+    fetchAndSyncPlatformSettings().then((s) => {
+      if (s) setPlatformSettings(s);
+    });
+  }, []);
+
+  const handleSavePlatformSettings = async (override?: Partial<PlatformSettings>) => {
+    const toSave: PlatformSettings = { ...platformSettings, ...override };
+    setSavingPlatformSettings(true);
+    try {
+      const ok = await updatePlatformSettingsViaApi(toSave);
+      setPlatformSettings(toSave);
+      if (ok) {
+        showNotice("🚀 პლატფორმის პარამეტრები წარმატებით შეინახა და აისახა საიტზე!");
+      } else {
+        showNotice("⚠️ პარამეტრები ლოკალურად შეინახა, მაგრამ სერვერზე გაწერა ვერ მოხერხდა.", "error");
+      }
+    } catch (err: any) {
+      showNotice(`⚠️ შეცდომა: ${err?.message || "ვერ მოხერხდა შენახვა"}`, "error");
+    } finally {
+      setSavingPlatformSettings(false);
+    }
+  };
 
   // Floating Glassmorphic Feedback Toast Notification
   const [toast, setToast] = React.useState<{ id: string; type: "success" | "error" | "info"; message: string } | null>(null);
@@ -4141,6 +4177,183 @@ export default function AdminDashboardPage() {
               >
                 <Save className="w-4 h-4" /> შენახვა
               </Button>
+            </div>
+          </div>
+
+          {/* ═══ Platform Launch Controls: Subscriptions Mode & Greenhouse Toggles ═══ */}
+          <div className="rounded-[22px] border-2 border-primary/20 bg-gradient-to-br from-primary/5 via-card to-purple-500/5 p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-3.5">
+              <div className="flex items-center gap-2.5">
+                <div className="h-9 w-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold">
+                  <SlidersHorizontal className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-foreground">
+                    პლატფორმის გაშვების რეჟიმები & ფუნქციების მართვა
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    მართეთ /pricing გვერდის საჯარო ხედი და ორანჟერეის სტატუსი 1 კლიკით
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/pricing"
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-border/80 text-xs font-bold hover:bg-surface-container transition-colors"
+                >
+                  <span>/pricing შემოწმება</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </Link>
+
+                <Button
+                  type="button"
+                  disabled={savingPlatformSettings}
+                  onClick={() => handleSavePlatformSettings()}
+                  className="rounded-xl text-xs font-bold bg-primary hover:bg-primary/90 text-white gap-1.5 h-8.5 px-4 shadow-sm cursor-pointer"
+                >
+                  {savingPlatformSettings ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <span>ინახება...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      <span>შენახვა</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              
+              {/* Setting 1: Subscriptions / Pricing Mode */}
+              <div className="p-4 rounded-[18px] border border-border/70 bg-card/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-foreground flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-purple-600" />
+                    <span>საბსქრიფშენების გვერდი (/pricing)</span>
+                  </label>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] font-black ${
+                      platformSettings.subscriptionsMode === "COMING_SOON"
+                        ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30"
+                        : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                    }`}
+                  >
+                    {platformSettings.subscriptionsMode === "COMING_SOON" ? "Coming Soon (მალე)" : "Active Plans (პაკეტები)"}
+                  </Badge>
+                </div>
+                
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {platformSettings.subscriptionsMode === "COMING_SOON"
+                    ? "მომხმარებლები ხედავენ „მალე დაემატება“ გვერდს და განმარტებას, რომ გაშვების საწყის ეტაპზე საიტი სრულიად უფასოა."
+                    : "მომხმარებლები ხედავენ ყველა ტარიფს (ფასებითა და ლიმიტებით) და შეუძლიათ გამოწერა."}
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = { ...platformSettings, subscriptionsMode: "COMING_SOON" as const };
+                      setPlatformSettings(next);
+                      handleSavePlatformSettings(next);
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                      platformSettings.subscriptionsMode === "COMING_SOON"
+                        ? "bg-amber-500/15 border-amber-500/40 text-amber-900 dark:text-amber-200 shadow-xs"
+                        : "bg-muted/40 border-border/70 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Coming Soon</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = { ...platformSettings, subscriptionsMode: "ACTIVE" as const };
+                      setPlatformSettings(next);
+                      handleSavePlatformSettings(next);
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                      platformSettings.subscriptionsMode === "ACTIVE"
+                        ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-900 dark:text-emerald-200 shadow-xs"
+                        : "bg-muted/40 border-border/70 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Rocket className="w-3.5 h-3.5" />
+                    <span>Active (ჩვენება)</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Setting 2: Virtual Greenhouse Public Visibility */}
+              <div className="p-4 rounded-[18px] border border-border/70 bg-card/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-black text-foreground flex items-center gap-1.5">
+                    <Sprout className="w-4 h-4 text-emerald-600" />
+                    <span>ვირტუალური ორანჟერეა</span>
+                  </label>
+                  <Badge
+                    variant="outline"
+                    className={`text-[10px] font-black ${
+                      !platformSettings.greenhouseEnabled
+                        ? "bg-slate-500/10 text-slate-700 dark:text-slate-300 border-slate-400/30"
+                        : "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30"
+                    }`}
+                  >
+                    {!platformSettings.greenhouseEnabled ? "გათიშული (დამალული)" : "ჩართული (ხილული)"}
+                  </Badge>
+                </div>
+
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  {!platformSettings.greenhouseEnabled
+                    ? "ორანჟერეის ბმულები და ღილაკები დამალულია ჰედერში, ფუტერში, განცხადებებში და კაბინეტში."
+                    : "ორანჟერეა სრულად ხილულია და ხელმისაწვდომია საიტის ყველა მომხმარებლისთვის."}
+                </p>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = { ...platformSettings, greenhouseEnabled: false };
+                      setPlatformSettings(next);
+                      handleSavePlatformSettings(next);
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                      !platformSettings.greenhouseEnabled
+                        ? "bg-slate-500/15 border-slate-500/40 text-slate-900 dark:text-slate-200 shadow-xs"
+                        : "bg-muted/40 border-border/70 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>გათიშული</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = { ...platformSettings, greenhouseEnabled: true };
+                      setPlatformSettings(next);
+                      handleSavePlatformSettings(next);
+                    }}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer border ${
+                      platformSettings.greenhouseEnabled
+                        ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-900 dark:text-emerald-200 shadow-xs"
+                        : "bg-muted/40 border-border/70 text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    <Sprout className="w-3.5 h-3.5" />
+                    <span>ჩართული</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
           </div>
 
