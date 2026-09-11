@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useLocale } from "next-intl";
-import { SAMPLE_LISTINGS, type PlantCategory } from "@/lib/mock-data";
+import { type PlantCategory } from "@/lib/mock-data";
 import { getMergedListings } from "@/lib/listings-service";
 import { formatPrice, calculateDistanceKm } from "@/lib/utils";
 import { 
@@ -607,7 +607,7 @@ export default function BotanicalMap() {
 
         {/* Listings count pill */}
         <span className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-[14px] bg-card/95 backdrop-blur-xl border border-border/80 text-xs font-bold text-foreground shadow-ambient">
-          <span className="text-primary font-black">{filteredListings.length}</span> / {SAMPLE_LISTINGS.length} {isKa ? "პინი" : "pins"}
+          <span className="text-primary font-black">{filteredListings.length}</span> / {allMapListings.length} {isKa ? "პინი" : "pins"}
         </span>
       </div>
 
@@ -742,7 +742,7 @@ export default function BotanicalMap() {
                   { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
                 ].map((t) => {
                   const active = selectedTrans.includes(t.id);
-                  const count = SAMPLE_LISTINGS.filter((l) => l.transactionType === t.id).length;
+                  const count = allMapListings.filter((l) => l.transactionType === t.id).length;
                   return (
                     <button
                       key={t.id}

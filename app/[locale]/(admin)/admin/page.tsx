@@ -96,7 +96,7 @@ export default function AdminDashboardPage() {
   const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "feedback" | "affiliate" | "audit" | "plans" | "analytics">("overview");
 
   // Admin Listings State
-  const [listings, setListings] = React.useState<any[]>(SAMPLE_LISTINGS);
+  const [listings, setListings] = React.useState<any[]>([]);
   const [listingSearch, setListingSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<string>("all");
   const [typeFilter, setTypeFilter] = React.useState<string>("all");
@@ -295,13 +295,9 @@ export default function AdminDashboardPage() {
         status: r.status || "ACTIVE",
         rawCreatedAt: r.created_at || new Date().toISOString(),
       }));
-      const existingIds = new Set(formattedDb.map((l: any) => l.id));
-      const uniqueSamples = SAMPLE_LISTINGS.filter((l) => !existingIds.has(l.id)).map((s) => ({
-        ...s,
-        status: s.status || "ACTIVE",
-        rawCreatedAt: s.createdAt || "2026-08-15T12:00:00Z",
-      }));
-      setListings([...formattedDb, ...uniqueSamples]);
+      setListings(formattedDb);
+    } else {
+      setListings([]);
     }
 
     // 2. Fetch Real Profiles

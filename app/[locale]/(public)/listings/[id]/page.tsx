@@ -117,99 +117,8 @@ function getLocalizedBadge(badge: string, isKa: boolean) {
   };
 }
 
-// ─── Curated Partner Retailers & Agro Hypermarkets (Domino, Gorgia, Agrohub, Bricorama) ───
-const RECOMMENDED_INVENTORY = [
-  {
-    id: "rec-inv-1",
-    titleKa: "აროიდების & ტროპიკული მცენარეების სუბსტრატი (5L)",
-    titleEn: "Aroids & Tropical Plants Substrate (5L)",
-    categoryKa: "სუბსტრატი & გრუნტი",
-    categoryEn: "Soil & Substrate",
-    price: 19,
-    image: "https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=600&auto=format&fit=crop&q=80",
-    shopName: "დომინო",
-    shopBadge: "დომინო",
-    shopLogo: "",
-    shopColor: "bg-[#0055a5] text-white border border-white/20",
-    link: "https://domino.com.ge",
-    isExternal: true,
-  },
-  {
-    id: "rec-inv-2",
-    titleKa: "კერამიკული მქრქალი ქოთანი სადგამით (18 სმ)",
-    titleEn: "Matte Ceramic Pot with Saucer (18 cm)",
-    categoryKa: "ქოთნები",
-    categoryEn: "Planters & Pots",
-    price: 38,
-    image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600&auto=format&fit=crop&q=80",
-    shopName: "გორგია",
-    shopBadge: "გორგია",
-    shopLogo: "",
-    shopColor: "bg-[#e35205] text-white border border-white/20",
-    link: "https://gorgia.ge",
-    isExternal: true,
-  },
-  {
-    id: "rec-inv-3",
-    titleKa: "ორგანული სასუქი & ფესვის ზრდის ელექსირი (500 მლ)",
-    titleEn: "Organic Fertilizer & Root Growth Elixir (500 ml)",
-    categoryKa: "სასუქი & მოვლა",
-    categoryEn: "Fertilizer & Care",
-    price: 24,
-    image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=600&auto=format&fit=crop&q=80",
-    shopName: "აგროჰაბი",
-    shopBadge: "აგროჰაბი",
-    shopLogo: "",
-    shopColor: "bg-[#0b8043] text-white border border-white/20",
-    link: "https://agrohub.ge",
-    isExternal: true,
-  },
-  {
-    id: "rec-inv-4",
-    titleKa: "ფიტო-განათება მცენარეებისთვის (Full Spectrum LED)",
-    titleEn: "Full Spectrum LED Grow Light for Indoor Plants",
-    categoryKa: "Grow Light",
-    categoryEn: "Grow Light",
-    price: 59,
-    image: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=600&auto=format&fit=crop&q=80",
-    shopName: "ბრიკორამა",
-    shopBadge: "ბრიკორამა",
-    shopLogo: "",
-    shopColor: "bg-[#c8102e] text-white border border-white/20",
-    link: "https://bricorama.ge",
-    isExternal: true,
-  },
-  {
-    id: "rec-inv-5",
-    titleKa: "ბოტანიკური უჟანგავი მოსავლელი მაკრატელი",
-    titleEn: "Botanical Stainless Steel Pruning Shears",
-    categoryKa: "ხელსაწყოები",
-    categoryEn: "Care Tools",
-    price: 18,
-    image: "https://images.unsplash.com/photo-1592150621744-aca64f48394a?w=600&auto=format&fit=crop&q=80",
-    shopName: "აგრო სექტორი",
-    shopBadge: "აგრო სექტორი",
-    shopLogo: "",
-    shopColor: "bg-[#0284c7] text-white border border-white/20",
-    link: "/listings?type=INVENTORY",
-    isExternal: false,
-  },
-  {
-    id: "rec-inv-6",
-    titleKa: "ქოქოსის ბოჭკოს ხავსის საყრდენი ბოძი (Moss Pole 60 სმ)",
-    titleEn: "Coco Coir Moss Pole Support (60 cm)",
-    categoryKa: "აქსესუარები",
-    categoryEn: "Accessories",
-    price: 14,
-    image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600&auto=format&fit=crop&q=80",
-    shopName: "დომინო",
-    shopBadge: "დომინო",
-    shopLogo: "",
-    shopColor: "bg-[#0055a5] text-white border border-white/20",
-    link: "https://domino.com.ge",
-    isExternal: true,
-  },
-];
+// ─── Curated Partner Retailers & Agro Hypermarkets (Pure Real Database) ───
+const RECOMMENDED_INVENTORY: any[] = [];
 
 const CATEGORIES_DATA: Record<string, { labelKa: string; labelEn: string }> = {
   monstera: { labelKa: "მონსტერა", labelEn: "Monstera" },
@@ -265,7 +174,7 @@ export default function ListingDetailPage({
   const [checkoutModalOpen, setCheckoutModalOpen] = React.useState(false);
 
   // ── Dynamic Affiliate Cross-Selling Offers ──
-  const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>(RECOMMENDED_INVENTORY);
+  const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>([]);
   const [activeTab, setActiveTab] = React.useState<"care" | "description" | "reviews" | "inventory">("care");
   const [isInventoryHovered, setIsInventoryHovered] = React.useState(false);
 
@@ -317,14 +226,12 @@ export default function ListingDetailPage({
           }
           return formatted;
         } else {
-          const sample = SAMPLE_LISTINGS.find((l) => l.id === id);
-          if (sample) setListing(sample);
-          return sample;
+          setListing(null);
+          return null;
         }
       } catch {
-        const sample = SAMPLE_LISTINGS.find((l) => l.id === id);
-        if (sample) setListing(sample);
-        return sample;
+        setListing(null);
+        return null;
       } finally {
         setLoadingListing(false);
       }
@@ -430,12 +337,13 @@ export default function ListingDetailPage({
             };
           });
 
-          // Prioritize real products from database. Only backfill if fewer than 4 items exist
-          const backfill = mapped.length < 4 ? RECOMMENDED_INVENTORY.slice(0, 4 - mapped.length) : [];
-          setAffiliateOffers([...mapped, ...backfill]);
+          // Set real products from database. No fake backfill
+          setAffiliateOffers(mapped);
+        } else {
+          setAffiliateOffers([]);
         }
       } catch {
-        // fallback
+        setAffiliateOffers([]);
       }
     }
     loadAffiliateOffers();
@@ -546,26 +454,48 @@ export default function ListingDetailPage({
     return () => clearInterval(interval);
   }, [activeTab, isInventoryHovered]);
 
-  // Similar plant listings (excluding current listing)
-  const similarListings = SAMPLE_LISTINGS.filter((l) => l.id !== listing?.id);
+  // Similar plant listings from real database
+  const [similarListings, setSimilarListings] = React.useState<any[]>([]);
 
-  // Reviews state
-  const [reviews, setReviews] = React.useState<any[]>([
-    {
-      id: "rev-1",
-      reviewerName: isKa ? "გიორგი მ." : "George M.",
-      rating: 5,
-      comment: isKa ? "ძალიან ჯანსაღი მცენარეა, შეფუთული იყო იდეალურად და კურიერმა სწრაფად მომიტანა!" : "Very healthy plant, packaged perfectly and delivered quickly by courier!",
-      createdAt: isKa ? "3 დღის წინ" : "3 days ago",
-    },
-    {
-      id: "rev-2",
-      reviewerName: isKa ? "ანა ბ." : "Anna B.",
-      rating: 5,
-      comment: isKa ? "სანდო გამყიდველია, მცენარე ზუსტად ისეთი იყო როგორც ფოტოებზე." : "Trusted seller, plant was exactly as pictured.",
-      createdAt: isKa ? "1 კვირის წინ" : "1 week ago",
+  React.useEffect(() => {
+    async function loadSimilar() {
+      try {
+        const { data: dbSimilar } = await supabase
+          .from("listings")
+          .select(`
+            *,
+            profiles:user_id (
+              id,
+              full_name,
+              avatar_url,
+              phone,
+              average_rating,
+              total_reviews,
+              subscription_tier,
+              custom_slug,
+              role,
+              is_admin,
+              is_verified
+            )
+          `)
+          .eq("status", "ACTIVE")
+          .neq("id", id)
+          .limit(8);
+
+        if (dbSimilar && dbSimilar.length > 0) {
+          setSimilarListings(dbSimilar.map((row: any) => formatDbListing(row, row.profiles)));
+        } else {
+          setSimilarListings([]);
+        }
+      } catch {
+        setSimilarListings([]);
+      }
     }
-  ]);
+    loadSimilar();
+  }, [id, supabase]);
+
+  // Reviews state (real database reviews)
+  const [reviews, setReviews] = React.useState<any[]>([]);
   const [newRating, setNewRating] = React.useState(5);
   const [newComment, setNewComment] = React.useState("");
   const [reviewSubmitted, setReviewSubmitted] = React.useState(false);
@@ -1570,28 +1500,36 @@ export default function ListingDetailPage({
             </form>
 
             {/* Reviews Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-              {reviews.map((rev) => (
-                <div key={rev.id} className="p-3.5 rounded-[14px] bg-surface-container/30 border border-border/40 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="h-6 w-6 rounded-full bg-secondary-container text-primary font-bold text-[10px] flex items-center justify-center">
-                        {rev.reviewerName.charAt(0)}
+            {reviews.length === 0 ? (
+              <div className="text-center py-8 px-4 rounded-[14px] bg-surface-container/30 border border-border/40">
+                <p className="text-xs text-muted-foreground font-medium">
+                  {isKa ? "ამ განცხადებაზე შეფასებები ჯერ არ არის. იყავით პირველი!" : "No reviews yet. Be the first to leave a review!"}
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                {reviews.map((rev) => (
+                  <div key={rev.id} className="p-3.5 rounded-[14px] bg-surface-container/30 border border-border/40 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="h-6 w-6 rounded-full bg-secondary-container text-primary font-bold text-[10px] flex items-center justify-center">
+                          {rev.reviewerName.charAt(0)}
+                        </div>
+                        <span className="text-xs font-bold text-foreground">{rev.reviewerName}</span>
                       </div>
-                      <span className="text-xs font-bold text-foreground">{rev.reviewerName}</span>
+                      <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
+                        <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                        <span>{rev.rating}</span>
+                        <span className="text-muted-foreground ml-1 text-[11px] font-normal">({rev.createdAt})</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1 text-xs text-amber-500 font-bold">
-                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                      <span>{rev.rating}</span>
-                      <span className="text-muted-foreground ml-1 text-[11px] font-normal">({rev.createdAt})</span>
-                    </div>
+                    <p className="text-xs text-muted-foreground pl-8 leading-relaxed">
+                      {rev.comment}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground pl-8 leading-relaxed">
-                    {rev.comment}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -1612,112 +1550,123 @@ export default function ListingDetailPage({
               </div>
 
               {/* Navigation Arrows */}
-              <div className="flex items-center gap-1.5 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => scrollInventory("left")}
-                  className="h-8 w-8 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95 cursor-pointer"
-                  title={isKa ? "წინა" : "Previous"}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => scrollInventory("right")}
-                  className="h-8 w-8 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95 cursor-pointer"
-                  title={isKa ? "შემდეგი" : "Next"}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
+              {affiliateOffers.length > 0 && (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => scrollInventory("left")}
+                    className="h-8 w-8 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                    title={isKa ? "წინა" : "Previous"}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollInventory("right")}
+                    className="h-8 w-8 rounded-full border border-border/80 bg-background hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95 cursor-pointer"
+                    title={isKa ? "შემდეგი" : "Next"}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Scrollable Track */}
-            <div
-              ref={inventoryScrollRef}
-              onMouseEnter={() => setIsInventoryHovered(true)}
-              onMouseLeave={() => setIsInventoryHovered(false)}
-              className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1"
-            >
-              {affiliateOffers.map((item) => (
-                <div
-                  key={item.id}
-                  className="snap-start group relative flex flex-col justify-between w-[200px] sm:w-[220px] shrink-0 overflow-hidden rounded-[16px] border border-border/70 bg-background hover:border-primary/50 transition-all p-3 shadow-2xs hover:shadow-sm"
-                >
-                  <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] bg-surface-container mb-2">
-                    <Image
-                      src={item.image}
-                      alt={isKa ? item.titleKa : item.titleEn}
-                      fill
-                      unoptimized
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div 
-                      className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-[6px] shadow-md backdrop-blur-sm border border-white/20"
-                      style={{ backgroundColor: (item as any).shopColor || "rgba(0,0,0,0.85)" }}
-                    >
-                      <span className="text-[11px] font-black text-white tracking-tight">
-                        {item.shopBadge}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-1 flex-col justify-between">
-                    <div>
-                      <span className="text-[10px] text-muted-foreground font-semibold block leading-tight">
-                        {isKa ? item.categoryKa : item.categoryEn}
-                      </span>
-                      <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug my-1 min-h-[32px]">
-                        {isKa ? item.titleKa : item.titleEn}
-                      </h4>
-                    </div>
-
-                    <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between gap-1.5">
-                      <div className="flex flex-col">
-                        <span className="text-xs font-black text-primary dark:text-emerald-400">
-                          {typeof item.price === "number" ? (Number.isInteger(item.price) ? item.price : item.price.toFixed(2)) : item.price} ₾
-                        </span>
-                        <span className="text-[10px] font-extrabold text-foreground tracking-tight truncate max-w-[75px]">
-                          {item.shopName}
+            {affiliateOffers.length === 0 ? (
+              <div className="text-center py-10 px-4 rounded-[16px] border border-dashed border-border/70 bg-surface-container-lowest">
+                <ShoppingBag className="w-8 h-8 text-muted-foreground/40 mx-auto mb-2" />
+                <p className="text-xs sm:text-sm font-semibold text-muted-foreground">
+                  {isKa ? "ინვენტარი ამ ეტაპზე არ არის დამატებული" : "No recommended inventory items available at this time."}
+                </p>
+              </div>
+            ) : (
+              /* Scrollable Track */
+              <div
+                ref={inventoryScrollRef}
+                onMouseEnter={() => setIsInventoryHovered(true)}
+                onMouseLeave={() => setIsInventoryHovered(false)}
+                className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1"
+              >
+                {affiliateOffers.map((item) => (
+                  <div
+                    key={item.id}
+                    className="snap-start group relative flex flex-col justify-between w-[200px] sm:w-[220px] shrink-0 overflow-hidden rounded-[16px] border border-border/70 bg-background hover:border-primary/50 transition-all p-3 shadow-2xs hover:shadow-sm"
+                  >
+                    <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[12px] bg-surface-container mb-2">
+                      <Image
+                        src={item.image}
+                        alt={isKa ? item.titleKa : item.titleEn}
+                        fill
+                        unoptimized
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      <div 
+                        className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-[6px] shadow-md backdrop-blur-sm border border-white/20"
+                        style={{ backgroundColor: (item as any).shopColor || "rgba(0,0,0,0.85)" }}
+                      >
+                        <span className="text-[11px] font-black text-white tracking-tight">
+                          {item.shopBadge}
                         </span>
                       </div>
+                    </div>
 
-                      {item.isExternal ? (
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => {
-                            if (item.id && !item.id.startsWith("rec-")) {
-                              fetch("/api/affiliate/click", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({
-                                  affiliateId: item.id,
-                                  targetUrl: item.link,
-                                  referralParam: item.referralParam || "?ref=plantge"
-                                }),
-                              }).catch(() => {});
-                            }
-                          }}
-                          className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[8px] bg-primary/10 transition-colors border border-primary/20"
-                        >
-                          <span>{isKa ? "მაღაზია" : "Store"}</span>
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      ) : (
-                        <Link
-                          href={item.link}
-                          className="inline-flex items-center text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[8px] bg-primary/10 transition-colors border border-primary/20"
-                        >
-                          {isKa ? "ნახვა" : "View"}
-                        </Link>
-                      )}
+                    <div className="flex flex-1 flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] text-muted-foreground font-semibold block leading-tight">
+                          {isKa ? item.categoryKa : item.categoryEn}
+                        </span>
+                        <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-snug my-1 min-h-[32px]">
+                          {isKa ? item.titleKa : item.titleEn}
+                        </h4>
+                      </div>
+
+                      <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between gap-1.5">
+                        <div className="flex flex-col">
+                          <span className="text-xs font-black text-primary dark:text-emerald-400">
+                            {typeof item.price === "number" ? (Number.isInteger(item.price) ? item.price : item.price.toFixed(2)) : item.price} ₾
+                          </span>
+                          <span className="text-[10px] font-extrabold text-foreground tracking-tight truncate max-w-[75px]">
+                            {item.shopName}
+                          </span>
+                        </div>
+
+                        {item.isExternal ? (
+                          <a
+                            href={item.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => {
+                              if (item.id && !item.id.startsWith("rec-")) {
+                                fetch("/api/affiliate/click", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({
+                                    affiliateId: item.id,
+                                    targetUrl: item.link,
+                                    referralParam: item.referralParam || "?ref=plantge"
+                                  }),
+                                }).catch(() => {});
+                              }
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[8px] bg-primary/10 transition-colors border border-primary/20"
+                          >
+                            <span>{isKa ? "მაღაზია" : "Store"}</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : (
+                          <Link
+                            href={item.link}
+                            className="inline-flex items-center text-[11px] font-extrabold text-primary hover:text-white hover:bg-primary px-2.5 py-1 rounded-[8px] bg-primary/10 transition-colors border border-primary/20"
+                          >
+                            {isKa ? "ნახვა" : "View"}
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1725,57 +1674,59 @@ export default function ListingDetailPage({
       {/* ══════════════════════════════════════════════════════════════════════
            COMPACT SIMILAR PLANT LISTINGS SLIDER (Bottom Section)
       ══════════════════════════════════════════════════════════════════════ */}
-      <div className="mt-10 pt-6 border-t border-border/60 space-y-3.5">
-        <div className="flex items-center justify-between gap-2">
-          <div>
-            <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-1.5">
-              <Sparkles className="w-4 h-4 text-primary" />
-              {isKa ? "მსგავსი შეთავაზებები & მცენარეები" : "Similar Plant Listings"}
-            </h2>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              {isKa ? "შეიძლება დაგაინტერესოთ სხვა მემცენარეების განცხადებებიდან" : "You might also be interested in these botanical listings"}
-            </p>
-          </div>
+      {similarListings.length > 0 && (
+        <div className="mt-10 pt-6 border-t border-border/60 space-y-3.5">
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              <h2 className="text-base sm:text-lg font-bold text-foreground flex items-center gap-1.5">
+                <Sparkles className="w-4 h-4 text-primary" />
+                {isKa ? "მსგავსი შეთავაზებები & მცენარეები" : "Similar Plant Listings"}
+              </h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {isKa ? "შეიძლება დაგაინტერესოთ სხვა მემცენარეების განცხადებებიდან" : "You might also be interested in these botanical listings"}
+              </p>
+            </div>
 
-          <div className="flex items-center gap-2">
-            <Link href="/listings" className="text-xs font-bold text-primary hover:underline hidden sm:inline-block">
-              {isKa ? "ყველა →" : "View All →"}
-            </Link>
+            <div className="flex items-center gap-2">
+              <Link href="/listings" className="text-xs font-bold text-primary hover:underline hidden sm:inline-block">
+                {isKa ? "ყველა →" : "View All →"}
+              </Link>
 
-            {/* Navigation Arrows */}
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => scrollSimilar("left")}
-                className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                title={isKa ? "წინა" : "Previous"}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => scrollSimilar("right")}
-                className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
-                title={isKa ? "შემდეგი" : "Next"}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              {/* Navigation Arrows */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => scrollSimilar("left")}
+                  className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
+                  title={isKa ? "წინა" : "Previous"}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => scrollSimilar("right")}
+                  className="h-7 w-7 rounded-full border border-border/80 bg-card hover:bg-surface-container flex items-center justify-center text-foreground transition-colors shadow-2xs active:scale-95"
+                  title={isKa ? "შემდეგი" : "Next"}
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Scrollable Compact Similar Plant Listings Track */}
-        <div
-          ref={similarScrollRef}
-          className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-1 pt-0.5"
-        >
-          {similarListings.map((simItem) => (
-            <div key={simItem.id} className="snap-start w-[180px] sm:w-[200px] shrink-0">
-              <ListingCard {...simItem} variant="compact" />
-            </div>
-          ))}
+          {/* Scrollable Compact Similar Plant Listings Track */}
+          <div
+            ref={similarScrollRef}
+            className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-1 pt-0.5"
+          >
+            {similarListings.map((simItem) => (
+              <div key={simItem.id} className="snap-start w-[180px] sm:w-[200px] shrink-0">
+                <ListingCard {...simItem} variant="compact" />
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════════════════
           STICKY MOBILE DIRECT CONTACT BAR (Instant 1-Tap Phone & WhatsApp)

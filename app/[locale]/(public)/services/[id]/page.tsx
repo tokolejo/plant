@@ -108,22 +108,7 @@ export default function ServiceDetailPage({
   const [inquirySuccess, setInquirySuccess] = React.useState(false);
 
   // Reviews State
-  const [reviews, setReviews] = React.useState([
-    {
-      id: "rev-1",
-      authorName: "გიორგი მ.",
-      rating: 5,
-      comment: "საუკეთესო მომსახურება! დროულად მოვიდნენ, ხეები იდეალურად გასხლეს და ნარჩენებიც სრულად გაიტანეს. რეკომენდაციას ვუწევ!",
-      createdAt: "3 დღის წინ",
-    },
-    {
-      id: "rev-2",
-      authorName: "ნინო ჩხეიძე",
-      rating: 5,
-      comment: "ძალიან კმაყოფილი ვარ. პროფესიონალური მიდგომა და ხარისხიანი შედეგი.",
-      createdAt: "1 კვირის წინ",
-    },
-  ]);
+  const [reviews, setReviews] = React.useState<any[]>([]);
   const [newRating, setNewRating] = React.useState(5);
   const [newComment, setNewComment] = React.useState("");
   const [reviewNotice, setReviewNotice] = React.useState("");
@@ -659,31 +644,37 @@ export default function ServiceDetailPage({
             </form>
 
             {/* Reviews List */}
-            <div className="space-y-2.5">
-              {reviews.map((rev) => (
-                <div
-                  key={rev.id}
-                  className="p-3.5 rounded-[14px] bg-surface-container/30 border border-border/50 space-y-1"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black text-foreground">
-                        {rev.authorName}
-                      </span>
-                      <div className="flex items-center text-amber-500">
-                        {Array.from({ length: rev.rating }).map((_, i) => (
-                          <Star key={i} className="w-3 h-3 fill-amber-500" />
-                        ))}
+            {reviews.length === 0 ? (
+              <div className="p-4 text-center rounded-[14px] bg-surface-container/20 border border-dashed border-border/60 text-xs font-semibold text-muted-foreground">
+                {isKa ? "შეფასებები ჯერ არ არის. იყავით პირველი!" : "No reviews yet. Be the first to review!"}
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {reviews.map((rev) => (
+                  <div
+                    key={rev.id}
+                    className="p-3.5 rounded-[14px] bg-surface-container/30 border border-border/50 space-y-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black text-foreground">
+                          {rev.authorName}
+                        </span>
+                        <div className="flex items-center text-amber-500">
+                          {Array.from({ length: rev.rating }).map((_, i) => (
+                            <Star key={i} className="w-3 h-3 fill-amber-500" />
+                          ))}
+                        </div>
                       </div>
+                      <span className="text-[10px] text-muted-foreground">{rev.createdAt}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground">{rev.createdAt}</span>
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      {rev.comment}
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground leading-relaxed">
-                    {rev.comment}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

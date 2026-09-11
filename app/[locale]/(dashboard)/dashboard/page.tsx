@@ -80,11 +80,10 @@ export default function UserDashboardPage() {
         if (dbListings && dbListings.length > 0) {
           setUserListings(dbListings);
         } else {
-          // Fallback to sample listings for visual demonstration
-          setUserListings(SAMPLE_LISTINGS.slice(0, 3));
+          setUserListings([]);
         }
       } else {
-        setUserListings(SAMPLE_LISTINGS.slice(0, 3));
+        setUserListings([]);
       }
       setLoadingListings(false);
     });

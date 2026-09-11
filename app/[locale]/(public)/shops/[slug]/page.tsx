@@ -325,18 +325,7 @@ export default function ShopStorefrontPage({
     };
   });
 
-  const [shopListings, setShopListings] = React.useState<ExtendedListingCardProps[]>(() => {
-    return SAMPLE_LISTINGS.map((l, index) => ({
-      ...l,
-      id: `${decodedSlug}-${l.id}`,
-      seller: {
-        ...l.seller,
-        id: "usr-shop",
-        fullName: initialSpecialist ? initialSpecialist.provider_name : (slug === "tamarbustan" ? "თამარ ბოტანიკა" : `@${decodedSlug}`),
-        customSlug: decodedSlug,
-      },
-    }));
-  });
+  const [shopListings, setShopListings] = React.useState<ExtendedListingCardProps[]>([]);
 
   React.useEffect(() => {
     async function loadShopData() {
@@ -397,18 +386,7 @@ export default function ShopStorefrontPage({
           if (dbListings && dbListings.length > 0) {
             setShopListings(dbListings.map((row) => formatDbListing(row, profile)));
           } else {
-            setShopListings(
-              SAMPLE_LISTINGS.map((l) => ({
-                ...l,
-                id: `${decodedSlug}-${l.id}`,
-                seller: {
-                  ...l.seller,
-                  id: profile.id,
-                  fullName: currentShopData.shopName,
-                  customSlug: decodedSlug,
-                },
-              }))
-            );
+            setShopListings([]);
           }
 
           // Fetch provider's gardening services from DB
