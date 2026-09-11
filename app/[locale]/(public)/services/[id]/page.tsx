@@ -679,59 +679,56 @@ export default function ServiceDetailPage({
                 </div>
               </div>
 
-              {/* PRIMARY CTA: Online Booking & Live Cost Estimator Modal */}
+              {/* DIRECT CONTACT BLOCK: PHONE & WHATSAPP */}
               <div className="pt-1 space-y-2.5">
+                {/* 1. Direct Phone Call (Large, High-Contrast) */}
                 <Button
                   type="button"
-                  onClick={() => setBookingModalOpen(true)}
-                  className="w-full h-11 px-4 rounded-[14px] bg-primary hover:bg-primary/90 text-white font-black text-sm shadow-xs flex items-center justify-center gap-2 cursor-pointer transition-all active:scale-[0.99]"
+                  onClick={() => {
+                    if (!showPhone) {
+                      setShowPhone(true);
+                    } else {
+                      window.location.href = `tel:${cleanPhoneDigits}`;
+                    }
+                  }}
+                  className="w-full h-12 rounded-[14px] bg-primary hover:bg-primary/90 text-white font-black text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer transition-all active:scale-[0.99]"
                 >
-                  <Calendar className="w-4 h-4" />
-                  <span>{isKa ? "ონლაინ დაჯავშნა & კალკულატორი" : "Book Online & Estimate"}</span>
+                  <Phone className="w-4 h-4 shrink-0" />
+                  <span>{showPhone ? rawPhone : (isKa ? `დარეკვა: ${maskedPhone}` : `Call: ${maskedPhone}`)}</span>
                 </Button>
 
-                {/* Secondary Contact Row (Phone + WhatsApp) */}
-                <div className="grid grid-cols-2 gap-2">
-                  {/* Phone Call */}
+                {/* 2. Direct WhatsApp (Official Green) */}
+                {waUrl ? (
+                  <a
+                    href={waUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full h-12 rounded-[14px] bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-sm shadow-xs flex items-center justify-center gap-2.5 cursor-pointer transition-all active:scale-[0.99]"
+                  >
+                    <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
+                    <span>{isKa ? "WhatsApp-ში მიწერა & შეთანხმება" : "Chat on WhatsApp"}</span>
+                  </a>
+                ) : (
                   <Button
                     type="button"
-                    variant="outline"
-                    onClick={() => {
-                      if (!showPhone) {
-                        setShowPhone(true);
-                      } else {
-                        window.location.href = `tel:${cleanPhoneDigits}`;
-                      }
-                    }}
-                    className="h-10 rounded-[12px] font-bold text-xs border-border/80 hover:bg-secondary-container flex items-center justify-center gap-1.5 cursor-pointer"
+                    disabled
+                    className="w-full h-12 rounded-[14px] bg-[#25D366]/60 text-white font-black text-sm opacity-60 flex items-center justify-center gap-2.5"
                   >
-                    <Phone className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" />
-                    <span className="truncate">{maskedPhone}</span>
+                    <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
+                    <span>WhatsApp</span>
                   </Button>
+                )}
 
-                  {/* WhatsApp */}
-                  {waUrl ? (
-                    <a
-                      href={waUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="h-10 rounded-[12px] font-bold text-xs bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] dark:text-[#25D366] border border-[#25D366]/30 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                    >
-                      <WhatsAppIcon className="w-4 h-4" />
-                      <span>WhatsApp</span>
-                    </a>
-                  ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled
-                      className="h-10 rounded-[12px] font-bold text-xs opacity-50 flex items-center justify-center gap-1.5"
-                    >
-                      <WhatsAppIcon className="w-4 h-4" />
-                      <span>WhatsApp</span>
-                    </Button>
-                  )}
-                </div>
+                {/* Optional Online Estimator */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setBookingModalOpen(true)}
+                  className="w-full h-10 rounded-[12px] border-border/80 hover:bg-secondary-container text-foreground font-bold text-xs flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Calendar className="w-3.5 h-3.5 text-primary" />
+                  <span>{isKa ? "ონლაინ კალკულატორი & ხარჯთაღრიცხვა" : "Online Cost Estimator"}</span>
+                </Button>
               </div>
             </div>
 
@@ -803,7 +800,7 @@ export default function ServiceDetailPage({
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
-          MOBILE STICKY BOTTOM ACTION BAR (Clean 2-Element conversion bar)
+          MOBILE STICKY BOTTOM ACTION BAR (Direct Phone & WhatsApp)
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/80 bg-background/95 backdrop-blur-md p-3 px-4 shadow-lg safe-area-bottom">
         <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
@@ -817,15 +814,31 @@ export default function ServiceDetailPage({
             </span>
           </div>
 
-          {/* Right: Primary Conversion Action (Booking Modal Trigger) */}
-          <button
-            type="button"
-            onClick={() => setBookingModalOpen(true)}
-            className="h-10 px-5 rounded-[12px] font-black text-xs text-white bg-primary shadow-xs flex items-center justify-center gap-1.5 shrink-0 cursor-pointer active:scale-95 transition-all"
-          >
-            <Calendar className="w-3.5 h-3.5" />
-            <span>{isKa ? "დაჯავშნა" : "Book"}</span>
-          </button>
+          {/* Right: Direct 1-Tap Contacts */}
+          <div className="flex items-center gap-2 shrink-0">
+            {waUrl && (
+              <a
+                href={waUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-10 px-3.5 rounded-[12px] bg-[#25D366] text-white font-bold text-xs flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all"
+              >
+                <WhatsAppIcon className="w-4 h-4 fill-current" />
+                <span>WhatsApp</span>
+              </a>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = `tel:${cleanPhoneDigits}`;
+              }}
+              className="h-10 px-3.5 rounded-[12px] bg-primary text-white font-bold text-xs flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95 transition-all"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>{isKa ? "დარეკვა" : "Call"}</span>
+            </button>
+          </div>
         </div>
       </div>
 
