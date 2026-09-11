@@ -169,16 +169,53 @@ export async function POST(req: NextRequest) {
 
     const adminClient = createAdminClient();
     let insertedTotal = 0;
+    let updatedTotal = 0;
     const errors: string[] = [];
 
-    // Batch insert in chunks of 50
+    // Smart Batch Insert & Update (Deduplication by product_url)
     for (let i = 0; i < normalizedRows.length; i += 50) {
       const chunk = normalizedRows.slice(i, i + 50);
-      const { data, error } = await adminClient.from("affiliate_products").insert(chunk);
-      if (error) {
-        errors.push(error.message);
-      } else {
-        insertedTotal += chunk.length;
+      const urls = chunk.map((c) => c.product_url);
+
+      const { data: existing } = await adminClient
+        .from("affiliate_products")
+        .select("id, product_url")
+        .in("product_url", urls);
+
+      const existingMap = new Map((existing || []).map((e) => [e.product_url, e.id]));
+
+      const toInsert: any[] = [];
+      for (const item of chunk) {
+        const existingId = existingMap.get(item.product_url);
+        if (existingId) {
+          // Update existing item with fresh price, category, etc.
+          const { error: updErr } = await adminClient
+            .from("affiliate_products")
+            .update({
+              price: item.price,
+              category: item.category,
+              product_name: item.product_name,
+              ...(item.image_url ? { image_url: item.image_url } : {}),
+              matching_tags: item.matching_tags,
+              last_scraped_at: new Date().toISOString(),
+              is_active: true,
+            })
+            .eq("id", existingId);
+
+          if (updErr) errors.push(updErr.message);
+          else updatedTotal++;
+        } else {
+          toInsert.push(item);
+        }
+      }
+
+      if (toInsert.length > 0) {
+        const { error: insErr } = await adminClient.from("affiliate_products").insert(toInsert);
+        if (insErr) {
+          errors.push(insErr.message);
+        } else {
+          insertedTotal += toInsert.length;
+        }
       }
     }
 
@@ -186,6 +223,7 @@ export async function POST(req: NextRequest) {
       success: true,
       totalReceived: normalizedRows.length,
       insertedCount: insertedTotal,
+      updatedCount: updatedTotal,
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (err: any) {

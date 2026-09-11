@@ -207,6 +207,26 @@ export async function POST(req: NextRequest) {
       if (ogCurrency) currency = ogCurrency;
     }
 
+    // CS-Cart / WooCommerce / Shopify price selectors
+    if (price === null || isNaN(price)) {
+      const tyPriceMatch = html.match(/<span[^>]*class=["'][^"']*(?:ty-price-num|woocommerce-Price-amount|current-price|price-num)[^"']*["'][^>]*>([\s\S]*?)<\/span>/i);
+      if (tyPriceMatch) {
+        const cleanNum = tyPriceMatch[1].replace(/<[^>]*>/g, "").replace(/[^0-9.]/g, "");
+        if (cleanNum) price = parseFloat(cleanNum);
+      }
+    }
+
+    // Image fallback for CS-Cart / WooCommerce / Shopify
+    if (!ogImage) {
+      const cmImageMatch = html.match(/<img[^>]*class=["'][^"']*(?:cm-image|wp-post-image|product-featured-media|main-image)[^"']*["'][^>]*(?:src|data-src)=["']([^"']+)["']/i);
+      if (cmImageMatch && cmImageMatch[1]) {
+        let raw = cmImageMatch[1].split(" ")[0];
+        if (raw.startsWith("//")) ogImage = "https:" + raw;
+        else if (raw.startsWith("/")) ogImage = parsedUrl.origin + raw;
+        else ogImage = raw;
+      }
+    }
+
     // Fallback price regex (e.g. 24.50 ₾ or $19.99 or 45.00 GEL)
     if (price === null || isNaN(price)) {
       const priceRegex = /([0-9]+(?:[.,][0-9]{2})?)\s*(?:₾|GEL|USD|\$|EUR|€)/i;
@@ -238,40 +258,75 @@ export async function POST(req: NextRequest) {
 
     let savedRecord = null;
 
-    // Auto-save to Supabase if requested
+    // Auto-save to Supabase if requested (with deduplication)
     if (autoSave) {
       if (!user) {
         return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია ბაზაში შესანახად" }, { status: 401 });
       }
 
       const adminClient = createAdminClient();
-      const { data: inserted, error: insertError } = await adminClient
-        .from("affiliate_products")
-        .insert({
-          partner_name: scrapedData.partnerName,
-          partner_id: scrapedData.partnerId,
-          product_name: scrapedData.productName,
-          description: scrapedData.description,
-          image_url: scrapedData.imageUrl,
-          product_url: scrapedData.productUrl,
-          price: scrapedData.price,
-          currency: scrapedData.currency,
-          commission_pct: scrapedData.commissionPct,
-          category: scrapedData.category,
-          matching_tags: scrapedData.matchingTags,
-          is_active: true,
-        })
-        .select()
-        .single();
 
-      if (insertError) {
-        return NextResponse.json({
-          success: true,
-          data: scrapedData,
-          saveError: insertError.message,
-        });
+      const { data: existing } = await adminClient
+        .from("affiliate_products")
+        .select("id")
+        .eq("product_url", scrapedData.productUrl)
+        .maybeSingle();
+
+      if (existing) {
+        const { data: updated, error: updErr } = await adminClient
+          .from("affiliate_products")
+          .update({
+            partner_name: scrapedData.partnerName,
+            partner_id: scrapedData.partnerId,
+            product_name: scrapedData.productName,
+            description: scrapedData.description,
+            image_url: scrapedData.imageUrl,
+            price: scrapedData.price,
+            currency: scrapedData.currency,
+            commission_pct: scrapedData.commissionPct,
+            category: scrapedData.category,
+            matching_tags: scrapedData.matchingTags,
+            is_active: true,
+            last_scraped_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id)
+          .select()
+          .single();
+
+        if (updErr) {
+          return NextResponse.json({ success: true, data: scrapedData, saveError: updErr.message });
+        }
+        savedRecord = updated;
+      } else {
+        const { data: inserted, error: insertError } = await adminClient
+          .from("affiliate_products")
+          .insert({
+            partner_name: scrapedData.partnerName,
+            partner_id: scrapedData.partnerId,
+            product_name: scrapedData.productName,
+            description: scrapedData.description,
+            image_url: scrapedData.imageUrl,
+            product_url: scrapedData.productUrl,
+            price: scrapedData.price,
+            currency: scrapedData.currency,
+            commission_pct: scrapedData.commissionPct,
+            category: scrapedData.category,
+            matching_tags: scrapedData.matchingTags,
+            is_active: true,
+            last_scraped_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          return NextResponse.json({
+            success: true,
+            data: scrapedData,
+            saveError: insertError.message,
+          });
+        }
+        savedRecord = inserted;
       }
-      savedRecord = inserted;
     }
 
     return NextResponse.json({

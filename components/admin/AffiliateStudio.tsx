@@ -25,7 +25,10 @@ import {
   Check,
   MousePointerClick,
   SlidersHorizontal,
-  PackageCheck
+  PackageCheck,
+  Edit2,
+  Save,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -107,6 +110,25 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
   const [newPartnerComm, setNewPartnerComm] = React.useState("5");
   const [creatingPartner, setCreatingPartner] = React.useState(false);
   const [showPartnerForm, setShowPartnerForm] = React.useState(false);
+
+  // ─── Partner Edit State ───
+  const [editingPartner, setEditingPartner] = React.useState<Partner | null>(null);
+  const [editPartnerName, setEditPartnerName] = React.useState("");
+  const [editPartnerUrl, setEditPartnerUrl] = React.useState("");
+  const [editPartnerColor, setEditPartnerColor] = React.useState("#16a34a");
+  const [editPartnerRef, setEditPartnerRef] = React.useState("?ref=plantge");
+  const [editPartnerComm, setEditPartnerComm] = React.useState("5");
+  const [updatingPartner, setUpdatingPartner] = React.useState(false);
+
+  // ─── Catalog Multi-Select State ───
+  const [selectedProductIds, setSelectedProductIds] = React.useState<Set<string>>(new Set());
+  const [batchCategory, setBatchCategory] = React.useState(AFFILIATE_CATEGORIES[0]?.nameKa || "ქოთნები & კაშპო");
+  const [batchOperating, setBatchOperating] = React.useState(false);
+
+  // ─── Product Inline Edit State ───
+  const [editingProductId, setEditingProductId] = React.useState<string | null>(null);
+  const [editPrice, setEditPrice] = React.useState("");
+  const [editTitle, setEditTitle] = React.useState("");
 
   // ─── Load Data ───
   const loadData = React.useCallback(async () => {
@@ -474,12 +496,143 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
     showNotice(next ? " პროდუქტი გააქტიურდა" : "⏸️ პროდუქტი დაპაუზდა");
   };
 
-  // ─── Handler: Delete Product ───
+  // ─── Handlers: Partner Editing ───
+  const startEditingPartner = (p: Partner) => {
+    setEditingPartner(p);
+    setEditPartnerName(p.name);
+    setEditPartnerUrl(p.website_url || "");
+    setEditPartnerColor(p.badge_color || "#16a34a");
+    setEditPartnerRef(p.referral_param_template || "?ref=plantge");
+    setEditPartnerComm(String(p.commission_rate || 5));
+  };
+
+  const handleUpdatePartner = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingPartner) return;
+    setUpdatingPartner(true);
+    try {
+      const res = await fetch("/api/affiliate/partners", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingPartner.id,
+          name: editPartnerName.trim(),
+          website_url: editPartnerUrl.trim(),
+          badge_color: editPartnerColor,
+          referral_param_template: editPartnerRef.trim(),
+          commission_rate: parseFloat(editPartnerComm || "5"),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) throw new Error(json.error || "პარტნიორის განახლება ვერ შესრულდა");
+      showNotice(`მაღაზიის "${editPartnerName}" მონაცემები განახლდა!`);
+      setEditingPartner(null);
+      loadData();
+    } catch (err: any) {
+      showNotice(`შეცდომა: ${err.message}`);
+    } finally {
+      setUpdatingPartner(false);
+    }
+  };
+
+  // ─── Handlers: Catalog Multi-Select & Batch Actions ───
+  const handleToggleSelectProduct = (id: string) => {
+    setSelectedProductIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectAllProducts = () => {
+    if (selectedProductIds.size === filteredProducts.length) {
+      setSelectedProductIds(new Set());
+    } else {
+      setSelectedProductIds(new Set(filteredProducts.map((p) => p.id)));
+    }
+  };
+
+  const handleBatchDeleteSelected = async () => {
+    if (selectedProductIds.size === 0) return;
+    if (!confirm(`ნამდვილად გსურთ მონიშნული ${selectedProductIds.size} პროდუქტის წაშლა?`)) return;
+    setBatchOperating(true);
+    try {
+      const ids = Array.from(selectedProductIds);
+      setProducts((prev) => prev.filter((p) => !selectedProductIds.has(p.id)));
+      await supabase.from("affiliate_products").delete().in("id", ids);
+      showNotice(`${ids.length} პროდუქტი წაიშალა`);
+      setSelectedProductIds(new Set());
+    } catch (err: any) {
+      showNotice(`შეცდომა: ${err.message}`);
+    } finally {
+      setBatchOperating(false);
+    }
+  };
+
+  const handleBatchChangeCategorySelected = async () => {
+    if (selectedProductIds.size === 0) return;
+    setBatchOperating(true);
+    try {
+      const ids = Array.from(selectedProductIds);
+      setProducts((prev) =>
+        prev.map((p) => (selectedProductIds.has(p.id) ? { ...p, category: batchCategory } : p))
+      );
+      await supabase.from("affiliate_products").update({ category: batchCategory }).in("id", ids);
+      showNotice(`მონიშნულ ${ids.length} პროდუქტს მიენიჭა: "${batchCategory}"`);
+      setSelectedProductIds(new Set());
+    } catch (err: any) {
+      showNotice(`შეცდომა: ${err.message}`);
+    } finally {
+      setBatchOperating(false);
+    }
+  };
+
+  const handleBatchToggleActiveSelected = async (activeState: boolean) => {
+    if (selectedProductIds.size === 0) return;
+    setBatchOperating(true);
+    try {
+      const ids = Array.from(selectedProductIds);
+      setProducts((prev) =>
+        prev.map((p) => (selectedProductIds.has(p.id) ? { ...p, is_active: activeState } : p))
+      );
+      await supabase.from("affiliate_products").update({ is_active: activeState }).in("id", ids);
+      showNotice(`${ids.length} პროდუქტის სტატუსი შეიცვალა: ${activeState ? "აქტიური" : "პაუზა"}`);
+      setSelectedProductIds(new Set());
+    } catch (err: any) {
+      showNotice(`შეცდომა: ${err.message}`);
+    } finally {
+      setBatchOperating(false);
+    }
+  };
+
+  // ─── Handlers: Product Quick Edit ───
+  const startInlineEditProduct = (p: AffiliateProduct) => {
+    setEditingProductId(p.id);
+    setEditPrice(String(p.price || ""));
+    setEditTitle(p.product_name);
+  };
+
+  const handleSaveInlineEditProduct = async (id: string) => {
+    const numPrice = parseFloat(editPrice) || 0;
+    const cleanTitle = editTitle.trim();
+    if (!cleanTitle) return;
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, product_name: cleanTitle, price: numPrice } : p))
+    );
+    await supabase
+      .from("affiliate_products")
+      .update({ product_name: cleanTitle, price: numPrice })
+      .eq("id", id);
+    setEditingProductId(null);
+    showNotice("პროდუქტი განახლდა");
+  };
+
   const handleDeleteProduct = async (id: string, name: string) => {
     if (!confirm(`წაიშალოს პროდუქტი: "${name}"?`)) return;
     setProducts((prev) => prev.filter((p) => p.id !== id));
     await supabase.from("affiliate_products").delete().eq("id", id);
-    showNotice(`️ პროდუქტი "${name}" წაიშალა`);
+    showNotice(`პროდუქტი "${name}" წაიშალა`);
   };
 
   return (
@@ -1112,6 +1265,105 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
             </form>
           )}
 
+          {/* Edit Partner Form */}
+          {editingPartner && (
+            <form onSubmit={handleUpdatePartner} className="p-4 sm:p-5 rounded-[20px] bg-primary/5 border border-primary/40 space-y-4 animate-in fade-in">
+              <div className="flex items-center justify-between border-b border-primary/20 pb-2">
+                <h4 className="text-xs font-black text-foreground flex items-center gap-1.5">
+                  <Edit2 className="w-3.5 h-3.5 text-primary" />
+                  <span>მაღაზიის რედაქტირება: {editingPartner.name}</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setEditingPartner(null)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-2.5">
+                <div>
+                  <label className="text-[11px] font-bold text-muted-foreground block mb-1">სახელი</label>
+                  <input
+                    type="text"
+                    required
+                    value={editPartnerName}
+                    onChange={(e) => setEditPartnerName(e.target.value)}
+                    className="w-full h-9 px-3 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-muted-foreground block mb-1">ვებსაიტი</label>
+                  <input
+                    type="url"
+                    value={editPartnerUrl}
+                    onChange={(e) => setEditPartnerUrl(e.target.value)}
+                    className="w-full h-9 px-3 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-muted-foreground block mb-1">რეფერალური პარამეტრი</label>
+                  <input
+                    type="text"
+                    value={editPartnerRef}
+                    onChange={(e) => setEditPartnerRef(e.target.value)}
+                    placeholder="?ref=plantge"
+                    className="w-full h-9 px-3 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-muted-foreground block mb-1">საკომისიო %</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={editPartnerComm}
+                    onChange={(e) => setEditPartnerComm(e.target.value)}
+                    className="w-full h-9 px-3 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-[11px] font-bold text-muted-foreground block mb-1">ფერი</label>
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="color"
+                      value={editPartnerColor}
+                      onChange={(e) => setEditPartnerColor(e.target.value)}
+                      className="h-9 w-10 rounded-[8px] border border-border/80 cursor-pointer bg-background p-0.5"
+                    />
+                    <input
+                      type="text"
+                      value={editPartnerColor}
+                      onChange={(e) => setEditPartnerColor(e.target.value)}
+                      className="flex-1 h-9 px-2 rounded-[8px] border border-border/80 text-xs font-mono bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setEditingPartner(null)}
+                  className="rounded-[10px] text-xs font-bold"
+                >
+                  გაუქმება
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updatingPartner}
+                  size="sm"
+                  className="rounded-[10px] bg-primary text-white text-xs font-bold gap-1"
+                >
+                  {updatingPartner ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  <span>განახლება</span>
+                </Button>
+              </div>
+            </form>
+          )}
+
           {/* Partners Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {partners.map((p) => {
@@ -1158,6 +1410,14 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                           <ExternalLink className="w-3.5 h-3.5" />
                         </a>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => startEditingPartner(p)}
+                        className="p-1.5 text-muted-foreground hover:text-primary rounded-md cursor-pointer"
+                        title="რედაქტირება"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
                       <button
                         type="button"
                         onClick={() => handleDeletePartner(p)}
@@ -1294,6 +1554,94 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
           </div>
         )}
 
+        {/* Selection & Batch Actions Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleSelectAllProducts}
+              className="h-8 rounded-[10px] text-xs font-bold border-border/80 cursor-pointer"
+            >
+              {selectedProductIds.size === filteredProducts.length && filteredProducts.length > 0
+                ? "მონიშვნის მოხსნა"
+                : `ყველას მონიშვნა (${filteredProducts.length})`}
+            </Button>
+            {selectedProductIds.size > 0 && (
+              <span className="text-xs font-bold text-primary">
+                მონიშნულია {selectedProductIds.size} პროდუქტი
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Highlighted Sticky Batch Actions */}
+        {selectedProductIds.size > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-[16px] bg-emerald-500/10 border border-emerald-500/30 text-xs animate-in fade-in">
+            <div className="flex items-center gap-2 font-bold text-foreground">
+              <CheckCircle className="w-4 h-4 text-emerald-600" />
+              <span>მონიშნულია <strong className="text-primary">{selectedProductIds.size}</strong> პროდუქტი</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center gap-1">
+                <select
+                  value={batchCategory}
+                  onChange={(e) => setBatchCategory(e.target.value)}
+                  className="h-8 px-2 rounded-[8px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
+                >
+                  {AFFILIATE_CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.nameKa}>{c.nameKa}</option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={batchOperating}
+                  onClick={handleBatchChangeCategorySelected}
+                  className="h-8 rounded-[8px] bg-primary text-white text-xs font-bold px-2.5 cursor-pointer"
+                >
+                  კატეგორიის მინიჭება
+                </Button>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={batchOperating}
+                onClick={() => handleBatchToggleActiveSelected(true)}
+                className="h-8 rounded-[8px] text-xs font-bold px-2.5 cursor-pointer"
+              >
+                გააქტიურება
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={batchOperating}
+                onClick={() => handleBatchToggleActiveSelected(false)}
+                className="h-8 rounded-[8px] text-xs font-bold px-2.5 cursor-pointer"
+              >
+                დაპაუზება
+              </Button>
+
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                disabled={batchOperating}
+                onClick={handleBatchDeleteSelected}
+                className="h-8 rounded-[8px] text-xs font-bold px-2.5 gap-1 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>წაშლა ({selectedProductIds.size})</span>
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
           <div className="text-center py-10 rounded-[20px] border border-dashed border-border/80 bg-surface-container/20">
@@ -1308,16 +1656,27 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
               const partner = partners.find((m) => m.name.toLowerCase() === p.partner_name.toLowerCase());
               const badgeColor = partner?.badge_color || "#16a34a";
               const clicks = p.clicks_count || p.clicks || 0;
+              const isSelected = selectedProductIds.has(p.id);
+              const isInlineEditing = editingProductId === p.id;
 
               return (
                 <div
                   key={p.id}
                   className={`rounded-[18px] border bg-card p-3.5 shadow-2xs space-y-2.5 flex flex-col justify-between transition-all ${
+                    isSelected ? "ring-2 ring-primary border-primary" : ""
+                  } ${
                     p.is_active ? "border-border/80" : "border-border/50 opacity-60 bg-surface-container/40"
                   }`}
                 >
                   <div className="space-y-2.5">
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-start gap-2.5">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelectProduct(p.id)}
+                        className="mt-1 rounded cursor-pointer shrink-0"
+                      />
+
                       {p.image_url ? (
                         <img
                           src={p.image_url}
@@ -1352,14 +1711,55 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                           </select>
                         </div>
 
-                        <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-tight mt-1" title={p.product_name}>
-                          {p.product_name}
-                        </h4>
+                        {isInlineEditing ? (
+                          <div className="space-y-1.5 mt-1.5">
+                            <input
+                              type="text"
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              className="w-full h-7 px-2 rounded-[6px] border border-border/80 text-xs bg-background focus:outline-none"
+                              placeholder="სათაური"
+                            />
+                            <div className="flex items-center gap-1">
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={editPrice}
+                                onChange={(e) => setEditPrice(e.target.value)}
+                                className="w-20 h-7 px-2 rounded-[6px] border border-border/80 text-xs bg-background focus:outline-none font-bold"
+                                placeholder="ფასი"
+                              />
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => handleSaveInlineEditProduct(p.id)}
+                                className="h-7 px-2 rounded-[6px] bg-primary text-white text-[10px] font-bold"
+                              >
+                                <Save className="w-3 h-3" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setEditingProductId(null)}
+                                className="h-7 px-1.5 rounded-[6px] text-[10px]"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <h4 className="text-xs font-bold text-foreground line-clamp-2 leading-tight mt-1" title={p.product_name}>
+                              {p.product_name}
+                            </h4>
 
-                        {p.price !== undefined && p.price !== null && (
-                          <span className="text-xs font-black text-primary block mt-0.5">
-                            {p.price} {p.currency || "₾"}
-                          </span>
+                            {p.price !== undefined && p.price !== null && (
+                              <span className="text-xs font-black text-primary block mt-0.5">
+                                {p.price} {p.currency || "₾"}
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </div>
@@ -1398,7 +1798,16 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                       </a>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => startInlineEditProduct(p)}
+                        className="p-1 text-muted-foreground hover:text-primary cursor-pointer transition-colors"
+                        title="სწრაფი რედაქტირება"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => handleToggleProductActive(p.id, p.is_active)}

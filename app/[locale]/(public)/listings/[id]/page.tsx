@@ -335,11 +335,26 @@ export default function ListingDetailPage({
     // Load active affiliate products from DB matching plant category/supplies
     async function loadAffiliateOffers(targetListing?: any) {
       try {
+        // Load active partners for exact colors and referral templates
+        const { data: partnersData } = await supabase
+          .from("affiliate_partners")
+          .select("name, badge_color, referral_param_template");
+        
+        const partnerMap: Record<string, { color: string; ref: string }> = {};
+        if (partnersData) {
+          for (const p of partnersData) {
+            partnerMap[p.name.toLowerCase()] = {
+              color: p.badge_color || "#16a34a",
+              ref: p.referral_param_template || "?ref=plantge",
+            };
+          }
+        }
+
         const { data: affData, error: affErr } = await supabase
           .from("affiliate_products")
           .select("*")
           .eq("is_active", true)
-          .limit(40);
+          .limit(50);
 
         if (!affErr && affData && affData.length > 0) {
           const lTitle = targetListing?.title || targetListing?.titleKa || "";
@@ -366,7 +381,9 @@ export default function ListingDetailPage({
 
           const mapped = scored.slice(0, 15).map(({ item: a }) => {
             const partnerBadge = a.partner_name || "პარტნიორი";
-            const refTemplate = "?ref=plantge";
+            const partnerInfo = partnerMap[a.partner_name?.toLowerCase()] || null;
+            const refTemplate = partnerInfo?.ref || "?ref=plantge";
+            const badgeColor = partnerInfo?.color || "#16a34a";
             const finalLink = appendReferralParam(a.product_url, refTemplate);
 
             return {
@@ -379,6 +396,7 @@ export default function ListingDetailPage({
               image: a.image_url || "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=600",
               shopName: a.partner_name || "პარტნიორი",
               shopBadge: partnerBadge,
+              shopColor: badgeColor,
               link: finalLink,
               rawLink: a.product_url,
               referralParam: refTemplate,
@@ -386,7 +404,9 @@ export default function ListingDetailPage({
             };
           });
 
-          setAffiliateOffers([...mapped, ...RECOMMENDED_INVENTORY]);
+          // Prioritize real products from database. Only backfill if fewer than 4 items exist
+          const backfill = mapped.length < 4 ? RECOMMENDED_INVENTORY.slice(0, 4 - mapped.length) : [];
+          setAffiliateOffers([...mapped, ...backfill]);
         }
       } catch {
         // fallback
@@ -1583,9 +1603,13 @@ export default function ListingDetailPage({
                       src={item.image}
                       alt={isKa ? item.titleKa : item.titleEn}
                       fill
+                      unoptimized
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                    <div className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-[6px] shadow-md backdrop-blur-sm bg-black/80 border border-white/20">
+                    <div 
+                      className="absolute top-1.5 left-1.5 z-10 flex items-center gap-1 px-2 py-0.5 rounded-[6px] shadow-md backdrop-blur-sm border border-white/20"
+                      style={{ backgroundColor: (item as any).shopColor || "rgba(0,0,0,0.85)" }}
+                    >
                       <span className="text-[11px] font-black text-white tracking-tight">
                         {item.shopBadge}
                       </span>

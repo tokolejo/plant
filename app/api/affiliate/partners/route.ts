@@ -259,3 +259,65 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+export async function PATCH(req: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ success: false, error: "ავტორიზაცია აუცილებელია" }, { status: 401 });
+    }
+
+    const body = await req.json();
+    const { id, name, website_url, badge_color, referral_param_template, commission_rate, is_active } = body;
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: "პარტნიორის ID სავალდებულოა" }, { status: 400 });
+    }
+
+    const admin = createAdminClient();
+    const updateData: Record<string, any> = { updated_at: new Date().toISOString() };
+    if (name !== undefined) updateData.name = name.trim();
+    if (website_url !== undefined) updateData.website_url = website_url.trim();
+    if (badge_color !== undefined) updateData.badge_color = badge_color;
+    if (referral_param_template !== undefined) updateData.referral_param_template = referral_param_template.trim();
+    if (commission_rate !== undefined) updateData.commission_rate = Number(commission_rate);
+    if (is_active !== undefined) updateData.is_active = Boolean(is_active);
+
+    const { data: updated, error: updateErr } = await admin
+      .from("affiliate_partners")
+      .update(updateData)
+      .eq("id", id)
+      .select()
+      .maybeSingle();
+
+    if (!updateErr && updated) {
+      return NextResponse.json({ success: true, partner: updated });
+    }
+
+    // Also sync fallback in site_settings if needed
+    try {
+      const { data: setting } = await admin
+        .from("site_settings")
+        .select("value")
+        .eq("key", "affiliate_partners_custom")
+        .single();
+      if (setting?.value && Array.isArray(setting.value)) {
+        const updatedList = setting.value.map((p: any) =>
+          p.id === id ? { ...p, ...updateData } : p
+        );
+        await admin.from("site_settings").upsert({
+          key: "affiliate_partners_custom",
+          value: updatedList,
+          updated_at: new Date().toISOString(),
+        });
+      }
+    } catch {
+      // ignore
+    }
+
+    return NextResponse.json({ success: true, partner: updated || updateData });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  }
+}

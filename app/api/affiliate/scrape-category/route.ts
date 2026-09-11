@@ -254,9 +254,9 @@ function parseCategoryHtml(
 
   if (items.length >= limit) return items.slice(0, limit);
 
-  // ─── STRATEGY 3: General DOM Card Pattern Matching ───
+  // ─── STRATEGY 3: General DOM Card Pattern Matching (WooCommerce, OpenCart, Shopify, Custom) ───
   const cardRegex =
-    /<(?:div|article|li)[^>]*class=["'][^"']*(?:ut2-gl__item|ty-grid-list__item|catalog__item|product-item|product-card|goods-item)[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|article|li)>/gi;
+    /<(?:div|article|li)[^>]*class=["'][^"']*(?:ut2-gl__item|ty-grid-list__item|catalog__item|product-item|product-card|goods-item|product_thumb|product-thumb|woocommerce-loop-product|type-product|grid-item|card--product)[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|article|li)>/gi;
   let cardMatch;
 
   while ((cardMatch = cardRegex.exec(html)) !== null && items.length < limit) {
@@ -271,7 +271,7 @@ function parseCategoryHtml(
 
     let title: string | null = null;
     const titleMatch =
-      cardHtml.match(/<(?:h2|h3|h4|span|div)[^>]*class=["'][^"']*(?:title|name|heading|product-title)[^"']*["'][^>]*>([\s\S]*?)<\/(?:h2|h3|h4|span|div)>/i) ||
+      cardHtml.match(/<(?:h1|h2|h3|h4|span|div|a)[^>]*class=["'][^"']*(?:title|name|heading|product-title|woocommerce-loop-product__title)[^"']*["'][^>]*>([\s\S]*?)<\/(?:h1|h2|h3|h4|span|div|a)>/i) ||
       cardHtml.match(/title=["']([^"']{5,150})["']/i);
 
     if (titleMatch) {
@@ -292,9 +292,16 @@ function parseCategoryHtml(
     }
 
     let price: number | null = null;
-    const priceMatch = cardHtml.match(/([0-9]+(?:[.,][0-9]{2})?)\s*(?:₾|GEL|ლარი)/i);
-    if (priceMatch && priceMatch[1]) {
-      price = parseFloat(priceMatch[1].replace(",", "."));
+    const numPriceMatch = cardHtml.match(/<span[^>]*class=["'][^"']*(?:ty-price-num|woocommerce-Price-amount|current-price|price-new|price-num)[^"']*["'][^>]*>([\s\S]*?)<\/span>/i);
+    if (numPriceMatch) {
+      const cleanNum = numPriceMatch[1].replace(/<[^>]*>/g, "").replace(/[^0-9.]/g, "");
+      if (cleanNum) price = parseFloat(cleanNum);
+    }
+    if (price === null) {
+      const priceMatch = cardHtml.match(/([0-9]+(?:[.,][0-9]{2})?)\s*(?:₾|GEL|ლარი)/i);
+      if (priceMatch && priceMatch[1]) {
+        price = parseFloat(priceMatch[1].replace(",", "."));
+      }
     }
 
     const cat = categoryOverride && categoryOverride !== "AUTO" ? categoryOverride : detectAffiliateCategory(title, "");
@@ -444,11 +451,43 @@ export async function POST(req: NextRequest) {
 
       for (let i = 0; i < insertRows.length; i += 25) {
         const chunk = insertRows.slice(i, i + 25);
-        const { error: insertErr } = await adminClient.from("affiliate_products").insert(chunk);
-        if (insertErr) {
-          saveErrors.push(insertErr.message);
-        } else {
-          savedCount += chunk.length;
+        const urls = chunk.map((c) => c.product_url);
+        const { data: existing } = await adminClient
+          .from("affiliate_products")
+          .select("id, product_url")
+          .in("product_url", urls);
+
+        const existingMap = new Map((existing || []).map((e) => [e.product_url, e.id]));
+        const toInsert: any[] = [];
+
+        for (const row of chunk) {
+          const existingId = existingMap.get(row.product_url);
+          if (existingId) {
+            await adminClient
+              .from("affiliate_products")
+              .update({
+                price: row.price,
+                category: row.category,
+                product_name: row.product_name,
+                ...(row.image_url ? { image_url: row.image_url } : {}),
+                matching_tags: row.matching_tags,
+                last_scraped_at: new Date().toISOString(),
+                is_active: true,
+              })
+              .eq("id", existingId);
+            savedCount++;
+          } else {
+            toInsert.push(row);
+          }
+        }
+
+        if (toInsert.length > 0) {
+          const { error: insertErr } = await adminClient.from("affiliate_products").insert(toInsert);
+          if (insertErr) {
+            saveErrors.push(insertErr.message);
+          } else {
+            savedCount += toInsert.length;
+          }
         }
       }
     }
