@@ -29,11 +29,12 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const limit = parseInt(searchParams.get("limit") || "300");
+    const category = searchParams.get("category");
 
     const adminClient = createAdminClient();
 
     // Query audit_logs joined with profiles
-    const { data: logs, error } = await adminClient
+    let query = adminClient
       .from("audit_logs")
       .select(`
         id,
@@ -56,6 +57,12 @@ export async function GET(req: NextRequest) {
       .order("created_at", { ascending: false })
       .limit(limit);
 
+    if (category && category !== "ALL") {
+      query = query.eq("target_type", category);
+    }
+
+    const { data: logs, error } = await query;
+
     if (error) {
       console.error("Audit log fetch error:", error);
       return NextResponse.json({ success: false, error: error.message }, { status: 500 });
@@ -67,6 +74,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function POST(req: NextRequest) {
   try {
@@ -83,13 +92,26 @@ export async function POST(req: NextRequest) {
     const adminClient = createAdminClient();
     const effectiveActorId = actorId || user?.id || null;
 
+    // Extract IP and User-Agent
+    const forwarded = req.headers.get("x-forwarded-for");
+    const ip = forwarded ? forwarded.split(",")[0].trim() : req.headers.get("x-real-ip") || null;
+    const userAgent = req.headers.get("user-agent") || null;
+
+    // Safe target_id validation for Postgres UUID column
+    const validUuidTargetId = targetId && UUID_REGEX.test(String(targetId)) ? String(targetId) : null;
+    const safeNewData = targetId && !validUuidTargetId 
+      ? { ...(newData || {}), _targetIdString: String(targetId) }
+      : (newData || null);
+
     const payload = {
       actor_id: effectiveActorId,
       action: String(action),
       target_type: String(targetType),
-      target_id: targetId || null,
+      target_id: validUuidTargetId,
       old_data: oldData || null,
-      new_data: newData || null,
+      new_data: safeNewData,
+      ip_address: ip,
+      user_agent: userAgent,
       created_at: new Date().toISOString(),
     };
 

@@ -72,6 +72,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { formatPrice } from "@/lib/utils";
 import { AffiliateStudio } from "@/components/admin/AffiliateStudio";
+import { AuditStudio } from "@/components/admin/AuditStudio";
 import { 
   UserRole, 
   canAccessAdmin, 
@@ -1263,6 +1264,12 @@ export default function AdminDashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, status: newStatus, adminNotes: notes }),
       });
+      logAuditEvent({
+        action: "FEEDBACK_STATUS_CHANGE",
+        targetType: "FEEDBACK",
+        targetId: id,
+        newData: { status: newStatus, adminNotes: notes, changeSummary: `ფიდბექის სტატუსი: ${newStatus}` },
+      });
       showNotice(` შეტყობინების სტატუსი განახლდა: ${newStatus}`);
     } catch (err: any) {
       showNotice(` შეცდომა: ${err.message}`);
@@ -1275,6 +1282,13 @@ export default function AdminDashboardPage() {
     if (selectedFeedbackModal?.id === id) setSelectedFeedbackModal(null);
     try {
       await fetch(`/api/admin/feedback?id=${id}`, { method: "DELETE" });
+      logAuditEvent({
+        action: "FEEDBACK_STATUS_CHANGE",
+        targetType: "FEEDBACK",
+        targetId: id,
+        oldData: { senderName },
+        newData: { changeSummary: `ფიდბექი წაიშალა (${senderName})` },
+      });
       showNotice(`️ შეტყობინება წაიშალა`);
     } catch (err: any) {
       showNotice(` შეცდომა წაშლისას: ${err.message}`);
@@ -3269,507 +3283,25 @@ export default function AdminDashboardPage() {
       {/* TAB 5: SYSTEM AUDIT LOGS & DIFF VIEWER                                */}
       {/* ═══════════════════════════════════════════════════════════════════════ */}
       {activeTab === "audit" && (
-        <div className="rounded-[24px] border border-border/80 bg-card p-5 sm:p-7 shadow-ambient space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 pb-4">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h2 className="text-base sm:text-lg font-black text-foreground flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-purple-600" />
-                  <span> სისტემური აუდიტი & დეტალური ლოგები</span>
-                </h2>
-                <Badge className="bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 text-xs font-bold border-purple-300">
-                  {filteredAuditLogs.length} / {auditLogs.length} ჩანაწერი
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                ადმინისტრატორებისა და სისტემის მიერ შესრულებული ყველა ცვლილების, ტარიფის, როლის, შეცდომისა და განცხადების დეტალური ჟურნალი
-              </p>
-            </div>
-
+        <div className="space-y-4">
+          <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => handleExport("audit")}
-                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
-                title="ლოგების CSV ექსპორტი"
-              >
-                <Download className="w-3.5 h-3.5 text-purple-600" />
-                CSV ექსპორტი
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => { loadAuditLogs(); showNotice(" აუდიტის ლოგები განახლდა!"); }}
-                className="rounded-[12px] text-xs font-bold gap-1.5 border-border/80 hover:bg-surface-container cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 text-primary ${loadingAudit ? "animate-spin" : ""}`} />
-                განახლება
-              </Button>
+              <Activity className="w-4 h-4 text-purple-600" />
+              <span className="text-xs font-bold text-muted-foreground">სისტემური აუდიტი & დეტალური ლოგირება</span>
             </div>
+            <Link
+              href="/admin/audit"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-primary hover:underline group"
+            >
+              <span>სრულ გვერდზე გახსნა</span>
+              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+            </Link>
           </div>
-
-          {/* Structured Multi-Filter Toolbar */}
-          <div className="space-y-3 bg-secondary-container/40 p-4 rounded-[20px] border border-border/60">
-            {/* Row 1: Category Filter Pills */}
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0">
-                კატეგორია:
-              </span>
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar w-full">
-                {[
-                  { id: "ALL", label: " ყველა" },
-                  { id: "PLAN", label: " ტარიფები" },
-                  { id: "USER", label: " მომხმარებლები" },
-                  { id: "LISTING", label: " განცხადებები" },
-                  { id: "SUBSCRIPTION", label: " გამოწერა" },
-                  { id: "AFFILIATE", label: " Affiliate" },
-                  { id: "SECURITY", label: "️ უსაფრთხოება" },
-                  { id: "ERROR", label: "️ შეცდომები" },
-                ].map((cat) => {
-                  const isSelected = auditCategoryFilter === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setAuditCategoryFilter(cat.id)}
-                      className={`px-3 py-1.5 rounded-[10px] text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-purple-600 text-white shadow-xs"
-                          : "bg-background/90 text-muted-foreground hover:text-foreground hover:bg-background border border-border/60"
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Row 2: Date Period Selector (პერიოდის მიხედვით) */}
-            <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border/40">
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase text-muted-foreground tracking-wider shrink-0 mr-1 flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-purple-600" /> პერიოდი:
-                </span>
-                {[
-                  { id: "all", label: "ყველა დრო" },
-                  { id: "today", label: "დღეს" },
-                  { id: "7days", label: "ბოლო 7 დღე" },
-                  { id: "30days", label: "ბოლო 30 დღე" },
-                  { id: "custom", label: " კალენდარი" },
-                ].map((p) => {
-                  const isSelected = auditDateFilter === p.id;
-                  return (
-                    <button
-                      key={p.id}
-                      type="button"
-                      onClick={() => setAuditDateFilter(p.id as any)}
-                      className={`px-2.5 py-1 rounded-[8px] text-[11px] font-bold transition-all cursor-pointer ${
-                        isSelected
-                          ? "bg-primary text-white shadow-xs"
-                          : "bg-background/80 text-muted-foreground hover:text-foreground border border-border/50"
-                      }`}
-                    >
-                      {p.label}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Custom Date Inputs (when calendar selected) */}
-              {auditDateFilter === "custom" && (
-                <div className="flex items-center gap-2 bg-background/90 p-1.5 rounded-[10px] border border-border/70 animate-in fade-in">
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-muted-foreground font-bold">დან:</span>
-                    <input
-                      type="date"
-                      value={auditDateFrom}
-                      onChange={(e) => setAuditDateFrom(e.target.value)}
-                      className="text-xs bg-transparent border border-border/70 rounded px-1.5 py-0.5 font-mono"
-                    />
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-muted-foreground font-bold">მდე:</span>
-                    <input
-                      type="date"
-                      value={auditDateTo}
-                      onChange={(e) => setAuditDateTo(e.target.value)}
-                      className="text-xs bg-transparent border border-border/70 rounded px-1.5 py-0.5 font-mono"
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Row 3: Dedicated Full-Width Live Search Input */}
-            <div className="pt-2 border-t border-border/40">
-              <div className="relative w-full">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  value={auditSearchQuery}
-                  onChange={(e) => setAuditSearchQuery(e.target.value)}
-                  placeholder="ძიება მოქმედების სახელით, შემსრულებლით, ID-ით ან მონაცემებით..."
-                  className="w-full h-10 pl-10 pr-10 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-purple-500/20 font-medium placeholder:text-muted-foreground shadow-2xs"
-                />
-                {auditSearchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setAuditSearchQuery("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer p-1"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Audit Logs Table with Clickable Sorting Headers */}
-          <div className="overflow-x-auto rounded-[18px] border border-border/80">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-border/80 bg-secondary-container/60 text-muted-foreground uppercase text-[10px] font-bold select-none">
-                <tr>
-                  {/* Clickable Header: Date */}
-                  <th
-                    onClick={() => toggleAuditSort("date")}
-                    className="py-3 px-3.5 w-44 cursor-pointer hover:bg-muted/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span>დრო</span>
-                      {auditSortField === "date" && (
-                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
-                      )}
-                    </div>
-                  </th>
-
-                  {/* Clickable Header: Action */}
-                  <th
-                    onClick={() => toggleAuditSort("action")}
-                    className="py-3 px-3 cursor-pointer hover:bg-muted/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span>მოქმედება</span>
-                      {auditSortField === "action" && (
-                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
-                      )}
-                    </div>
-                  </th>
-
-                  {/* Clickable Header: Category */}
-                  <th
-                    onClick={() => toggleAuditSort("category")}
-                    className="py-3 px-3 cursor-pointer hover:bg-muted/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span>კატეგორია</span>
-                      {auditSortField === "category" && (
-                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
-                      )}
-                    </div>
-                  </th>
-
-                  {/* Clickable Header: Actor */}
-                  <th
-                    onClick={() => toggleAuditSort("actor")}
-                    className="py-3 px-3 cursor-pointer hover:bg-muted/40 transition-colors"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span>შემსრულებელი</span>
-                      {auditSortField === "actor" && (
-                        <span className="text-primary font-black">{auditSortOrder === "asc" ? "▲" : "▼"}</span>
-                      )}
-                    </div>
-                  </th>
-
-                  <th className="py-3 px-3">დეტალები</th>
-                  <th className="py-3 px-3 text-right">შედარება (Diff)</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border/40 text-[11px]">
-                {loadingAudit ? (
-                  <tr>
-                    <td colSpan={6} className="py-12 text-center text-muted-foreground text-xs">
-                      <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-primary" />
-                      ლოგები იტვირთება...
-                    </td>
-                  </tr>
-                ) : filteredAuditLogs.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="py-12 text-center text-muted-foreground text-xs space-y-2">
-                      <p>
-                        {auditSearchQuery || auditCategoryFilter !== "ALL" || auditDateFilter !== "all"
-                          ? "შერჩეული ფილტრით ან პერიოდით ლოგები არ მოიძებნა."
-                          : "აუდიტის ლოგების ჩანაწერები ჯერჯერობით არ არის."}
-                      </p>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={loadAuditLogs}
-                        className="rounded-lg text-xs"
-                      >
-                        <RefreshCw className="w-3.5 h-3.5 mr-1 text-primary" /> სიის განახლება
-                      </Button>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredAuditLogs.map((log) => {
-                    const logDate = log.created_at ? new Date(log.created_at) : new Date();
-                    const formattedDate = logDate.toLocaleDateString("ka-GE", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    });
-                    const formattedTime = logDate.toLocaleTimeString("ka-GE", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                      second: "2-digit",
-                    });
-
-                    const isPlan = log.target_type === "PLAN";
-                    const isUser = log.target_type === "USER";
-                    const isListing = log.target_type === "LISTING";
-                    const isError = log.target_type === "ERROR" || log.action?.includes("ERROR");
-
-                    return (
-                      <tr key={log.id} className="hover:bg-muted/30 transition-colors">
-                        {/* Timestamp */}
-                        <td className="py-3 px-3.5 whitespace-nowrap text-muted-foreground">
-                          <div className="font-bold text-foreground">{formattedTime}</div>
-                          <div className="text-[10px] text-muted-foreground">{formattedDate}</div>
-                        </td>
-
-                        {/* Action Badge */}
-                        <td className="py-3 px-3">
-                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black border ${
-                            isError
-                              ? "bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-300 dark:border-rose-800"
-                              : isPlan
-                              ? "bg-purple-100 dark:bg-purple-950/70 text-purple-700 dark:text-purple-300 border-purple-300 dark:border-purple-800"
-                              : isUser
-                              ? "bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 border-blue-300 dark:border-blue-800"
-                              : isListing
-                              ? "bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800"
-                              : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700"
-                          }`}>
-                            {isError ? "️" : isPlan ? "" : isUser ? "" : isListing ? "" : ""} {log.action}
-                          </span>
-                        </td>
-
-                        {/* Target Category */}
-                        <td className="py-3 px-3">
-                          <Badge variant="outline" className="text-[10px] font-bold font-mono">
-                            {log.target_type}
-                          </Badge>
-                        </td>
-
-                        {/* Actor */}
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-1.5">
-                            {log.actor?.avatar_url ? (
-                              <img src={log.actor.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover" />
-                            ) : (
-                              <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-[9px]">
-                                {(log.actor?.full_name || "A").charAt(0).toUpperCase()}
-                              </div>
-                            )}
-                            <span className="font-bold text-foreground truncate max-w-[120px]">
-                              {log.actor?.full_name || "სისტემა / Admin"}
-                            </span>
-                          </div>
-                        </td>
-
-                        {/* Enhanced Human-Readable Change Summary & Target Object */}
-                        <td className="py-3 px-3">
-                          <div className="space-y-1">
-                            {/* Target User / Item Header */}
-                            {(() => {
-                              const targetName = log.new_data?.targetName || log.old_data?.targetName || log.new_data?.userName || log.old_data?.userName;
-                              const targetEmail = log.new_data?.targetEmail || log.old_data?.targetEmail || log.new_data?.userEmail || log.old_data?.userEmail;
-                              const targetTitle = log.new_data?.listingTitle || log.old_data?.listingTitle || log.old_data?.title;
-                              const sellerName = log.new_data?.sellerName || log.old_data?.sellerName;
-
-                              if (targetName || targetEmail) {
-                                return (
-                                  <div className="flex items-center gap-1.5 font-bold text-foreground">
-                                    <User className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                                    <span className="truncate max-w-[180px]">{targetName || "მომხმარებელი"}</span>
-                                    {targetEmail && (
-                                      <span className="text-[10px] text-muted-foreground font-normal truncate max-w-[140px]">({targetEmail})</span>
-                                    )}
-                                  </div>
-                                );
-                              } else if (targetTitle) {
-                                return (
-                                  <div className="flex items-center gap-1.5 font-bold text-foreground">
-                                    <Sprout className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                                    <span className="truncate max-w-[180px]">„{targetTitle}“</span>
-                                    {sellerName && (
-                                      <span className="text-[10px] text-muted-foreground font-normal">({sellerName})</span>
-                                    )}
-                                  </div>
-                                );
-                              } else if (log.target_type === "PLAN") {
-                                return (
-                                  <div className="flex items-center gap-1.5 font-bold text-foreground">
-                                    <Crown className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                                    <span>{log.new_data?.nameKa || log.old_data?.nameKa || log.new_data?.tier || "ტარიფი"}</span>
-                                  </div>
-                                );
-                              }
-                              return null;
-                            })()}
-
-                            {/* Human-Readable Change Summary Pill */}
-                            <div>
-                              {(() => {
-                                if (log.new_data?.changeSummary) {
-                                  return (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-container text-foreground font-bold text-[10px]">
-                                      {log.new_data.changeSummary}
-                                    </span>
-                                  );
-                                }
-                                if (log.old_data?.changeSummary) {
-                                  return (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-container text-foreground font-bold text-[10px]">
-                                      {log.old_data.changeSummary}
-                                    </span>
-                                  );
-                                }
-                                if (log.action === "UPDATE_SUBSCRIPTION_TIER") {
-                                  const oldT = log.old_data?.tier || "FREE";
-                                  const newT = log.new_data?.tier || log.new_data?.newTier || "TIER";
-                                  return (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-200 font-bold text-[10px]">
-                                      ტარიფი: {oldT} → {newT}
-                                    </span>
-                                  );
-                                }
-                                if (log.action === "CHANGE_USER_ROLE") {
-                                  const oldR = log.old_data?.role || "USER";
-                                  const newR = log.new_data?.role || log.new_data?.newRole || "ROLE";
-                                  return (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-200 font-bold text-[10px]">
-                                      როლი: {oldR} → {newR}
-                                    </span>
-                                  );
-                                }
-                                if (log.action === "UPDATE_LISTING_STATUS") {
-                                  const st = log.new_data?.status || "STATUS";
-                                  return (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200 font-bold text-[10px]">
-                                      სტატუსი: {st}
-                                    </span>
-                                  );
-                                }
-                                if (log.action === "UPDATE_CUSTOM_SLUG") {
-                                  const sl = log.new_data?.customSlug || "არ არის";
-                                  return (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200 font-bold text-[10px]">
-                                      Slug: /{sl}
-                                    </span>
-                                  );
-                                }
-                                if (log.new_data) {
-                                  return (
-                                    <span className="text-muted-foreground font-mono text-[10px] truncate max-w-xs block">
-                                      {JSON.stringify(log.new_data)}
-                                    </span>
-                                  );
-                                }
-                                return <span className="text-muted-foreground text-[10px]">მოქმედება შესრულდა</span>;
-                              })()}
-                            </div>
-                          </div>
-                        </td>
-
-                        {/* Diff / JSON Modal Trigger */}
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setSelectedAuditLogForDiff(log)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-[8px] bg-secondary-container hover:bg-primary/10 text-primary font-bold text-[10px] transition-colors cursor-pointer"
-                            title="დეტალური JSON შედარება"
-                          >
-                            <FileText className="w-3 h-3" />
-                            <span>Diff / JSON</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
+          <AuditStudio showNotice={showNotice} />
         </div>
       )}
 
-      {/* JSON / Diff Viewer Modal */}
-      {selectedAuditLogForDiff && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
-          <div className="bg-card border border-border/80 rounded-[24px] max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[85vh] flex flex-col animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-border/60 pb-3">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-purple-600" />
-                <div>
-                  <h3 className="text-sm font-black text-foreground">
-                    ლოგის დეტალური მონაცემები ({selectedAuditLogForDiff.action})
-                  </h3>
-                  <p className="text-[11px] text-muted-foreground">
-                    ობიექტი: {selectedAuditLogForDiff.target_type} | ID: {selectedAuditLogForDiff.id}
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedAuditLogForDiff(null)}
-                className="p-1 rounded-lg text-muted-foreground hover:text-foreground cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 overflow-y-auto flex-1 p-1">
-              {/* Old Data */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-1">
-                   ძველი მონაცემი (Old Data)
-                </span>
-                <pre className="p-3 rounded-xl bg-destructive/5 border border-destructive/20 text-[10px] font-mono text-destructive overflow-x-auto max-h-[260px]">
-                  {JSON.stringify(selectedAuditLogForDiff.old_data || "არ არის (NULL)", null, 2)}
-                </pre>
-              </div>
-
-              {/* New Data */}
-              <div className="space-y-1.5">
-                <span className="text-[10px] font-bold uppercase text-emerald-600 flex items-center gap-1">
-                   ახალი მონაცემი (New Data)
-                </span>
-                <pre className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-[10px] font-mono text-emerald-700 dark:text-emerald-300 overflow-x-auto max-h-[260px]">
-                  {JSON.stringify(selectedAuditLogForDiff.new_data || "არ არის (NULL)", null, 2)}
-                </pre>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end pt-2 border-t border-border/50">
-              <Button
-                type="button"
-                size="sm"
-                onClick={() => setSelectedAuditLogForDiff(null)}
-                className="rounded-xl text-xs font-bold bg-primary text-white"
-              >
-                დახურვა
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Tab 1: Overview Dashboard */}
       {activeTab === "overview" && (

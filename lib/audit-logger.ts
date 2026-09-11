@@ -13,9 +13,16 @@ export type AuditAction =
   | "DELETE_LISTING"
   | "UPDATE_CUSTOM_SLUG"
   | "SCRAPE_AFFILIATE"
+  | "SCRAPE_CATEGORY"
   | "SAVE_AFFILIATE"
+  | "UPDATE_AFFILIATE"
   | "DELETE_AFFILIATE"
+  | "DELETE_AFFILIATE_PARTNER"
   | "UPDATE_SITE_SETTINGS"
+  | "FEEDBACK_STATUS_CHANGE"
+  | "FEEDBACK_REPLY"
+  | "DATA_EXPORT"
+  | "TEST_AUDIT_LOG"
   | "SYSTEM_ERROR"
   | "API_ERROR"
   | "VALIDATION_ERROR"
@@ -27,8 +34,11 @@ export type AuditTargetType =
   | "LISTING"
   | "SUBSCRIPTION"
   | "AFFILIATE"
+  | "FEEDBACK"
+  | "SETTINGS"
   | "SITE_SETTINGS"
   | "SECURITY"
+  | "SYSTEM"
   | "ERROR";
 
 export interface LogAuditParams {
@@ -121,6 +131,30 @@ export async function logSystemError(errorTitle: string, errorDetails: any) {
       title: errorTitle,
       details: typeof errorDetails === "object" ? errorDetails : { message: String(errorDetails) },
       url: typeof window !== "undefined" ? window.location.href : undefined,
+      timestamp: new Date().toISOString(),
+    },
+  });
+}
+
+/**
+ * Generate a test audit event for admin verification
+ */
+export async function logTestAuditEvent(customSummary?: string) {
+  return logAuditEvent({
+    action: "TEST_AUDIT_LOG",
+    targetType: "SYSTEM",
+    oldData: {
+      status: "IDLE",
+      metricScore: 84.5,
+      version: "1.0.0",
+      notes: "წინა სატესტო მდგომარეობა",
+    },
+    newData: {
+      status: "ACTIVE",
+      metricScore: 99.8,
+      version: "1.1.0",
+      changeSummary: customSummary || "სისტემური აუდიტის ტესტირება ადმინისტრატორის მიერ",
+      environment: process.env.NODE_ENV || "development",
       timestamp: new Date().toISOString(),
     },
   });

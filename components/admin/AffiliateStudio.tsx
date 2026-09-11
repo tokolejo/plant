@@ -33,6 +33,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AFFILIATE_CATEGORIES, appendReferralParam } from "@/lib/affiliate-tagger";
+import { logAuditEvent } from "@/lib/audit-logger";
 
 interface Partner {
   id: string;
@@ -363,7 +364,18 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
       const json = await res.json();
       if (!res.ok || !json.success) throw new Error(json.error || "შენახვა ვერ შესრულდა");
 
-      showNotice(` ${json.insertedCount || itemsToSave.length} პროდუქტი წარმატებით შეინახა ბაზაში!`);
+      const savedCount = json.insertedCount || itemsToSave.length;
+      logAuditEvent({
+        action: "SAVE_AFFILIATE",
+        targetType: "AFFILIATE",
+        newData: {
+          partnerName: resolvedPartner,
+          count: savedCount,
+          changeSummary: `იმპორტირდა ${savedCount} Affiliate პროდუქტი (${resolvedPartner})`,
+        },
+      });
+
+      showNotice(` ${savedCount} პროდუქტი წარმატებით შეინახა ბაზაში!`);
       setScrapedCatItems([]);
       setSelectedCatIndices(new Set());
       setCatUrl("");
@@ -480,6 +492,19 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
       });
 
       if (error) throw error;
+
+      logAuditEvent({
+        action: "SAVE_AFFILIATE",
+        targetType: "AFFILIATE",
+        newData: {
+          productName: singlePreview.productName,
+          partnerName: singlePreview.partnerName,
+          price: singlePreview.price,
+          category: singlePreview.category,
+          changeSummary: `დაემატა Affiliate პროდუქტი: ${singlePreview.productName} (${singlePreview.partnerName})`,
+        },
+      });
+
       showNotice(` პროდუქტი "${singlePreview.productName}" შენახულია!`);
       setSinglePreview(null);
       setSingleUrl("");
@@ -678,6 +703,16 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
       .from("affiliate_products")
       .update({ product_name: cleanTitle, price: numPrice })
       .eq("id", id);
+    logAuditEvent({
+      action: "UPDATE_AFFILIATE",
+      targetType: "AFFILIATE",
+      targetId: id,
+      newData: {
+        productName: cleanTitle,
+        price: numPrice,
+        changeSummary: `შეიცვალა Affiliate პროდუქტი: ${cleanTitle} (${numPrice}₾)`,
+      },
+    });
     setEditingProductId(null);
     showNotice("პროდუქტი განახლდა");
   };
@@ -686,6 +721,13 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
     if (!confirm(`წაიშალოს პროდუქტი: "${name}"?`)) return;
     setProducts((prev) => prev.filter((p) => p.id !== id));
     await supabase.from("affiliate_products").delete().eq("id", id);
+    logAuditEvent({
+      action: "DELETE_AFFILIATE",
+      targetType: "AFFILIATE",
+      targetId: id,
+      oldData: { productName: name },
+      newData: { changeSummary: `წაიშალა Affiliate პროდუქტი: ${name}` },
+    });
     showNotice(`პროდუქტი "${name}" წაიშალა`);
   };
 
