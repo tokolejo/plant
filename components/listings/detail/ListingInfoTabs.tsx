@@ -4,20 +4,13 @@ import * as React from "react";
 import Image from "next/image";
 import { 
   Layers, 
-  Sprout, 
   Star, 
   ShoppingBag, 
-  Sun, 
-  Droplets, 
-  Boxes, 
-  Thermometer, 
-  Sparkles, 
-  ShieldCheck, 
   Send, 
   Loader2, 
   ChevronLeft, 
-  ChevronRight,
-  ExternalLink
+  ChevronRight, 
+  ExternalLink 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -28,15 +21,6 @@ interface ReviewItem {
   rating: number;
   comment: string;
   createdAt: string;
-}
-
-interface CareMetric {
-  key: string;
-  icon: any;
-  title: string;
-  value: string;
-  desc: string;
-  color: string;
 }
 
 interface AffiliateItem {
@@ -57,7 +41,6 @@ interface AffiliateItem {
 
 interface ListingInfoTabsProps {
   description?: string;
-  plantCareMetrics?: CareMetric[];
   itemType?: string;
   inventorySpecs?: Array<{ label: string; value: string }>;
   reviews: ReviewItem[];
@@ -67,11 +50,11 @@ interface ListingInfoTabsProps {
   isKa?: boolean;
   currentUser?: any;
   onRequireAuth?: () => void;
+  plantCareMetrics?: any[];
 }
 
 export function ListingInfoTabs({
   description,
-  plantCareMetrics = [],
   itemType,
   inventorySpecs = [],
   reviews,
@@ -83,7 +66,7 @@ export function ListingInfoTabs({
   onRequireAuth,
 }: ListingInfoTabsProps) {
   // Default to Description tab for superior mental model alignment
-  const [activeTab, setActiveTab] = React.useState<"description" | "care" | "reviews" | "inventory">("description");
+  const [activeTab, setActiveTab] = React.useState<"description" | "reviews" | "inventory">("description");
 
   // Review Form State
   const [newRating, setNewRating] = React.useState(5);
@@ -130,25 +113,7 @@ export function ListingInfoTabs({
           <span>{isKa ? "აღწერა და დეტალები" : "Description & Details"}</span>
         </button>
 
-        {/* Tab 2: Care Guidelines or Specs */}
-        <button
-          type="button"
-          onClick={() => setActiveTab("care")}
-          className={`px-3.5 py-2 rounded-[12px] text-xs font-extrabold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
-            activeTab === "care"
-              ? "bg-primary text-white shadow-2xs"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
-          }`}
-        >
-          <Sprout className="w-3.5 h-3.5" />
-          <span>
-            {itemType === "INVENTORY"
-              ? (isKa ? "სპეციფიკაციები" : "Specifications")
-              : (isKa ? "მცენარის მოვლა" : "Care Guidelines")}
-          </span>
-        </button>
-
-        {/* Tab 3: Reviews */}
+        {/* Tab 2: Reviews */}
         <button
           type="button"
           onClick={() => setActiveTab("reviews")}
@@ -196,53 +161,24 @@ export function ListingInfoTabs({
 
           {/* Quick Specifications list if inventory */}
           {inventorySpecs.length > 0 && (
-            <div className="pt-3 border-t border-border/50 grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-              {inventorySpecs.map((spec, i) => (
-                <div key={i} className="p-2.5 rounded-[12px] bg-secondary-container/50 border border-border/40">
-                  <span className="text-[10px] text-muted-foreground font-bold block uppercase">{spec.label}</span>
-                  <span className="text-xs font-extrabold text-foreground">{spec.value}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB 2: CARE METRICS OR INVENTORY SPECS ── */}
-      {activeTab === "care" && (
-        <div className="space-y-4 animate-in fade-in duration-150">
-          {plantCareMetrics.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {plantCareMetrics.map((m) => {
-                const Icon = m.icon;
-                return (
-                  <div
-                    key={m.key}
-                    className="p-3.5 rounded-[16px] border border-border/60 bg-secondary-container/30 hover:border-primary/40 transition-colors space-y-1"
-                  >
-                    <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${m.color}`}>
-                        <Icon className="w-3.5 h-3.5" />
-                      </div>
-                      <span className="text-xs font-black text-foreground">{m.title}</span>
-                    </div>
-                    <p className="text-xs font-extrabold text-primary pt-0.5">{m.value}</p>
-                    <p className="text-[11px] text-muted-foreground leading-snug">{m.desc}</p>
+            <div className="pt-3.5 border-t border-border/50 space-y-2">
+              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
+                {isKa ? "სპეციფიკაციები:" : "Specifications:"}
+              </span>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {inventorySpecs.map((spec, i) => (
+                  <div key={i} className="p-2.5 rounded-[12px] bg-secondary-container/50 border border-border/40">
+                    <span className="text-[10px] text-muted-foreground font-bold block uppercase">{spec.label}</span>
+                    <span className="text-xs font-extrabold text-foreground">{spec.value}</span>
                   </div>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="p-6 text-center rounded-[16px] bg-secondary-container/30 border border-dashed border-border/60">
-              <p className="text-xs text-muted-foreground">
-                {isKa ? "სპეციფიკური მოვლის მონაცემები მალე დაემატება." : "Care metrics will be updated soon."}
-              </p>
+                ))}
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* ── TAB 3: REVIEWS & FEEDBACK ── */}
+      {/* ── TAB 2: REVIEWS & FEEDBACK ── */}
       {activeTab === "reviews" && (
         <div className="space-y-5 animate-in fade-in duration-150">
           {/* Submit Review Form */}

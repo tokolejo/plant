@@ -12,16 +12,11 @@ import { ListingTradeBox } from "@/components/listings/detail/ListingTradeBox";
 import { ListingActionCard } from "@/components/listings/detail/ListingActionCard";
 import { UnifiedSellerCard } from "@/components/listings/detail/UnifiedSellerCard";
 import { ListingInfoTabs } from "@/components/listings/detail/ListingInfoTabs";
+import { PlantCareGuideCard } from "@/components/listings/detail/PlantCareGuideCard";
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Sprout, 
-  Sun, 
-  Droplets, 
-  Boxes, 
-  Thermometer, 
-  Sparkles, 
-  ShieldCheck,
+  Sprout,
   Phone
 } from "lucide-react";
 
@@ -459,66 +454,14 @@ export default function ListingDetailPage({
     return listing ? getBotanicalCareDetails(listing) : {} as any;
   }, [listing]);
 
-  const plantCareMetrics = React.useMemo(() => {
-    if (!careInfo || !listing || listing.itemType === "INVENTORY") return [];
-    return [
-      {
-        key: "light",
-        icon: Sun,
-        title: isKa ? "მზის განათება" : "Lighting",
-        value: isKa ? careInfo.lightRequirementKa : careInfo.lightRequirementEn,
-        desc: isKa ? careInfo.lightDescKa : careInfo.lightDescEn,
-        color: "bg-amber-500/15 text-amber-600",
-      },
-      {
-        key: "water",
-        icon: Droplets,
-        title: isKa ? "მორწყვის გრაფიკი" : "Watering",
-        value: isKa ? careInfo.wateringScheduleKa : careInfo.wateringScheduleEn,
-        desc: isKa ? careInfo.wateringDescKa : careInfo.wateringDescEn,
-        color: "bg-blue-500/15 text-blue-600",
-      },
-      {
-        key: "substrate",
-        icon: Boxes,
-        title: isKa ? "სუბსტრატი & გრუნტი" : "Substrate & Soil",
-        value: isKa ? careInfo.soilTypeKa : careInfo.soilTypeEn,
-        desc: isKa ? careInfo.soilDescKa : careInfo.soilDescEn,
-        color: "bg-emerald-500/15 text-emerald-600",
-      },
-      {
-        key: "temperature",
-        icon: Thermometer,
-        title: isKa ? "ტემპერატურა" : "Temperature",
-        value: careInfo.tempRange || "18°C - 26°C",
-        desc: isKa ? "მოარიდეთ ორპირ ქარს" : "Protect from cold drafts",
-        color: "bg-rose-500/15 text-rose-600",
-      },
-      {
-        key: "humidity",
-        icon: Sparkles,
-        title: isKa ? "ჰაერის ტენიანობა" : "Air Humidity",
-        value: isKa ? careInfo.humidityKa : careInfo.humidityEn,
-        desc: isKa ? careInfo.humidityDescKa : careInfo.humidityDescEn,
-        color: "bg-indigo-500/15 text-indigo-600",
-      },
-      {
-        key: "careLevel",
-        icon: ShieldCheck,
-        title: isKa ? "მოვლის სირთულე" : "Care Level",
-        value: isKa ? careInfo.careLevelKa : careInfo.careLevelEn,
-        desc: isKa ? careInfo.careLevelDescKa : careInfo.careLevelDescEn,
-        color: "bg-teal-500/15 text-teal-600",
-      },
-    ];
-  }, [careInfo, listing, isKa]);
-
   const inventorySpecs = React.useMemo(() => {
     if (!listing) return [];
     const specs: Array<{ label: string; value: string }> = [];
     if (listing.material) specs.push({ label: isKa ? "მასალა" : "Material", value: listing.material });
-    if (listing.potDiameter) specs.push({ label: isKa ? "ქოთნის დიამეტრი" : "Pot Diameter", value: `${listing.potDiameter} სმ` });
-    if (listing.heightCm) specs.push({ label: isKa ? "სიმაღლე" : "Height", value: `${listing.heightCm} სმ` });
+    const pot = listing.potDiameter || listing.pot_diameter;
+    if (pot) specs.push({ label: isKa ? "ქოთნის დიამეტრი" : "Pot Diameter", value: `${pot} სმ` });
+    const height = listing.heightCm || listing.height_cm;
+    if (height) specs.push({ label: isKa ? "სიმაღლე" : "Height", value: `${height} სმ` });
     if (listing.brand) specs.push({ label: isKa ? "ბრენდი" : "Brand", value: listing.brand });
     return specs;
   }, [listing, isKa]);
@@ -642,10 +585,9 @@ export default function ListingDetailPage({
               />
             )}
 
-            {/* 3. Progressive Disclosure Tabs (Description, Care, Reviews, Supplies) */}
+            {/* 3. Progressive Disclosure Tabs (Description, Reviews, Supplies) */}
             <ListingInfoTabs
               description={listing.description}
-              plantCareMetrics={plantCareMetrics}
               itemType={listing.itemType || listing.item_type}
               inventorySpecs={inventorySpecs}
               reviews={reviews}
@@ -655,6 +597,14 @@ export default function ListingDetailPage({
               isKa={isKa}
               currentUser={currentUser}
               onRequireAuth={() => router.push(`/login?next=/listings/${id}`)}
+            />
+
+            {/* 4. Permanent Compact Row-by-Row Plant Care Guide ("თითო ხაზზე თითო") */}
+            <PlantCareGuideCard
+              careInfo={careInfo}
+              listing={listing}
+              categoryLabel={categoryLabel}
+              isKa={isKa}
             />
           </div>
 

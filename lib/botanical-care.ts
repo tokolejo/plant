@@ -272,15 +272,28 @@ export const BOTANICAL_CARE_DATABASE: Record<string, PlantCareInfo> = {
   },
 };
 
-export function getBotanicalCareDetails(listing: any): PlantCareInfo {
+export function getBotanicalCareDetails(listingOrCategory: any, title?: string): PlantCareInfo {
+  let catKey = "";
+  let fullText = "";
+
+  if (typeof listingOrCategory === "string") {
+    catKey = listingOrCategory.toLowerCase();
+    fullText = `${listingOrCategory} ${title || ""}`.toLowerCase();
+  } else if (listingOrCategory && typeof listingOrCategory === "object") {
+    catKey = (
+      listingOrCategory.plant_category ||
+      listingOrCategory.plantCategory ||
+      listingOrCategory.category ||
+      ""
+    ).toLowerCase();
+
+    fullText = `${listingOrCategory.title_ka || listingOrCategory.titleKa || listingOrCategory.title || ""} ${listingOrCategory.title_en || listingOrCategory.titleEn || ""} ${listingOrCategory.description_ka || listingOrCategory.descriptionKa || listingOrCategory.description || ""} ${JSON.stringify(listingOrCategory.trade_preferences || listingOrCategory.tradePreferences || [])}`.toLowerCase();
+  }
+
   // If explicitly categorized
-  const catKey = (listing.plant_category || listing.plantCategory || "").toLowerCase();
   if (catKey && BOTANICAL_CARE_DATABASE[catKey]) {
     return BOTANICAL_CARE_DATABASE[catKey];
   }
-
-  // Detect by title, latin name, description or tags
-  const fullText = `${listing.title_ka || listing.titleKa || ""} ${listing.title_en || listing.titleEn || ""} ${listing.description_ka || listing.descriptionKa || ""} ${JSON.stringify(listing.trade_preferences || listing.tradePreferences || [])}`.toLowerCase();
 
   if (fullText.includes("monstera") || fullText.includes("მონსტერა") || fullText.includes("ალბო") || fullText.includes("constellation")) {
     return BOTANICAL_CARE_DATABASE["monstera"];
