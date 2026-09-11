@@ -30,25 +30,25 @@ export async function generateMetadata({
     metadataBase: new URL("https://plantio.ge"),
     title: {
       default: isKa
-        ? "Plant — მცენარეებისა და მებაღეობის ონლაინ პლატფორმა"
-        : "Plant — Buy, Sell & Swap Plants in Georgia",
-      template: isKa ? "%s | Plant" : "%s | Plant",
+        ? "Plantio — მცენარეებისა და მებაღეობის ონლაინ პლატფორმა"
+        : "Plantio — Buy, Sell & Swap Plants in Georgia",
+      template: "%s | Plantio.ge",
     },
     description: isKa
       ? "იშვიათი მონსტერები, ფილოდენდრონები, ორქიდეები, კერამიკული ქოთნები, სუბსტრატები და უფასო საჩუქრები მთელი საქართველოს მასშტაბით."
       : "Rare Monsteras, Philodendrons, Orchids, ceramic pots, substrates and free giveaways across Georgia.",
     keywords: isKa
-      ? ["მცენარე", "monstera", "philodendron", "ქოთანი", "გაყიდვა", "გაცვლა", "საქართველო", "plant"]
-      : ["plants", "monstera", "philodendron", "buy plants Georgia", "sell plants", "plant swap", "Georgian marketplace"],
+      ? ["მცენარე", "plantio", "monstera", "philodendron", "ქოთანი", "გაყიდვა", "გაცვლა", "საქართველო", "plant"]
+      : ["plants", "plantio", "monstera", "philodendron", "buy plants Georgia", "sell plants", "plant swap", "Georgian marketplace"],
     openGraph: {
       type: "website",
       locale: isKa ? "ka_GE" : "en_US",
       alternateLocale: isKa ? ["en_US"] : ["ka_GE"],
       url: "https://plantio.ge",
-      siteName: "Plant",
+      siteName: "Plantio.ge",
       title: isKa
-        ? "Plant — მცენარეების პლატფორმა"
-        : "Plant — Botanical Marketplace in Georgia",
+        ? "Plantio — მცენარეების პლატფორმა"
+        : "Plantio — Botanical Marketplace in Georgia",
       description: isKa
         ? "იყიდე, გაყიდე და გაცვალე მცენარეები მთელი საქართველოს მასშტაბით."
         : "Buy, sell and swap plants across all of Georgia.",
@@ -57,13 +57,13 @@ export async function generateMetadata({
           url: "/og-image.png",
           width: 1200,
           height: 630,
-          alt: "Plant",
+          alt: "Plantio.ge",
         },
       ],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Plant",
+      title: "Plantio.ge",
       description: isKa
         ? "საქართველოს #1 მცენარეების პლატფორმა"
         : "Georgia's #1 plant marketplace",
@@ -80,10 +80,10 @@ export async function generateMetadata({
       },
     },
     alternates: {
-      canonical: `https://plantsale.ge/${locale}`,
+      canonical: `https://plantio.ge/${locale}`,
       languages: {
-        ka: "https://plantsale.ge/ka",
-        en: "https://plantsale.ge/en",
+        ka: "https://plantio.ge/ka",
+        en: "https://plantio.ge/en",
       },
     },
     manifest: "/manifest.json",
@@ -133,11 +133,11 @@ export default async function LocaleLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebSite",
-              name: "PlantSale.Ge",
-              url: "https://plantsale.ge",
+              name: "Plantio.ge",
+              url: "https://plantio.ge",
               potentialAction: {
                 "@type": "SearchAction",
-                target: "https://plantsale.ge/ka/listings?q={search_term_string}",
+                target: "https://plantio.ge/ka/listings?search={search_term_string}",
                 "query-input": "required name=search_term_string",
               },
             }),
