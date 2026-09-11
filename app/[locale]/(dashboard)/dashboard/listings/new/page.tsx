@@ -208,9 +208,15 @@ function CreateListingContent() {
   }, [tagInput, tradeTags]);
 
   const addSpecificTag = (tagToAdd: string) => {
-    const trimmed = tagToAdd.trim();
-    if (trimmed && !tradeTags.includes(trimmed)) {
-      setTradeTags([...tradeTags, trimmed]);
+    const parts = tagToAdd.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length > 0) {
+      setTradeTags((prev) => {
+        const next = [...prev];
+        for (const p of parts) {
+          if (!next.includes(p)) next.push(p);
+        }
+        return next;
+      });
       setTagInput("");
       setShowTagAutocomplete(false);
     }
@@ -329,9 +335,6 @@ function CreateListingContent() {
       const tox = isKa ? (result.toxicity || result.toxicityKa) : (result.toxicityEn || result.toxicity);
       if (tox) setToxicity(tox);
 
-      if (result.tags && Array.isArray(result.tags)) {
-        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
-      }
       setItemType("PLANT");
       if (result.category) {
         const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
@@ -411,9 +414,6 @@ function CreateListingContent() {
       
       const tox = isKa ? (result.toxicity || result.toxicityKa) : (result.toxicityEn || result.toxicity);
       if (tox) setToxicity(tox);
-      if (result.tags && Array.isArray(result.tags)) {
-        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
-      }
       setItemType("PLANT");
       if (result.category) {
         const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
@@ -1066,9 +1066,16 @@ const ALL_GEORGIAN_CITIES = [
           {/* Trade Preferences (Shown only when Trade/ISO is selected) */}
           {transactionType === "TRADE" && (
             <div className="space-y-1.5 p-3 rounded-[14px] bg-secondary-container/40 border border-border/70" ref={tagInputWrapperRef}>
-              <label className="text-[11px] font-bold text-foreground block">
-                {isKa ? "რაში გსურთ გაცვლა? (მცენარე / ინვენტარი)" : "Looking to trade for:"}
-              </label>
+              <div>
+                <label className="text-[11px] font-bold text-foreground block">
+                  {isKa ? "რაში გსურთ გაცვლა? (მცენარე / ინვენტარი)" : "Looking to trade for:"}
+                </label>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {isKa
+                    ? "ჩაწერეთ რა მცენარე ან ნივთი გსურთ სანაცვლოდ (მაგ: მონსტერა ალბო, ქოთანი) და დააჭირეთ „დამატებას“"
+                    : "Enter which plant or item you wish to receive in return and click 'Add'"}
+                </p>
+              </div>
               <div className="flex gap-1.5">
                 <Input
                   type="text"

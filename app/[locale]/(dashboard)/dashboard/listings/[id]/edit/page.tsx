@@ -416,9 +416,6 @@ export default function EditListingPage() {
     const tox = isKa ? (result.toxicity || result.toxicityKa) : (result.toxicityEn || result.toxicity);
     if (tox) setToxicity(tox);
 
-    if (result.tags && Array.isArray(result.tags)) {
-      setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
-    }
     if (result.category) {
       const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
       if (matched) {
