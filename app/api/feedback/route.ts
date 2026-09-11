@@ -1,19 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { createAdminClient } from "@/utils/supabase/admin";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const { allowed } = checkRateLimit(`feedback:${ip}`, 5, 60000);
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "ძალიან ბევრი მოთხოვნა. გთხოვთ დაიცადოთ ცოტა ხანი." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
-    const { type, name, email, phone, subject, message } = body;
+    const { type, name, email, phone, subject, message, website, bot_trap } = body;
+
+    // Honeypot check for bots (silent reject)
+    if (website || bot_trap) {
+      return NextResponse.json({
+        success: true,
+        message: "შეტყობინება წარმატებით გაიგზავნა.",
+      });
+    }
 
     if (!message || !message.trim() || !email || !email.trim() || !name || !name.trim()) {
       return NextResponse.json(
         { success: false, error: "გთხოვთ შეავსოთ სახელი, ელ-ფოსტა და შეტყობინება." },
         { status: 400 }
       );
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return NextResponse.json(
+        { success: false, error: "გთხოვთ მიუთითოთ ვალიდური ელ-ფოსტის მისამართი." },
+        { status: 400 }
+      );
+    }
+
+    if (name.trim().length > 80) {
+      return NextResponse.json({ success: false, error: "სახელი მეტისმეტად გრძელია." }, { status: 400 });
+    }
+    if (message.trim().length > 3000) {
+      return NextResponse.json({ success: false, error: "შეტყობინება მეტისმეტად გრძელია (მაქს. 3000 სიმბოლო)." }, { status: 400 });
     }
 
     const supabase = await createClient();

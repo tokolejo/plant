@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { STRUCTURED_CATEGORIES } from "@/lib/categories-data";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const maxDuration = 45; // 45 seconds max duration for vision analysis
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const { allowed } = checkRateLimit(`ai:recognize:${ip}`, 15, 60000);
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "ძალიან ბევრი მოთხოვნა. გთხოვთ დაიცადოთ 1 წუთი." },
+        { status: 429 }
+      );
+    }
+
     let base64Image = "";
     let mimeType = "image/jpeg";
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const maxDuration = 45;
 
@@ -119,6 +120,15 @@ const COMMON_DISEASES: DiagnosticResult[] = [
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = getClientIp(req);
+    const { allowed } = checkRateLimit(`ai:diagnose:${ip}`, 15, 60000);
+    if (!allowed) {
+      return NextResponse.json(
+        { success: false, error: "ძალიან ბევრი მოთხოვნა. გთხოვთ დაიცადოთ 1 წუთი." },
+        { status: 429 }
+      );
+    }
+
     let base64Image = "";
     let plantHint = "";
 
