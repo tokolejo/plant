@@ -98,48 +98,54 @@ export function ListingInfoTabs({
   return (
     <div className="rounded-[22px] border border-border/80 bg-card p-4 sm:p-6 shadow-xs space-y-5">
       {/* ── Tab Switcher Strip ── */}
-      <div className="flex items-center gap-2 border-b border-border/60 pb-3 overflow-x-auto no-scrollbar">
+      <div className="flex w-full items-center gap-1.5 sm:gap-2 border-b border-border/60 pb-3 overflow-x-auto no-scrollbar">
         {/* Tab 1: Description */}
         <button
           type="button"
           onClick={() => setActiveTab("description")}
-          className={`px-3.5 py-2 rounded-[12px] text-xs font-extrabold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`flex-1 sm:flex-initial justify-center px-3 sm:px-4 py-2 rounded-[12px] text-xs font-extrabold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeTab === "description"
               ? "bg-primary text-white shadow-2xs"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
           }`}
         >
-          <Layers className="w-3.5 h-3.5" />
-          <span>{isKa ? "აღწერა და დეტალები" : "Description & Details"}</span>
+          <Layers className="w-3.5 h-3.5 shrink-0" />
+          <span>
+            <span className="sm:hidden">{isKa ? "აღწერა" : "Description"}</span>
+            <span className="hidden sm:inline">{isKa ? "აღწერა და დეტალები" : "Description & Details"}</span>
+          </span>
         </button>
 
         {/* Tab 2: Reviews */}
         <button
           type="button"
           onClick={() => setActiveTab("reviews")}
-          className={`px-3.5 py-2 rounded-[12px] text-xs font-extrabold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`flex-1 sm:flex-initial justify-center px-3 sm:px-4 py-2 rounded-[12px] text-xs font-extrabold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
             activeTab === "reviews"
               ? "bg-primary text-white shadow-2xs"
               : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
           }`}
         >
-          <Star className="w-3.5 h-3.5" />
+          <Star className="w-3.5 h-3.5 shrink-0" />
           <span>{isKa ? `შეფასებები (${reviews.length})` : `Reviews (${reviews.length})`}</span>
         </button>
 
-        {/* Tab 4: Supplies (if available) */}
+        {/* Tab 3: Supplies (if available) */}
         {affiliateOffers.length > 0 && (
           <button
             type="button"
             onClick={() => setActiveTab("inventory")}
-            className={`px-3.5 py-2 rounded-[12px] text-xs font-extrabold transition-all flex items-center gap-1.5 shrink-0 cursor-pointer ${
+            className={`flex-1 sm:flex-initial justify-center px-3 sm:px-4 py-2 rounded-[12px] text-xs font-extrabold transition-all flex items-center gap-1.5 whitespace-nowrap cursor-pointer ${
               activeTab === "inventory"
                 ? "bg-primary text-white shadow-2xs"
                 : "text-muted-foreground hover:text-foreground hover:bg-secondary-container"
             }`}
           >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>{isKa ? `მოვლის ინვენტარი (${affiliateOffers.length})` : `Supplies (${affiliateOffers.length})`}</span>
+            <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+            <span>
+              <span className="sm:hidden">{isKa ? `ინვენტარი (${affiliateOffers.length})` : `Supplies (${affiliateOffers.length})`}</span>
+              <span className="hidden sm:inline">{isKa ? `მოვლის ინვენტარი (${affiliateOffers.length})` : `Supplies (${affiliateOffers.length})`}</span>
+            </span>
           </button>
         )}
       </div>

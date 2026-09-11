@@ -135,52 +135,55 @@ export function PlantCareGuideCard({
           </div>
           <div>
             <h3 className="text-sm sm:text-base font-black text-foreground">
-              {isKa ? "მცენარის მოვლის გზამკვლევი" : "Botanical Care Guide"}
+              {isKa ? "მცენარის მოვლა" : "Plant Care"}
             </h3>
-            <p className="text-[11px] text-muted-foreground">
-              {isKa ? "ოპტიმალური პირობები ჯანსაღი ზრდისთვის" : "Optimal conditions for healthy growth"}
-            </p>
           </div>
         </div>
 
         {/* Family Badge */}
         {(familyName || categoryLabel) && (
-          <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-secondary-container text-foreground border border-border/60 shrink-0">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-secondary-container text-foreground border border-border/60 shrink-0">
             {familyName ? (isKa ? `ოჯახი: ${familyName}` : `Family: ${familyName}`) : categoryLabel}
           </span>
         )}
       </div>
 
-      {/* ── Compact 1-Per-Line Rows ("თითო ხაზზე თითო") ── */}
+      {/* ── Icon-First Compact Care Guidelines (Zero truncation) ── */}
       <div className="space-y-1.5">
         {rows.map((r) => {
           const Icon = r.icon;
           return (
             <div
               key={r.key}
-              className="flex items-center justify-between gap-2 py-2 px-3 rounded-[12px] bg-secondary-container/30 hover:bg-secondary-container/50 border border-border/40 transition-colors"
+              title={`${r.title}: ${r.value}${r.hint ? ` (${r.hint})` : ""}`}
+              className="flex items-center justify-between gap-2.5 py-2 px-3 rounded-[12px] bg-secondary-container/30 hover:bg-secondary-container/50 border border-border/40 transition-colors"
             >
-              {/* Left: Icon & Title */}
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 ${r.iconClass}`}>
+              {/* Left: Semantic Icon + Primary Metric Value */}
+              <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                <div 
+                  className={`w-7 h-7 rounded-[9px] flex items-center justify-center shrink-0 ${r.iconClass}`}
+                  title={r.title}
+                >
                   <Icon className="w-3.5 h-3.5" />
                 </div>
-                <span className="text-xs font-bold text-foreground truncate">
-                  {r.title}
-                </span>
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-black text-foreground block truncate">
+                    {r.value}
+                  </span>
+                  {r.hint && (
+                    <span className="text-[10px] text-muted-foreground block truncate sm:hidden">
+                      {r.hint}
+                    </span>
+                  )}
+                </div>
               </div>
 
-              {/* Right: Hint (desktop) + High-Contrast Badge */}
-              <div className="flex items-center gap-2 shrink-0">
-                {r.hint && (
-                  <span className="hidden md:inline-block text-[11px] font-medium text-muted-foreground truncate max-w-[200px]">
-                    {r.hint}
-                  </span>
-                )}
-                <span className={`px-2.5 py-0.5 rounded-[8px] text-xs font-extrabold shadow-2xs whitespace-nowrap ${r.badgeClass}`}>
-                  {r.value}
+              {/* Right: Helpful Context Hint (Desktop/Tablet) */}
+              {r.hint && (
+                <span className="hidden sm:inline-block text-[11px] font-medium text-muted-foreground shrink-0 max-w-[220px] truncate text-right">
+                  {r.hint}
                 </span>
-              </div>
+              )}
             </div>
           );
         })}
