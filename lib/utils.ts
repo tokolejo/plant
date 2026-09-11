@@ -12,6 +12,21 @@ export function formatPrice(price: number | null | undefined, currency: string =
   return `${Number(price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}\u00A0${currency}`;
 }
 
+export function formatListingPrice(
+  price: number | null | undefined,
+  transactionType?: string | null,
+  currency: string = "₾",
+  isKa: boolean = true
+): string {
+  if (transactionType === "TRADE") {
+    return isKa ? "გაცვლა" : "Trade";
+  }
+  if (transactionType === "GIFT" || price === 0 || price === null || price === undefined) {
+    return isKa ? "უფასო" : "Free";
+  }
+  return `${Number(price).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}\u00A0${currency}`;
+}
+
 export function getTierColor(tier: string) {
   switch (tier) {
     case "TIER_3":

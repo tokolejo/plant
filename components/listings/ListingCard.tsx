@@ -185,14 +185,14 @@ export function ListingCard({
             {/* Top row: price and city */}
             <div className="flex items-start justify-between gap-2 mb-1">
               <div className="flex items-baseline gap-2">
-                {transactionType === "GIFT" || price === 0 || !price ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
-                    <span>{isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}</span>
-                  </span>
-                ) : transactionType === "TRADE" ? (
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-indigo-500/15 text-indigo-800 dark:text-indigo-300 text-xs font-black border border-indigo-500/30">
+                {transactionType === "TRADE" ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-black border border-indigo-500/30">
                     <RefreshCw className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
                     <span>{isKa ? "გაცვლა" : "Trade"}</span>
+                  </span>
+                ) : transactionType === "GIFT" || price === 0 || !price ? (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
+                    <span>{isKa ? "უფასო" : "Free"}</span>
                   </span>
                 ) : (
                   <div className="flex items-baseline gap-1">
@@ -357,14 +357,14 @@ export function ListingCard({
         {/* Price & Location Row — Rock-solid No-wrap Flex Layout */}
         <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
           <div className="shrink-0 flex items-center gap-1 whitespace-nowrap">
-            {transactionType === "GIFT" || price === 0 || !price ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs whitespace-nowrap">
-                <span>{isKa ? "უფასო" : "Free"}</span>
-              </span>
-            ) : transactionType === "TRADE" ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-indigo-500/15 text-indigo-800 dark:text-indigo-300 text-xs font-black border border-indigo-500/30 whitespace-nowrap">
+            {transactionType === "TRADE" ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-black border border-indigo-500/30 whitespace-nowrap">
                 <RefreshCw className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" />
                 <span>{isKa ? "გაცვლა" : "Trade"}</span>
+              </span>
+            ) : transactionType === "GIFT" || price === 0 || !price ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs whitespace-nowrap">
+                <span>{isKa ? "უფასო" : "Free"}</span>
               </span>
             ) : (
               <div className="inline-flex items-baseline gap-1 whitespace-nowrap">

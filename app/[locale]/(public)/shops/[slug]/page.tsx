@@ -631,8 +631,8 @@ export default function ShopStorefrontPage({
           {[
             { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
             { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
-            { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Trade Only" },
-            { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
+            { id: "TRADE", label: isKa ? "გაცვლა" : "Trade" },
+            { id: "GIFT", label: isKa ? "გაჩუქება (უფასო)" : "Free Giveaway" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
             const count = shopListings.filter((l) => l.transactionType === t.id).length;

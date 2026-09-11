@@ -52,14 +52,14 @@ export function CompactListingCard({
         {transactionType === "TRADE" && (
           <div className="absolute top-1.5 right-1.5">
             <span className="inline-flex items-center gap-0.5 rounded-md bg-indigo-600 px-1.5 py-0.5 text-[9px] font-bold text-white shadow-sm">
-              <RefreshCw className="w-2.5 h-2.5" /> Trade
+              <RefreshCw className="w-2.5 h-2.5" /> გაცვლა
             </span>
           </div>
         )}
 
         {/* Price pill */}
         <div className="absolute bottom-1.5 right-1.5 rounded-md bg-black/75 backdrop-blur-sm px-2 py-0.5 text-[11px] font-black text-white shadow-sm">
-          {transactionType === "TRADE" ? "Trade" : transactionType === "GIFT" || price === 0 || !price ? "უფასო" : formatPrice(price)}
+          {transactionType === "TRADE" ? "გაცვლა" : transactionType === "GIFT" || price === 0 || !price ? "უფასო" : formatPrice(price)}
         </div>
       </div>
 

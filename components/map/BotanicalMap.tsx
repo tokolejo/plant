@@ -454,8 +454,8 @@ export default function BotanicalMap() {
 
       filteredListings.forEach((item) => {
         const isVip = item.isPremium || item.isFeatured;
-        const isGift = item.transactionType === "GIFT" || (item.price === 0 && item.transactionType !== "TRADE");
         const isTrade = item.transactionType === "TRADE";
+        const isGift = !isTrade && (item.transactionType === "GIFT" || item.price === 0);
 
         let pinBg = 'border-gray-200 bg-white text-gray-900 group-hover:border-[#003629] group-hover:bg-[#003629] group-hover:text-white';
         let pinArrow = 'bg-white border-r border-b border-gray-200 group-hover:bg-[#003629] group-hover:border-[#003629]';
@@ -466,17 +466,17 @@ export default function BotanicalMap() {
           pinBg = 'bg-amber-600 text-white border-amber-300 font-bold scale-105 ring-2 ring-amber-500/30';
           pinArrow = 'bg-amber-600 border-r border-b border-amber-300';
           pinEmoji = '<svg class="w-3.5 h-3.5 inline text-amber-200 fill-current" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
-          priceLabel = isGift ? 'საჩუქარი' : isTrade ? 'გაცვლა' : formatPrice(item.price);
+          priceLabel = isTrade ? 'გაცვლა' : isGift ? 'საჩუქარი' : formatPrice(item.price);
+        } else if (isTrade) {
+          pinBg = 'bg-indigo-600 text-white border-indigo-300 font-bold ring-2 ring-indigo-500/30';
+          pinArrow = 'bg-indigo-600 border-r border-b border-indigo-300';
+          pinEmoji = '';
+          priceLabel = 'გაცვლა';
         } else if (isGift) {
           pinBg = 'bg-emerald-600 text-white border-emerald-300 font-black ring-2 ring-emerald-500/30';
           pinArrow = 'bg-emerald-600 border-r border-b border-emerald-300';
           pinEmoji = '';
           priceLabel = 'საჩუქარი';
-        } else if (isTrade) {
-          pinBg = 'bg-amber-500 text-white border-amber-300 font-bold';
-          pinArrow = 'bg-amber-500 border-r border-b border-amber-300';
-          pinEmoji = '';
-          priceLabel = 'გაცვლა';
         }
 
         const distLabel = item.distanceKm < 1 ? `${Math.round(item.distanceKm * 1000)} მ` : `${item.distanceKm} კმ`;
@@ -503,18 +503,18 @@ export default function BotanicalMap() {
         // Refined, Beautiful Popup
         const popupPriceBadge = isVip
           ? 'bg-amber-600'
+          : isTrade
+          ? 'bg-indigo-600'
           : isGift
           ? 'bg-emerald-600'
-          : isTrade
-          ? 'bg-amber-500'
           : '';
 
         const popupPriceText = isVip
-          ? `VIP ${isGift ? 'საჩუქარი' : priceLabel}`
-          : isGift
-          ? 'უფასო საჩუქარი'
+          ? `VIP ${isTrade ? 'გაცვლა' : isGift ? 'საჩუქარი' : priceLabel}`
           : isTrade
           ? 'გაცვლა'
+          : isGift
+          ? 'უფასო საჩუქარი'
           : priceLabel;
 
         const popupContent = `

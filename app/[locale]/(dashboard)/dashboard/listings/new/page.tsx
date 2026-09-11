@@ -1015,8 +1015,8 @@ const ALL_GEORGIAN_CITIES = [
               {[
                 { id: "FIXED", label: isKa ? "ფიქსირებული" : "Fixed Price", icon: Coins },
                 { id: "NEGOTIABLE", label: isKa ? "შეთანხმებით" : "Negotiable", icon: Handshake },
-                { id: "TRADE", label: isKa ? "გაცვლა (ISO)" : "Trade (ISO)", icon: Shuffle },
-                { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Giveaway", icon: Gift },
+                { id: "TRADE", label: isKa ? "გაცვლა" : "Trade", icon: Shuffle },
+                { id: "GIFT", label: isKa ? "გაჩუქება" : "Giveaway", icon: Gift },
               ].map(({ id, label, icon: Icon }) => {
                 const active = transactionType === id;
                 return (

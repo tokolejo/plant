@@ -2034,13 +2034,13 @@ export default function AdminDashboardPage() {
 
                         <div className="flex items-center justify-between pt-1">
                           <div>
-                            {item.transactionType === "GIFT" || item.price === 0 ? (
+                            {item.transactionType === "TRADE" ? (
+                              <Badge variant="outline" className="text-[10px] font-bold border-indigo-500/40 text-indigo-600 bg-indigo-500/5">
+                                 გაცვლა
+                              </Badge>
+                            ) : item.transactionType === "GIFT" || item.price === 0 ? (
                               <Badge variant="outline" className="text-[10px] font-black border-emerald-500/40 text-emerald-600 bg-emerald-500/5">
                                  საჩუქარი
-                              </Badge>
-                            ) : item.transactionType === "TRADE" ? (
-                              <Badge variant="outline" className="text-[10px] font-bold border-amber-500/40 text-amber-600 bg-amber-500/5">
-                                 გაცვლა
                               </Badge>
                             ) : (
                               <span className="font-black text-foreground text-xs">
@@ -2285,13 +2285,13 @@ export default function AdminDashboardPage() {
 
                         {/* Price */}
                         <td className="py-3 px-3">
-                          {item.transactionType === "GIFT" || item.price === 0 ? (
+                          {item.transactionType === "TRADE" ? (
+                            <Badge variant="outline" className="text-[10px] font-bold border-indigo-500/40 text-indigo-600 bg-indigo-500/5">
+                               გაცვლა
+                            </Badge>
+                          ) : item.transactionType === "GIFT" || item.price === 0 ? (
                             <Badge variant="outline" className="text-[10px] font-black border-emerald-500/40 text-emerald-600 bg-emerald-500/5">
                                საჩუქარი
-                            </Badge>
-                          ) : item.transactionType === "TRADE" ? (
-                            <Badge variant="outline" className="text-[10px] font-bold border-amber-500/40 text-amber-600 bg-amber-500/5">
-                               გაცვლა
                             </Badge>
                           ) : (
                             <span className="font-black text-foreground text-xs">

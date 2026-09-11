@@ -710,7 +710,7 @@ function IsoCatalogContent() {
       >
         <div className="grid grid-cols-1 gap-2">
           {[
-            { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Plant Trade" },
+            { id: "TRADE", label: isKa ? "გაცვლა" : "Trade" },
             { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
@@ -858,7 +858,7 @@ function IsoCatalogContent() {
               }`}
             >
               <Shuffle className={`w-3.5 h-3.5 ${selectedTrans.includes("TRADE") && selectedTrans.length === 1 ? "text-white" : "text-indigo-600"}`} />
-              <span>{isKa ? "მხოლოდ გაცვლა" : "Trade Only"}</span>
+              <span>{isKa ? "გაცვლა" : "Trade"}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                   selectedTrans.includes("TRADE") && selectedTrans.length === 1

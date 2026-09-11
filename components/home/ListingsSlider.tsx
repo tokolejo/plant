@@ -60,14 +60,14 @@ function ShowcaseCard({ item }: { item: ExtendedListingCardProps }) {
         {/* Price & Location */}
         <div className="flex items-baseline justify-between gap-2 mb-1.5">
           <div>
-            {item.transactionType === "GIFT" || item.price === 0 || !item.price ? (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
-                <span>უფასო</span>
-              </span>
-            ) : item.transactionType === "TRADE" ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] bg-amber-500/15 text-amber-900 dark:text-amber-300 text-xs font-black border border-amber-500/30">
+            {item.transactionType === "TRADE" ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[8px] bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-black border border-indigo-500/30">
                 <RefreshCw className="w-2.5 h-2.5" />
                 <span>გაცვლა</span>
+              </span>
+            ) : item.transactionType === "GIFT" || item.price === 0 || !item.price ? (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-[8px] bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-black border border-emerald-500/30 shadow-2xs">
+                <span>უფასო</span>
               </span>
             ) : (
               <span className="text-lg sm:text-xl font-black tracking-tight text-primary dark:text-primary-fixed">

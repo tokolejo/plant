@@ -889,8 +889,8 @@ function ListingsCatalogContent() {
           {[
             { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
             { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
-            { id: "TRADE", label: isKa ? "მცენარის გაცვლა" : "Trade Only" },
-            { id: "GIFT", label: isKa ? "გაჩუქება (უფასოდ)" : "Free Giveaway" },
+            { id: "TRADE", label: isKa ? "გაცვლა" : "Trade" },
+            { id: "GIFT", label: isKa ? "გაჩუქება (უფასო)" : "Giveaway (Free)" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
             const count = allListings.filter((l) => l.transactionType === t.id).length;

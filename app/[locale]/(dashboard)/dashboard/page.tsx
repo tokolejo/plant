@@ -473,8 +473,8 @@ export default function UserDashboardPage() {
                 const imageSrc = item.images?.[0] || item.image || "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=600";
                 const title = item.title_ka || item.title || "მცენარე";
                 const priceVal = item.price;
-                const isGift = item.transaction_type === "GIFT" || item.transactionType === "GIFT" || priceVal === 0;
                 const isTrade = item.transaction_type === "TRADE" || item.transactionType === "TRADE";
+                const isGift = !isTrade && (item.transaction_type === "GIFT" || item.transactionType === "GIFT" || priceVal === 0);
                 const currentStatus = item.status || "ACTIVE";
                 const isBumping = bumpLoading === item.id;
                 const msg = bumpMessage?.id === item.id ? bumpMessage : null;
@@ -547,13 +547,13 @@ export default function UserDashboardPage() {
 
                     {/* Middle: Price Tag */}
                     <div className="shrink-0 text-right min-w-[80px]">
-                      {isGift ? (
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-black">
-                           უფასო
-                        </span>
-                      ) : isTrade ? (
-                        <span className="px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
+                      {isTrade ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-bold border border-indigo-500/20">
                           გაცვლა
+                        </span>
+                      ) : isGift ? (
+                        <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 text-xs font-bold border border-emerald-500/20">
+                           უფასო
                         </span>
                       ) : (
                         <span className="text-sm font-black text-foreground">

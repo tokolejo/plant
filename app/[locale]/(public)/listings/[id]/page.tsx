@@ -754,12 +754,12 @@ export default function ListingDetailPage({
                 )}
                 {listing.transactionType === "GIFT" && (
                   <Badge className="bg-emerald-600 text-white font-black text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px] flex items-center gap-1">
-                    <Gift className="w-3.5 h-3.5" /> {isKa ? "გაჩუქება (უფასოდ)" : "Giveaway (Free)"}
+                    <Gift className="w-3.5 h-3.5" /> {isKa ? "გაჩუქება" : "Giveaway"}
                   </Badge>
                 )}
                 {listing.transactionType === "TRADE" && (
-                  <Badge className="bg-amber-500 text-white font-bold text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px] flex items-center gap-1">
-                    <RefreshCw className="w-3.5 h-3.5" /> {isKa ? "გაცვლა" : "Swap / Trade"}
+                  <Badge className="bg-indigo-600 text-white font-bold text-xs px-2.5 py-0.5 shadow-md border-0 rounded-[9px] flex items-center gap-1">
+                    <RefreshCw className="w-3.5 h-3.5" /> {isKa ? "გაცვლა" : "Trade"}
                   </Badge>
                 )}
               </div>
@@ -846,8 +846,8 @@ export default function ListingDetailPage({
                 )}
                 {listing.transactionType === "TRADE" && (
                   <Link href="/listings?trans=TRADE">
-                    <Badge className="rounded-full bg-amber-500/15 text-amber-800 dark:text-amber-300 hover:bg-amber-500/25 transition-all border border-amber-500/30 font-bold text-[11px] cursor-pointer py-0.5 px-2.5">
-                      {isKa ? "გაცვლა" : "Trade / Swap"}
+                    <Badge className="rounded-full bg-indigo-500/15 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-500/25 transition-all border border-indigo-500/30 font-bold text-[11px] cursor-pointer py-0.5 px-2.5">
+                      {isKa ? "გაცვლა" : "Trade"}
                     </Badge>
                   </Link>
                 )}
@@ -942,14 +942,14 @@ export default function ListingDetailPage({
 
             {/* Price & Status Row (Clean & Elevated - no bulky box) */}
             <div className="pt-3 pb-3 border-y border-border/50 flex items-center justify-between">
-              {listing.transactionType === "GIFT" || listing.price === 0 || !listing.price ? (
-                <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">
-                  {isKa ? "უფასო / გაჩუქება" : "FREE / Giveaway"}
+              {listing.transactionType === "TRADE" ? (
+                <span className="text-xl sm:text-2xl font-black text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
+                  <RefreshCw className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                  <span>{isKa ? "გაცვლა" : "Trade"}</span>
                 </span>
-              ) : listing.transactionType === "TRADE" ? (
-                <span className="text-xl sm:text-2xl font-black text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
-                  <RefreshCw className="w-5 h-5" />
-                  <span>{isKa ? "მხოლოდ გაცვლა" : "Trade Only"}</span>
+              ) : listing.transactionType === "GIFT" || listing.price === 0 || !listing.price ? (
+                <span className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400">
+                  {isKa ? "უფასო" : "Free"}
                 </span>
               ) : (
                 <div className="flex items-baseline gap-1.5">
