@@ -209,6 +209,14 @@ export async function POST(req: NextRequest) {
 
     // CS-Cart / WooCommerce / Shopify price selectors
     if (price === null || isNaN(price)) {
+      const supMatch = html.match(/([0-9]+)(?:<[^>]*>|[\s.,])*<\s*sup[^>]*>\s*\.?([0-9]{2})\s*<\s*\/sup>/i);
+      if (supMatch) {
+        const parsed = parseFloat(`${supMatch[1]}.${supMatch[2]}`);
+        if (!isNaN(parsed)) price = parsed;
+      }
+    }
+
+    if (price === null || isNaN(price)) {
       const tyPriceMatch = html.match(/<span[^>]*class=["'][^"']*(?:ty-price-num|woocommerce-Price-amount|current-price|price-num)[^"']*["'][^>]*>([\s\S]*?)<\/span>/i);
       if (tyPriceMatch) {
         const cleanNum = tyPriceMatch[1].replace(/<[^>]*>/g, "").replace(/[^0-9.]/g, "");

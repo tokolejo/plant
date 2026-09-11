@@ -82,7 +82,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
 
   // ─── Bulk Category Scraper State ───
   const [catUrl, setCatUrl] = React.useState("");
-  const [catPartner, setCatPartner] = React.useState("Domino");
+  const [catPartner, setCatPartner] = React.useState("AUTO");
   const [catLimit, setCatLimit] = React.useState(30);
   const [catCategoryOverride, setCatCategoryOverride] = React.useState("AUTO");
   const [scrapingCat, setScrapingCat] = React.useState(false);
@@ -97,7 +97,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
 
   // ─── Single URL Scraper State ───
   const [singleUrl, setSingleUrl] = React.useState("");
-  const [singlePartner, setSinglePartner] = React.useState("Domino");
+  const [singlePartner, setSinglePartner] = React.useState("AUTO");
   const [singleCommission, setSingleCommission] = React.useState("5");
   const [scrapingSingle, setScrapingSingle] = React.useState(false);
   const [singlePreview, setSinglePreview] = React.useState<any>(null);
@@ -130,6 +130,47 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
   const [editPrice, setEditPrice] = React.useState("");
   const [editTitle, setEditTitle] = React.useState("");
 
+  // ─── Partner Auto-detection from URL ───
+  const detectPartnerFromUrl = React.useCallback(
+    (url: string) => {
+      if (!url) return null;
+      const lower = url.toLowerCase();
+      for (const p of partners) {
+        if (lower.includes(p.name.toLowerCase())) {
+          return p.name;
+        }
+        if (p.website_url) {
+          try {
+            const host = new URL(p.website_url).hostname.replace(/^www\./, "");
+            if (lower.includes(host)) return p.name;
+          } catch {}
+        }
+      }
+      if (lower.includes("domino.com.ge") || lower.includes("domino")) return "Domino";
+      if (lower.includes("gorgia.ge") || lower.includes("gorgia")) return "Gorgia";
+      if (lower.includes("agrohub.ge") || lower.includes("agrohub")) return "Agrohub";
+      if (lower.includes("bricorama.ge") || lower.includes("bricorama")) return "Bricorama";
+      return null;
+    },
+    [partners]
+  );
+
+  const handleCatUrlChange = (newUrl: string) => {
+    setCatUrl(newUrl);
+    const matched = detectPartnerFromUrl(newUrl);
+    if (matched) {
+      setCatPartner(matched);
+    }
+  };
+
+  const handleSingleUrlChange = (newUrl: string) => {
+    setSingleUrl(newUrl);
+    const matched = detectPartnerFromUrl(newUrl);
+    if (matched) {
+      setSinglePartner(matched);
+    }
+  };
+
   // ─── Load Data ───
   const loadData = React.useCallback(async () => {
     setLoading(true);
@@ -140,10 +181,8 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
         const pJson = await pRes.json();
         if (pJson.success && pJson.partners) {
           setPartners(pJson.partners);
-          if (pJson.partners.length > 0 && !catPartner) {
-            setCatPartner(pJson.partners[0].name);
+          if (pJson.partners.length > 0 && !csvPartner) {
             setCsvPartner(pJson.partners[0].name);
-            setSinglePartner(pJson.partners[0].name);
           }
         }
       }
@@ -162,7 +201,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
     } finally {
       setLoading(false);
     }
-  }, [supabase, catPartner]);
+  }, [supabase, csvPartner]);
 
   React.useEffect(() => {
     loadData();
@@ -226,12 +265,17 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
     setSelectedCatIndices(new Set());
 
     try {
+      const resolvedPartner =
+        catPartner !== "AUTO"
+          ? catPartner
+          : detectPartnerFromUrl(catUrl) || "Partner Store";
+
       const res = await fetch("/api/affiliate/scrape-category", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           categoryUrl: catUrl.trim(),
-          partnerName: catPartner,
+          partnerName: resolvedPartner,
           limit: catLimit,
           categoryOverride: catCategoryOverride !== "AUTO" ? catCategoryOverride : undefined,
           autoSave: false,
@@ -286,10 +330,15 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
 
     setSavingCatItems(true);
     try {
+      const resolvedPartner =
+        catPartner !== "AUTO"
+          ? catPartner
+          : detectPartnerFromUrl(catUrl) || scrapedCatItems[0]?.partnerName || "Partner Store";
+
       const itemsToSave = scrapedCatItems
         .filter((_, idx) => selectedCatIndices.has(idx))
         .map((item) => ({
-          partner_name: catPartner,
+          partner_name: item.partnerName || resolvedPartner,
           product_name: item.productName,
           description: item.description,
           image_url: item.imageUrl,
@@ -307,7 +356,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: itemsToSave,
-          partnerName: catPartner,
+          partnerName: resolvedPartner,
         }),
       });
 
@@ -385,12 +434,17 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
     setScrapingSingle(true);
     setSinglePreview(null);
     try {
+      const resolvedPartner =
+        singlePartner !== "AUTO"
+          ? singlePartner
+          : detectPartnerFromUrl(singleUrl) || "Partner Store";
+
       const res = await fetch("/api/affiliate/scrape", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           url: singleUrl.trim(),
-          partnerName: singlePartner,
+          partnerName: resolvedPartner,
           commissionPct: parseFloat(singleCommission || "5"),
           autoSave: false,
         }),
@@ -788,7 +842,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                   type="url"
                   required
                   value={catUrl}
-                  onChange={(e) => setCatUrl(e.target.value)}
+                  onChange={(e) => handleCatUrlChange(e.target.value)}
                   placeholder="https://gorgia.ge/... ან https://domino.com.ge/..."
                   className="w-full h-10 px-3.5 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
                 />
@@ -801,6 +855,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                   className="w-full h-10 px-3 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
                   title="პარტნიორი მაღაზია"
                 >
+                  <option value="AUTO">🎯 ავტო (ლინკიდან)</option>
                   {partners.map((p) => (
                     <option key={p.id} value={p.name}>
                       {p.name}
@@ -829,13 +884,15 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                 <select
                   value={catLimit}
                   onChange={(e) => setCatLimit(Number(e.target.value))}
-                  className="w-20 h-10 px-2 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
+                  className="w-24 h-10 px-2 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
                   title="რაოდენობის ლიმიტი"
                 >
                   <option value={15}>15 ც</option>
                   <option value={30}>30 ც</option>
                   <option value={50}>50 ც</option>
                   <option value={100}>100 ც</option>
+                  <option value={200}>200 ც</option>
+                  <option value={500}>500 ც (ყველა)</option>
                 </select>
 
                 <Button
@@ -1058,7 +1115,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                   type="url"
                   required
                   value={singleUrl}
-                  onChange={(e) => setSingleUrl(e.target.value)}
+                  onChange={(e) => handleSingleUrlChange(e.target.value)}
                   placeholder="https://gorgia.ge/ka/product/ceramic-pot-25cm..."
                   className="w-full h-10 px-3 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none focus:ring-2 focus:ring-primary/20 font-medium"
                 />
@@ -1069,6 +1126,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                   onChange={(e) => setSinglePartner(e.target.value)}
                   className="w-full h-10 px-3 rounded-[12px] border border-border/80 text-xs bg-background focus:outline-none font-bold text-foreground cursor-pointer"
                 >
+                  <option value="AUTO">🎯 ავტო (ლინკიდან)</option>
                   {partners.map((p) => (
                     <option key={p.id} value={p.name}>
                       {p.name}

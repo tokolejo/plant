@@ -267,6 +267,7 @@ export default function ListingDetailPage({
   // ── Dynamic Affiliate Cross-Selling Offers ──
   const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>(RECOMMENDED_INVENTORY);
   const [activeTab, setActiveTab] = React.useState<"care" | "description" | "reviews" | "inventory">("care");
+  const [isInventoryHovered, setIsInventoryHovered] = React.useState(false);
 
   // Scroll to top immediately upon entering page
   React.useEffect(() => {
@@ -298,54 +299,53 @@ export default function ListingDetailPage({
           .single();
 
         if (dbRow && !error) {
-          const formatted = formatDbListing(dbRow, dbRow.profiles);
+          const targetUser = dbRow.profiles;
+          const formatted = formatDbListing(dbRow, targetUser);
           setListing(formatted);
-          loadAffiliateOffers(formatted);
+          if (formatted.images && formatted.images.length > 0) {
+            setActiveImageIdx(0);
+          }
+          try {
+            await supabase.rpc("increment_listing_views", { listing_id: id });
+          } catch {
+            try {
+              await supabase
+                .from("listings")
+                .update({ views_count: (dbRow.views_count || 0) + 1 })
+                .eq("id", id);
+            } catch {}
+          }
+          return formatted;
+        } else {
+          const sample = SAMPLE_LISTINGS.find((l) => l.id === id);
+          if (sample) setListing(sample);
+          return sample;
         }
-
-        // Fire background view tracking
-        if (!id.startsWith("lst-")) {
-          fetch("/api/listings/track-view", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ listingId: id }),
-          }).catch(() => {});
-        }
-      } catch (err) {
-        console.warn("Could not load listing from Supabase:", err);
+      } catch {
+        const sample = SAMPLE_LISTINGS.find((l) => l.id === id);
+        if (sample) setListing(sample);
+        return sample;
       } finally {
         setLoadingListing(false);
       }
     }
-    loadRealListing();
 
-    // Check wishlist status
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (user) {
-        const { data: wish } = await supabase
-          .from("wishlists")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("listing_id", id)
-          .maybeSingle();
-        if (wish) setInWishlist(true);
-      }
-    });
-
-    // Load active affiliate products from DB matching plant category/supplies
-    async function loadAffiliateOffers(targetListing?: any) {
+    async function loadAffiliateOffers() {
       try {
-        // Load active partners for exact colors and referral templates
-        const { data: partnersData } = await supabase
+        const targetListing = await loadRealListing();
+
+        // 1. Fetch Partner configs (referral params, colors)
+        const { data: partnerData } = await supabase
           .from("affiliate_partners")
-          .select("name, badge_color, referral_param_template");
-        
-        const partnerMap: Record<string, { color: string; ref: string }> = {};
-        if (partnersData) {
-          for (const p of partnersData) {
+          .select("name, referral_param_template, badge_color")
+          .eq("is_active", true);
+
+        const partnerMap: Record<string, { ref: string; color: string }> = {};
+        if (partnerData) {
+          for (const p of partnerData) {
             partnerMap[p.name.toLowerCase()] = {
-              color: p.badge_color || "#16a34a",
               ref: p.referral_param_template || "?ref=plantge",
+              color: p.badge_color || "#16a34a",
             };
           }
         }
@@ -354,12 +354,13 @@ export default function ListingDetailPage({
           .from("affiliate_products")
           .select("*")
           .eq("is_active", true)
-          .limit(50);
+          .limit(120);
 
         if (!affErr && affData && affData.length > 0) {
-          const lTitle = targetListing?.title || targetListing?.titleKa || "";
-          const lDesc = targetListing?.description || targetListing?.descriptionKa || "";
-          const lCategory = targetListing?.category || targetListing?.categoryKa || "";
+          const lObj = targetListing as any;
+          const lTitle = lObj?.title || lObj?.titleKa || "";
+          const lDesc = lObj?.description || lObj?.descriptionKa || "";
+          const lCategory = lObj?.category || lObj?.categoryKa || "";
           const listingTags = detectAffiliateTags(lTitle, `${lDesc} ${lCategory}`);
 
           // Score products: higher score for matching tags and categories
@@ -379,7 +380,32 @@ export default function ListingDetailPage({
 
           scored.sort((x, y) => y.score - x.score);
 
-          const mapped = scored.slice(0, 15).map(({ item: a }) => {
+          // Group by category to ensure rich diversity (never 5 identical items in a row)
+          const categoryBuckets: Record<string, typeof scored> = {};
+          for (const entry of scored) {
+            const catKey = entry.item.category || "სხვა";
+            if (!categoryBuckets[catKey]) categoryBuckets[catKey] = [];
+            categoryBuckets[catKey].push(entry);
+          }
+
+          const diverseScored: typeof scored = [];
+          const bucketKeys = Object.keys(categoryBuckets);
+          let round = 0;
+          let added = true;
+
+          while (added && diverseScored.length < 20) {
+            added = false;
+            for (const key of bucketKeys) {
+              if (categoryBuckets[key][round]) {
+                diverseScored.push(categoryBuckets[key][round]);
+                added = true;
+                if (diverseScored.length >= 20) break;
+              }
+            }
+            round++;
+          }
+
+          const mapped = diverseScored.map(({ item: a }) => {
             const partnerBadge = a.partner_name || "პარტნიორი";
             const partnerInfo = partnerMap[a.partner_name?.toLowerCase()] || null;
             const refTemplate = partnerInfo?.ref || "?ref=plantge";
@@ -501,6 +527,24 @@ export default function ListingDetailPage({
       });
     }
   };
+
+  // Auto-play smooth carousel motion for recommended inventory
+  React.useEffect(() => {
+    if (activeTab !== "inventory" || isInventoryHovered) return;
+    const interval = setInterval(() => {
+      if (inventoryScrollRef.current) {
+        const container = inventoryScrollRef.current;
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if (container.scrollLeft >= maxScroll - 15) {
+          container.scrollTo({ left: 0, behavior: "smooth" });
+        } else {
+          container.scrollBy({ left: 240, behavior: "smooth" });
+        }
+      }
+    }, 3500);
+
+    return () => clearInterval(interval);
+  }, [activeTab, isInventoryHovered]);
 
   // Similar plant listings (excluding current listing)
   const similarListings = SAMPLE_LISTINGS.filter((l) => l.id !== listing?.id);
@@ -1562,8 +1606,8 @@ export default function ListingDetailPage({
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   {isKa 
-                    ? "პარტნიორი აგრო და სამშენებლო ჰიპერმარკეტების შეთავაზებები (Gorgia • Domino)"
-                    : "Curated offers from partner garden centers & retailers"}
+                    ? "მცენარის სწორი მოვლისთვის შერჩეული ქოთნები, სუბსტრატი და აქსესუარები"
+                    : "Curated pots, substrates, and accessories for optimal plant care"}
                 </p>
               </div>
 
@@ -1591,6 +1635,8 @@ export default function ListingDetailPage({
             {/* Scrollable Track */}
             <div
               ref={inventoryScrollRef}
+              onMouseEnter={() => setIsInventoryHovered(true)}
+              onMouseLeave={() => setIsInventoryHovered(false)}
               className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-2 pt-1"
             >
               {affiliateOffers.map((item) => (
@@ -1629,7 +1675,7 @@ export default function ListingDetailPage({
                     <div className="mt-2 pt-2 border-t border-border/50 flex items-center justify-between gap-1.5">
                       <div className="flex flex-col">
                         <span className="text-xs font-black text-primary dark:text-emerald-400">
-                          {item.price} ₾
+                          {typeof item.price === "number" ? (Number.isInteger(item.price) ? item.price : item.price.toFixed(2)) : item.price} ₾
                         </span>
                         <span className="text-[10px] font-extrabold text-foreground tracking-tight truncate max-w-[75px]">
                           {item.shopName}

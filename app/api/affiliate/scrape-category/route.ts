@@ -80,6 +80,40 @@ function isJunkUrl(url: string): boolean {
   );
 }
 
+function extractCleanPriceFromHtml(cardHtml: string): number | null {
+  // 1. Check for integer followed by tags/dots/spaces and <sup> cents:
+  // e.g. <span class="ty-price-num">7</span><span class="ty-price-sup">.</span><sup>90</sup> or 7<sup>90</sup> or 180<sup>00</sup>
+  const supMatch = cardHtml.match(/([0-9]+)(?:<[^>]*>|[\s.,])*<\s*sup[^>]*>\s*\.?([0-9]{2})\s*<\s*\/sup>/i);
+  if (supMatch) {
+    const parsed = parseFloat(`${supMatch[1]}.${supMatch[2]}`);
+    if (!isNaN(parsed)) return parsed;
+  }
+
+  // 2. Check 2 decimals before currency (e.g. 19.90 ₾, 25,50 GEL)
+  const decMatch = cardHtml.match(/([0-9]+[.,][0-9]{2})\s*(?:₾|GEL|ლარი)/i);
+  if (decMatch) {
+    return parseFloat(decMatch[1].replace(",", "."));
+  }
+
+  // 3. Standalone integer in ty-price-num or standard price classes
+  const numPriceMatch = cardHtml.match(/<span[^>]*class=["'][^"']*(?:ty-price-num|woocommerce-Price-amount|current-price|price-new|price-num)[^"']*["'][^>]*>([\s\S]*?)<\/span>/i);
+  if (numPriceMatch) {
+    let clean = numPriceMatch[1].replace(/<[^>]*>/g, "").replace(/[^0-9.,]/g, "").replace(",", ".");
+    if (clean) {
+      const parsed = parseFloat(clean);
+      if (!isNaN(parsed)) return parsed;
+    }
+  }
+
+  // 4. Match integer before currency (e.g. 35 ₾)
+  const intMatch = cardHtml.match(/([0-9]+)\s*(?:₾|GEL|ლარი)/i);
+  if (intMatch) {
+    return parseFloat(intMatch[1]);
+  }
+
+  return null;
+}
+
 /**
  * Universal category item parser from HTML with CS-Cart, JSON-LD, and standard eCommerce card support
  */
@@ -140,20 +174,8 @@ function parseCategoryHtml(
       }
     }
 
-    // Find Price
-    let price: number | null = null;
-    const numPriceMatch = card.match(/<span[^>]*class=["'][^"']*ty-price-num[^"']*["'][^>]*>([\s\S]*?)<\/span>/i);
-    if (numPriceMatch) {
-      const cleanNum = numPriceMatch[1].replace(/<[^>]*>/g, "").replace(/[^0-9.]/g, "");
-      if (cleanNum) price = parseFloat(cleanNum);
-    }
-
-    if (price === null) {
-      const generalPriceMatch = card.match(/([0-9]+(?:[.,][0-9]{2})?)\s*(?:₾|GEL|ლარი)/i);
-      if (generalPriceMatch) {
-        price = parseFloat(generalPriceMatch[1].replace(",", "."));
-      }
-    }
+    // Find Price with robust Domino/Gorgia/CS-Cart sup handler
+    const price = extractCleanPriceFromHtml(card);
 
     const cat = categoryOverride && categoryOverride !== "AUTO" ? categoryOverride : detectAffiliateCategory(title, "");
 
@@ -291,18 +313,7 @@ function parseCategoryHtml(
       }
     }
 
-    let price: number | null = null;
-    const numPriceMatch = cardHtml.match(/<span[^>]*class=["'][^"']*(?:ty-price-num|woocommerce-Price-amount|current-price|price-new|price-num)[^"']*["'][^>]*>([\s\S]*?)<\/span>/i);
-    if (numPriceMatch) {
-      const cleanNum = numPriceMatch[1].replace(/<[^>]*>/g, "").replace(/[^0-9.]/g, "");
-      if (cleanNum) price = parseFloat(cleanNum);
-    }
-    if (price === null) {
-      const priceMatch = cardHtml.match(/([0-9]+(?:[.,][0-9]{2})?)\s*(?:₾|GEL|ლარი)/i);
-      if (priceMatch && priceMatch[1]) {
-        price = parseFloat(priceMatch[1].replace(",", "."));
-      }
-    }
+    const price = extractCleanPriceFromHtml(cardHtml);
 
     const cat = categoryOverride && categoryOverride !== "AUTO" ? categoryOverride : detectAffiliateCategory(title, "");
 
@@ -321,6 +332,26 @@ function parseCategoryHtml(
   }
 
   return items.slice(0, limit);
+}
+
+function getCategoryPageUrl(parsedUrl: URL, pageNum: number): string {
+  const baseClean = parsedUrl.toString().replace(/\/$/, "");
+  if (baseClean.includes("page-")) {
+    return baseClean.replace(/page-\d+/, `page-${pageNum}`) + "/";
+  } else if (parsedUrl.searchParams.has("page")) {
+    const nextUrl = new URL(parsedUrl.toString());
+    nextUrl.searchParams.set("page", pageNum.toString());
+    return nextUrl.toString();
+  } else {
+    // Check if domain is Domino or uses path-based pagination
+    if (parsedUrl.hostname.includes("domino.com.ge")) {
+      return `${baseClean}/page-${pageNum}/`;
+    }
+    // Generic query param pagination for Gorgia, Shopify, etc.
+    const nextUrl = new URL(parsedUrl.toString());
+    nextUrl.searchParams.set("page", pageNum.toString());
+    return nextUrl.toString();
+  }
 }
 
 async function fetchPageHtml(url: string): Promise<string | null> {
@@ -368,7 +399,7 @@ export async function POST(req: NextRequest) {
     }
 
     const partnerName = customPartnerName?.trim() || extractDomainName(categoryUrl);
-    const cleanLimit = Math.min(Math.max(Number(limit) || 30, 5), 80);
+    const cleanLimit = Math.min(Math.max(Number(limit) || 30, 5), 500);
 
     // 1. Fetch Page 1
     const html1 = await fetchPageHtml(parsedUrl.toString());
@@ -381,38 +412,40 @@ export async function POST(req: NextRequest) {
 
     let allItems = parseCategoryHtml(html1, parsedUrl, partnerName, cleanLimit, categoryOverride);
 
-    // 2. If user requested more items and Page 1 gave fewer than limit, attempt Page 2
-    if (allItems.length < cleanLimit && allItems.length >= 15) {
-      let page2Url = "";
-      const baseClean = parsedUrl.toString().replace(/\/$/, "");
+    // 2. Multi-page pagination loop (crawl pages 2..15 until cleanLimit reached or no more items)
+    if (allItems.length < cleanLimit && allItems.length >= 10) {
+      const seenUrls = new Set(allItems.map((i) => i.productUrl));
+      let currentPage = 2;
+      const maxPages = 15;
 
-      if (baseClean.includes("page-")) {
-        page2Url = baseClean.replace(/page-\d+/, "page-2") + "/";
-      } else if (parsedUrl.searchParams.has("page")) {
-        const nextUrl = new URL(parsedUrl.toString());
-        nextUrl.searchParams.set("page", "2");
-        page2Url = nextUrl.toString();
-      } else {
-        page2Url = `${baseClean}/page-2/`;
-      }
+      while (allItems.length < cleanLimit && currentPage <= maxPages) {
+        const pageUrl = getCategoryPageUrl(parsedUrl, currentPage);
+        const pageHtml = await fetchPageHtml(pageUrl);
+        if (!pageHtml) break;
 
-      const html2 = await fetchPageHtml(page2Url);
-      if (html2) {
-        const page2Items = parseCategoryHtml(
-          html2,
-          new URL(page2Url),
+        const pageItems = parseCategoryHtml(
+          pageHtml,
+          new URL(pageUrl),
           partnerName,
           cleanLimit - allItems.length,
           categoryOverride
         );
-        // Deduplicate and append
-        const existingUrls = new Set(allItems.map((i) => i.productUrl));
-        for (const it of page2Items) {
-          if (!existingUrls.has(it.productUrl)) {
+
+        if (pageItems.length === 0) break;
+
+        let addedThisPage = 0;
+        for (const it of pageItems) {
+          if (!seenUrls.has(it.productUrl)) {
             allItems.push(it);
-            existingUrls.add(it.productUrl);
+            seenUrls.add(it.productUrl);
+            addedThisPage++;
           }
         }
+
+        // If no new unique items were found on this page, stop to prevent infinite pagination
+        if (addedThisPage === 0) break;
+
+        currentPage++;
       }
     }
 
