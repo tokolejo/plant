@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
 
     const digestList = Object.entries(userMap).map(([userId, plants]) => {
       const plantNames = plants.map((p) => `„${p.name}“ (${p.room_location || "მისაღები"})`).join(", ");
-      const notificationText = `დღეს თქვენს ${plants.length} მცენარეს სჭირდება მორწყვა: ${plantNames}. შეამოწმეთ თქვენი ორანჟერეა Plant.ge-ზე.`;
+      const notificationText = `დღეს თქვენს ${plants.length} მცენარეს სჭირდება მორწყვა: ${plantNames}. შეამოწმეთ თქვენი ორანჟერეა Plantio.ge-ზე.`;
 
       return {
         userId,

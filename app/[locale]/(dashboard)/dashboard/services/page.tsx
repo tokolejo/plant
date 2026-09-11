@@ -318,7 +318,7 @@ export default function DashboardServicesPage() {
                 </h3>
                 <p className="text-xs text-muted-foreground max-w-md mx-auto mt-1">
                   {isKa
-                    ? "თუ ხართ მებაღე, ლანდშაფტის დიზაინერი ან გამწვანების სპეციალისტი, განათავსეთ თქვენი მომსახურება Plant.ge-ს კატალოგში."
+                    ? "თუ ხართ მებაღე, ლანდშაფტის დიზაინერი ან გამწვანების სპეციალისტი, განათავსეთ თქვენი მომსახურება Plantio.ge-ს კატალოგში."
                     : "If you are a gardener, landscape architect, or plant care specialist, post your services here."}
                 </p>
               </div>

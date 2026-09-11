@@ -403,22 +403,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "არასწორი URL ფორმატი" }, { status: 400 });
     }
 
-    // SSRF Protection: only allow approved partner domains
-    const ALLOWED_DOMAINS = [
-      "domino.com.ge",
-      "gorgia.ge",
-      "bricorama.ge",
-      "agrohub.ge",
-      "miaplant.ge",
-      "amazon.com",
-    ];
+    // SSRF Protection: dynamically load allowed partner domains from DB
+    const { data: partnerRows } = await supabase
+      .from("affiliate_partners")
+      .select("website_url")
+      .eq("is_active", true);
+
+    const dynamicDomains = (partnerRows || [])
+      .map((p: any) => {
+        try { return new URL(p.website_url).hostname.replace(/^www\./, ""); } catch { return null; }
+      })
+      .filter(Boolean) as string[];
+
+    const FALLBACK_DOMAINS = ["domino.com.ge", "gorgia.ge", "bricorama.ge", "agrohub.ge", "miaplant.ge", "amazon.com"];
+    const ALLOWED_DOMAINS = dynamicDomains.length > 0 ? dynamicDomains : FALLBACK_DOMAINS;
+
     const hostname = parsedUrl.hostname.replace(/^www\./, "");
     const isAllowed = ALLOWED_DOMAINS.some(
       (d) => hostname === d || hostname.endsWith("." + d)
     );
     if (!isAllowed) {
       return NextResponse.json(
-        { success: false, error: `ეს დომენი არ არის დაშვებული. დაშვებული: ${ALLOWED_DOMAINS.join(", ")}` },
+        { success: false, error: `ეს დომენი არ არის დაშვებული. ჯერ დაამატეთ მაღაზია ადმინ პანელში.` },
         { status: 403 }
       );
     }

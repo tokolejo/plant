@@ -203,7 +203,7 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
             {mode === "FORGOT" && (isKa ? "პაროლის აღდგენა" : "Reset Password")}
           </h1>
           <p className="text-xs text-muted-foreground mt-1 font-medium">
-            {mode === "LOGIN" && (isKa ? "მოგესალმებით Plant-ის ბოტანიკურ პლატფორმაზე" : "Welcome to Plant.ge marketplace")}
+            {mode === "LOGIN" && (isKa ? "მოგესალმებით Plant-ის ბოტანიკურ პლატფორმაზე" : "Welcome to Plantio.ge marketplace")}
             {mode === "REGISTER" && (isKa ? "შექმენით ანგარიში და დაიწყეთ მცენარეებით ვაჭრობა" : "Create an account to start trading plants")}
             {mode === "FORGOT" && (isKa ? "შეიყვანეთ ელ-ფოსტა აღდგენის ბმულის მისაღებად" : "Enter your email to receive a password reset link")}
           </p>

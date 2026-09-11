@@ -210,7 +210,7 @@ export function PricingComingSoon({ onPreviewActivePlans, showAdminBanner = true
               </li>
               <li className="flex items-start gap-2.5">
                 <Store className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <span>{isKa ? "Custom Shop URL მაღაზიებისთვის (plant.ge/მაღაზია)" : "Custom Shop URL for nurseries (plant.ge/shopname)"}</span>
+                <span>{isKa ? "Custom Shop URL მაღაზიებისთვის (plantio.ge/მაღაზია)" : "Custom Shop URL for nurseries (plantio.ge/shopname)"}</span>
               </li>
               <li className="flex items-start gap-2.5">
                 <Rocket className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />

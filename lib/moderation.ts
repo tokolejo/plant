@@ -1,5 +1,5 @@
 /**
- * Botanical & Community Safety / Spam Filter for Plant.ge
+ * Botanical & Community Safety / Spam Filter for Plantio.ge
  * Validates listing titles and descriptions before insertion
  */
 

@@ -99,14 +99,14 @@ export const DEFAULT_PLANS: SubscriptionPlanItem[] = [
     sortOrder: 3,
     featuresKa: [
       "100 აქტიური განცხადება",
-      "Custom Shop URL (plant.ge/username)",
+      "Custom Shop URL (plantio.ge/username)",
       "5 VIP ბუსტი / თვეში",
       "Verified მაღაზიის მწვანე ბეიჯი",
       "სრული ანალიტიკა და ბანერი",
     ],
     featuresEn: [
       "100 active listings",
-      "Custom Shop URL (plant.ge/username)",
+      "Custom Shop URL (plantio.ge/username)",
       "5 VIP Boosts / month",
       "Verified Nursery green badge",
       "Full analytics & shop banner",

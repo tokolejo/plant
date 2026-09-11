@@ -3033,7 +3033,7 @@ export default function AdminDashboardPage() {
                         {/* Action Buttons */}
                         <div className="flex items-center gap-1.5">
                           <a
-                            href={`mailto:${item.email}?subject=Re: ${encodeURIComponent(item.subject || "Plant.ge")}&body=${encodeURIComponent(`\n\n--- თქვენი წერილი ---\n${item.message}`)}`}
+                            href={`mailto:${item.email}?subject=Re: ${encodeURIComponent(item.subject || "Plantio.ge")}&body=${encodeURIComponent(`\n\n--- თქვენი წერილი ---\n${item.message}`)}`}
                             className="h-8.5 px-3 rounded-[10px] bg-primary text-white hover:bg-primary-container text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
                             title="მეილით პასუხის გაცემა"
                           >
@@ -3237,7 +3237,7 @@ export default function AdminDashboardPage() {
 
             <div className="flex items-center justify-between gap-2 pt-3 border-t border-border/60">
               <a
-                href={`mailto:${selectedFeedbackModal.email}?subject=Re: ${encodeURIComponent(selectedFeedbackModal.subject || "Plant.ge")}&body=${encodeURIComponent(`\n\n--- თქვენი წერილი ---\n${selectedFeedbackModal.message}`)}`}
+                href={`mailto:${selectedFeedbackModal.email}?subject=Re: ${encodeURIComponent(selectedFeedbackModal.subject || "Plantio.ge")}&body=${encodeURIComponent(`\n\n--- თქვენი წერილი ---\n${selectedFeedbackModal.message}`)}`}
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-[10px] bg-primary hover:bg-primary/90 text-white font-bold text-xs shadow-2xs transition-colors cursor-pointer"
               >
                 <Reply className="w-3.5 h-3.5" />
@@ -3894,7 +3894,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Tier 2/3 მაღაზიებს აქვთ <strong className="text-foreground">plant.ge/username</strong> ტიპის მისამართი.
+                Tier 2/3 მაღაზიებს აქვთ <strong className="text-foreground">plantio.ge/username</strong> ტიპის მისამართი.
               </p>
               <Link href="/shops" className="text-xs text-primary hover:underline inline-flex items-center gap-1 font-bold pt-1">
                 მაღაზიების კატალოგი <ExternalLink className="w-3.5 h-3.5" />

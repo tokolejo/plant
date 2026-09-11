@@ -315,7 +315,7 @@ export default function ContactPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-[10px] text-muted-foreground font-semibold">Telegram Community</p>
-                  <p className="font-bold text-foreground">@PlantGeorgia</p>
+                  <p className="font-bold text-foreground">@PlantioGeorgia</p>
                 </div>
               </div>
 

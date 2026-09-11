@@ -56,6 +56,28 @@ export async function PATCH(req: NextRequest) {
       custom_slug,
     } = body;
 
+    // ── Input Validation ───────────────────────────────────────────────────────
+    if (first_name !== undefined && (typeof first_name !== "string" || first_name.length > 60)) {
+      return NextResponse.json({ success: false, error: "სახელი მეტისმეტად გრძელია (მაქს. 60)" }, { status: 400 });
+    }
+    if (last_name !== undefined && (typeof last_name !== "string" || last_name.length > 60)) {
+      return NextResponse.json({ success: false, error: "გვარი მეტისმეტად გრძელია (მაქს. 60)" }, { status: 400 });
+    }
+    if (bio !== undefined && (typeof bio !== "string" || bio.length > 1000)) {
+      return NextResponse.json({ success: false, error: "ბიო მეტისმეტად გრძელია (მაქს. 1000 სიმბოლო)" }, { status: 400 });
+    }
+    if (phone !== undefined && phone !== "" && typeof phone === "string" && !/^\+?[\d\s\-()]{7,20}$/.test(phone.trim())) {
+      return NextResponse.json({ success: false, error: "ტელეფონის ნომრის ფორმატი არასწორია" }, { status: 400 });
+    }
+    if (custom_slug !== undefined && custom_slug !== "" && typeof custom_slug === "string") {
+      if (!/^[a-z0-9][a-z0-9-]{1,28}[a-z0-9]$/.test(custom_slug.trim())) {
+        return NextResponse.json({ success: false, error: "Slug-ი შეიძლება შეიცავდეს მხოლოდ a-z, 0-9 და - (3-30 სიმბოლო)" }, { status: 400 });
+      }
+    }
+    if (city !== undefined && typeof city === "string" && city.length > 100) {
+      return NextResponse.json({ success: false, error: "ქალაქის სახელი მეტისმეტად გრძელია" }, { status: 400 });
+    }
+
     const adminClient = createAdminClient();
 
     const fullName = [first_name, last_name].filter(Boolean).join(" ").trim() || undefined;

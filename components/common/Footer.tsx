@@ -39,8 +39,8 @@ export function Footer() {
               </div>
               <div className="flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-primary shrink-0" />
-                <a href="mailto:info@plant.ge" className="hover:text-primary transition-colors font-medium">
-                  info@plant.ge
+                <a href="mailto:info@plantio.ge" className="hover:text-primary transition-colors font-medium">
+                  info@plantio.ge
                 </a>
               </div>
             </div>
@@ -217,7 +217,7 @@ export function Footer() {
         {/* Bottom Bar — Compact & Clean */}
         <div className="border-t border-border/60 mt-6 sm:mt-8 pt-4 sm:pt-5 flex flex-col sm:flex-row items-center justify-between gap-2.5 text-xs text-muted-foreground font-medium text-center sm:text-left">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1">
-            <p>© {new Date().getFullYear()} Plant.ge. {isKa ? "ყველა უფლება დაცულია." : "All rights reserved."}</p>
+            <p>© {new Date().getFullYear()} Plantio.ge. {isKa ? "ყველა უფლება დაცულია." : "All rights reserved."}</p>
             <span className="hidden sm:inline text-border">•</span>
             <span className="text-foreground/80 font-semibold">{isKa ? "საქართველო (GEL ₾)" : "Georgia (GEL ₾)"}</span>
           </div>

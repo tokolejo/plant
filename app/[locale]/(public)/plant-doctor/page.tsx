@@ -413,7 +413,7 @@ export default function PlantDoctorPage() {
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase tracking-wider text-foreground flex items-center gap-2">
                   <Store className="w-4 h-4 text-primary" />
-                  <span>სამკურნალო საშუალებები Plant.ge-ზე:</span>
+                  <span>სამკურნალო საშუალებები Plantio.ge-ზე:</span>
                 </span>
                 <span className="text-[10.5px] text-muted-foreground font-bold">ძიება კატალოგში</span>
               </div>

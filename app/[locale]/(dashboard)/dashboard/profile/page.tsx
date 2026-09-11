@@ -904,7 +904,7 @@ export default function ProfileEditPage() {
                 <div className="p-4 rounded-[18px] bg-surface-container/40 border border-border/50 flex items-center justify-between gap-3">
                   <div>
                     <h4 className="text-xs sm:text-sm font-black text-foreground">
-                      {isKa ? "პლატფორმის სიახლეები & რჩევები" : "Plant.ge Updates & Tips"}
+                      {isKa ? "პლატფორმის სიახლეები & რჩევები" : "Plantio.ge Updates & Tips"}
                     </h4>
                     <p className="text-[11px] text-muted-foreground">
                       {isKa ? "სეზონური რჩევები მცენარეების მოვლაზე და ახალი ფუნქციები." : "Plant care guides and feature announcements."}

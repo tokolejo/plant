@@ -127,15 +127,15 @@ export function detectAffiliateTags(name: string, description: string = ""): str
 }
 
 /**
- * Appends affiliate tracking params (e.g. ?ref=plantge) to target URL cleanly
+ * Appends affiliate tracking params (e.g. ?ref=plantio) to target URL cleanly
  */
 export function appendReferralParam(rawUrl: string, templateParam?: string): string {
   if (!rawUrl) return "";
-  const param = templateParam?.trim() || "?ref=plantge";
+  const param = templateParam?.trim() || "?ref=plantio";
 
   try {
     const url = new URL(rawUrl);
-    // Parse key=value from templateParam (handles "?ref=plantge" or "ref=plantge" or "?utm_source=plantge")
+    // Parse key=value from templateParam (handles "?ref=plantio" or "ref=plantio" or "?utm_source=plantio")
     const cleanParam = param.startsWith("?") ? param.slice(1) : param;
     const searchParams = new URLSearchParams(cleanParam);
     searchParams.forEach((value, key) => {

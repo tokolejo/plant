@@ -27,7 +27,7 @@ export async function generateMetadata({
   const isKa = locale === "ka";
 
   return {
-    metadataBase: new URL("https://plant.ge"),
+    metadataBase: new URL("https://plantio.ge"),
     title: {
       default: isKa
         ? "Plant — მცენარეებისა და მებაღეობის ონლაინ პლატფორმა"
@@ -44,7 +44,7 @@ export async function generateMetadata({
       type: "website",
       locale: isKa ? "ka_GE" : "en_US",
       alternateLocale: isKa ? ["en_US"] : ["ka_GE"],
-      url: "https://plant.ge",
+      url: "https://plantio.ge",
       siteName: "Plant",
       title: isKa
         ? "Plant — მცენარეების პლატფორმა"
