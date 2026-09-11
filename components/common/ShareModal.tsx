@@ -25,7 +25,7 @@ export function ShareModal({ isOpen, onClose, title, url, price }: ShareModalPro
   const isKa = locale !== "en";
   const [copied, setCopied] = React.useState(false);
 
-  const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "https://plant.ge");
+  const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "https://plantio.ge");
 
   const handleCopy = async () => {
     try {
@@ -41,8 +41,8 @@ export function ShareModal({ isOpen, onClose, title, url, price }: ShareModalPro
     if (typeof navigator !== "undefined" && navigator.share) {
       try {
         await navigator.share({
-          title: `${title} | Plant.ge`,
-          text: price ? `${title} - ${price} ₾ | Plant.ge` : `${title} | Plant.ge`,
+          title: `${title} | Plantio.ge`,
+          text: price ? `${title} - ${price} ₾ | Plantio.ge` : `${title} | Plantio.ge`,
           url: shareUrl,
         });
       } catch {

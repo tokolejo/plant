@@ -287,10 +287,10 @@ export default function ServiceDetailPage({
   const maskedPhone = `${cleanPhone.slice(0, 3)} ${cleanPhone.slice(3, 6)} ***`;
 
   const directWaChatUrl = `https://wa.me/${(service.whatsapp || service.phone || "557579020").replace(/\D/g, "")}?text=${encodeURIComponent(
-    `გამარჯობა, დავინტერესდი თქვენი სერვისით Plant.ge-ზე: „${service.title}“ (${typeof window !== "undefined" ? window.location.href : ""})`
+    `გამარჯობა, დავინტერესდი თქვენი სერვისით Plantio.ge-ზე: „${service.title}“ (${typeof window !== "undefined" ? window.location.href : ""})`
   )}`;
 
-  const pageUrl = typeof window !== "undefined" ? window.location.href : `https://plant.ge/${locale}/services/${service.id}`;
+  const pageUrl = typeof window !== "undefined" ? window.location.href : `https://plantio.ge/${locale}/services/${service.id}`;
   const shareFbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`;
   const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${service.title} - ${pageUrl}`)}`;
 
@@ -938,7 +938,7 @@ export default function ServiceDetailPage({
           <div className="rounded-[18px] border border-emerald-500/30 bg-emerald-500/5 p-3.5 sm:p-4 space-y-2 text-xs text-muted-foreground">
             <div className="flex items-center gap-2 font-bold text-foreground">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              <span>{isKa ? "Plant.ge-ს უსაფრთხოების სტანდარტი" : "Safety Standard"}</span>
+              <span>{isKa ? "Plantio.ge-ს უსაფრთხოების სტანდარტი" : "Safety Standard"}</span>
             </div>
             <p className="text-[11px] leading-relaxed">
               {isKa

@@ -55,8 +55,8 @@ export default function FAQPage() {
       icon: Building2,
       title: isKa ? "მაღაზიები & Pro პაკეტები" : "Verified Stores & Pro Shop",
       desc: isKa
-        ? "ყვავილების მაღაზიებისა და ორანჟერეებისთვის: საკუთარი ონლაინ ვიტრინა (plant.ge/shopname), VIP ბუსტები და გაყიდვების მართვა."
-        : "For commercial shops and nurseries: branded store URLs (plant.ge/shopname), VIP boosts, and inventory tools.",
+        ? "ყვავილების მაღაზიებისა და ორანჟერეებისთვის: საკუთარი ონლაინ ვიტრინა (plantio.ge/shopname), VIP ბუსტები და გაყიდვების მართვა."
+        : "For commercial shops and nurseries: branded store URLs (plantio.ge/shopname), VIP boosts, and inventory tools.",
     },
   ];
 
@@ -81,12 +81,12 @@ export default function FAQPage() {
       points: isKa
         ? [
             "გაყიდეთ მცენარეები და ინვენტარი მარტივად მთელ საქართველოში.",
-            "მიიღეთ საკუთარი ონლაინ ვიტრინა (plant.ge/თქვენი-სახელი).",
+            "მიიღეთ საკუთარი ონლაინ ვიტრინა (plantio.ge/თქვენი-სახელი).",
             "გამოიყენეთ VIP ბუსტები პირველ გვერდზე მოსახვედრად.",
           ]
         : [
             "List and sell plants with zero hassle across Georgia.",
-            "Launch your branded online storefront (plant.ge/yourname).",
+            "Launch your branded online storefront (plantio.ge/yourname).",
             "Use VIP boosts for top homepage visibility.",
           ],
     },
@@ -152,7 +152,7 @@ export default function FAQPage() {
         : "When creating a listing, select 'Trade' and specify the plant you are looking for to arrange a direct swap.",
     },
     {
-      q: isKa ? "როგორ მივიღო საკუთარი მაღაზიის მისამართი (plant.ge/shopname)?" : "How do I get a custom store URL?",
+      q: isKa ? "როგორ მივიღო საკუთარი მაღაზიის მისამართი (plantio.ge/shopname)?" : "How do I get a custom store URL?",
       a: isKa
         ? "გადადით ტარიფების გვერდზე (/pricing), აირჩიეთ Pro Shop პაკეტი და პროფილის პარამეტრებში მიუთითეთ თქვენი მაღაზიის უნიკალური სახელი."
         : "Choose a Pro Shop package on /pricing and set your custom slug in profile settings.",
@@ -176,7 +176,7 @@ export default function FAQPage() {
             <span>{isKa ? "კითხვები & გზამკვლევი" : "FAQ & Platform Guide"}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-foreground">
-            {isKa ? "როგორ მუშაობს და რას გთავაზობთ Plant.ge?" : "How Plant.ge Works & What We Offer"}
+            {isKa ? "როგორ მუშაობს და რას გთავაზობთ Plantio.ge?" : "How Plantio.ge Works & What We Offer"}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
             {isKa

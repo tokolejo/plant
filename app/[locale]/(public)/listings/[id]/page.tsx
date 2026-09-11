@@ -251,7 +251,7 @@ export default function ListingDetailPage({
         if (partnerData) {
           for (const p of partnerData) {
             partnerMap[p.name.toLowerCase()] = {
-              ref: p.referral_param_template || "?ref=plantge",
+              ref: p.referral_param_template || "?ref=plantio",
               color: p.badge_color || "#16a34a",
             };
           }
@@ -315,7 +315,7 @@ export default function ListingDetailPage({
           const mapped = diverseScored.map(({ item: a }) => {
             const partnerBadge = a.partner_name || "პარტნიორი";
             const partnerInfo = partnerMap[a.partner_name?.toLowerCase()] || null;
-            const refTemplate = partnerInfo?.ref || "?ref=plantge";
+            const refTemplate = partnerInfo?.ref || "?ref=plantio";
             const badgeColor = partnerInfo?.color || "#16a34a";
             const finalLink = appendReferralParam(a.product_url, refTemplate);
 
@@ -550,12 +550,12 @@ export default function ListingDetailPage({
 
   const currentUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareFbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`;
-  const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${displayTitle} - Plant.ge\n${currentUrl}`)}`;
+  const shareWaUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${displayTitle} - Plantio.ge\n${currentUrl}`)}`;
   const shareTgUrl = `https://t.me/share/url?url=${encodeURIComponent(currentUrl)}&text=${encodeURIComponent(displayTitle)}`;
   const directWaChatUrl = `https://wa.me/995${cleanPhoneDigits}?text=${encodeURIComponent(
     isKa 
-      ? `გამარჯობა, დავინტერესდი თქვენი მცენარით Plant.ge-ზე: "${displayTitle}"`
-      : `Hello, I'm interested in your listing on Plant.ge: "${displayTitle}"`
+      ? `გამარჯობა, დავინტერესდი თქვენი მცენარით Plantio.ge-ზე: "${displayTitle}"`
+      : `Hello, I'm interested in your listing on Plantio.ge: "${displayTitle}"`
   )}`;
 
   const fullAddressString = `${listing?.city || "თბილისი"}${listing?.address ? `, ${listing.address}` : ""}`;
@@ -629,7 +629,7 @@ export default function ListingDetailPage({
         roomLocation: "მისაღები",
         wateringFrequencyDays: 7,
         imageUrl: images[0] || null,
-        notes: `დამატებულია Plant.ge-დან (${listing.seller?.fullName || "სელერი"})`,
+        notes: `დამატებულია Plantio.ge-დან (${listing.seller?.fullName || "სელერი"})`,
       });
 
       setGreenhouseAdded(true);
@@ -1643,7 +1643,7 @@ export default function ListingDetailPage({
                                   body: JSON.stringify({
                                     affiliateId: item.id,
                                     targetUrl: item.link,
-                                    referralParam: item.referralParam || "?ref=plantge"
+                                    referralParam: item.referralParam || "?ref=plantio"
                                   }),
                                 }).catch(() => {});
                               }

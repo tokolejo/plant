@@ -122,8 +122,8 @@ export default function ShopsDirectoryPage() {
             totalReviews: p.total_reviews || 1,
             verified: true,
             tier: p.subscription_tier || "TIER_2",
-            descriptionKa: p.bio || "ოფიციალური ბოტანიკური მაღაზია Plant.ge-ზე",
-            descriptionEn: p.bio || "Official botanical nursery on Plant.ge",
+            descriptionKa: p.bio || "ოფიციალური ბოტანიკური მაღაზია Plantio.ge-ზე",
+            descriptionEn: p.bio || "Official botanical nursery on Plantio.ge",
             plantsCount: 0,
             tags: ["Plants", "Verified Shop"]
           }));
@@ -340,11 +340,11 @@ export default function ShopsDirectoryPage() {
             <span>{isKa ? "გაქვთ სანერგე ან ბოტანიკური მაღაზია?" : "Own a Nursery or Botanical Shop?"}</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-foreground">
-            {isKa ? "გახსენით თქვენი ოფიციალური Pro მაღაზია Plant.ge-ზე" : "Launch your Official Pro Shop on Plant.ge"}
+            {isKa ? "გახსენით თქვენი ოფიციალური Pro მაღაზია Plantio.ge-ზე" : "Launch your Official Pro Shop on Plantio.ge"}
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground font-medium">
             {isKa 
-              ? "მიიღეთ პერსონალური ბმული (plant.ge/shops/your-name), შეუზღუდავი მარაგები და პირდაპირი წვდომა ათასობით ქართველ მყიდველთან."
+              ? "მიიღეთ პერსონალური ბმული (plantio.ge/shops/your-name), შეუზღუდავი მარაგები და პირდაპირი წვდომა ათასობით ქართველ მყიდველთან."
               : "Get a custom storefront URL, unlimited listings, and direct access to thousands of plant enthusiasts in Georgia."}
           </p>
         </div>

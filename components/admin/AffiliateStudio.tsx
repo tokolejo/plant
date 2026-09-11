@@ -106,7 +106,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
   const [newPartnerName, setNewPartnerName] = React.useState("");
   const [newPartnerUrl, setNewPartnerUrl] = React.useState("");
   const [newPartnerColor, setNewPartnerColor] = React.useState("#16a34a");
-  const [newPartnerRef, setNewPartnerRef] = React.useState("?ref=plantge");
+  const [newPartnerRef, setNewPartnerRef] = React.useState("?ref=plantio");
   const [newPartnerComm, setNewPartnerComm] = React.useState("5");
   const [creatingPartner, setCreatingPartner] = React.useState(false);
   const [showPartnerForm, setShowPartnerForm] = React.useState(false);
@@ -116,7 +116,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
   const [editPartnerName, setEditPartnerName] = React.useState("");
   const [editPartnerUrl, setEditPartnerUrl] = React.useState("");
   const [editPartnerColor, setEditPartnerColor] = React.useState("#16a34a");
-  const [editPartnerRef, setEditPartnerRef] = React.useState("?ref=plantge");
+  const [editPartnerRef, setEditPartnerRef] = React.useState("?ref=plantio");
   const [editPartnerComm, setEditPartnerComm] = React.useState("5");
   const [updatingPartner, setUpdatingPartner] = React.useState(false);
 
@@ -556,7 +556,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
     setEditPartnerName(p.name);
     setEditPartnerUrl(p.website_url || "");
     setEditPartnerColor(p.badge_color || "#16a34a");
-    setEditPartnerRef(p.referral_param_template || "?ref=plantge");
+    setEditPartnerRef(p.referral_param_template || "?ref=plantio");
     setEditPartnerComm(String(p.commission_rate || 5));
   };
 
@@ -1274,7 +1274,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                     type="text"
                     value={newPartnerRef}
                     onChange={(e) => setNewPartnerRef(e.target.value)}
-                    placeholder="?ref=plantge"
+                    placeholder="?ref=plantio"
                     className="w-full h-9 px-3 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none font-mono"
                   />
                 </div>
@@ -1366,7 +1366,7 @@ export function AffiliateStudio({ showNotice }: { showNotice: (msg: string) => v
                     type="text"
                     value={editPartnerRef}
                     onChange={(e) => setEditPartnerRef(e.target.value)}
-                    placeholder="?ref=plantge"
+                    placeholder="?ref=plantio"
                     className="w-full h-9 px-3 rounded-[10px] border border-border/80 text-xs bg-background focus:outline-none font-mono"
                   />
                 </div>

@@ -300,7 +300,7 @@ export function EscrowCheckoutModal({
                 </span>
                 {isKa
                   ? "თანხა რჩება დაცულ ანგარიშზე. გამყიდველს თანხა გადაერიცხება მხოლოდ მას შემდეგ, რაც მცენარეს ჩაიბარებთ და დაადასტურებთ მის სიჯანსაღეს."
-                  : "Your payment is held safely by Plant.ge. The seller receives the funds only after you receive the plant and confirm its healthy condition."}
+                  : "Your payment is held safely by Plantio.ge. The seller receives the funds only after you receive the plant and confirm its healthy condition."}
               </div>
             </div>
 
@@ -506,8 +506,8 @@ export function EscrowCheckoutModal({
             </h3>
             <p className="text-xs text-muted-foreground max-w-sm mx-auto">
               {isKa
-                ? "გთხოვთ დაელოდოთ. თანხა უსაფრთხოდ იყინება Plant.ge Escrow ანგარიშზე."
-                : "Please wait. Funds are being securely held in the Plant.ge Escrow account."}
+                ? "გთხოვთ დაელოდოთ. თანხა უსაფრთხოდ იყინება Plantio.ge Escrow ანგარიშზე."
+                : "Please wait. Funds are being securely held in the Plantio.ge Escrow account."}
             </p>
           </div>
         )}

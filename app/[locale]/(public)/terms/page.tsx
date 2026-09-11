@@ -18,8 +18,8 @@ export default async function TermsPage({ params }: { params: { locale: string }
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             {isKa
-              ? "Plant.ge-ს პლატფორმით სარგებლობის წესები, უფლებები და ვალდებულებები."
-              : "Terms of service, user rights, and obligations for using Plant.ge."}
+              ? "Plantio.ge-ს პლატფორმით სარგებლობის წესები, უფლებები და ვალდებულებები."
+              : "Terms of service, user rights, and obligations for using Plantio.ge."}
           </p>
           <div className="text-xs text-muted-foreground font-medium pt-1">
             {isKa ? "ბოლო განახლება: აგვისტო 2026" : "Last updated: August 2026"}
@@ -36,8 +36,8 @@ export default async function TermsPage({ params }: { params: { locale: string }
             </h2>
             <p className="text-muted-foreground text-xs sm:text-sm">
               {isKa
-                ? "Plant.ge არის ონლაინ მარკეტპლეისი, რომელიც აკავშირებს მცენარეების, ნერგების, ქოთნებისა და ბოტანიკური ინვენტარის მყიდველებსა და გამყიდველებს. საიტით სარგებლობით თქვენ ეთანხმებით წინამდებარე წესებს."
-                : "Plant.ge is an online marketplace connecting buyers and sellers of plants, seedlings, pots, and gardening supplies. By using this platform, you agree to these terms."}
+                ? "Plantio.ge არის ონლაინ მარკეტპლეისი, რომელიც აკავშირებს მცენარეების, ნერგების, ქოთნებისა და ბოტანიკური ინვენტარის მყიდველებსა და გამყიდველებს. საიტით სარგებლობით თქვენ ეთანხმებით წინამდებარე წესებს."
+                : "Plantio.ge is an online marketplace connecting buyers and sellers of plants, seedlings, pots, and gardening supplies. By using this platform, you agree to these terms."}
             </p>
           </section>
 
@@ -69,8 +69,8 @@ export default async function TermsPage({ params }: { params: { locale: string }
             </h2>
             <p className="text-muted-foreground text-xs sm:text-sm">
               {isKa
-                ? "Plant.ge უზრუნველყოფს საკომუნიკაციო პლატფორმასა და ზუსტ GPS ნავიგაციას. ანგარიშსწორება ხდება უშუალოდ მყიდველსა და გამყიდველს შორის. გირჩევთ ნივთის შემოწმებას გადაცემისას."
-                : "Plant.ge provides the communication platform and geolocation. Payments and swaps take place directly between buyer and seller."}
+                ? "Plantio.ge უზრუნველყოფს საკომუნიკაციო პლატფორმასა და ზუსტ GPS ნავიგაციას. ანგარიშსწორება ხდება უშუალოდ მყიდველსა და გამყიდველს შორის. გირჩევთ ნივთის შემოწმებას გადაცემისას."
+                : "Plantio.ge provides the communication platform and geolocation. Payments and swaps take place directly between buyer and seller."}
             </p>
           </section>
 

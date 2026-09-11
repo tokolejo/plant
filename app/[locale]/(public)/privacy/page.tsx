@@ -18,8 +18,8 @@ export default async function PrivacyPage({ params }: { params: { locale: string
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             {isKa
-              ? "როგორ იცავს Plant.ge თქვენს პირად მონაცემებსა და უსაფრთხოებას."
-              : "How Plant.ge protects your personal data and security."}
+              ? "როგორ იცავს Plantio.ge თქვენს პირად მონაცემებსა და უსაფრთხოებას."
+              : "How Plantio.ge protects your personal data and security."}
           </p>
           <div className="text-xs text-muted-foreground font-medium pt-1">
             {isKa ? "ბოლო განახლება: აგვისტო 2026" : "Last updated: August 2026"}

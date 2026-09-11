@@ -840,7 +840,7 @@ export default function ShopStorefrontPage({
                   </div>
                   <span>•</span>
                   <span className="font-mono text-[11px] text-muted-foreground truncate max-w-[220px]">
-                    plant.ge/{shop.customSlug || decodedSlug}
+                    plantio.ge/{shop.customSlug || decodedSlug}
                   </span>
                   {shop.workingHours && (
                     <>
