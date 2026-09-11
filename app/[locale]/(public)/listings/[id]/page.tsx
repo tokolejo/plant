@@ -988,27 +988,16 @@ export default function ListingDetailPage({
                 </span>
               </button>
 
-              {/* Chat & WhatsApp Row (50/50 Split) */}
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href={directWaChatUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="h-9.5 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-1.5 border border-[#25D366]/40 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] dark:text-[#25D366] transition-colors cursor-pointer"
-                >
-                  <WhatsAppIcon className="w-3.5 h-3.5 fill-current" />
-                  <span>WhatsApp</span>
-                </a>
-
-                <button
-                  type="button"
-                  onClick={handleChatClick}
-                  className="h-9.5 px-3 rounded-[12px] font-bold text-xs flex items-center justify-center gap-1.5 border border-border/60 bg-secondary-container/50 hover:bg-secondary-container text-foreground transition-colors cursor-pointer"
-                >
-                  <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>{isKa ? "Live ჩატი" : "Live Chat"}</span>
-                </button>
-              </div>
+              {/* Direct WhatsApp Messaging Button */}
+              <a
+                href={directWaChatUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full h-10 px-4 rounded-[12px] font-bold text-xs flex items-center justify-center gap-2 border border-[#25D366]/40 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] dark:text-[#25D366] transition-colors cursor-pointer shadow-2xs"
+              >
+                <WhatsAppIcon className="w-4 h-4 fill-current" />
+                <span className="font-extrabold">{isKa ? "WhatsApp-ში მიწერა" : "Chat on WhatsApp"}</span>
+              </a>
 
               {/* 1-Click Greenhouse Bridge */}
               <button
@@ -1730,8 +1719,8 @@ export default function ListingDetailPage({
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
                 {isKa 
-                  ? "გამყიდველის ნომრის სანახავად, ჩატში მისაწერად ან რევიუს დასატოვებლად გთხოვთ გაიაროთ ავტორიზაცია."
-                  : "To view phone number, send live messages, or post reviews, please sign in."}
+                  ? "გამყიდველის ნომრის სანახავად ან რევიუს დასატოვებლად გთხოვთ გაიაროთ ავტორიზაცია."
+                  : "To view phone number or post reviews, please sign in."}
               </p>
             </div>
 

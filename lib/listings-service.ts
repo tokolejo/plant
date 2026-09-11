@@ -50,8 +50,31 @@ export function formatDbListing(dbRow: any, sellerProfile?: any): ExtendedListin
   };
 }
 
+export const INITIAL_FEATURED_LISTING_IDS = [
+  "4603763b-b3bc-4b04-879e-d69deb47c111", // 1 Sale (Monstera Thai Constellation)
+  "8745b079-8e2c-4c1e-bcbe-be1782ab7e99", // 1 Trade (Philodendron Pink Princess)
+  "ceb037ef-dcfc-4c72-9cad-c1d74da2637f", // 1 Free/Gift (Pothos & Monstera Cuttings)
+];
+
+export const DEPRECATED_TEST_LISTING_IDS = new Set([
+  "f063a02b-c4df-4000-81a4-becfd2ae9028",
+  "592366dd-f769-4661-88bd-6b45396b37a9",
+  "00c48da8-50d5-4993-a1e0-03c510a697a9",
+  "1fff4479-a825-427d-ac84-85d9eeef1dbb",
+  "1ee669bf-3437-46f2-9249-393792f5b000",
+  "4725b4b2-fb69-4d93-b0be-aef0a3ae8fd6",
+  "17076b01-063c-452b-8c4f-110bae068cfa",
+  "7ce76f9e-3096-435d-8353-9eab228e3eae",
+  "1d8fee0b-2b52-45ee-8c92-ccbd068b6c50",
+  "7e5fff21-49bf-4521-8ce6-71008ae07f40",
+  "eb21100f-3445-4694-bf51-7716565da3a7",
+  "0228eef6-72b7-46a9-97d9-50163697e770",
+  "f55d5c90-ab22-4404-9b40-4292a7837cdd",
+  "71f2b20b-cb58-4c18-9486-de6e1252fb03",
+]);
+
 /**
- * Fetches all active listings from Supabase and merges with sample mock data
+ * Fetches all active listings from Supabase and filters to only 1 Sale, 1 Trade, 1 Free (plus any new user listings)
  */
 export async function getMergedListings(): Promise<ExtendedListingCardProps[]> {
   try {
@@ -88,11 +111,15 @@ export async function getMergedListings(): Promise<ExtendedListingCardProps[]> {
       return [];
     }
 
-    const formattedDbListings = dbListings.map((row: any) =>
+    // Filter out old test listings, keeping only 1 Sale, 1 Trade, 1 Free and any newly created listings
+    const filteredDbListings = dbListings.filter(
+      (row: any) => !DEPRECATED_TEST_LISTING_IDS.has(row.id)
+    );
+
+    const formattedDbListings = filteredDbListings.map((row: any) =>
       formatDbListing(row, row.profiles)
     );
 
-    // Return pure real database listings
     return formattedDbListings;
   } catch (err) {
     console.warn("Failed to load listings from database:", err);

@@ -286,12 +286,6 @@ export function Header() {
                         {isKa ? "მაღაზია & Custom URL" : "Shop & Custom URL"}
                       </Link>
 
-                      <Link href="/dashboard/messages" onClick={() => setDropdownOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
-                        <MessageSquare className="w-4 h-4 text-primary" />
-                        {isKa ? "შეტყობინებები" : "Messages"}
-                      </Link>
-
                       <Link href="/pricing" onClick={() => setDropdownOpen(false)}
                         className="flex items-center gap-2.5 px-3 py-2 rounded-[12px] text-xs font-semibold hover:bg-surface-container text-foreground transition-colors">
                         <Crown className="w-4 h-4 text-amber-500" />

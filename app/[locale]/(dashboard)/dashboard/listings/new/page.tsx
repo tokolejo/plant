@@ -256,12 +256,9 @@ function CreateListingContent() {
   };
 
   // ──────────────────────────────────────────────
-  // 1. Google Gemini Flash Vision AI AutoFill
-  // ──────────────────────────────────────────────
-  // 1. Google Gemini Flash Vision AI AutoFill
+  // Botanical AI Identification (Plant.id & Pl@ntNet)
   // ──────────────────────────────────────────────
   const [aiStatusMsg, setAiStatusMsg] = React.useState<{ text: string; type: "info" | "success" | "error" } | null>(null);
-  const [geminiDetecting, setGeminiDetecting] = React.useState(false);
 
   const safeParseResponse = async (res: Response, defaultError: string) => {
     const text = await res.text();
@@ -278,83 +275,6 @@ function CreateListingContent() {
       throw new Error(data?.error || defaultError);
     }
     return data.data;
-  };
-
-  const handleGeminiAutoFill = async () => {
-    if (selectedFiles.length === 0) {
-      setAiStatusMsg({ text: isKa ? "გთხოვთ ჯერ ატვირთოთ მინიმუმ 1 ფოტო!" : "Please upload at least 1 photo!", type: "error" });
-      setTimeout(() => setAiStatusMsg(null), 3500);
-      return;
-    }
-
-    setGeminiDetecting(true);
-    setErrorMsg("");
-    setAiStatusMsg({ text: isKa ? "მიმდინარეობს Gemini AI ანალიზი..." : "Analyzing with Gemini AI...", type: "info" });
-
-    try {
-      const firstFile = selectedFiles[0];
-      const { imageBase64, mimeType } = await compressImageToBase64(firstFile, { maxDimension: 800, quality: 0.75 });
-
-      const res = await fetch("/api/ai/recognize-plant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ imageBase64, mimeType }),
-      });
-
-      const result = await safeParseResponse(res, isKa ? "Gemini AI-ით ამოცნობა ვერ მოხერხდა" : "Gemini identification failed");
-
-      if (result.titleKa || result.title_ka) setTitleKa(result.titleKa || result.title_ka);
-      if (result.titleEn || result.title_en) setTitleEn(result.titleEn || result.title_en);
-      if (result.descKa || result.description_ka) setDescKa(result.descKa || result.description_ka);
-      if (result.descEn || result.description_en) setDescEn(result.descEn || result.description_en);
-      
-      const latin = result.botanicalName || result.botanical_name || result.latinName;
-      if (latin) setBotanicalName(latin);
-
-      const watering = isKa ? (result.watering || result.wateringKa) : (result.wateringEn || result.watering);
-      if (watering) setWateringSchedule(watering);
-
-      const light = isKa ? (result.light || result.lightKa) : (result.lightEn || result.light);
-      if (light) setLightRequirement(light);
-
-      if (result.careDifficulty || result.care_difficulty || result.careLevel) {
-        const diff = (result.careDifficulty || result.care_difficulty || result.careLevel || "").toLowerCase();
-        if (diff.includes("easy") || diff.includes("მარტივი")) setCareDifficulty("Easy");
-        else if (diff.includes("medium") || diff.includes("საშუალო")) setCareDifficulty("Medium");
-        else if (diff.includes("expert") || diff.includes("რთული")) setCareDifficulty("Expert");
-      }
-      
-      const tox = isKa ? (result.toxicity || result.toxicityKa) : (result.toxicityEn || result.toxicity);
-      if (tox) setToxicity(tox);
-
-      if (result.tags && Array.isArray(result.tags)) {
-        setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
-      }
-      if (result.category) {
-        const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
-        if (matched) {
-          setPlantCategory(matched.id);
-          setItemType(matched.itemType);
-          setCategorySearchQuery("");
-        }
-      }
-      if (result.itemType) {
-        setItemType(result.itemType);
-      }
-
-      setAiApplied(true);
-      setShowBotanicalCare(true);
-      setAiStatusMsg({
-        text: isKa ? `✨ წარმატებით ამოიცნო: ${result.titleKa || result.titleEn}` : `✨ Identified: ${result.titleEn || result.titleKa}`,
-        type: "success",
-      });
-    } catch (err: any) {
-      console.error("Gemini Recognition Error:", err);
-      const msg = err.message || (isKa ? "სცადეთ ხელახლა" : "Try again");
-      setAiStatusMsg({ text: `⚠️ Gemini AI: ${msg}`, type: "error" });
-    } finally {
-      setGeminiDetecting(false);
-    }
   };
 
   // ──────────────────────────────────────────────
@@ -412,6 +332,7 @@ function CreateListingContent() {
       if (result.tags && Array.isArray(result.tags)) {
         setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
       }
+      setItemType("PLANT");
       if (result.category) {
         const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
         if (matched) {
@@ -493,6 +414,7 @@ function CreateListingContent() {
       if (result.tags && Array.isArray(result.tags)) {
         setTradeTags((prev) => Array.from(new Set([...prev, ...result.tags])));
       }
+      setItemType("PLANT");
       if (result.category) {
         const matched = STRUCTURED_CATEGORIES.find((c) => c.id === result.category);
         if (matched) {
@@ -766,186 +688,30 @@ const ALL_GEORGIAN_CITIES = [
 
       <form onSubmit={handleSubmit} className="space-y-5">
         
-        {/* ═══ 1. Item Type & Category ═══ */}
-        <div className="rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs space-y-3.5">
-          <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
-            {isKa ? "1. ტიპი & კატეგორია" : "1. Type & Category"}
-          </label>
-          
-          <div className="grid grid-cols-2 gap-2.5">
-            <button
-              type="button"
-              onClick={() => {
-                setItemType("PLANT");
-                setPlantCategory("");
-                setCategorySearchQuery("");
-              }}
-              className={`p-3 rounded-[14px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                itemType === "PLANT"
-                  ? "border-primary bg-primary/10 text-primary shadow-2xs"
-                  : "border-border/70 text-muted-foreground hover:bg-surface-container"
-              }`}
-            >
-              <Sprout className="w-4 h-4" />
-              <span>{isKa ? "მცენარე" : "Plant"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setItemType("INVENTORY");
-                setPlantCategory("");
-                setCategorySearchQuery("");
-              }}
-              className={`p-3 rounded-[14px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                itemType === "INVENTORY"
-                  ? "border-primary bg-primary/10 text-primary shadow-2xs"
-                  : "border-border/70 text-muted-foreground hover:bg-surface-container"
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>{isKa ? "ინვენტარი" : "Inventory"}</span>
-            </button>
-          </div>
-
-          {/* Searchable Sub-Category Combobox */}
-          <div className="relative" ref={categoryWrapperRef}>
-            <label className="text-[11px] font-bold text-foreground block mb-1">
-              {itemType === "PLANT"
-                ? (isKa ? "მცენარის სახეობა / ჯგუფი *" : "Plant Species / Group *")
-                : (isKa ? "ინვენტარის კატეგორია *" : "Supplies Category *")}
-            </label>
-
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <input
-                type="text"
-                value={categorySearchQuery}
-                onFocus={() => setCategoryDropdownOpen(true)}
-                onChange={(e) => {
-                  setCategorySearchQuery(e.target.value);
-                  setCategoryDropdownOpen(true);
-                }}
-                placeholder={
-                  selectedCategoryObj
-                    ? (isKa ? selectedCategoryObj.nameKa : selectedCategoryObj.nameEn)
-                    : (isKa ? "მოძებნეთ კატეგორია (მაგ: სუკულენტი, მონსტერა, ქოთანი...)" : "Search category...")
-                }
-                className="w-full pl-9 pr-9 h-10 rounded-[12px] border border-border/80 bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-foreground placeholder:font-bold"
-              />
-              {categorySearchQuery ? (
-                <button
-                  type="button"
-                  onClick={() => setCategorySearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              ) : (
-                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              )}
-            </div>
-
-            {/* Selected Category Pill */}
-            {selectedCategoryObj && !categoryDropdownOpen && (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-[10px] text-muted-foreground font-medium">
-                  {isKa ? "არჩეულია:" : "Selected:"}
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[8px] bg-primary/10 text-primary border border-primary/20 text-xs font-bold">
-                  <span>{isKa ? selectedCategoryObj.nameKa : selectedCategoryObj.nameEn}</span>
-                </span>
-              </div>
-            )}
-
-            {/* Dropdown Suggestions */}
-            {categoryDropdownOpen && (
-              <div className="absolute z-50 left-0 right-0 top-full mt-1.5 max-h-60 overflow-y-auto rounded-[14px] border border-border/80 bg-card p-1.5 shadow-xl shadow-black/10">
-                {filteredCategories.length > 0 ? (
-                  <div className="space-y-0.5">
-                    {filteredCategories.map((cat) => {
-                      const isSelected = cat.id === plantCategory;
-                      return (
-                        <button
-                          key={cat.id}
-                          type="button"
-                          onClick={() => {
-                            setPlantCategory(cat.id);
-                            setItemType(cat.itemType);
-                            setCategorySearchQuery("");
-                            setCategoryDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between p-2 rounded-[10px] text-left text-xs transition-all cursor-pointer ${
-                            isSelected
-                              ? "bg-primary text-white font-bold"
-                              : "hover:bg-surface-container text-foreground"
-                          }`}
-                        >
-                          <div>
-                            <p className="font-bold">{isKa ? cat.nameKa : cat.nameEn}</p>
-                            <p className={`text-[10px] ${isSelected ? "text-white/80" : "text-muted-foreground"}`}>
-                              {isKa ? cat.nameEn : cat.nameKa}
-                            </p>
-                          </div>
-                          {isSelected && <Check className="w-3.5 h-3.5 shrink-0 text-white" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="p-3 text-center text-xs text-muted-foreground">
-                    {isKa ? "მსგავსი კატეგორია ვერ მოიძებნა." : "No matching categories found."}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ═══ 2. Photos & AI Recognition ═══ */}
+        {/* ═══ 1. Photos & AI Recognition ═══ */}
         <div className="rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-              {isKa ? "2. ფოტოები (2 - 5 ფოტო) *" : "2. Photos (2 - 5 photos) *"}
-            </label>
+            <div>
+              <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+                {isKa ? "1. ფოტოების ატვირთვა & AI ამოცნობა (2 - 5 ფოტო) *" : "1. Photo Upload & AI Recognition (2 - 5 photos) *"}
+              </label>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                {isKa ? "ატვირთეთ ფოტო და გამოიყენეთ AI მცენარის ავტომატური ამოცნობისთვის" : "Upload photos and use AI to identify the plant"}
+              </p>
+            </div>
 
-            {/* Gemini AI, Plant.id, and Pl@ntNet AI Recognition Buttons */}
-            <div className="grid grid-cols-3 gap-1.5 w-full sm:w-auto">
-              {/* Gemini AI Button */}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={selectedFiles.length === 0 || geminiDetecting || plantIdDetecting || plantNetDetecting}
-                onClick={handleGeminiAutoFill}
-                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1 sm:gap-1.5 h-8 px-1.5 sm:px-2.5 border-border/80 transition-all cursor-pointer justify-center ${
-                  selectedFiles.length > 0 && !geminiDetecting
-                    ? "bg-purple-500/10 text-purple-700 dark:text-purple-300 border-purple-500/30 hover:bg-purple-500/20"
-                    : "hover:bg-surface-container"
-                }`}
-              >
-                {geminiDetecting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-primary shrink-0" />
-                    <span className="truncate">Gemini...</span>
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-3.5 h-3.5 text-purple-600 shrink-0" />
-                    <span className="truncate">Gemini AI</span>
-                  </>
-                )}
-              </Button>
-
+            {/* Plant.id and Pl@ntNet AI Recognition Buttons */}
+            <div className="grid grid-cols-2 gap-2 w-full sm:w-auto">
               {/* Plant.id Button */}
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={selectedFiles.length === 0 || plantIdDetecting || plantNetDetecting || geminiDetecting}
+                disabled={selectedFiles.length === 0 || plantIdDetecting || plantNetDetecting}
                 onClick={handlePlantIdAutoFill}
-                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1 sm:gap-1.5 h-8 px-1.5 sm:px-2.5 border-border/80 transition-all cursor-pointer justify-center ${
+                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1.5 h-8.5 px-3 border-border/80 transition-all cursor-pointer justify-center ${
                   selectedFiles.length > 0 && !plantIdDetecting
-                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
+                    ? "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20 shadow-xs"
                     : "hover:bg-surface-container"
                 }`}
               >
@@ -967,11 +733,11 @@ const ALL_GEORGIAN_CITIES = [
                 type="button"
                 variant="outline"
                 size="sm"
-                disabled={selectedFiles.length === 0 || plantNetDetecting || plantIdDetecting || geminiDetecting}
+                disabled={selectedFiles.length === 0 || plantNetDetecting || plantIdDetecting}
                 onClick={handlePlantNetAutoFill}
-                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1 sm:gap-1.5 h-8 px-1.5 sm:px-2.5 border-border/80 transition-all cursor-pointer justify-center ${
+                className={`rounded-[10px] text-[11px] sm:text-xs font-bold gap-1.5 h-8.5 px-3 border-border/80 transition-all cursor-pointer justify-center ${
                   selectedFiles.length > 0 && !plantNetDetecting
-                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20"
+                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/30 hover:bg-amber-500/20 shadow-xs"
                     : "hover:bg-surface-container"
                 }`}
               >
@@ -1068,6 +834,141 @@ const ALL_GEORGIAN_CITIES = [
               ? "პირველი ფოტო გამოჩნდება მთავარ გარეკანზე. მინიმუმ 2 ფოტო სავალდებულოა."
               : "First photo is the main cover. Minimum 2 photos required."}
           </p>
+        </div>
+
+        {/* ═══ 2. Item Type & Category ═══ */}
+        <div className="rounded-[20px] border border-border/80 bg-card p-4 sm:p-5 shadow-2xs space-y-3.5">
+          <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground block">
+            {isKa ? "2. ტიპი & კატეგორია" : "2. Type & Category"}
+          </label>
+          
+          <div className="grid grid-cols-2 gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                setItemType("PLANT");
+                setPlantCategory("");
+                setCategorySearchQuery("");
+              }}
+              className={`p-3 rounded-[14px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                itemType === "PLANT"
+                  ? "border-primary bg-primary/10 text-primary shadow-2xs"
+                  : "border-border/70 text-muted-foreground hover:bg-surface-container"
+              }`}
+            >
+              <Sprout className="w-4 h-4" />
+              <span>{isKa ? "მცენარე" : "Plant"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setItemType("INVENTORY");
+                setPlantCategory("");
+                setCategorySearchQuery("");
+              }}
+              className={`p-3 rounded-[14px] border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                itemType === "INVENTORY"
+                  ? "border-primary bg-primary/10 text-primary shadow-2xs"
+                  : "border-border/70 text-muted-foreground hover:bg-surface-container"
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>{isKa ? "ინვენტარი (ქოთანი, აქსესუარი)" : "Inventory (Pot, Supplies)"}</span>
+            </button>
+          </div>
+
+          {/* Searchable Sub-Category Combobox */}
+          <div className="relative" ref={categoryWrapperRef}>
+            <label className="text-[11px] font-bold text-foreground block mb-1">
+              {itemType === "PLANT"
+                ? (isKa ? "მცენარის სახეობა / ჯგუფი *" : "Plant Species / Group *")
+                : (isKa ? "ინვენტარის კატეგორია *" : "Supplies Category *")}
+            </label>
+
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              <input
+                type="text"
+                value={categorySearchQuery}
+                onFocus={() => setCategoryDropdownOpen(true)}
+                onChange={(e) => {
+                  setCategorySearchQuery(e.target.value);
+                  setCategoryDropdownOpen(true);
+                }}
+                placeholder={
+                  selectedCategoryObj
+                    ? (isKa ? selectedCategoryObj.nameKa : selectedCategoryObj.nameEn)
+                    : (isKa ? "მოძებნეთ კატეგორია (მაგ: სუკულენტი, მონსტერა, ქოთანი...)" : "Search category...")
+                }
+                className="w-full pl-9 pr-9 h-10 rounded-[12px] border border-border/80 bg-background text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary placeholder:text-foreground placeholder:font-bold"
+              />
+              {categorySearchQuery ? (
+                <button
+                  type="button"
+                  onClick={() => setCategorySearchQuery("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-1 cursor-pointer"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              ) : (
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
+              )}
+            </div>
+
+            {/* Selected Category Pill */}
+            {selectedCategoryObj && !categoryDropdownOpen && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  {isKa ? "არჩეულია:" : "Selected:"}
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-[8px] bg-primary/10 text-primary border border-primary/20 text-xs font-bold">
+                  <span>{isKa ? selectedCategoryObj.nameKa : selectedCategoryObj.nameEn}</span>
+                </span>
+              </div>
+            )}
+
+            {/* Dropdown Suggestions */}
+            {categoryDropdownOpen && (
+              <div className="absolute z-50 left-0 right-0 top-full mt-1.5 max-h-60 overflow-y-auto rounded-[14px] border border-border/80 bg-card p-1.5 shadow-xl shadow-black/10">
+                {filteredCategories.length > 0 ? (
+                  <div className="space-y-0.5">
+                    {filteredCategories.map((cat) => {
+                      const isSelected = cat.id === plantCategory;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            setPlantCategory(cat.id);
+                            setItemType(cat.itemType);
+                            setCategorySearchQuery("");
+                            setCategoryDropdownOpen(false);
+                          }}
+                          className={`w-full flex items-center justify-between p-2 rounded-[10px] text-left text-xs transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-primary text-white font-bold"
+                              : "hover:bg-surface-container text-foreground"
+                          }`}
+                        >
+                          <div>
+                            <p className="font-bold">{isKa ? cat.nameKa : cat.nameEn}</p>
+                            <p className={`text-[10px] ${isSelected ? "text-white/80" : "text-muted-foreground"}`}>
+                              {isKa ? cat.nameEn : cat.nameKa}
+                            </p>
+                          </div>
+                          {isSelected && <Check className="w-3.5 h-3.5 shrink-0 text-white" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-3 text-center text-xs text-muted-foreground">
+                    {isKa ? "მსგავსი კატეგორია ვერ მოიძებნა." : "No matching categories found."}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* ═══ 3. Details (Title, Transaction, Price, Description) ═══ */}
