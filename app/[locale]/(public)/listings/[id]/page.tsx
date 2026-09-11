@@ -598,14 +598,6 @@ export default function ListingDetailPage({
               currentUser={currentUser}
               onRequireAuth={() => router.push(`/login?next=/listings/${id}`)}
             />
-
-            {/* 4. Permanent Compact Row-by-Row Plant Care Guide ("თითო ხაზზე თითო") */}
-            <PlantCareGuideCard
-              careInfo={careInfo}
-              listing={listing}
-              categoryLabel={categoryLabel}
-              isKa={isKa}
-            />
           </div>
 
           {/* ── RIGHT COLUMN: Sticky Action Card + Unified Seller Card ── */}
@@ -656,6 +648,16 @@ export default function ListingDetailPage({
             )}
           </div>
         </div>
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            4. PLANT CARE GUIDE (Positioned lower on page as requested)
+        ══════════════════════════════════════════════════════════════════════ */}
+        <PlantCareGuideCard
+          careInfo={careInfo}
+          listing={listing}
+          categoryLabel={categoryLabel}
+          isKa={isKa}
+        />
 
         {/* ══════════════════════════════════════════════════════════════════════
             SIMILAR LISTINGS (Horizontal Snap Slider)

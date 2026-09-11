@@ -2905,10 +2905,11 @@ export default function AdminDashboardPage() {
             <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 no-scrollbar">
               {[
                 { id: "ALL", label: "ყველა კატეგორია" },
-                { id: "general", label: " ზოგადი" },
-                { id: "suggestion", label: " იდეა / წინადადება" },
-                { id: "bug", label: "️ ხარვეზის რეპორტი" },
-                { id: "partnership", label: " პარტნიორობა / B2B" },
+                { id: "general", label: "💬 ზოგადი" },
+                { id: "suggestion", label: "💡 იდეა / რჩევა" },
+                { id: "bug", label: "⚠️ ხარვეზის რეპორტი" },
+                { id: "correction", label: "✏️ შესწორება" },
+                { id: "partnership", label: "🤝 პარტნიორობა / B2B" },
               ].map((cat) => {
                 const isSelected = feedbackTypeFilter === cat.id;
                 return (
@@ -2989,10 +2990,11 @@ export default function AdminDashboardPage() {
                   const isNew = item.status === "NEW";
 
                   const typeLabelMap: Record<string, { label: string; color: string }> = {
-                    general: { label: " ზოგადი კითხვა", color: "bg-blue-500/10 text-blue-800 dark:text-blue-200 border-blue-500/20" },
-                    suggestion: { label: " იდეა / წინადადება", color: "bg-purple-500/10 text-purple-800 dark:text-purple-200 border-purple-500/20" },
-                    bug: { label: "️ ხარვეზის რეპორტი", color: "bg-rose-500/10 text-rose-800 dark:text-rose-200 border-rose-500/20" },
-                    partnership: { label: " პარტნიორობა / B2B", color: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/20" },
+                    general: { label: "💬 ზოგადი კითხვა", color: "bg-blue-500/10 text-blue-800 dark:text-blue-200 border-blue-500/20" },
+                    suggestion: { label: "💡 იდეა / რჩევა", color: "bg-purple-500/10 text-purple-800 dark:text-purple-200 border-purple-500/20" },
+                    bug: { label: "⚠️ ხარვეზის რეპორტი", color: "bg-rose-500/10 text-rose-800 dark:text-rose-200 border-rose-500/20" },
+                    correction: { label: "✏️ შესწორება / დაზუსტება", color: "bg-amber-500/10 text-amber-800 dark:text-amber-200 border-amber-500/20" },
+                    partnership: { label: "🤝 პარტნიორობა / B2B", color: "bg-emerald-500/10 text-emerald-800 dark:text-emerald-200 border-emerald-500/20" },
                   };
 
                   const typeInfo = typeLabelMap[item.type] || { label: item.type || "შეტყობინება", color: "bg-secondary-container text-foreground border-border/60" };
@@ -3478,6 +3480,20 @@ export default function AdminDashboardPage() {
               </div>
             </div>
           </div>
+
+          {/* Unread Feedback Notification Alert in Overview */}
+          {unreadFeedbackCount > 0 && (
+            <div
+              onClick={() => setActiveTab("feedback")}
+              className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between cursor-pointer hover:bg-emerald-500/15 transition-all shadow-xs"
+            >
+              <div className="flex items-center gap-2.5 text-emerald-800 dark:text-emerald-300 font-bold text-xs sm:text-sm">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span>გაქვთ {unreadFeedbackCount} ახალი შეტყობინება მომხმარებლებისგან (კონტაქტი / ხარვეზები)!</span>
+              </div>
+              <span className="text-xs font-black text-emerald-700 dark:text-emerald-300 shrink-0">ნახვა →</span>
+            </div>
+          )}
 
           {/* Quick Real Insights Strip */}
           <div className="p-3 rounded-2xl bg-surface-container/60 border border-border/70 flex items-center justify-between gap-3 text-xs flex-wrap">

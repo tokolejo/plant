@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
 
       const { data: dbData, error } = await query;
 
-      if (!error && dbData && dbData.length > 0) {
+      if (!error && Array.isArray(dbData)) {
         let results = dbData;
         if (search) {
           const q = search.toLowerCase().trim();
@@ -107,6 +107,9 @@ export async function GET(req: NextRequest) {
           );
         }
         return NextResponse.json({ success: true, data: results });
+      }
+      if (error) {
+        console.warn("[Admin Feedback Query DB Error]:", error.message);
       }
     } catch (dbErr) {
       console.warn("Feedback query fallback:", dbErr);

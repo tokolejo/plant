@@ -148,8 +148,8 @@ export function PlantCareGuideCard({
         )}
       </div>
 
-      {/* ── Icon-First Compact Care Guidelines (Zero truncation) ── */}
-      <div className="space-y-1.5">
+      {/* ── Icon-First Compact Care Guidelines (Zero truncation, Responsive Grid) ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
         {rows.map((r) => {
           const Icon = r.icon;
           return (
@@ -171,19 +171,12 @@ export function PlantCareGuideCard({
                     {r.value}
                   </span>
                   {r.hint && (
-                    <span className="text-[10px] text-muted-foreground block truncate sm:hidden">
+                    <span className="text-[10px] text-muted-foreground block truncate">
                       {r.hint}
                     </span>
                   )}
                 </div>
               </div>
-
-              {/* Right: Helpful Context Hint (Desktop/Tablet) */}
-              {r.hint && (
-                <span className="hidden sm:inline-block text-[11px] font-medium text-muted-foreground shrink-0 max-w-[220px] truncate text-right">
-                  {r.hint}
-                </span>
-              )}
             </div>
           );
         })}

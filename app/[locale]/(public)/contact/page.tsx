@@ -20,8 +20,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { createClient } from "@/utils/supabase/client";
 
-type InquiryType = "general" | "suggestion" | "bug" | "partnership";
+type InquiryType = "general" | "suggestion" | "bug" | "correction" | "partnership";
 
 export default function ContactPage() {
   const locale = useLocale();
@@ -34,12 +35,54 @@ export default function ContactPage() {
   const [subject, setSubject] = React.useState("");
   const [message, setMessage] = React.useState("");
 
+  // Anti-spam honeypot and timing fields
+  const [botTrap, setBotTrap] = React.useState("");
+  const [website, setWebsite] = React.useState("");
+  const [formLoadTime, setFormLoadTime] = React.useState<number>(0);
+
   const [submitting, setSubmitting] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
   const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    setFormLoadTime(Date.now());
+
+    // Auto-fill logged-in user profile info
+    try {
+      const supabase = createClient();
+      supabase.auth.getUser().then(({ data: { user } }) => {
+        if (user) {
+          if (user.email) setEmail((prev) => prev || user.email || "");
+          const meta = user.user_metadata || {};
+          if (meta.full_name) setName((prev) => prev || meta.full_name);
+          if (meta.phone) setPhone((prev) => prev || meta.phone);
+        }
+      });
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Client-side rate-limit / spam cooldown (60 seconds)
+    if (typeof window !== "undefined") {
+      const lastSent = localStorage.getItem("plant_last_contact_ts");
+      if (lastSent) {
+        const diff = Date.now() - Number(lastSent);
+        if (diff < 60000) {
+          const remainingSec = Math.ceil((60000 - diff) / 1000);
+          setErrorMsg(
+            isKa
+              ? `გთხოვთ დაიცადოთ ${remainingSec} წამი ახალი შეტყობინების გაგზავნამდე.`
+              : `Please wait ${remainingSec}s before sending another message.`
+          );
+          return;
+        }
+      }
+    }
+
     if (!name.trim() || !email.trim() || !message.trim()) {
       setErrorMsg(
         isKa
@@ -58,17 +101,23 @@ export default function ContactPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: inquiryType,
-          name,
-          email,
-          phone,
-          subject,
-          message,
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim() || null,
+          subject: subject.trim() || null,
+          message: message.trim(),
+          bot_trap: botTrap,
+          website: website,
+          form_load_time: formLoadTime,
         }),
       });
 
       const data = await res.json();
       if (data.success) {
         setSubmitted(true);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("plant_last_contact_ts", Date.now().toString());
+        }
       } else {
         setErrorMsg(data.error || (isKa ? "დაფიქსირდა შეცდომა." : "An error occurred."));
       }
@@ -80,10 +129,11 @@ export default function ContactPage() {
   };
 
   const categories: { id: InquiryType; label: string; icon: any }[] = [
-    { id: "general", label: isKa ? "ზოგადი" : "General", icon: MessageSquare },
-    { id: "suggestion", label: isKa ? "იდეა & წინადადება" : "Suggestion", icon: Lightbulb },
-    { id: "bug", label: isKa ? "ხარვეზი" : "Bug", icon: AlertCircle },
-    { id: "partnership", label: isKa ? "პარტნიორობა / B2B" : "Partnership", icon: Building2 },
+    { id: "general", label: isKa ? "ზოგადი შეკითხვა" : "General Inquiry", icon: MessageSquare },
+    { id: "suggestion", label: isKa ? "რჩევა & იდეა" : "Advice & Idea", icon: Lightbulb },
+    { id: "bug", label: isKa ? "ხარვეზის დაფიქსირება" : "Report Bug", icon: AlertCircle },
+    { id: "correction", label: isKa ? "შესწორება" : "Correction", icon: CheckCircle2 },
+    { id: "partnership", label: isKa ? "თანამშრომლობა / B2B" : "Partnership", icon: Building2 },
   ];
 
   return (
@@ -147,13 +197,32 @@ export default function ContactPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3.5">
-                
+                {/* Anti-spam Bot Trap (Hidden from real users, caught if filled by crawlers) */}
+                <div className="sr-only opacity-0 absolute -z-10 pointer-events-none" aria-hidden="true">
+                  <input
+                    type="text"
+                    name="bot_trap"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={botTrap}
+                    onChange={(e) => setBotTrap(e.target.value)}
+                  />
+                  <input
+                    type="text"
+                    name="website"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                  />
+                </div>
+
                 {/* 1. Category Selector (Compact Inline Pills) */}
                 <div className="space-y-1.5">
                   <span className="text-[11px] font-bold text-foreground block">
                     {isKa ? "კატეგორია" : "Topic"}
                   </span>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5">
                     {categories.map(({ id, label, icon: Icon }) => {
                       const active = inquiryType === id;
                       return (

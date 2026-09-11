@@ -251,7 +251,6 @@ export function ListingCard({
               <div className="flex items-center gap-1.5 mb-2 text-xs">
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-[8px] bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 font-bold border border-indigo-500/20 max-w-full truncate">
                   <RefreshCw className="w-3 h-3 shrink-0 text-indigo-600 dark:text-indigo-400" />
-                  <span className="shrink-0">{isKa ? "ვეძებ გაცვლაში:" : "Seeking:"}</span>
                   <span className="font-semibold truncate">
                     {tradePreferences?.length > 0 ? tradePreferences.join(", ") : (isKa ? "ნებისმიერი შეთავაზება" : "Open to offers")}
                   </span>
@@ -415,8 +414,7 @@ export function ListingCard({
         {(tradePreferences?.length > 0 || transactionType === "TRADE") && (
           <div className="mb-1.5 flex items-center gap-1 text-[10px] text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded-[5px] border border-indigo-500/20 max-w-full truncate font-bold">
             <RefreshCw className="w-2.5 h-2.5 shrink-0 text-indigo-600 dark:text-indigo-400" />
-            <span className="shrink-0">{isKa ? "ვეძებ:" : "ISO:"}</span>
-            <span className="truncate font-medium">
+            <span className="truncate font-semibold">
               {tradePreferences?.length > 0 ? tradePreferences.join(", ") : (isKa ? "შეთავაზება" : "Offers")}
             </span>
           </div>

@@ -17,7 +17,9 @@ import {
   Loader2,
   ArrowLeft,
   KeyRound,
-  Send
+  Send,
+  Eye,
+  EyeOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -55,7 +57,7 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
   const [phone, setPhone] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [confirmPassword, setConfirmPassword] = React.useState("");
+  const [showPassword, setShowPassword] = React.useState(false);
 
   // Clear messages on tab switch
   const switchMode = (newMode: "LOGIN" | "REGISTER" | "FORGOT") => {
@@ -107,7 +109,7 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
     }
   };
 
-  // Registration Submit (Full Name, Phone, Email, Password -> Email Verification)
+  // Registration Submit (Full Name, Email, Password + Optional Phone)
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -120,8 +122,8 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
       return;
     }
 
-    if (!phone.trim()) {
-      setErrorMsg(isKa ? "გთხოვთ მიუთითოთ მობილურის ნომერი" : "Please enter your phone number");
+    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setErrorMsg(isKa ? "გთხოვთ მიუთითოთ სწორი ელ-ფოსტის მისამართი" : "Please enter a valid email address");
       setLoading(false);
       return;
     }
@@ -132,19 +134,13 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setErrorMsg(isKa ? "პაროლები ერთმანეთს არ ემთხვევა" : "Passwords do not match");
-      setLoading(false);
-      return;
-    }
-
     const { data, error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
       options: {
         data: {
           full_name: fullName.trim(),
-          phone: phone.trim(),
+          phone: phone.trim() || undefined,
         },
       },
     });
@@ -313,7 +309,11 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
                       d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
                     />
                   </svg>
-                  <span>{isKa ? "Google-ით ავტორიზაცია" : "Continue with Google"}</span>
+                  <span>
+                    {mode === "REGISTER" 
+                      ? (isKa ? "Google-ით სწრაფი რეგისტრაცია (1-წამში)" : "Sign up in 1 click with Google") 
+                      : (isKa ? "Google-ით ავტორიზაცია" : "Continue with Google")}
+                  </span>
                 </Button>
 
                 <div className="relative my-4">
@@ -383,7 +383,7 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
               </form>
             )}
 
-            {/* ═══════ MODE 2: REGISTRATION FORM (Full Name, Phone, Email, Passwords) ═══════ */}
+            {/* ═══════ MODE 2: REGISTRATION FORM (Full Name, Email, Password + Optional Phone) ═══════ */}
             {mode === "REGISTER" && (
               <form onSubmit={handleRegisterSubmit} className="space-y-3">
                 {/* 1. Full Name */}
@@ -396,6 +396,7 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
                     <Input
                       type="text"
                       required
+                      placeholder={isKa ? "გიორგი ბერიძე" : "John Doe"}
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
@@ -403,24 +404,7 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
                   </div>
                 </div>
 
-                {/* 2. Phone Number */}
-                <div>
-                  <label className="text-xs font-bold text-foreground mb-1 block">
-                    {isKa ? "მობილურის ნომერი" : "Phone Number"} <span className="text-primary">*</span>
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <Input
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
-                    />
-                  </div>
-                </div>
-
-                {/* 3. Email */}
+                {/* 2. Email */}
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
                     {isKa ? "ელ-ფოსტა" : "Email"} <span className="text-primary">*</span>
@@ -430,19 +414,15 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
                     <Input
                       type="email"
                       required
+                      placeholder="name@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">
-                    {isKa 
-                      ? "რეგისტრაციის დასასრულებლად ელ-ფოსტაზე მიიღებთ დასტურის ბმულს."
-                      : "You will receive a confirmation link on your email to complete registration."}
-                  </p>
                 </div>
 
-                {/* 4. Password */}
+                {/* 3. Password with Show/Hide Eye Toggle */}
                 <div>
                   <label className="text-xs font-bold text-foreground mb-1 block">
                     {isKa ? "პაროლი (მინ. 6 სიმბოლო)" : "Password (min. 6 characters)"} <span className="text-primary">*</span>
@@ -450,27 +430,42 @@ function AuthContainer({ isKa }: { isKa: boolean }) {
                   <div className="relative">
                     <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       required
+                      placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
+                      className="pl-10 pr-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
+                    <button
+                      type="button"
+                      tabIndex={-1}
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label="Toggle password visibility"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
                   </div>
                 </div>
 
-                {/* 5. Confirm Password */}
+                {/* 4. Phone Number (Optional) */}
                 <div>
-                  <label className="text-xs font-bold text-foreground mb-1 block">
-                    {isKa ? "გაიმეორეთ პაროლი" : "Confirm Password"} <span className="text-primary">*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold text-foreground">
+                      {isKa ? "მობილურის ნომერი" : "Phone Number"}
+                    </label>
+                    <span className="text-[10px] text-muted-foreground font-medium">
+                      {isKa ? "(არასავალდებულო)" : "(Optional)"}
+                    </span>
+                  </div>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                     <Input
-                      type="password"
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      type="tel"
+                      placeholder={isKa ? "+995 5XX XX XX XX" : "+995 5XX XX XX XX"}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
                       className="pl-10 rounded-[14px] h-10 text-xs sm:text-sm font-medium"
                     />
                   </div>
