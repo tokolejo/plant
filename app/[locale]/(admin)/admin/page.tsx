@@ -93,10 +93,7 @@ export default function AdminDashboardPage() {
   const [currentUser, setCurrentUser] = React.useState<any>(null);
   const [currentUserRole, setCurrentUserRole] = React.useState<UserRole>("USER");
   const [isAdmin, setIsAdmin] = React.useState<boolean | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "feedback" | "affiliate" | "audit" | "plans" | "analytics" | "community">("overview");
-
-  // Admin Community State
-  const [communityPosts, setCommunityPosts] = React.useState<any[]>([]);
+  const [activeTab, setActiveTab] = React.useState<"overview" | "listings" | "users" | "feedback" | "affiliate" | "audit" | "plans" | "analytics">("overview");
 
   // Admin Listings State
   const [listings, setListings] = React.useState<any[]>([]);
@@ -324,15 +321,6 @@ export default function AdminDashboardPage() {
       })));
     }
 
-    // 3. Fetch Community Posts
-    const { data: dbPosts } = await supabase
-      .from("community_posts")
-      .select("*")
-      .order("created_at", { ascending: false });
-
-    if (dbPosts) {
-      setCommunityPosts(dbPosts);
-    }
   }, [supabase, currentUser]);
 
   // Auth & Admin Verification with Granular RBAC
@@ -1594,7 +1582,6 @@ export default function AdminDashboardPage() {
               { id: "analytics", label: "სტატისტიკა", icon: TrendingUp, visible: canManageUsers(currentUserRole, currentUser?.email) },
               { id: "audit", label: "აუდიტი", icon: FileText, count: auditLogs.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
               { id: "affiliate", label: "Affiliate", icon: Sparkles, count: affiliateProducts.length, visible: canManageUsers(currentUserRole, currentUser?.email) },
-              { id: "community", label: "კომუნა", icon: Users, count: communityPosts.length, visible: true },
             ]
               .filter((tab) => tab.visible)
               .map((tab) => {
@@ -4629,93 +4616,6 @@ export default function AdminDashboardPage() {
               );
             })}
           </div>
-        </div>
-      )}
-
-      {/* ══════════════════════════════════════════════════════════════════════
-          TAB: COMMUNITY (კომუნის მართვა)
-      ══════════════════════════════════════════════════════════════════════ */}
-      {activeTab === "community" && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border/80 shadow-xs">
-            <div>
-              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
-                <span>მწვანე კომუნის მართვა & მოდერაცია</span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-secondary-container text-primary">
-                  {communityPosts.length} პოსტი
-                </span>
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                კომუნა დროებით გათიშულია საიტის მენიუდან მომხმარებლებისთვის. აქედან შეგიძლიათ პოსტების ნახვა და მართვა.
-              </p>
-            </div>
-          </div>
-
-          {communityPosts.length === 0 ? (
-            <div className="text-center py-16 rounded-2xl border border-dashed border-border/80 bg-card p-6">
-              <Users className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
-              <p className="text-sm font-bold text-muted-foreground">კომუნაში პოსტები არ მოიძებნა</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {communityPosts.map((post) => (
-                <div key={post.id} className="p-4 rounded-2xl border border-border/80 bg-card shadow-xs space-y-3 flex flex-col justify-between">
-                  <div className="space-y-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        {post.author_avatar ? (
-                          <img src={post.author_avatar} alt="" className="w-8 h-8 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold">
-                            {post.author_name?.[0] || "?"}
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-xs font-bold text-foreground block">{post.author_name}</span>
-                          <span className="text-[10px] text-muted-foreground">{post.created_at ? new Date(post.created_at).toLocaleString("ka-GE") : ""}</span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-secondary-container text-primary">
-                        {post.category || "General"}
-                      </span>
-                    </div>
-
-                    {post.image_url && (
-                      <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-muted">
-                        <img src={post.image_url} alt="" className="w-full h-full object-cover" />
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="text-sm font-bold text-foreground">{post.title}</h4>
-                      <p className="text-xs text-muted-foreground line-clamp-3 mt-1 leading-relaxed">{post.content}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2.5 border-t border-border/50 text-[11px] text-muted-foreground">
-                    <span>❤️ {post.upvotes_count || 0} მოწონება • 💬 {post.comments_count || 0} კომენტარი</span>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        if (!confirm("დარწმუნებული ხართ რომ გსურთ ამ პოსტის წაშლა?")) return;
-                        const { error } = await supabase.from("community_posts").delete().eq("id", post.id);
-                        if (!error) {
-                          setCommunityPosts((prev) => prev.filter((p) => p.id !== post.id));
-                          showNotice(" პოსტი წარმატებით წაიშალა");
-                        } else {
-                          showNotice(" შეცდომა პოსტის წაშლისას", "error");
-                        }
-                      }}
-                      className="px-2.5 py-1 rounded-lg text-rose-600 hover:bg-rose-500/10 font-bold transition-colors cursor-pointer"
-                    >
-                      წაშლა
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       )}
 
