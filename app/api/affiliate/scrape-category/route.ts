@@ -403,6 +403,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "არასწორი URL ფორმატი" }, { status: 400 });
     }
 
+    // SSRF Protection: only allow approved partner domains
+    const ALLOWED_DOMAINS = [
+      "domino.com.ge",
+      "gorgia.ge",
+      "bricorama.ge",
+      "agrohub.ge",
+      "miaplant.ge",
+      "amazon.com",
+    ];
+    const hostname = parsedUrl.hostname.replace(/^www\./, "");
+    const isAllowed = ALLOWED_DOMAINS.some(
+      (d) => hostname === d || hostname.endsWith("." + d)
+    );
+    if (!isAllowed) {
+      return NextResponse.json(
+        { success: false, error: `ეს დომენი არ არის დაშვებული. დაშვებული: ${ALLOWED_DOMAINS.join(", ")}` },
+        { status: 403 }
+      );
+    }
+
     const partnerName = customPartnerName?.trim() || extractDomainName(categoryUrl);
     const cleanLimit = Math.min(Math.max(Number(limit) || 30, 5), 500);
 
