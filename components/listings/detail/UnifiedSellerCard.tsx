@@ -94,13 +94,27 @@ export function UnifiedSellerCard({
             </div>
 
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-              <span className="flex items-center gap-1 font-bold text-foreground">
-                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                <span>{rating ? rating.toFixed(1) : "5.0"}</span>
-                {reviewsCount > 0 && (
-                  <span className="font-medium text-muted-foreground">({reviewsCount})</span>
-                )}
-              </span>
+              {shopUrl ? (
+                <Link
+                  href={`${shopUrl}?tab=reviews`}
+                  className="flex items-center gap-1 font-bold text-foreground hover:text-primary transition-colors cursor-pointer"
+                  title={isKa ? "სელერის შეფასებების ნახვა" : "View seller reviews"}
+                >
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{rating ? rating.toFixed(1) : "5.0"}</span>
+                  {reviewsCount > 0 && (
+                    <span className="font-medium text-muted-foreground hover:underline">({reviewsCount})</span>
+                  )}
+                </Link>
+              ) : (
+                <span className="flex items-center gap-1 font-bold text-foreground">
+                  <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                  <span>{rating ? rating.toFixed(1) : "5.0"}</span>
+                  {reviewsCount > 0 && (
+                    <span className="font-medium text-muted-foreground">({reviewsCount})</span>
+                  )}
+                </span>
+              )}
 
               {experienceYears && experienceYears > 0 && (
                 <>

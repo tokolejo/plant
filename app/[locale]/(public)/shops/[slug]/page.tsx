@@ -4,6 +4,10 @@ import * as React from "react";
 import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
 import { useLocale } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { submitReviewAction } from "@/app/actions/reviews";
+import { Textarea } from "@/components/ui/textarea";
+import { User, Loader2, Send } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { SAMPLE_LISTINGS, type PlantCategory, type ExtendedListingCardProps } from "@/lib/mock-data";
 import { ListingCard } from "@/components/listings/ListingCard";
@@ -203,7 +207,10 @@ export default function ShopStorefrontPage({
 }) {
   const locale = useLocale();
   const isKa = locale !== "en";
+  const router = useRouter();
   const supabase = createClient();
+  const searchParams = useSearchParams();
+  const urlTab = searchParams.get("tab");
 
   const decodedSlug = React.useMemo(() => {
     try {
@@ -231,7 +238,98 @@ export default function ShopStorefrontPage({
   const [selectedTrans, setSelectedTrans] = React.useState<string[]>([]);
   const [selectedDelivery, setSelectedDelivery] = React.useState<string[]>([]);
   const [itemTypeFilter, setItemTypeFilter] = React.useState<"ALL" | "PLANT" | "INVENTORY">("ALL");
-  const [storeTab, setStoreTab] = React.useState<"listings" | "services">(initialSpecialist ? "services" : "listings");
+  const [storeTab, setStoreTab] = React.useState<"listings" | "services" | "reviews">(() => {
+    if (urlTab === "reviews") return "reviews";
+    if (initialSpecialist) return "services";
+    return "listings";
+  });
+
+  // Reviews State
+  const [shopReviews, setShopReviews] = React.useState<any[]>([]);
+  const [currentUser, setCurrentUser] = React.useState<any>(null);
+  const [newRating, setNewRating] = React.useState(5);
+  const [newComment, setNewComment] = React.useState("");
+  const [submittingReview, setSubmittingReview] = React.useState(false);
+  const [reviewSuccess, setReviewSuccess] = React.useState(false);
+
+  // Sync tab from URL query if user navigated via link with ?tab=reviews
+  React.useEffect(() => {
+    if (urlTab === "reviews") {
+      setStoreTab("reviews");
+    }
+  }, [urlTab]);
+
+  // Load current user
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) setCurrentUser(data.user);
+    });
+  }, [supabase]);
+
+  // Load reviews for this seller
+  const loadReviews = React.useCallback(async (sellerId: string) => {
+    try {
+      const { data: revs } = await supabase
+        .from("reviews")
+        .select(`
+          id,
+          rating,
+          comment,
+          created_at,
+          reviewer_id,
+          listing_id,
+          profiles:reviewer_id (
+            id,
+            full_name,
+            avatar_url
+          ),
+          listings:listing_id (
+            id,
+            title,
+            title_ka
+          )
+        `)
+        .eq("seller_id", sellerId)
+        .order("created_at", { ascending: false });
+
+      if (revs) {
+        setShopReviews(revs);
+      }
+    } catch (err) {
+      console.warn("Error loading shop reviews:", err);
+    }
+  }, [supabase]);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) {
+      router.push(`/login?next=/shops/${slug}?tab=reviews`);
+      return;
+    }
+    if (!newComment.trim()) return;
+    setSubmittingReview(true);
+    setReviewSuccess(false);
+    try {
+      const res = await submitReviewAction({
+        sellerId: shop.id,
+        rating: newRating,
+        comment: newComment,
+      });
+      if (res.success) {
+        setReviewSuccess(true);
+        setNewComment("");
+        if (shop.id) {
+          await loadReviews(shop.id);
+        }
+      } else {
+        alert(res.error || "შეცდომა შეფასების გაგზავნისას");
+      }
+    } catch (err) {
+      console.warn("Review submission error:", err);
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
   const [providerServices, setProviderServices] = React.useState<GardeningServiceItem[]>(() => {
     if (initialSpecialist) {
       return MOCK_SERVICES.filter(
@@ -391,6 +489,9 @@ export default function ShopStorefrontPage({
             setShopListings([]);
           }
 
+          // Fetch reviews for this seller
+          loadReviews(profile.id);
+
           // Fetch provider's gardening services from DB
           try {
             const { data: dbServices } = await supabase
@@ -518,6 +619,27 @@ export default function ShopStorefrontPage({
       return 0;
     });
   }, [shopListings, itemTypeFilter, searchTerm, selectedCategories, selectedTrans, selectedDelivery, priceRange, sortBy]);
+
+  const totalReviewsCount = shopReviews.length > 0 ? shopReviews.length : (shop.totalReviews || 0);
+  const averageRating = shopReviews.length > 0
+    ? (shopReviews.reduce((acc, r) => acc + (Number(r.rating) || 5), 0) / shopReviews.length)
+    : (shop.rating || 5.0);
+
+  const starCounts = React.useMemo(() => {
+    const counts = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    if (shopReviews.length > 0) {
+      for (const r of shopReviews) {
+        const star = Math.round(Number(r.rating) || 5);
+        if (star >= 1 && star <= 5) {
+          counts[star as 1 | 2 | 3 | 4 | 5]++;
+        }
+      }
+    } else if (shop.totalReviews > 0) {
+      counts[5] = Math.round(shop.totalReviews * 0.85);
+      counts[4] = shop.totalReviews - counts[5];
+    }
+    return counts;
+  }, [shopReviews, shop.totalReviews]);
 
   const copyShopLink = () => {
     if (typeof window !== "undefined") {
@@ -835,11 +957,18 @@ export default function ShopStorefrontPage({
                     <MapPin className="w-3.5 h-3.5" /> {shop.city} {shop.address && `• ${shop.address}`}
                   </span>
                   <span>•</span>
-                  <div className="flex items-center gap-1 font-bold text-amber-500">
+                  <button
+                    type="button"
+                    onClick={() => setStoreTab("reviews")}
+                    className="flex items-center gap-1 font-bold text-amber-500 hover:text-amber-600 transition-colors cursor-pointer"
+                    title={isKa ? "შეფასებების ნახვა" : "View reviews"}
+                  >
                     <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-                    <span>{shop.rating.toFixed(1)}</span>
-                    <span className="text-muted-foreground font-normal">({shop.totalReviews} {isKa ? "შეფასება" : "reviews"})</span>
-                  </div>
+                    <span>{averageRating.toFixed(1)}</span>
+                    <span className="text-muted-foreground font-normal hover:underline">
+                      ({totalReviewsCount} {isKa ? "შეფასება" : "reviews"})
+                    </span>
+                  </button>
                   <span>•</span>
                   <button
                     type="button"
@@ -998,6 +1127,23 @@ export default function ShopStorefrontPage({
                 <span>{isKa ? "სერვისები" : "Services"}</span>
                 <span className="text-[10px] opacity-80 font-mono">({providerServices.length})</span>
               </button>
+
+              {/* Reviews Tab */}
+              <button
+                type="button"
+                onClick={() => {
+                  setStoreTab("reviews");
+                }}
+                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-[12px] text-xs font-bold transition-all cursor-pointer ${
+                  storeTab === "reviews"
+                    ? "bg-primary text-white shadow-xs"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                <span>{isKa ? "შეფასებები" : "Reviews"}</span>
+                <span className="text-[10px] opacity-80 font-mono">({totalReviewsCount})</span>
+              </button>
             </div>
 
             {/* Mobile Filter Button */}
@@ -1104,15 +1250,250 @@ export default function ShopStorefrontPage({
           {/* Main Layout: Sidebar on Left (Desktop) + 4-Column Grid on Right */}
           <div className="flex gap-6 lg:gap-7">
             {/* Sidebar — Desktop */}
+            {storeTab !== "reviews" && (
             <aside className="hidden lg:block w-76 sm:w-80 shrink-0 relative z-30">
               <div className="sticky top-20 rounded-[24px] border border-border/80 bg-card p-5 shadow-ambient">
                 {SidebarContent}
               </div>
             </aside>
+          )}
 
             {/* Results Column: 4 Columns x 4 Rows = 16 Items (or Services Grid) */}
             <div className="flex-1 min-w-0">
-              {storeTab === "services" ? (
+              {storeTab === "reviews" ? (
+                <div className="space-y-6">
+                  {/* Rating Breakdown & Analytics Card */}
+                  <div className="rounded-[24px] border border-border/80 bg-card p-6 sm:p-8 shadow-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                      {/* Left: Big Score */}
+                      <div className="md:col-span-4 flex flex-col items-center justify-center text-center p-5 rounded-2xl bg-secondary-container/40 border border-border/40">
+                        <span className="text-4xl sm:text-5xl font-black text-foreground tracking-tight">
+                          {averageRating.toFixed(1)}
+                        </span>
+                        <div className="flex items-center gap-1 my-2">
+                          {[1, 2, 3, 4, 5].map((s) => (
+                            <Star
+                              key={s}
+                              className={`w-5 h-5 ${
+                                s <= Math.round(averageRating)
+                                  ? "fill-amber-400 text-amber-400"
+                                  : "text-muted-foreground/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <span className="text-xs font-bold text-muted-foreground">
+                          {totalReviewsCount} {isKa ? "ჯამური შეფასება" : "total reviews"}
+                        </span>
+                      </div>
+
+                      {/* Right: Star Distribution Bars */}
+                      <div className="md:col-span-8 space-y-2">
+                        {[5, 4, 3, 2, 1].map((star) => {
+                          const count = starCounts[star as 1 | 2 | 3 | 4 | 5] || 0;
+                          const pct = totalReviewsCount > 0 ? (count / totalReviewsCount) * 100 : 0;
+                          return (
+                            <div key={star} className="flex items-center gap-3 text-xs font-bold">
+                              <span className="w-8 flex items-center gap-1 shrink-0 text-muted-foreground">
+                                <span>{star}</span>
+                                <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                              </span>
+                              <div className="flex-1 h-2.5 rounded-full bg-secondary-container overflow-hidden">
+                                <div
+                                  className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="w-10 text-right text-muted-foreground font-mono text-[11px] shrink-0">
+                                {count}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Leave Review Form */}
+                  <div className="rounded-[24px] border border-border/80 bg-card p-6 shadow-xs space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="p-1.5 rounded-[10px] bg-primary/10 text-primary">
+                        <MessageSquare className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-sm font-black text-foreground uppercase tracking-wider">
+                        {isKa ? "შეაფასეთ გამყიდველი" : "Rate the Seller"}
+                      </h4>
+                    </div>
+
+                    {currentUser && currentUser.id === shop.id ? (
+                      <p className="text-xs text-muted-foreground bg-secondary-container/60 p-3 rounded-xl">
+                        {isKa ? "ეს თქვენი პროფილია — საკუთარ თავს შეფასებას ვერ დაუტოვებთ." : "This is your profile — you cannot review yourself."}
+                      </p>
+                    ) : !currentUser ? (
+                      <div className="p-4 rounded-xl bg-secondary-container/50 border border-border/60 flex items-center justify-between gap-4 flex-wrap">
+                        <p className="text-xs text-muted-foreground">
+                          {isKa ? "შეფასების და გამოხმაურების დასატოვებლად გაიარეთ ავტორიზაცია." : "Log in to leave a review and feedback for this seller."}
+                        </p>
+                        <Link
+                          href={`/login?next=/shops/${slug}?tab=reviews`}
+                          className="px-4 py-2 rounded-xl bg-primary text-white text-xs font-bold shadow-xs hover:bg-primary/90 transition-colors"
+                        >
+                          {isKa ? "ავტორიზაცია" : "Log In"}
+                        </Link>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleReviewSubmit} className="space-y-4">
+                        {reviewSuccess && (
+                          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-xs font-bold flex items-center gap-2">
+                            <Check className="w-4 h-4 text-emerald-600" />
+                            <span>{isKa ? "თქვენი შეფასება წარმატებით გაიგზავნა! მადლობა." : "Your review was successfully submitted! Thank you."}</span>
+                          </div>
+                        )}
+
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground block mb-1.5">
+                            {isKa ? "თქვენი შეფასება (ვარსკვლავები):" : "Your Rating (Stars):"}
+                          </label>
+                          <div className="flex items-center gap-1.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <button
+                                key={star}
+                                type="button"
+                                onClick={() => setNewRating(star)}
+                                className="p-1 text-muted-foreground hover:scale-110 transition-transform cursor-pointer"
+                              >
+                                <Star
+                                  className={`w-6 h-6 ${
+                                    star <= newRating
+                                      ? "fill-amber-400 text-amber-400"
+                                      : "text-muted-foreground/30 hover:text-amber-300"
+                                  }`}
+                                />
+                              </button>
+                            ))}
+                            <span className="text-xs font-black ml-2 text-foreground">
+                              {newRating} / 5
+                            </span>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-xs font-bold text-muted-foreground block mb-1.5">
+                            {isKa ? "კომენტარი / გამოხმაურება:" : "Comment / Feedback:"}
+                          </label>
+                          <Textarea
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder={isKa ? "გაუზიარეთ სხვებს თქვენი გამოცდილება (მცენარის ხარისხი, კომუნიკაცია, მიწოდება)..." : "Share your experience with other plant lovers (plant health, communication, packaging)..."}
+                            rows={3}
+                            className="rounded-xl resize-none text-xs sm:text-sm"
+                          />
+                        </div>
+
+                        <Button
+                          type="submit"
+                          disabled={submittingReview || !newComment.trim()}
+                          className="rounded-xl px-5 text-xs font-bold gap-2"
+                        >
+                          {submittingReview ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>{isKa ? "იგზავნება..." : "Submitting..."}</span>
+                            </>
+                          ) : (
+                            <>
+                              <Send className="w-3.5 h-3.5" />
+                              <span>{isKa ? "შეფასების გამოქვეყნება" : "Post Review"}</span>
+                            </>
+                          )}
+                        </Button>
+                      </form>
+                    )}
+                  </div>
+
+                  {/* Reviews List */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-black text-foreground uppercase tracking-wider">
+                      {isKa ? `გამოხმაურებები (${shopReviews.length})` : `Customer Reviews (${shopReviews.length})`}
+                    </h4>
+
+                    {shopReviews.length > 0 ? (
+                      <div className="space-y-3">
+                        {shopReviews.map((rev) => (
+                          <div
+                            key={rev.id}
+                            className="p-4 sm:p-5 rounded-[20px] border border-border/80 bg-card shadow-2xs space-y-2.5"
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 text-primary flex items-center justify-center font-bold text-xs shrink-0 ring-1 ring-border/40">
+                                  {rev.profiles?.avatar_url ? (
+                                    <Image
+                                      src={rev.profiles.avatar_url}
+                                      alt={rev.profiles.full_name || "User"}
+                                      width={32}
+                                      height={32}
+                                      className="object-cover w-full h-full"
+                                    />
+                                  ) : (
+                                    <User className="w-4 h-4 text-muted-foreground" />
+                                  )}
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-xs font-bold text-foreground block truncate">
+                                    {rev.profiles?.full_name || (isKa ? "მებაღე" : "Plant Lover")}
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground">
+                                    {new Date(rev.created_at).toLocaleDateString(isKa ? "ka-GE" : "en-US", {
+                                      year: "numeric",
+                                      month: "short",
+                                      day: "numeric",
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-0.5">
+                                {[1, 2, 3, 4, 5].map((s) => (
+                                  <Star
+                                    key={s}
+                                    className={`w-3.5 h-3.5 ${
+                                      s <= Number(rev.rating)
+                                        ? "fill-amber-400 text-amber-400"
+                                        : "text-muted-foreground/30"
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            {rev.listings && (
+                              <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-secondary-container text-[10px] font-bold text-muted-foreground">
+                                <Sprout className="w-3 h-3 text-primary" />
+                                <span>{isKa ? (rev.listings.title_ka || rev.listings.title) : (rev.listings.title || rev.listings.title_ka)}</span>
+                              </div>
+                            )}
+
+                            <p className="text-xs sm:text-sm text-foreground/90 font-medium leading-relaxed">
+                              {rev.comment}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12 bg-card rounded-2xl border border-dashed border-border/80 space-y-2">
+                        <Star className="w-8 h-8 text-amber-400/40 mx-auto" />
+                        <h5 className="text-xs sm:text-sm font-bold text-foreground">
+                          {isKa ? "შეფასებები ჯერ არ არის" : "No reviews yet"}
+                        </h5>
+                        <p className="text-xs text-muted-foreground">
+                          {isKa ? "იყავით პირველი, ვინც შეაფასებს ამ გამყიდველს!" : "Be the first to leave a review for this seller!"}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ) : storeTab === "services" ? (
                 providerServices.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                     {providerServices.map((srv) => (

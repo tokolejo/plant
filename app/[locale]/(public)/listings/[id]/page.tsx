@@ -11,13 +11,18 @@ import { ListingHeroGallery } from "@/components/listings/detail/ListingHeroGall
 import { ListingTradeBox } from "@/components/listings/detail/ListingTradeBox";
 import { ListingActionCard } from "@/components/listings/detail/ListingActionCard";
 import { UnifiedSellerCard } from "@/components/listings/detail/UnifiedSellerCard";
-import { ListingInfoTabs } from "@/components/listings/detail/ListingInfoTabs";
+import { ListingDescriptionCard } from "@/components/listings/detail/ListingDescriptionCard";
 import { PlantCareGuideCard } from "@/components/listings/detail/PlantCareGuideCard";
+import { RecommendedSuppliesSection } from "@/components/listings/detail/RecommendedSuppliesSection";
 import { 
   ChevronLeft, 
   ChevronRight, 
   Sprout,
-  Phone
+  Phone,
+  User,
+  ShieldCheck,
+  RefreshCw,
+  Gift
 } from "lucide-react";
 
 function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -29,7 +34,6 @@ function WhatsAppIcon({ className = "w-4 h-4" }: { className?: string }) {
 }
 import { formatPrice } from "@/lib/utils";
 import { getBotanicalCareDetails } from "@/lib/botanical-care";
-import { submitReviewAction } from "@/app/actions/reviews";
 import { toggleWishlistAction, addToGreenhouseAction } from "@/app/actions/listings";
 import { usePlatformSettings } from "@/lib/platform-settings";
 import { detectAffiliateTags, appendReferralParam } from "@/lib/affiliate-tagger";
@@ -84,12 +88,10 @@ export default function ListingDetailPage({
   // Wishlist & Greenhouse
   const [inWishlist, setInWishlist] = React.useState(false);
   const [greenhouseAdded, setGreenhouseAdded] = React.useState(false);
-  const [submittingReview, setSubmittingReview] = React.useState(false);
 
   // Affiliate & Similar
   const [affiliateOffers, setAffiliateOffers] = React.useState<any[]>([]);
   const [similarListings, setSimilarListings] = React.useState<any[]>([]);
-  const [reviews, setReviews] = React.useState<any[]>([]);
 
   // Scroll to top immediately on page enter
   React.useEffect(() => {
@@ -307,42 +309,7 @@ export default function ListingDetailPage({
     loadSimilar();
   }, [id, supabase]);
 
-  // Load Reviews for this listing / seller
-  React.useEffect(() => {
-    async function loadReviews() {
-      if (!id) return;
-      try {
-        const { data: dbReviews } = await supabase
-          .from("reviews")
-          .select(`
-            id,
-            rating,
-            comment,
-            created_at,
-            reviewer:reviewer_id (
-              full_name
-            )
-          `)
-          .eq("listing_id", id)
-          .order("created_at", { ascending: false });
 
-        if (dbReviews && dbReviews.length > 0) {
-          setReviews(
-            dbReviews.map((r: any) => ({
-              id: r.id,
-              reviewerName: r.reviewer?.full_name || (isKa ? "მომხმარებელი" : "User"),
-              rating: r.rating || 5,
-              comment: r.comment || "",
-              createdAt: new Date(r.created_at).toLocaleDateString(isKa ? "ka-GE" : "en-US"),
-            }))
-          );
-        }
-      } catch {
-        // reviews table may be empty
-      }
-    }
-    loadReviews();
-  }, [id, supabase, isKa]);
 
   // Wishlist Toggle
   const handleToggleWishlist = async () => {
@@ -386,37 +353,7 @@ export default function ListingDetailPage({
     }
   };
 
-  // Submit Review
-  const handleReviewSubmit = async (rating: number, comment: string) => {
-    if (!currentUser) {
-      router.push(`/login?next=/listings/${id}`);
-      return;
-    }
-    setSubmittingReview(true);
-    try {
-      const newRev = {
-        id: `rev-${Date.now()}`,
-        reviewerName: currentUser.user_metadata?.full_name || currentUser.email?.split("@")[0] || (isKa ? "მომხმარებელი" : "User"),
-        rating,
-        comment,
-        createdAt: isKa ? "ახლახანს" : "Just now",
-      };
-      setReviews([newRev, ...reviews]);
 
-      if (listing?.seller?.id) {
-        await submitReviewAction({
-          sellerId: listing.seller.id,
-          listingId: listing.id,
-          rating,
-          comment,
-        });
-      }
-    } catch (err) {
-      console.warn("Review error:", err);
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
 
   // Similar items horizontal scroll ref
   const similarScrollRef = React.useRef<HTMLDivElement>(null);
@@ -585,18 +522,11 @@ export default function ListingDetailPage({
               />
             )}
 
-            {/* 3. Progressive Disclosure Tabs (Description, Reviews, Supplies) */}
-            <ListingInfoTabs
+            {/* 3. Clean Description Card */}
+            <ListingDescriptionCard
               description={listing.description}
-              itemType={listing.itemType || listing.item_type}
               inventorySpecs={inventorySpecs}
-              reviews={reviews}
-              onReviewSubmit={handleReviewSubmit}
-              submittingReview={submittingReview}
-              affiliateOffers={affiliateOffers}
               isKa={isKa}
-              currentUser={currentUser}
-              onRequireAuth={() => router.push(`/login?next=/listings/${id}`)}
             />
           </div>
 
@@ -633,14 +563,14 @@ export default function ListingDetailPage({
             {listing.seller && (
               <UnifiedSellerCard
                 id={listing.seller.id}
-                name={listing.seller.name || listing.seller.fullName || (isKa ? "გამყიდველი" : "Seller")}
-                avatar={listing.seller.avatar || listing.seller.avatarUrl}
+                name={listing.seller.fullName || listing.seller.name || (isKa ? "გამყიდველი" : "Seller")}
+                avatar={listing.seller.avatarUrl || listing.seller.avatar}
                 rating={listing.seller.rating || 5.0}
-                reviewsCount={listing.seller.reviewsCount || reviews.length}
+                reviewsCount={listing.seller.totalReviews || listing.seller.reviewsCount || 0}
                 isVerified={listing.seller.isVerified}
                 isPro={listing.seller.isPro}
                 responseTime={listing.seller.responseTime || (isKa ? "პასუხობს 1 სთ-ში" : "Replies in 1h")}
-                shopUrl={listing.seller.customSlug ? `/shops/${listing.seller.customSlug}` : undefined}
+                shopUrl={`/shops/${listing.seller.customSlug || listing.seller.id}`}
                 badgeLabel={isKa ? "ვერიფიცირებული გამყიდველი" : "Verified Seller"}
                 isOnVacation={listing.seller.isOnVacation}
                 isKa={isKa}
@@ -706,6 +636,17 @@ export default function ListingDetailPage({
             </div>
           </div>
         )}
+
+        {/* ══════════════════════════════════════════════════════════════════════
+            5. RECOMMENDED PRODUCTS & CARE SUPPLIES (Affiliate & Partner Stores)
+        ══════════════════════════════════════════════════════════════════════ */}
+        <RecommendedSuppliesSection
+          offers={affiliateOffers}
+          plantTitle={displayTitle}
+          plantCategory={rawCat}
+          careInfo={careInfo}
+          isKa={isKa}
+        />
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════════
@@ -713,18 +654,62 @@ export default function ListingDetailPage({
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/80 bg-background/95 backdrop-blur-md p-3 px-4 shadow-lg safe-area-bottom">
         <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
-          {/* Left: Price or Trade */}
-          <div className="min-w-0">
-            <span className="text-[10px] text-muted-foreground font-semibold block truncate">
-              {listing.seller?.name || (isKa ? "ავტორი" : "Author")}
-            </span>
-            <span className="text-base font-black text-foreground tracking-tight">
-              {listing.transactionType === "TRADE" 
-                ? (isKa ? "გაცვლა" : "Trade") 
-                : listing.transactionType === "GIFT" 
-                ? (isKa ? "უფასო" : "Free") 
-                : formatPrice(listing.price)}
-            </span>
+          {/* Left: Seller Identity & Dynamic Price */}
+          <div className="min-w-0 flex flex-col justify-center pr-1">
+            {/* Seller / Micro-Identity */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              {listing.seller?.avatarUrl || listing.seller?.avatar ? (
+                <div className="relative w-4 h-4 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50">
+                  <Image
+                    src={listing.seller.avatarUrl || listing.seller.avatar}
+                    alt={listing.seller?.fullName || "Seller"}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : (
+                <User className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0" />
+              )}
+              <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[110px] sm:max-w-[140px]">
+                {listing.seller?.fullName || listing.seller?.name || (isKa ? "გამყიდველი" : "Seller")}
+              </span>
+              {listing.seller?.isVerified && (
+                <ShieldCheck className="w-3 h-3 text-emerald-700 shrink-0" />
+              )}
+            </div>
+
+            {/* Dynamic Price / Trade / Gift Typography */}
+            <div className="mt-0.5">
+              {listing.transactionType === "TRADE" ? (
+                <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
+                  <RefreshCw className="w-3.5 h-3.5 shrink-0" />
+                  <span className="text-base font-black tracking-tight leading-none">
+                    {isKa ? "გაცვლა" : "Trade"}
+                  </span>
+                </div>
+              ) : listing.transactionType === "GIFT" ? (
+                <div className="flex items-center gap-1 text-emerald-800 dark:text-emerald-400">
+                  <Gift className="w-3.5 h-3.5 shrink-0" />
+                  <span className="text-base font-black tracking-tight leading-none">
+                    {isKa ? "უფასო" : "Free"}
+                  </span>
+                  <span className="text-[9px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 px-1 py-0.2 rounded-full leading-none">
+                    {isKa ? "საჩუქრად" : "Gift"}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-baseline gap-1">
+                  <span className="text-base sm:text-lg font-black text-foreground tracking-tight leading-none">
+                    {formatPrice(listing.price)}
+                  </span>
+                  {listing.transactionType === "NEGOTIABLE" && (
+                    <span className="text-[10px] font-semibold text-muted-foreground">
+                      ({isKa ? "შეთანხმებით" : "Neg."})
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Right: Direct 1-Tap Contacts */}

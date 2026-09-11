@@ -806,13 +806,35 @@ export default function ServiceDetailPage({
       <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/80 bg-background/95 backdrop-blur-md p-3 px-4 shadow-lg safe-area-bottom">
         <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
           {/* Left: Specialist & Price */}
-          <div className="min-w-0">
-            <span className="text-[10px] text-muted-foreground font-semibold block truncate">
-              {service.provider_name}
-            </span>
-            <span className="text-base font-black text-foreground tracking-tight">
-              {service.price_from} ₾ <span className="text-[11px] font-normal text-muted-foreground">/ {service.price_unit}</span>
-            </span>
+          <div className="min-w-0 flex flex-col justify-center pr-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              {service.provider_avatar ? (
+                <div className="relative w-4 h-4 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50">
+                  <Image
+                    src={service.provider_avatar}
+                    alt={service.provider_name}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              ) : null}
+              <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[110px] sm:max-w-[140px]">
+                {service.provider_name || (isKa ? "სპეციალისტი" : "Specialist")}
+              </span>
+              {service.is_verified && (
+                <ShieldCheck className="w-3 h-3 text-emerald-700 shrink-0" />
+              )}
+            </div>
+            <div className="flex items-baseline gap-1 mt-0.5">
+              <span className="text-base sm:text-lg font-black text-foreground tracking-tight leading-none">
+                {service.price_from > 0 ? `${Number(service.price_from).toLocaleString("en-US")} ₾` : (isKa ? "შეთანხმებით" : "Negotiable")}
+              </span>
+              {service.price_from > 0 && service.price_unit && (
+                <span className="text-[10px] font-semibold text-muted-foreground leading-none">
+                  / {service.price_unit} {isKa ? "(დან)" : "(from)"}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* Right: Direct 1-Tap Contacts */}

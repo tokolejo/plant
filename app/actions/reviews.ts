@@ -31,18 +31,54 @@ export async function submitReviewAction(input: SubmitReviewInput): Promise<Acti
       return { success: false, error: "შეფასება უნდა იყოს 1-დან 5 ვარსკვლავამდე" };
     }
 
-    const { error } = await supabase
-      .from("reviews")
-      .upsert({
-        reviewer_id: user.id,
-        seller_id: input.sellerId,
-        listing_id: input.listingId || null,
-        rating: input.rating,
-        comment: input.comment?.trim() || "",
-        updated_at: new Date().toISOString(),
-      }, {
-        onConflict: "reviewer_id,listing_id"
-      });
+    let error;
+
+    if (input.listingId) {
+      const res = await supabase
+        .from("reviews")
+        .upsert({
+          reviewer_id: user.id,
+          seller_id: input.sellerId,
+          listing_id: input.listingId,
+          rating: input.rating,
+          comment: input.comment?.trim() || "",
+          updated_at: new Date().toISOString(),
+        }, {
+          onConflict: "reviewer_id,listing_id"
+        });
+      error = res.error;
+    } else {
+      const { data: existing } = await supabase
+        .from("reviews")
+        .select("id")
+        .eq("reviewer_id", user.id)
+        .eq("seller_id", input.sellerId)
+        .is("listing_id", null)
+        .maybeSingle();
+
+      if (existing) {
+        const res = await supabase
+          .from("reviews")
+          .update({
+            rating: input.rating,
+            comment: input.comment?.trim() || "",
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+        error = res.error;
+      } else {
+        const res = await supabase
+          .from("reviews")
+          .insert({
+            reviewer_id: user.id,
+            seller_id: input.sellerId,
+            listing_id: null,
+            rating: input.rating,
+            comment: input.comment?.trim() || "",
+          });
+        error = res.error;
+      }
+    }
 
     if (error) {
       return { success: false, error: error.message };
@@ -52,6 +88,7 @@ export async function submitReviewAction(input: SubmitReviewInput): Promise<Acti
       revalidatePath(`/listings/${input.listingId}`);
     }
     revalidatePath(`/shops/${input.sellerId}`);
+    revalidatePath(`/users/${input.sellerId}`);
 
     return { success: true };
   } catch (err: any) {
