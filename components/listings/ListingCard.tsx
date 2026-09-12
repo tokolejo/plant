@@ -341,14 +341,14 @@ export function ListingCard({
         <button
           type="button"
           onClick={handleWishlistClick}
-          className={`absolute top-2 right-2 z-20 h-8 w-8 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer ${
+          className={`absolute top-2 right-2 z-20 h-6 w-6 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer ${
             isWishlisted
               ? "bg-rose-500 shadow-md shadow-rose-500/30 text-white"
               : "bg-white/70 dark:bg-black/40 text-slate-400 hover:text-rose-500 hover:bg-white/90 dark:hover:bg-black/60"
           }`}
           title={isWishlisted ? "რჩეულებიდან ამოშლა" : "რჩეულებში დამატება"}
         >
-          <Heart className={`w-3.5 h-3.5 transition-all duration-200 ${isWishlisted ? "fill-current scale-110" : ""}`} />
+          <Heart className={`w-3 h-3 transition-all duration-200 ${isWishlisted ? "fill-current scale-110" : ""}`} />
         </button>
 
         {/* Distance Badge on bottom left of photo */}
