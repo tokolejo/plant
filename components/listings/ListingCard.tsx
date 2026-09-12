@@ -335,32 +335,20 @@ export function ListingCard({
               <Sprout className="w-3 h-3" />
             </span>
           )}
-
-          {transactionType === "TRADE" && (
-            <span className="backdrop-blur-md bg-indigo-500/80 text-white text-[10px] p-1 rounded-[7px] flex items-center justify-center shadow-sm">
-              <RefreshCw className="w-3 h-3" />
-            </span>
-          )}
-
-          {isGift && (
-            <span className="backdrop-blur-md bg-emerald-500/80 text-white text-[10px] p-1 rounded-[7px] flex items-center justify-center shadow-sm">
-              <Gift className="w-3 h-3" />
-            </span>
-          )}
         </div>
 
         {/* Wishlist Heart Button Top Right */}
         <button
           type="button"
           onClick={handleWishlistClick}
-          className={`absolute top-2 right-2 z-20 h-7.5 w-7.5 rounded-full backdrop-blur-md flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-xs ${
+          className={`absolute top-2 right-2 z-20 h-8 w-8 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer ${
             isWishlisted
-              ? "bg-rose-500 text-white"
-              : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
+              ? "bg-rose-500 shadow-md shadow-rose-500/30 text-white"
+              : "bg-white/70 dark:bg-black/40 text-slate-400 hover:text-rose-500 hover:bg-white/90 dark:hover:bg-black/60"
           }`}
           title={isWishlisted ? "რჩეულებიდან ამოშლა" : "რჩეულებში დამატება"}
         >
-          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-current" : ""}`} />
+          <Heart className={`w-3.5 h-3.5 transition-all duration-200 ${isWishlisted ? "fill-current scale-110" : ""}`} />
         </button>
 
         {/* Distance Badge on bottom left of photo */}
