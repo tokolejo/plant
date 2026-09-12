@@ -425,15 +425,6 @@ export function ListingCard({
           </h3>
         </Link>
 
-        {/* Trade Preferences Pill for Grid View */}
-        {(tradePreferences?.length > 0 || transactionType === "TRADE") && (
-          <div className="mb-1.5 flex items-center gap-1 text-[10px] text-indigo-700 dark:text-indigo-300 bg-indigo-500/10 px-1.5 py-0.5 rounded-[5px] border border-indigo-500/20 max-w-full truncate font-bold">
-            <RefreshCw className="w-2.5 h-2.5 shrink-0 text-indigo-600 dark:text-indigo-400" />
-            <span className="truncate font-semibold">
-              {tradePreferences?.length > 0 ? tradePreferences.join(", ") : (isKa ? "შეთავაზება" : "Offers")}
-            </span>
-          </div>
-        )}
 
         {/* Bottom Mini-Seller Row with High Contrast */}
         <div className="mt-auto border-t border-border/40 pt-2 flex items-center justify-between gap-1 text-[11px]">
