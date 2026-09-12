@@ -31,10 +31,14 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   const isKa = locale !== "en";
   const supabase = createClient();
 
-  const [activeTab, setActiveTab] = React.useState<"ALL" | "SALE" | "TRADE" | "PLANTS" | "INVENTORY">("ALL");
-  const [allListings, setAllListings] = React.useState<ExtendedListingCardProps[]>(listings);
+  const [activeTab, setActiveTab] = React.useState<"ALL" | "PLANTS" | "INVENTORY">("ALL");
+  const [allListings, setAllListings] = React.useState<ExtendedListingCardProps[]>(() =>
+    listings.filter((item) => item.transactionType !== "TRADE")
+  );
   const [loading, setLoading] = React.useState(listings.length === 0);
-  const [totalDbCount, setTotalDbCount] = React.useState<number>(listings.length);
+  const [totalDbCount, setTotalDbCount] = React.useState<number>(() =>
+    listings.filter((item) => item.transactionType !== "TRADE").length
+  );
 
   const sliderRef = React.useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
@@ -43,8 +47,9 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   // Auto-fetch Real Listings from Database on Mount
   React.useEffect(() => {
     getMergedListings().then((merged) => {
-      setAllListings(merged);
-      setTotalDbCount(merged.length);
+      const marketListings = merged.filter((item) => item.transactionType !== "TRADE");
+      setAllListings(marketListings);
+      setTotalDbCount(marketListings.length);
       setLoading(false);
     });
   }, []);
@@ -75,16 +80,17 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
 
   // Fair Premium Boost Sorting & Diverse Tab Filtering (Anti-Monopoly Grid)
   const filtered = React.useMemo(() => {
-    // 1. Filter by Tab
-    const tabFiltered = allListings.filter((item) => {
-      if (activeTab === "SALE") return item.transactionType === "FIXED" || item.transactionType === "NEGOTIABLE";
-      if (activeTab === "TRADE") return item.transactionType === "TRADE";
+    // 1. Filter out TRADE listings (Market strictly contains sales & giveaways)
+    const marketListings = allListings.filter((item) => item.transactionType !== "TRADE");
+
+    // 2. Filter by Tab: ALL, PLANTS, INVENTORY
+    const tabFiltered = marketListings.filter((item) => {
       if (activeTab === "PLANTS") return item.itemType === "PLANT";
       if (activeTab === "INVENTORY") return item.itemType === "INVENTORY";
       return true;
     });
 
-    // 2. Sort: Active Premium/VIP listings at the top, followed by regular items
+    // 3. Sort: Active Premium/VIP listings at the top, followed by regular items
     const sorted = [...tabFiltered].sort((a, b) => {
       const aVip = a.isPremium || a.isFeatured ? 1 : 0;
       const bVip = b.isPremium || b.isFeatured ? 1 : 0;
@@ -92,7 +98,7 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
       return (b.viewsCount || 0) - (a.viewsCount || 0);
     });
 
-    // 3. Apply Fair Seller Rotation to prevent monopoly effect in the top grid
+    // 4. Apply Fair Seller Rotation to prevent monopoly effect in the top grid
     return applyDiverseSellerRotation(sorted);
   }, [allListings, activeTab]);
 
@@ -100,55 +106,66 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
     <section className="pt-4 sm:pt-6 pb-8 sm:pb-10">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
 
-        {/* ️ 1. Tabs Row + High-Visibility Desktop Slider Navigation Arrows */}
-        <div className="flex items-center justify-between gap-2 mb-4 sm:mb-5">
-          <div className="flex-1 flex items-center justify-start sm:justify-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-            {[
-              { id: "ALL", labelKa: "ყველა", labelEn: "All" },
-              { id: "SALE", labelKa: "გაყიდვა", labelEn: "Sale" },
-              { id: "TRADE", labelKa: "გაცვლა", labelEn: "Trade" },
-              { id: "PLANTS", labelKa: "მცენარეები", labelEn: "Plants" },
-              { id: "INVENTORY", labelKa: "ინვენტარი", labelEn: "Inventory" },
-            ].map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-3.5 py-1.5 sm:px-4.5 sm:py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
-                    isActive
-                      ? "bg-primary text-white shadow-ambient scale-[1.02]"
-                      : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
-                  }`}
-                >
-                  {isKa ? tab.labelKa : tab.labelEn}
-                </button>
-              );
-            })}
+        {/* 1. Unified Section Header: Title Badge + Category Pills + Desktop Navigation Arrows */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
+          {/* Section Title Badge */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Sprout className="w-4 h-4" />
+            </div>
+            <h2 className="text-base sm:text-lg font-black tracking-tight text-foreground">
+              {isKa ? "მარკეტი" : "Marketplace"}
+            </h2>
           </div>
 
-          {/* Desktop Prominent Slider Navigation Arrows */}
-          <div className="hidden sm:flex items-center gap-2 shrink-0 ml-2">
-            <button
-              type="button"
-              onClick={() => scrollSlider("left")}
-              disabled={!canScrollLeft}
-              aria-label={isKa ? "წინა" : "Previous"}
-              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              title={isKa ? "წინა" : "Previous"}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollSlider("right")}
-              disabled={!canScrollRight}
-              aria-label={isKa ? "შემდეგი" : "Next"}
-              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              title={isKa ? "შემდეგი" : "Next"}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+          {/* Pills + Arrows Group */}
+          <div className="flex items-center justify-between sm:justify-end gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+              {[
+                { id: "ALL", labelKa: "ყველა", labelEn: "All" },
+                { id: "PLANTS", labelKa: "მცენარეები", labelEn: "Plants" },
+                { id: "INVENTORY", labelKa: "ინვენტარი", labelEn: "Inventory" },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? "bg-primary text-white shadow-ambient scale-[1.02]"
+                        : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
+                    }`}
+                  >
+                    {isKa ? tab.labelKa : tab.labelEn}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop Prominent Slider Navigation Arrows */}
+            <div className="hidden sm:flex items-center gap-1.5 shrink-0 ml-2">
+              <button
+                type="button"
+                onClick={() => scrollSlider("left")}
+                disabled={!canScrollLeft}
+                aria-label={isKa ? "წინა" : "Previous"}
+                className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                title={isKa ? "წინა" : "Previous"}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollSlider("right")}
+                disabled={!canScrollRight}
+                aria-label={isKa ? "შემდეგი" : "Next"}
+                className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                title={isKa ? "შემდეგი" : "Next"}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 

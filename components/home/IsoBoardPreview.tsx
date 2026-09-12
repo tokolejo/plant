@@ -6,22 +6,23 @@ import { useLocale } from "next-intl";
 import { createClient } from "@/utils/supabase/client";
 import { 
   Shuffle, 
-  MapPin, 
   ArrowRight, 
-  ChevronLeft,
-  ChevronRight,
-  PlusCircle,
-  Sprout,
-  Gift
+  ChevronLeft, 
+  ChevronRight, 
+  PlusCircle 
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ListingCard } from "@/components/listings/ListingCard";
+import { formatDbListing, DEPRECATED_TEST_LISTING_IDS } from "@/lib/listings-service";
+import type { ExtendedListingCardProps } from "@/lib/mock-data";
 
 export function IsoBoardPreview() {
   const locale = useLocale();
   const isKa = locale !== "en";
   const supabase = createClient();
 
-  const [tradeListings, setTradeListings] = React.useState<any[]>([]);
+  const [activeTab, setActiveTab] = React.useState<"ALL" | "PLANTS" | "INVENTORY">("ALL");
+  const [tradeListings, setTradeListings] = React.useState<ExtendedListingCardProps[]>([]);
   const [totalCount, setTotalCount] = React.useState<number>(0);
   const [loading, setLoading] = React.useState(true);
 
@@ -29,7 +30,6 @@ export function IsoBoardPreview() {
   const [canScrollLeft, setCanScrollLeft] = React.useState(false);
   const [canScrollRight, setCanScrollRight] = React.useState(true);
 
-  // Update scroll navigation arrow states
   const updateScrollState = () => {
     if (!sliderRef.current) return;
     const { scrollLeft, scrollWidth, clientWidth } = sliderRef.current;
@@ -64,23 +64,41 @@ export function IsoBoardPreview() {
               id,
               full_name,
               avatar_url,
+              phone,
               average_rating,
-              phone
+              total_reviews,
+              subscription_tier,
+              custom_slug,
+              role,
+              is_admin,
+              is_verified
             )
           `, { count: "exact" })
           .eq("status", "ACTIVE")
-          .or("transaction_type.in.(TRADE,GIFT),trade_preferences.neq.{}")
+          .or("transaction_type.eq.TRADE,trade_preferences.neq.{}")
           .order("created_at", { ascending: false });
 
         if (data && data.length > 0 && !error) {
-          setTradeListings(data.slice(0, 10));
-          setTotalCount(count || data.length);
+          const valid = data
+            .filter((row: any) => !DEPRECATED_TEST_LISTING_IDS.has(row.id))
+            .map((row: any) => formatDbListing(row, row.profiles));
+
+          // Ensure TRADE items are prioritized first
+          const sorted = valid.sort((a, b) => {
+            const aIsTrade = a.transactionType === "TRADE" ? 1 : 0;
+            const bIsTrade = b.transactionType === "TRADE" ? 1 : 0;
+            if (aIsTrade !== bIsTrade) return bIsTrade - aIsTrade;
+            return (b.viewsCount || 0) - (a.viewsCount || 0);
+          });
+
+          setTradeListings(sorted);
+          setTotalCount(count || valid.length);
         } else {
           setTradeListings([]);
           setTotalCount(0);
         }
       } catch (err) {
-        console.error("Error loading real swap listings:", err);
+        console.error("Error loading swap listings:", err);
       } finally {
         setLoading(false);
       }
@@ -89,156 +107,96 @@ export function IsoBoardPreview() {
     loadTradeListings();
   }, [supabase]);
 
+  // Tab Filtering for Swaps: ALL, PLANTS, INVENTORY (Identical to DiscoveryFeed)
+  const filtered = React.useMemo(() => {
+    return tradeListings.filter((item) => {
+      if (activeTab === "PLANTS") return item.itemType === "PLANT";
+      if (activeTab === "INVENTORY") return item.itemType === "INVENTORY";
+      return true;
+    });
+  }, [tradeListings, activeTab]);
+
   return (
     <section className="pt-4 sm:pt-6 pb-8 sm:pb-10 bg-surface-cream/40 border-y border-border/60">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         
-        {/* 1. Header + Slider Navigation Arrows */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-5">
-          <div className="space-y-1">
-            <div className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
-              <Shuffle className="w-3.5 h-3.5" />
-              <span>{isKa ? "მცენარეების გაცვლის დაფა" : "Plant ISO Match Board"}</span>
+        {/* 1. Unified Section Header: Title Badge + Category Pills + Desktop Navigation Arrows */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-5">
+          {/* Section Title Badge */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+              <Shuffle className="w-4 h-4" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-foreground">
-              {isKa ? "გსურს გაცვლა ან ეძებ იშვიათ მცენარეს?" : "Looking for rare plants or plant swap?"}
+            <h2 className="text-base sm:text-lg font-black tracking-tight text-foreground">
+              {isKa ? "მცენარეების გაცვლა" : "Plant Swaps & Trades"}
             </h2>
-            <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-              {isKa 
-                ? "განათავსე მოთხოვნა და იპოვე სხვა კოლექციონერები გაცვლისთვის."
-                : "Post your wishlist and connect with fellow collectors for trades."}
-            </p>
           </div>
 
-          {/* Slider Navigation Arrows */}
-          <div className="hidden sm:flex items-center gap-2 shrink-0 self-start sm:self-auto">
-            <button
-              type="button"
-              onClick={() => scrollSlider("left")}
-              disabled={!canScrollLeft}
-              aria-label={isKa ? "წინა" : "Previous"}
-              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              title={isKa ? "წინა" : "Previous"}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => scrollSlider("right")}
-              disabled={!canScrollRight}
-              aria-label={isKa ? "შემდეგი" : "Next"}
-              className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-              title={isKa ? "შემდეგი" : "Next"}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+          {/* Pills + Arrows Group */}
+          <div className="flex items-center justify-between sm:justify-end gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+              {[
+                { id: "ALL", labelKa: "ყველა", labelEn: "All" },
+                { id: "PLANTS", labelKa: "მცენარეები", labelEn: "Plants" },
+                { id: "INVENTORY", labelKa: "ინვენტარი", labelEn: "Inventory" },
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? "bg-primary text-white shadow-ambient scale-[1.02]"
+                        : "bg-surface-container/70 hover:bg-surface-container text-foreground border border-border/40 hover:border-primary/30"
+                    }`}
+                  >
+                    {isKa ? tab.labelKa : tab.labelEn}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop Prominent Slider Navigation Arrows */}
+            <div className="hidden sm:flex items-center gap-1.5 shrink-0 ml-2">
+              <button
+                type="button"
+                onClick={() => scrollSlider("left")}
+                disabled={!canScrollLeft}
+                aria-label={isKa ? "წინა" : "Previous"}
+                className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                title={isKa ? "წინა" : "Previous"}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollSlider("right")}
+                disabled={!canScrollRight}
+                aria-label={isKa ? "შემდეგი" : "Next"}
+                className="h-9 w-9 rounded-full border-2 border-border/80 bg-card hover:border-primary hover:bg-primary hover:text-white flex items-center justify-center text-foreground transition-all shadow-sm active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                title={isKa ? "შემდეგი" : "Next"}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* 2. Modern 1-Row Plant Swap Cards Slider */}
-        {tradeListings.length > 0 ? (
+        {/* 2. Unified Card Slider (165px on mobile, matching DiscoveryFeed exactly) */}
+        {filtered.length > 0 ? (
           <div
             ref={sliderRef}
-            className="flex gap-3 sm:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
+            className="flex gap-3 sm:gap-3.5 md:gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar pb-3 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0"
           >
-            {tradeListings.map((iso) => {
-              const userName = iso.profiles?.full_name || (isKa ? "მებაღე" : "Grower");
-              const offeringTitle = isKa ? (iso.title_ka || iso.title) : (iso.title_en || iso.title);
-              
-              // Plant image
-              const plantImage = Array.isArray(iso.images) && iso.images.length > 0
-                ? iso.images[0]
-                : typeof iso.image === "string" && iso.image
-                ? iso.image
-                : null;
-
-              // Trade wishlist tags
-              const wantedTags = Array.isArray(iso.trade_preferences) && iso.trade_preferences.length > 0
-                ? iso.trade_preferences.join(", ")
-                : (isKa ? "მცენარეში გაცვლა / შეთანხმებით" : "Plant swap / negotiable");
-
-              const isGift = iso.transaction_type === "GIFT";
-
-              return (
-                <Link
-                  key={iso.id}
-                  href={`/listings/${iso.id}`}
-                  className="w-[240px] sm:w-[260px] md:w-[280px] lg:w-[calc(25%-12px)] shrink-0 snap-start flex flex-col justify-between rounded-[20px] border border-border/80 bg-card overflow-hidden shadow-ambient hover:border-primary/50 hover:shadow-ambient-lg transition-all group select-none cursor-pointer"
-                >
-                  {/*  1. Clean, 100% Unobstructed Plant Image */}
-                  <div className="relative aspect-[4/3] w-full bg-surface-container overflow-hidden">
-                    {plantImage ? (
-                      <img
-                        src={plantImage}
-                        alt={offeringTitle}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-emerald-900/10 via-emerald-800/5 to-teal-900/10 flex flex-col items-center justify-center text-primary/40">
-                        <Sprout className="w-10 h-10 mb-1" />
-                        <span className="text-[11px] font-bold">{isKa ? "მცენარე" : "Plant"}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/*  2. Card Body — All Details Clearly Below Image */}
-                  <div className="p-3.5 sm:p-4 flex flex-col flex-1 justify-between gap-3">
-                    <div className="space-y-2">
-                      {/* Status & City Badges Row (Crystal-Clear & Readable) */}
-                      <div className="flex items-center justify-between gap-1.5 flex-wrap">
-                        {isGift ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 text-amber-900 dark:text-amber-300 border border-amber-500/30 px-2.5 py-0.5 text-[11px] font-extrabold shadow-2xs">
-                            <Gift className="w-3 h-3 text-amber-700 dark:text-amber-400" />
-                            <span>{isKa ? "საჩუქარი" : "Giveaway"}</span>
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 text-emerald-900 dark:text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 text-[11px] font-extrabold shadow-2xs">
-                            <Shuffle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                            <span>{isKa ? "გაცვლა" : "Swap"}</span>
-                          </span>
-                        )}
-
-                        <span className="inline-flex items-center gap-1 rounded-full bg-secondary-container/90 text-slate-700 dark:text-slate-200 border border-border/50 px-2 py-0.5 text-[10.5px] font-bold">
-                          <MapPin className="w-2.5 h-2.5 text-primary shrink-0" />
-                          <span className="truncate max-w-[120px]">{iso.city || (isKa ? "თბილისი" : "Tbilisi")}</span>
-                        </span>
-                      </div>
-
-                      {/* Plant Title */}
-                      <h3 className="font-extrabold text-xs sm:text-sm text-foreground line-clamp-1 group-hover:text-primary transition-colors pt-0.5">
-                        {offeringTitle}
-                      </h3>
-
-                      {/* Trade Wishlist Box */}
-                      <div className="rounded-[12px] bg-surface-container/60 dark:bg-card/90 p-2.5 border border-border/50">
-                        <div className="text-[10px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 flex items-center gap-1 mb-0.5">
-                          <Shuffle className="w-2.5 h-2.5 text-amber-700 dark:text-amber-400" />
-                          <span>{isKa ? "სანაცვლოდ ეძებს:" : "Trading for:"}</span>
-                        </div>
-                        <p className="text-[11.5px] text-foreground font-semibold line-clamp-2 leading-snug">
-                          {wantedTags}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Footer: Subtle Seller Info & CTA Button */}
-                    <div className="pt-2 border-t border-border/40 flex items-center justify-between gap-1.5 mt-auto">
-                      <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[110px]">
-                        {userName}
-                      </span>
-
-                      <Button
-                        size="sm"
-                        className="h-8 rounded-[11px] text-xs font-bold gap-1 bg-primary/10 hover:bg-primary text-primary hover:text-white border border-primary/20 hover:border-primary transition-all cursor-pointer shadow-2xs"
-                      >
-                        <span>{isKa ? "შეთავაზება" : "Offer"}</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
+            {filtered.map((item) => (
+              <div
+                key={item.id}
+                className="w-[165px] sm:w-[200px] md:w-[220px] lg:w-[calc(20%-13px)] xl:w-[calc(16.666%-14px)] shrink-0 snap-start"
+              >
+                <ListingCard {...item} variant="compact" />
+              </div>
+            ))}
           </div>
         ) : (
           <div className="rounded-[22px] border border-border/70 bg-card p-6 sm:p-8 text-center space-y-3 max-w-md mx-auto my-2 shadow-ambient">
@@ -247,7 +205,7 @@ export function IsoBoardPreview() {
             </div>
             <div>
               <h3 className="font-bold text-base text-foreground">
-                {isKa ? "გასაცვლელი მცენარეები მალე დაემატება" : "Plant Swaps & Trades"}
+                {isKa ? "გასაცვლელი მცენარეები ჯერ არ არის" : "No Plant Swaps Found"}
               </h3>
               <p className="text-xs text-muted-foreground mt-1 max-w-sm mx-auto leading-relaxed">
                 {isKa 
@@ -256,23 +214,23 @@ export function IsoBoardPreview() {
               </p>
             </div>
             <Link href="/dashboard/listings/new?trans=TRADE" className="inline-block pt-1">
-              <Button className="rounded-[14px] bg-primary hover:bg-primary/90 text-white text-xs font-bold h-9 px-5 shadow-ambient">
+              <Button className="rounded-[14px] bg-primary hover:bg-primary/90 text-white text-xs font-bold h-9 px-5 shadow-ambient cursor-pointer">
                 <PlusCircle className="w-4 h-4 mr-1.5" />
-                <span>{isKa ? "+ პირველი შეთავაზების დამატება" : "+ Post First Trade"}</span>
+                <span>{isKa ? "+ შეთავაზების დამატება" : "+ Post Trade"}</span>
               </Button>
             </Link>
           </div>
         )}
 
-        {/* 3. Compact & Refined View All Offers Button (Matching DiscoveryFeed style) */}
-        {tradeListings.length > 0 && (
+        {/* 3. Centered Bottom CTA Button (Matching DiscoveryFeed styling) */}
+        {filtered.length > 0 && (
           <div className="flex justify-center items-center mt-5">
             <Link href="/iso">
               <Button
                 className="rounded-[14px] sm:rounded-[18px] px-5 sm:px-6 h-9 sm:h-10 text-xs sm:text-sm font-bold bg-primary hover:bg-primary-container text-white shadow-ambient gap-1.5 hover:scale-[1.02] transition-all cursor-pointer"
               >
                 <Shuffle className="w-3.5 h-3.5" />
-                <span>{isKa ? "ყველა შეთავაზება" : "View All Offers"}</span>
+                <span>{isKa ? "ყველა გაცვლა" : "View All Swaps"}</span>
                 <span className="bg-white/20 text-white text-[11px] px-2 py-0.5 rounded-full font-black">
                   {totalCount || tradeListings.length}
                 </span>

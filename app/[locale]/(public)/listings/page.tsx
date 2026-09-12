@@ -247,7 +247,7 @@ function ListingsCatalogContent() {
   }, [rawType, searchParams]);
 
   React.useEffect(() => {
-    if (transParam) {
+    if (transParam && transParam !== "TRADE") {
       setSelectedTrans([transParam]);
       setOpenSections((prev) => ({ ...prev, transaction: true }));
     }
@@ -317,7 +317,9 @@ function ListingsCatalogContent() {
     async function loadLiveListings() {
       try {
         const merged = await getMergedListings();
-        const localized = merged.map((item: any) => ({
+        // Segregate Market: Filter out TRADE items so trade listings never appear in Marketplace
+        const marketOnly = merged.filter((item: any) => item.transactionType !== "TRADE");
+        const localized = marketOnly.map((item: any) => ({
           ...item,
           title: isKa ? (item.titleKa || item.title_ka || item.title) : (item.titleEn || item.title_en || item.title),
         }));
@@ -581,10 +583,18 @@ function ListingsCatalogContent() {
           if (!selectedCategories.includes(itemCat as any)) return false;
         }
 
+        // Strictly exclude TRADE from Marketplace
+        if (item.transactionType === "TRADE") return false;
+
         if (selectedTrans.length > 0 && !selectedTrans.includes(item.transactionType)) return false;
         if (selectedDelivery.length > 0 && !selectedDelivery.some((d: string) => item.deliveryMethods?.includes(d as any))) return false;
-        if (item.transactionType !== "TRADE") {
-          if (item.price < priceRange[0] || item.price > priceRange[1]) return false;
+        
+        // Price filtering: if GIFT is specifically chosen in transaction filter, preserve it even if priceRange[0] > 0
+        const isGiftItem = item.transactionType === "GIFT" || item.price === 0;
+        if (selectedTrans.includes("GIFT") && isGiftItem) {
+          // Keep giveaway item
+        } else if (item.price < priceRange[0] || item.price > priceRange[1]) {
+          return false;
         }
         return true;
       });
@@ -889,7 +899,6 @@ function ListingsCatalogContent() {
           {[
             { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
             { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
-            { id: "TRADE", label: isKa ? "გაცვლა" : "Trade" },
             { id: "GIFT", label: isKa ? "გაჩუქება (უფასო)" : "Giveaway (Free)" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
@@ -1110,14 +1119,14 @@ function ListingsCatalogContent() {
           })}
           {selectedTrans.map((t) => {
             const chipClass = 
-              t === "TRADE"
-                ? "bg-indigo-500/15 text-indigo-900 dark:text-indigo-200 border-indigo-500/30"
+              t === "GIFT"
+                ? "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/30"
                 : t === "NEGOTIABLE"
                 ? "bg-stone-500/15 text-stone-900 dark:text-stone-200 border-stone-400/30"
-                : "bg-emerald-500/15 text-emerald-900 dark:text-emerald-200 border-emerald-500/30";
+                : "bg-primary/10 text-primary border-primary/30";
             return (
               <span key={t} className={`inline-flex items-center gap-1.5 px-3.5 py-1 rounded-[10px] text-xs sm:text-sm font-bold border ${chipClass}`}>
-                {t === "FIXED" ? (isKa ? "ფიქსირებული" : "Fixed") : t === "NEGOTIABLE" ? (isKa ? "შეთანხმებით" : "Negotiable") : (isKa ? "გაცვლა" : "Trade")}
+                {t === "FIXED" ? (isKa ? "ფიქსირებული" : "Fixed") : t === "NEGOTIABLE" ? (isKa ? "შეთანხმებით" : "Negotiable") : (isKa ? "გაჩუქება" : "Giveaway")}
                 <button onClick={() => toggleTrans(t)} className="hover:opacity-75 cursor-pointer"><X className="w-3.5 h-3.5" /></button>
               </span>
             );

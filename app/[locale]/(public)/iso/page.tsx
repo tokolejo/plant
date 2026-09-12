@@ -526,6 +526,12 @@ function IsoCatalogContent() {
   // Sort Pipeline
   const sortedListings = React.useMemo(() => {
     return [...filtered].sort((a, b) => {
+      // Prioritize pure TRADE transactions on the ISO board
+      const aIsTrade = a.transactionType === "TRADE" ? 1 : 0;
+      const bIsTrade = b.transactionType === "TRADE" ? 1 : 0;
+      if (bIsTrade !== aIsTrade) {
+        return bIsTrade - aIsTrade;
+      }
       if (sortBy === "nearest") {
         return (a.distanceKm ?? 999) - (b.distanceKm ?? 999);
       }
