@@ -335,6 +335,18 @@ export function ListingCard({
               <Sprout className="w-3 h-3" />
             </span>
           )}
+
+          {transactionType === "TRADE" && (
+            <span className="backdrop-blur-md bg-indigo-500/80 text-white text-[10px] p-1 rounded-[7px] flex items-center justify-center shadow-sm">
+              <RefreshCw className="w-3 h-3" />
+            </span>
+          )}
+
+          {isGift && (
+            <span className="backdrop-blur-md bg-emerald-500/80 text-white text-[10px] p-1 rounded-[7px] flex items-center justify-center shadow-sm">
+              <Gift className="w-3 h-3" />
+            </span>
+          )}
         </div>
 
         {/* Wishlist Heart Button Top Right */}
@@ -374,14 +386,12 @@ export function ListingCard({
         <div className="flex items-center justify-between gap-1 mb-1.5 min-w-0">
           <div className="shrink-0 flex items-center gap-1 whitespace-nowrap">
             {transactionType === "TRADE" ? (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[6px] bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-xs font-black border border-indigo-500/30 whitespace-nowrap">
-                <RefreshCw className="w-2.5 h-2.5 text-indigo-600 dark:text-indigo-400" />
-                <span>{isKa ? "გაცვლა" : "Trade"}</span>
+              <span className="inline-flex items-center justify-center p-1 rounded-[6px] bg-indigo-500/15 border border-indigo-500/30">
+                <RefreshCw className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
               </span>
             ) : isGift ? (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[6px] bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-[11px] font-bold border border-emerald-500/30 whitespace-nowrap">
-                <Gift className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>{isKa ? "გაჩუქება" : "Gift"}</span>
+              <span className="inline-flex items-center justify-center p-1 rounded-[6px] bg-emerald-500/15 border border-emerald-500/30">
+                <Gift className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               </span>
             ) : (
               <div className="inline-flex items-baseline gap-1 whitespace-nowrap">
