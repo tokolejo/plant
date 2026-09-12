@@ -21,7 +21,7 @@ export function IsoBoardPreview() {
   const isKa = locale !== "en";
   const supabase = createClient();
 
-  const [activeTab, setActiveTab] = React.useState<"ALL" | "PLANTS" | "INVENTORY">("ALL");
+  const [activeTab, setActiveTab] = React.useState<"ALL" | "GIFT" | "PLANTS" | "INVENTORY">("ALL");
   const [tradeListings, setTradeListings] = React.useState<ExtendedListingCardProps[]>([]);
   const [totalCount, setTotalCount] = React.useState<number>(0);
   const [loading, setLoading] = React.useState(true);
@@ -75,7 +75,7 @@ export function IsoBoardPreview() {
             )
           `, { count: "exact" })
           .eq("status", "ACTIVE")
-          .or("transaction_type.eq.TRADE,trade_preferences.neq.{}")
+          .or("transaction_type.eq.TRADE,transaction_type.eq.GIFT,trade_preferences.neq.{}")
           .order("created_at", { ascending: false });
 
         if (data && data.length > 0 && !error) {
@@ -107,9 +107,10 @@ export function IsoBoardPreview() {
     loadTradeListings();
   }, [supabase]);
 
-  // Tab Filtering for Swaps: ALL, PLANTS, INVENTORY (Identical to DiscoveryFeed)
+  // Tab Filtering for Swaps: ALL, GIFT, PLANTS, INVENTORY
   const filtered = React.useMemo(() => {
     return tradeListings.filter((item) => {
+      if (activeTab === "GIFT") return item.transactionType === "GIFT";
       if (activeTab === "PLANTS") return item.itemType === "PLANT";
       if (activeTab === "INVENTORY") return item.itemType === "INVENTORY";
       return true;
@@ -137,6 +138,7 @@ export function IsoBoardPreview() {
             <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 sm:pb-0 no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
               {[
                 { id: "ALL", labelKa: "ყველა", labelEn: "All" },
+                { id: "GIFT", labelKa: "გაჩუქება", labelEn: "Giveaways" },
                 { id: "PLANTS", labelKa: "მცენარეები", labelEn: "Plants" },
                 { id: "INVENTORY", labelKa: "ინვენტარი", labelEn: "Inventory" },
               ].map((tab) => {

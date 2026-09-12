@@ -654,52 +654,29 @@ export default function ListingDetailPage({
       ══════════════════════════════════════════════════════════════════════ */}
       <div className="fixed bottom-0 left-0 right-0 z-40 block lg:hidden border-t border-border/80 bg-background/95 backdrop-blur-md p-3 px-4 shadow-lg safe-area-bottom">
         <div className="flex items-center justify-between gap-3 max-w-md mx-auto">
-          {/* Left: Seller Identity & Dynamic Price */}
-          <div className="min-w-0 flex flex-col justify-center pr-1">
-            {/* Seller / Micro-Identity */}
-            <div className="flex items-center gap-1.5 min-w-0">
-              {listing.seller?.avatarUrl || listing.seller?.avatar ? (
-                <div className="relative w-4 h-4 rounded-full overflow-hidden shrink-0 ring-1 ring-border/50">
-                  <Image
-                    src={listing.seller.avatarUrl || listing.seller.avatar}
-                    alt={listing.seller?.fullName || "Seller"}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-              ) : (
-                <User className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0" />
-              )}
-              <span className="text-[11px] font-semibold text-muted-foreground truncate max-w-[110px] sm:max-w-[140px]">
-                {listing.seller?.fullName || listing.seller?.name || (isKa ? "გამყიდველი" : "Seller")}
-              </span>
-              {listing.seller?.isVerified && (
-                <ShieldCheck className="w-3 h-3 text-emerald-700 shrink-0" />
-              )}
-            </div>
-
-            {/* Dynamic Price / Trade / Gift Typography */}
-            <div className="mt-0.5">
-              {listing.transactionType === "TRADE" ? (
-                <div className="flex items-center gap-1 text-indigo-600 dark:text-indigo-400">
-                  <RefreshCw className="w-3.5 h-3.5 shrink-0" />
-                  <span className="text-base font-black tracking-tight leading-none">
-                    {isKa ? "გაცვლა" : "Trade"}
-                  </span>
-                </div>
-              ) : listing.transactionType === "GIFT" ? (
-                <div className="flex items-center gap-1 text-emerald-800 dark:text-emerald-400">
-                  <Gift className="w-3.5 h-3.5 shrink-0" />
-                  <span className="text-base font-black tracking-tight leading-none">
-                    {isKa ? "უფასო" : "Free"}
-                  </span>
-                  <span className="text-[9px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-500/15 px-1 py-0.2 rounded-full leading-none">
-                    {isKa ? "საჩუქრად" : "Gift"}
-                  </span>
-                </div>
-              ) : (
-                <div className="flex items-baseline gap-1">
-                  <span className="text-base sm:text-lg font-black text-foreground tracking-tight leading-none">
+          {/* Left: Transaction Type & Price */}
+          <div className="min-w-0 flex flex-col justify-center">
+            {listing.transactionType === "TRADE" ? (
+              <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400">
+                <RefreshCw className="w-4 h-4 shrink-0" />
+                <span className="text-base sm:text-lg font-black tracking-tight leading-none">
+                  {isKa ? "გაცვლა" : "Trade"}
+                </span>
+              </div>
+            ) : listing.transactionType === "GIFT" ? (
+              <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
+                <Gift className="w-4 h-4 shrink-0" />
+                <span className="text-base sm:text-lg font-black tracking-tight leading-none">
+                  {isKa ? "გაჩუქება" : "Gift"}
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider leading-none">
+                  {isKa ? "ფასი" : "Price"}
+                </span>
+                <div className="flex items-baseline gap-1 mt-1">
+                  <span className="text-lg sm:text-xl font-black text-foreground tracking-tight leading-none">
                     {formatPrice(listing.price)}
                   </span>
                   {listing.transactionType === "NEGOTIABLE" && (
@@ -708,8 +685,8 @@ export default function ListingDetailPage({
                     </span>
                   )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Right: Direct 1-Tap Contacts */}

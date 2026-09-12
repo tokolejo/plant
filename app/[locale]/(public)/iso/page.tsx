@@ -31,6 +31,7 @@ import {
   List,
   Shuffle,
   Gift,
+  Scissors,
   Plus,
   PlusCircle,
   ArrowRight,
@@ -803,12 +804,13 @@ function IsoCatalogContent() {
             ref={isoScrollRef}
             className="flex items-center gap-2 overflow-x-auto scroll-smooth no-scrollbar py-1 flex-1 px-0.5"
           >
-            {/* 1. All */}
+            {/* 1. All Swaps */}
             <button
               type="button"
               onClick={() => {
                 handleItemTypeChange("ALL");
                 setSelectedTrans([]);
+                setSelectedCategories([]);
               }}
               className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
                 itemTypeFilter === "ALL" && selectedCategories.length === 0 && selectedTrans.length === 0
@@ -817,7 +819,7 @@ function IsoCatalogContent() {
               }`}
             >
               <Shuffle className={`w-3.5 h-3.5 ${itemTypeFilter === "ALL" && selectedCategories.length === 0 && selectedTrans.length === 0 ? "text-white" : "text-primary"}`} />
-              <span>{isKa ? "ყველა გაცვლა & ძიება" : "All Swaps & ISO"}</span>
+              <span>{isKa ? "ყველა გაცვლა" : "All Swaps"}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
                   itemTypeFilter === "ALL" && selectedCategories.length === 0 && selectedTrans.length === 0
@@ -829,21 +831,52 @@ function IsoCatalogContent() {
               </span>
             </button>
 
-            {/* 2. Plants */}
+            {/* 2. Gift / Free Giveaways (Directly following Swaps) */}
             <button
               type="button"
-              onClick={() => handleItemTypeChange("PLANT")}
+              onClick={() => {
+                setSelectedTrans(["GIFT"]);
+                setItemTypeFilter("ALL");
+                setSelectedCategories([]);
+                setOpenSections((prev) => ({ ...prev, swapType: true }));
+              }}
               className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
-                itemTypeFilter === "PLANT" && selectedCategories.length === 0
+                selectedTrans.includes("GIFT") && selectedTrans.length === 1 && selectedCategories.length === 0
+                  ? "bg-emerald-600 text-white border-emerald-600 shadow-xs scale-102"
+                  : "bg-card hover:bg-surface-container text-foreground border-border/80"
+              }`}
+            >
+              <Gift className={`w-3.5 h-3.5 ${selectedTrans.includes("GIFT") && selectedTrans.length === 1 && selectedCategories.length === 0 ? "text-white" : "text-emerald-600"}`} />
+              <span>{isKa ? "გაჩუქება" : "Giveaways"}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  selectedTrans.includes("GIFT") && selectedTrans.length === 1 && selectedCategories.length === 0
+                    ? "bg-white/20 text-white"
+                    : "bg-secondary-container text-muted-foreground"
+                }`}
+              >
+                {allListings.filter((l) => l.transactionType === "GIFT").length}
+              </span>
+            </button>
+
+            {/* 3. Plants */}
+            <button
+              type="button"
+              onClick={() => {
+                handleItemTypeChange("PLANT");
+                setSelectedTrans([]);
+              }}
+              className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
+                itemTypeFilter === "PLANT" && selectedCategories.length === 0 && selectedTrans.length === 0
                   ? "bg-primary text-white border-primary shadow-xs scale-102"
                   : "bg-card hover:bg-surface-container text-foreground border-border/80"
               }`}
             >
-              <Leaf className={`w-3.5 h-3.5 ${itemTypeFilter === "PLANT" && selectedCategories.length === 0 ? "text-white" : "text-emerald-600"}`} />
+              <Leaf className={`w-3.5 h-3.5 ${itemTypeFilter === "PLANT" && selectedCategories.length === 0 && selectedTrans.length === 0 ? "text-white" : "text-emerald-600"}`} />
               <span>{isKa ? "მცენარეები" : "Plants"}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  itemTypeFilter === "PLANT" && selectedCategories.length === 0
+                  itemTypeFilter === "PLANT" && selectedCategories.length === 0 && selectedTrans.length === 0
                     ? "bg-white/20 text-white"
                     : "bg-secondary-container text-muted-foreground"
                 }`}
@@ -852,73 +885,52 @@ function IsoCatalogContent() {
               </span>
             </button>
 
-            {/* 3. Trade Only */}
+            {/* 4. Cuttings & Rooted Offshoots */}
             <button
               type="button"
               onClick={() => {
-                setSelectedTrans(["TRADE"]);
-                setOpenSections((prev) => ({ ...prev, swapType: true }));
+                setItemTypeFilter("PLANT");
+                setSelectedCategories(["cutting"]);
+                setSelectedTrans([]);
+                setOpenSections((prev) => ({ ...prev, categories: true }));
               }}
               className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
-                selectedTrans.includes("TRADE") && selectedTrans.length === 1
+                selectedCategories.includes("cutting") && selectedCategories.length === 1
                   ? "bg-primary text-white border-primary shadow-xs scale-102"
                   : "bg-card hover:bg-surface-container text-foreground border-border/80"
               }`}
             >
-              <Shuffle className={`w-3.5 h-3.5 ${selectedTrans.includes("TRADE") && selectedTrans.length === 1 ? "text-white" : "text-indigo-600"}`} />
-              <span>{isKa ? "გაცვლა" : "Trade"}</span>
+              <Scissors className={`w-3.5 h-3.5 ${selectedCategories.includes("cutting") && selectedCategories.length === 1 ? "text-white" : "text-emerald-600"}`} />
+              <span>{isKa ? "კალმები & შვილები" : "Cuttings"}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  selectedTrans.includes("TRADE") && selectedTrans.length === 1
+                  selectedCategories.includes("cutting") && selectedCategories.length === 1
                     ? "bg-white/20 text-white"
                     : "bg-secondary-container text-muted-foreground"
                 }`}
               >
-                {allListings.filter(l => l.transactionType === "TRADE").length}
-              </span>
-            </button>
-
-            {/* 4. Gift / Free */}
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedTrans(["GIFT"]);
-                setOpenSections((prev) => ({ ...prev, swapType: true }));
-              }}
-              className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
-                selectedTrans.includes("GIFT") && selectedTrans.length === 1
-                  ? "bg-primary text-white border-primary shadow-xs scale-102"
-                  : "bg-card hover:bg-surface-container text-foreground border-border/80"
-              }`}
-            >
-              <Gift className={`w-3.5 h-3.5 ${selectedTrans.includes("GIFT") && selectedTrans.length === 1 ? "text-white" : "text-amber-600"}`} />
-              <span>{isKa ? "გაჩუქება / უფასო" : "Free / Gifts"}</span>
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  selectedTrans.includes("GIFT") && selectedTrans.length === 1
-                    ? "bg-white/20 text-white"
-                    : "bg-secondary-container text-muted-foreground"
-                }`}
-              >
-                {allListings.filter(l => l.transactionType === "GIFT").length}
+                {allListings.filter((l) => (l.plantCategory === "cutting" || l.plant_category === "cutting")).length}
               </span>
             </button>
 
             {/* 5. Inventory */}
             <button
               type="button"
-              onClick={() => handleItemTypeChange("INVENTORY")}
+              onClick={() => {
+                handleItemTypeChange("INVENTORY");
+                setSelectedTrans([]);
+              }}
               className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
-                itemTypeFilter === "INVENTORY" && selectedCategories.length === 0
+                itemTypeFilter === "INVENTORY" && selectedCategories.length === 0 && selectedTrans.length === 0
                   ? "bg-primary text-white border-primary shadow-xs scale-102"
                   : "bg-card hover:bg-surface-container text-foreground border-border/80"
               }`}
             >
-              <Layers className={`w-3.5 h-3.5 ${itemTypeFilter === "INVENTORY" && selectedCategories.length === 0 ? "text-white" : "text-amber-600"}`} />
+              <Layers className={`w-3.5 h-3.5 ${itemTypeFilter === "INVENTORY" && selectedCategories.length === 0 && selectedTrans.length === 0 ? "text-white" : "text-amber-600"}`} />
               <span>{isKa ? "ინვენტარი" : "Supplies"}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  itemTypeFilter === "INVENTORY" && selectedCategories.length === 0
+                  itemTypeFilter === "INVENTORY" && selectedCategories.length === 0 && selectedTrans.length === 0
                     ? "bg-white/20 text-white"
                     : "bg-secondary-container text-muted-foreground"
                 }`}
@@ -927,8 +939,8 @@ function IsoCatalogContent() {
               </span>
             </button>
 
-            {/* Category Groups */}
-            {PLANT_CATEGORY_GROUPS.map((group) => {
+            {/* Category Groups (Excluding inventory since it has its own dedicated top-level button) */}
+            {PLANT_CATEGORY_GROUPS.filter((g) => g.id !== "inventory").map((group) => {
               const IconComp = group.icon || Sprout;
               const groupCatIds = group.children.map((c) => c.id as string);
               const isGroupActive = group.children.some((c) => selectedCategories.includes(c.id));
@@ -939,14 +951,10 @@ function IsoCatalogContent() {
                   key={group.id}
                   type="button"
                   onClick={() => {
-                    if (group.id === "inventory") {
-                      handleItemTypeChange("INVENTORY");
-                    } else {
-                      setItemTypeFilter("PLANT");
-                      setSelectedCategories(group.children.map((c) => c.id));
-                      setOpenSections((prev) => ({ ...prev, categories: true }));
-                      setOpenGroups((prev) => ({ ...prev, [group.id]: true }));
-                    }
+                    setItemTypeFilter("PLANT");
+                    setSelectedCategories(group.children.map((c) => c.id));
+                    setOpenSections((prev) => ({ ...prev, categories: true }));
+                    setOpenGroups((prev) => ({ ...prev, [group.id]: true }));
                   }}
                   className={`px-4 py-2.5 rounded-[14px] text-xs font-black flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap border shrink-0 ${
                     isGroupActive

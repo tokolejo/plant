@@ -47,7 +47,9 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
   // Auto-fetch Real Listings from Database on Mount
   React.useEffect(() => {
     getMergedListings().then((merged) => {
-      const marketListings = merged.filter((item) => item.transactionType !== "TRADE");
+      const marketListings = merged.filter(
+        (item) => item.transactionType !== "TRADE" && item.transactionType !== "GIFT"
+      );
       setAllListings(marketListings);
       setTotalDbCount(marketListings.length);
       setLoading(false);
@@ -80,8 +82,10 @@ export function DiscoveryFeed({ listings = [] }: DiscoveryFeedProps) {
 
   // Fair Premium Boost Sorting & Diverse Tab Filtering (Anti-Monopoly Grid)
   const filtered = React.useMemo(() => {
-    // 1. Filter out TRADE listings (Market strictly contains sales & giveaways)
-    const marketListings = allListings.filter((item) => item.transactionType !== "TRADE");
+    // 1. Filter out TRADE & GIFT listings (Market strictly contains sales)
+    const marketListings = allListings.filter(
+      (item) => item.transactionType !== "TRADE" && item.transactionType !== "GIFT"
+    );
 
     // 2. Filter by Tab: ALL, PLANTS, INVENTORY
     const tabFiltered = marketListings.filter((item) => {

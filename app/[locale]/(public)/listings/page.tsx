@@ -317,8 +317,10 @@ function ListingsCatalogContent() {
     async function loadLiveListings() {
       try {
         const merged = await getMergedListings();
-        // Segregate Market: Filter out TRADE items so trade listings never appear in Marketplace
-        const marketOnly = merged.filter((item: any) => item.transactionType !== "TRADE");
+        // Segregate Market: Filter out TRADE & GIFT items (Market is strictly for sales)
+        const marketOnly = merged.filter(
+          (item: any) => item.transactionType !== "TRADE" && item.transactionType !== "GIFT"
+        );
         const localized = marketOnly.map((item: any) => ({
           ...item,
           title: isKa ? (item.titleKa || item.title_ka || item.title) : (item.titleEn || item.title_en || item.title),
@@ -583,17 +585,13 @@ function ListingsCatalogContent() {
           if (!selectedCategories.includes(itemCat as any)) return false;
         }
 
-        // Strictly exclude TRADE from Marketplace
-        if (item.transactionType === "TRADE") return false;
+        // Strictly exclude TRADE & GIFT from Marketplace (Market is strictly for sales)
+        if (item.transactionType === "TRADE" || item.transactionType === "GIFT") return false;
 
         if (selectedTrans.length > 0 && !selectedTrans.includes(item.transactionType)) return false;
         if (selectedDelivery.length > 0 && !selectedDelivery.some((d: string) => item.deliveryMethods?.includes(d as any))) return false;
         
-        // Price filtering: if GIFT is specifically chosen in transaction filter, preserve it even if priceRange[0] > 0
-        const isGiftItem = item.transactionType === "GIFT" || item.price === 0;
-        if (selectedTrans.includes("GIFT") && isGiftItem) {
-          // Keep giveaway item
-        } else if (item.price < priceRange[0] || item.price > priceRange[1]) {
+        if (item.price < priceRange[0] || item.price > priceRange[1]) {
           return false;
         }
         return true;
@@ -899,7 +897,6 @@ function ListingsCatalogContent() {
           {[
             { id: "FIXED", label: isKa ? "ფიქსირებული ფასი" : "Fixed Price" },
             { id: "NEGOTIABLE", label: isKa ? "ფასი შეთანხმებით" : "Negotiable" },
-            { id: "GIFT", label: isKa ? "გაჩუქება (უფასო)" : "Giveaway (Free)" },
           ].map((t) => {
             const active = selectedTrans.includes(t.id);
             const count = allListings.filter((l) => l.transactionType === t.id).length;
@@ -1052,8 +1049,8 @@ function ListingsCatalogContent() {
               </span>
             </button>
 
-            {/* Category Groups */}
-            {PLANT_CATEGORY_GROUPS.map((group) => {
+            {/* Category Groups (Excluding inventory since it has its own dedicated top-level button) */}
+            {PLANT_CATEGORY_GROUPS.filter((g) => g.id !== "inventory").map((group) => {
               const IconComp = group.icon || Sprout;
               const groupCatIds = group.children.map((c) => c.id as string);
               const isGroupActive = group.children.some((c) => selectedCategories.includes(c.id));
