@@ -128,14 +128,14 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
           <button
             type="button"
             onClick={handleWishlistClick}
-            className={`absolute top-2.5 right-2.5 z-20 h-8 w-8 rounded-full backdrop-blur-md flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-xs ${
+            className={`absolute top-2.5 right-2.5 z-20 h-7 w-7 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer ${
               isWishlisted
-                ? "bg-rose-500 text-white"
-                : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
+                ? "bg-rose-500 shadow-md shadow-rose-500/30 text-white"
+                : "bg-white/70 dark:bg-black/40 text-slate-400 hover:text-rose-500 hover:bg-white/90 dark:hover:bg-black/60"
             }`}
             title={isWishlisted ? (isKa ? "რჩეულებიდან ამოშლა" : "Remove from favorites") : (isKa ? "რჩეულებში დამატება" : "Add to favorites")}
           >
-            <Heart className={`w-4 h-4 ${isWishlisted ? "fill-current" : ""}`} />
+            <Heart className={`w-3.5 h-3.5 transition-all duration-200 ${isWishlisted ? "fill-current scale-110" : ""}`} />
           </button>
 
           {service.portfolio_images && service.portfolio_images.length > 1 && (
@@ -261,26 +261,25 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
         />
 
-        {/* Category Badge Top Left */}
+        {/* Category Badge Top Left — icon-only, matches ListingCard Sprout badge */}
         <div className="absolute top-2 left-2 flex flex-wrap gap-1 z-10">
-          <span className="backdrop-blur-md bg-background/90 text-primary border border-border/40 text-[10px] font-bold px-2 py-0.5 rounded-[7px] flex items-center gap-1 shadow-2xs">
-            <CatIcon className="w-3 h-3 text-primary" />
-            <span>{catLabel}</span>
+          <span className="backdrop-blur-md bg-background/90 text-primary border border-border/40 text-[10px] font-bold p-1 rounded-[7px] flex items-center justify-center">
+            <CatIcon className="w-3 h-3" />
           </span>
         </div>
 
-        {/* Wishlist Heart Button Top Right */}
+        {/* Wishlist Heart Button Top Right — matches ListingCard h-6 w-6 */}
         <button
           type="button"
           onClick={handleWishlistClick}
-          className={`absolute top-2 right-2 z-20 h-7.5 w-7.5 rounded-full backdrop-blur-md flex items-center justify-center transition-all active:scale-90 cursor-pointer shadow-xs ${
+          className={`absolute top-2 right-2 z-20 h-6 w-6 rounded-full backdrop-blur-sm flex items-center justify-center transition-all duration-200 active:scale-90 cursor-pointer ${
             isWishlisted
-              ? "bg-rose-500 text-white"
-              : "bg-background/80 hover:bg-background text-muted-foreground hover:text-rose-500"
+              ? "bg-rose-500 shadow-md shadow-rose-500/30 text-white"
+              : "bg-white/70 dark:bg-black/40 text-slate-400 hover:text-rose-500 hover:bg-white/90 dark:hover:bg-black/60"
           }`}
           title={isWishlisted ? (isKa ? "რჩეულებიდან ამოშლა" : "Remove from favorites") : (isKa ? "რჩეულებში დამატება" : "Add to favorites")}
         >
-          <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-current" : ""}`} />
+          <Heart className={`w-3 h-3 transition-all duration-200 ${isWishlisted ? "fill-current scale-110" : ""}`} />
         </button>
 
         {/* Distance Badge bottom left */}
@@ -328,7 +327,7 @@ export function ServiceCard({ service, variant = "compact" }: ServiceCardProps) 
         </div>
 
         {/* Title — Strict 2 lines clamp */}
-        <Link href={`/services/${service.id}`} className="mb-2 block">
+        <Link href={`/services/${service.id}`} className="mb-1 block">
           <h3 className="line-clamp-2 text-xs sm:text-[13px] font-bold text-foreground leading-snug min-h-[32px] hover:text-primary transition-colors">
             {service.title}
           </h3>
